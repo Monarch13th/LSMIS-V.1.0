@@ -1,12 +1,17 @@
-import { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/icons";
 import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../hooks/useAuth";
 import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
-import logoImg from "../assets/logo.jpg";
-import facilityBgImg from "../assets/lsmis-facility-bg.jpg";
+
+// Photography Assets (Public URLs for parallel preloading & PWA caching)
+const logoImg = "/logo.jpg";
+const heroInspectorImg = "/hero-inspector.jpg";
+const aboutVetImg = "/about-veterinarian.jpg";
+const inspectionImg = "/inspection-postmortem.jpg";
+const facilityBgImg = "/lsmis-facility-bg.jpg";
 
 // Official Google 4-Color "G" Brand Logo
 const GoogleLogo = ({ size = 18 }) => (
@@ -37,7 +42,7 @@ const GoogleLogo = ({ size = 18 }) => (
   </svg>
 );
 
-const navLinks = [
+const NAV_ITEMS = [
   { label: "Home", href: "#top" },
   { label: "About", href: "#about" },
   { label: "Features", href: "#features" },
@@ -45,117 +50,128 @@ const navLinks = [
   { label: "Contact", href: "#contact" },
 ];
 
-const featureCards = [
+const FEATURE_MODULES = [
   {
-    title: "Livestock Management",
-    desc: "Manage owner records, livestock profiles, and track status from intake to final release.",
-    icon: <Icon.Cow size={20} />,
-    tag: "Intake & Penning",
-    items: [
-      "Owner & provenance registration",
-      "Lairage ear tag assignment",
-      "Real-time pen allocation",
-    ],
+    title: "Livestock Registration",
+    desc: "Digital intake of owner credentials, shipping permits, provenance verification, and lairage penning allocation.",
+    icon: <Icon.Cow size={22} />,
   },
   {
-    title: "Meat Inspection",
-    desc: "Record Ante-Mortem screening and Post-Mortem examinations with clinical precision.",
-    icon: <Icon.Stethoscope size={20} />,
-    tag: "Clinical Exam",
-    items: [
-      "Clinical ante-mortem screening",
-      "Post-mortem carcass evaluation",
-      "Condemnation & disposal logging",
-    ],
+    title: "Animal Marking",
+    desc: "Official ear tag and lot identification marking, establishing end-to-end traceability across slaughter lines.",
+    icon: <Icon.Tag size={22} />,
   },
   {
-    title: "Slaughter Management",
-    desc: "Track humane slaughter lines, scale weights, and sanitary dispatch gate-pass clearance.",
-    icon: <Icon.Activity size={20} />,
-    tag: "Processing",
-    items: [
-      "Humane processing line logs",
-      "Digital carcass scale recording",
-      "Sanitary gate-pass clearance",
-    ],
+    title: "Ante-Mortem Inspection",
+    desc: "Clinical veterinary screening for animal disease indicators, quarantine evaluation, and slaughter fitness clearances.",
+    icon: <Icon.Stethoscope size={22} />,
+  },
+  {
+    title: "Slaughter Operations",
+    desc: "Sequential monitoring of humane stunning, bleeding, scalding, dehairing, and sanitary evisceration line processing.",
+    icon: <Icon.Activity size={22} />,
+  },
+  {
+    title: "Post-Mortem Inspection",
+    desc: "Rigorous veterinary pathological examination of head, visceral organs, carcass halves, and condemnation logging.",
+    icon: <Icon.ClipboardCheck size={22} />,
+  },
+  {
+    title: "Carcass Weighing",
+    desc: "Precise digital scale capture of warm dressed carcass weights, meat grading, and condemnation accounting.",
+    icon: <Icon.Scale size={22} />,
+  },
+  {
+    title: "Meat Permit Management",
+    desc: "Automated generation and issuance of official Meat Inspection Certificates (MIC) and distribution gate clearances.",
+    icon: <Icon.FileText size={22} />,
   },
   {
     title: "Records and Reports",
-    desc: "Generate Meat Inspection Certificates (MIC) and tamper-proof compliance audits.",
-    icon: <Icon.ClipboardCheck size={20} />,
-    tag: "Compliance",
-    items: [
-      "Official Meat Inspection Certificates",
-      "Standardized inspection reporting",
-      "Traceability & slaughter logs",
-    ],
+    desc: "Regulatory abattoir audit trails, daily slaughter summaries, fee reconciliations, and statutory compliance logs.",
+    icon: <Icon.Report size={22} />,
   },
 ];
 
-const workflowSteps = [
+const WORKFLOW_STEPS = [
   {
     step: 1,
-    title: "Receiving",
+    title: "Register Livestock",
     role: "Slaughterhouse Staff",
-    desc: "Intake verification of certificates, farm origin, and pen assignment.",
-    icon: <Icon.Truck size={17} />,
+    roleType: "staff",
+    desc: "Intake validation of livestock ownership, certificates, origin, and municipal lairage pen assignment.",
+    icon: <Icon.Cow size={18} />,
   },
   {
     step: 2,
     title: "Animal Marking",
     role: "Slaughterhouse Staff",
-    desc: "Official Ear Tag or Tattoo marking and serial lot assignment.",
-    icon: <Icon.Tag size={17} />,
+    roleType: "staff",
+    desc: "Assignment of official tamper-evident ear tags and lot numbers for complete municipal tracking.",
+    icon: <Icon.Tag size={18} />,
   },
   {
     step: 3,
     title: "Ante-Mortem Inspection",
     role: "Veterinary Inspector",
-    desc: "Clinical veterinary examination and screening for slaughter fitness.",
-    icon: <Icon.Stethoscope size={17} />,
+    roleType: "vet",
+    desc: "Clinical veterinary examination of live animals to screen for disease symptoms and verify slaughter fitness.",
+    icon: <Icon.Stethoscope size={18} />,
   },
   {
     step: 4,
-    title: "Slaughter Processing",
+    title: "Assign Team Operator",
     role: "Slaughterhouse Staff",
-    desc: "Humane stunning, bleeding, scalding, and evisceration.",
-    icon: <Icon.Scissors size={17} />,
+    roleType: "staff",
+    desc: "Designation of certified slaughterhouse teams to approved animals awaiting slaughter line execution.",
+    icon: <Icon.Users size={18} />,
   },
   {
     step: 5,
-    title: "Post-Mortem Inspection",
-    role: "Veterinary Inspector",
-    desc: "Pathological exam of head, internal organs, and carcass halves.",
-    icon: <Icon.ClipboardCheck size={17} />,
+    title: "Ready for Slaughter",
+    role: "Slaughterhouse Staff",
+    roleType: "staff",
+    desc: "Execution of humane stunning, bleeding, scalding, dehairing, and sanitary processing line protocols.",
+    icon: <Icon.Scissors size={18} />,
   },
   {
     step: 6,
-    title: "Carcass Weighing",
+    title: "Post-Mortem Inspection",
     role: "Veterinary Inspector",
-    desc: "Digital scale weighing of warm carcass, branding, and grading.",
-    icon: <Icon.Scale size={17} />,
+    roleType: "vet",
+    desc: "Detailed pathological exam of head, visceral internal organs, and split carcass halves for food safety.",
+    icon: <Icon.ClipboardCheck size={18} />,
   },
   {
     step: 7,
+    title: "Carcass Weighing",
+    role: "Veterinary Inspector",
+    roleType: "vet",
+    desc: "Digital scale weighing of warm dressed carcass, official grade stamping, and final sanitary clearance.",
+    icon: <Icon.Scale size={18} />,
+  },
+  {
+    step: 8,
     title: "Meat Permit",
     role: "Slaughterhouse Staff",
-    desc: "Issuance of official Meat Inspection Certificate (MIC) and permits.",
-    icon: <Icon.FileText size={17} />,
+    roleType: "staff",
+    desc: "Issuance of official Meat Inspection Certificates (MIC) and authorized municipal dispatch gate passes.",
+    icon: <Icon.FileText size={18} />,
   },
 ];
-
-
 
 export const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [activeSection, setActiveSection] = useState("top");
   const [googleLoading, setGoogleLoading] = useState(false);
+  const mobileMenuRef = useRef(null);
+
   const { theme, toggleTheme } = useTheme();
   const { role, isAuthenticated, loading: authLoading, isInitialized: authInitialized } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  // If running inside the installed APK or installed PWA, bypass the landing page directly
+  // Installed app check: direct bypass to dashboard or login
   useEffect(() => {
     if (isInstalledApp()) {
       if (authLoading || !authInitialized) return;
@@ -167,6 +183,75 @@ export const LandingPage = () => {
     }
   }, [authLoading, authInitialized, isAuthenticated, role, navigate]);
 
+  // Scroll detection for navbar transition
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 30);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // IntersectionObserver for active nav scroll-spy
+  useEffect(() => {
+    const sectionIds = ["top", "about", "features", "workflow", "contact"];
+    const observerOptions = {
+      root: null,
+      rootMargin: "-20% 0px -70% 0px",
+      threshold: 0,
+    };
+
+    const handleIntersect = (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          setActiveSection(entry.target.id);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+    sectionIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
+  // Mobile drawer keyboard accessibility & body scroll lock
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+      window.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [mobileMenuOpen]);
+
+  // Smooth scroll handler with offset
+  const scrollToSection = useCallback((e, href) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    const targetId = href.replace("#", "");
+    const targetEl = document.getElementById(targetId);
+    if (targetEl) {
+      targetEl.scrollIntoView({ behavior: "smooth" });
+      history.pushState(null, "", href);
+      setActiveSection(targetId);
+    }
+  }, []);
+
+  // Preserved Google Sign-In for Livestock Owners
   const handleMobileGoogleSignIn = async () => {
     if (googleLoading) return;
     setGoogleLoading(true);
@@ -185,398 +270,448 @@ export const LandingPage = () => {
     }
   };
 
-  // On-scroll navbar height and shadow reduction
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  // Keyboard accessibility for mobile drawer
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && mobileMenuOpen) {
-        setMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [mobileMenuOpen]);
-
-  // Lock body scroll when mobile menu drawer is open
-  useEffect(() => {
-    if (mobileMenuOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileMenuOpen]);
-
-  // Subtle scroll-reveal observer (lightweight, zero-dependency, non-flickering)
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const prefersReducedMotion =
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    if (!("IntersectionObserver" in window) || prefersReducedMotion) {
-      // Respect reduced motion or fallback by leaving items immediately visible
-      return;
-    }
-
-    // Enable CSS animation classes only when active
-    document.documentElement.classList.add("js-anim");
-
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            // Animate entrance once to prevent repeated flickering during scrolling
-            obs.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.12,
-        rootMargin: "0px 0px -30px 0px",
-      }
-    );
-
-    const animTargets = document.querySelectorAll(
-      ".scroll-reveal, .stagger-group"
-    );
-    animTargets.forEach((el) => observer.observe(el));
-
-    return () => {
-      observer.disconnect();
-      document.documentElement.classList.remove("js-anim");
-    };
-  }, []);
-
-  const scrollToSection = (e, href) => {
-    e.preventDefault();
-    setMobileMenuOpen(false);
-    const targetId = href.replace("#", "");
-    const targetEl = document.getElementById(targetId);
-    if (targetEl) {
-      targetEl.scrollIntoView({ behavior: "smooth" });
-    }
-  };
-
   return (
     <div className="landing-page" id="top">
-      {/* Main Header with Sticky Nav & Scroll Feedback */}
-      <header className={`landing-header ${isScrolled ? "scrolled" : ""}`}>
-        <div className="container landing-nav">
-          <Link to="/" className="landing-brand">
-            <div className="landing-logo">
-              <img src={logoImg} alt="LSMIS Official Logo" />
-            </div>
-            <div className="landing-brand-text">
-              <span className="landing-brand-title">LSMIS</span>
-              <span className="landing-brand-sub">Tinaan, City of Naga, Cebu, Philippines</span>
-            </div>
-          </Link>
-
-          {/* Desktop Navigation Links */}
-          <nav className="landing-nav-links" aria-label="Main Navigation">
-            {navLinks.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={(e) => scrollToSection(e, item.href)}
-              >
-                {item.label}
-              </a>
-            ))}
-          </nav>
-
-          {/* Nav Actions: Dark Mode Toggle, Login & Register CTAs */}
-          <div className="landing-nav-actions">
-            <button
-              type="button"
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-              title={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+      {/* =========================================================
+          1. NAVIGATION BAR
+          ========================================================= */}
+      <header
+        className={`landing-nav-header ${isScrolled ? "nav-scrolled" : "nav-transparent"}`}
+        role="banner"
+      >
+        <div className="landing-container">
+          <div className="landing-nav-inner">
+            {/* Brand Logo & Institutional Label */}
+            <a
+              href="#top"
+              onClick={(e) => scrollToSection(e, "#top")}
+              className="nav-brand-link"
+              aria-label="City of Naga LSMIS - Home"
             >
-              {theme === "dark" ? <Icon.Sun size={16} /> : <Icon.Moon size={16} />}
-            </button>
+              <div className="nav-brand-logo">
+                <img src={logoImg} alt="City of Naga LSMIS Seal" width="44" height="44" />
+              </div>
+              <div className="nav-brand-text">
+                <span className="nav-brand-title">LSMIS</span>
+                <span className="nav-brand-sub">City of Naga · Slaughterhouse</span>
+              </div>
+            </a>
 
-            <Link to="/login" className="btn-login-nav">
-              <Icon.LogIn size={14} />
-              <span>Login</span>
-            </Link>
+            {/* Desktop Navigation Links */}
+            <nav className="nav-menu-desktop" aria-label="Main Navigation">
+              {NAV_ITEMS.map((item) => {
+                const id = item.href.replace("#", "");
+                const isActive = activeSection === id;
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    onClick={(e) => scrollToSection(e, item.href)}
+                    className={`nav-menu-link ${isActive ? "active" : ""}`}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {item.label}
+                  </a>
+                );
+              })}
+            </nav>
 
-            <Link to="/register" className="btn-signin-nav">
-              <Icon.UserPlus size={14} />
-              <span>Register</span>
-            </Link>
-
-            <button
-              type="button"
-              className="mobile-nav-toggle"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle navigation menu"
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <Icon.X size={20} /> : <Icon.Menu size={20} />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile Nav Backdrop Overlay */}
-        {mobileMenuOpen && (
-          <div
-            className="mobile-nav-overlay"
-            onClick={() => setMobileMenuOpen(false)}
-            aria-hidden="true"
-          />
-        )}
-
-        {/* Mobile Nav Drawer */}
-        <div className={`mobile-nav-drawer ${mobileMenuOpen ? "open" : ""}`} role="dialog" aria-modal="true" aria-label="Mobile Navigation Menu">
-          <div className="mobile-nav-header">
-            <span className="mobile-nav-title">Menu</span>
-            <button
-              type="button"
-              className="mobile-nav-close"
-              onClick={() => setMobileMenuOpen(false)}
-              aria-label="Close menu"
-            >
-              <Icon.X size={18} />
-            </button>
-          </div>
-          <div className="mobile-nav-items">
-            {navLinks.map((item) => (
-              <a
-                key={item.label}
-                href={item.href}
-                onClick={(e) => scrollToSection(e, item.href)}
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-          <div className="mobile-nav-footer">
-            <div className="mobile-nav-theme-row">
-              <span className="mobile-nav-theme-label">Theme Mode</span>
+            {/* Nav Actions: Theme Toggle, Mobile Toggle, Login */}
+            <div className="nav-actions">
               <button
                 type="button"
-                className="theme-toggle-btn"
+                className="nav-theme-toggle"
                 onClick={toggleTheme}
-                aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
               >
-                {theme === "dark" ? <><Icon.Sun size={16} /> Light</> : <><Icon.Moon size={16} /> Dark</>}
+                {theme === "dark" ? <Icon.Sun size={17} /> : <Icon.Moon size={17} />}
               </button>
-            </div>
-            {!isCapacitorNativeApp() && (<div className="mobile-nav-owner-google-wrap">
-              <button
-                type="button"
-                className="mobile-nav-google-btn"
-                onClick={handleMobileGoogleSignIn}
-                disabled={googleLoading}
-                aria-label="Sign in with Google for Livestock Owners"
-              >
-                <GoogleLogo size={18} />
-                <span>{googleLoading ? "Connecting..." : "Sign in with Google"}</span>
-              </button>
-            </div> )}
-            <div className="mobile-nav-auth-actions">
-              <Link
-                to="/login"
-                className="mobile-nav-login-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
+
+              <Link to="/login" className="nav-btn-login">
                 <Icon.LogIn size={15} />
                 <span>Login</span>
               </Link>
-              <Link
-                to="/register"
-                className="mobile-nav-signin-link"
-                onClick={() => setMobileMenuOpen(false)}
+
+              <button
+                type="button"
+                className="nav-mobile-toggle"
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open mobile navigation menu"
+                aria-expanded={mobileMenuOpen}
               >
-                <Icon.UserPlus size={15} />
-                <span>Register</span>
-              </Link>
+                <Icon.Menu size={22} />
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Hero Section with Official Facility Background */}
-      <section className="hero-section" id="home">
-        {/* Livestock Inspection Facility Background Layer */}
-        <div className="hero-backdrop" aria-hidden="true">
+      {/* Mobile Nav Backdrop Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="mobile-nav-backdrop"
+          onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Mobile Nav Drawer */}
+      <div
+        ref={mobileMenuRef}
+        className={`mobile-nav-panel ${mobileMenuOpen ? "open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation Menu"
+      >
+        <div className="mobile-nav-top">
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <img src={logoImg} alt="LSMIS" width="32" height="32" style={{ borderRadius: "50%" }} />
+            <span style={{ fontWeight: 800, fontSize: 16, color: "var(--lsmis-charcoal-900)" }}>
+              LSMIS Naga
+            </span>
+          </div>
+          <button
+            type="button"
+            className="mobile-nav-close"
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Close navigation menu"
+          >
+            <Icon.X size={20} />
+          </button>
+        </div>
+
+        <nav className="mobile-nav-links" aria-label="Mobile Navigation">
+          {NAV_ITEMS.map((item) => {
+            const id = item.href.replace("#", "");
+            const isActive = activeSection === id;
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                onClick={(e) => scrollToSection(e, item.href)}
+                className={`mobile-nav-link-item ${isActive ? "active" : ""}`}
+              >
+                <span>{item.label}</span>
+                <Icon.ChevronRight size={15} />
+              </a>
+            );
+          })}
+        </nav>
+
+        <div className="mobile-nav-bottom">
+          {!isCapacitorNativeApp() && (
+            <button
+              type="button"
+              className="mobile-nav-google-btn"
+              onClick={handleMobileGoogleSignIn}
+              disabled={googleLoading}
+              aria-label="Sign in with Google for Livestock Owners"
+            >
+              <GoogleLogo size={18} />
+              <span>{googleLoading ? "Connecting..." : "Sign in with Google"}</span>
+            </button>
+          )}
+
+          <Link
+            to="/login"
+            className="mobile-nav-primary-btn"
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            <Icon.LogIn size={16} />
+            <span>Access System</span>
+          </Link>
+
+          <Link
+            to="/register"
+            style={{
+              textAlign: "center",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "var(--lsmis-charcoal-600)",
+              textDecoration: "none",
+              paddingTop: 4,
+            }}
+            onClick={() => setMobileMenuOpen(false)}
+          >
+            New Livestock Owner? Register here
+          </Link>
+        </div>
+      </div>
+
+      {/* =========================================================
+          2. HERO SECTION
+          ========================================================= */}
+      <section className="landing-hero landing-section" aria-label="Hero Introduction">
+        {/* Large inspection photograph with dark forest green overlay */}
+        <div className="hero-media-wrapper" aria-hidden="true">
           <img
-            src={facilityBgImg}
-            alt=""
-            className="hero-backdrop-img"
+            src={heroInspectorImg}
+            alt="Meat Inspector inside City of Naga municipal slaughterhouse facility"
+            className="hero-media-img"
+            width="1376"
+            height="768"
             fetchPriority="high"
             loading="eager"
             decoding="async"
           />
-          <div className="hero-backdrop-overlay" />
+          <div className="hero-overlay-dark" />
         </div>
 
-        <div className="container hero-centered-container">
-          <div className="hero-content-card scroll-reveal">
-            {/* Required Bold Primary Headline */}
-            <h1 className="hero-headline">
-              Livestock Slaughter and <span className="headline-gov-teal">Meat Inspection</span> Management System
+        <div className="landing-container">
+          <div className="hero-content-inner">
+            {/* Small Institutional Label */}
+            <div className="hero-badge-pill">
+              <span className="hero-badge-dot" />
+              <span>City of Naga LSMIS</span>
+            </div>
+
+            {/* Main Headline */}
+            <h1 className="hero-main-title">
+              Modernizing Livestock Slaughter and <span>Meat Inspection</span>.
             </h1>
 
-            {/* Required Supporting Subheadline */}
-            <p className="hero-subtext">
-              A web-based system for managing livestock records, slaughter operations, meat inspections, permits, and related abattoir records.
+            {/* Description */}
+            <p className="hero-lead-text">
+              A centralized digital platform for managing livestock registration, slaughterhouse
+              operations, veterinary inspections, carcass weighing, and meat permit records.
             </p>
 
-            {/* Hero Action Buttons */}
-            <div className="hero-actions">
+            {/* Action Buttons */}
+            <div className="hero-cta-group">
               <Link to="/login" className="btn-hero-primary">
-                <span>Login to System</span>
+                <span>Access System</span>
+                <Icon.ArrowRight size={17} />
               </Link>
               <a
-                href="#about"
+                href="#features"
+                onClick={(e) => scrollToSection(e, "#features")}
                 className="btn-hero-secondary"
-                onClick={(e) => scrollToSection(e, "#about")}
               >
-                <span>Learn More</span>
+                <span>Explore Features</span>
               </a>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* About Section */}
-      <section className="about-section" id="about">
-        <div className="container">
-          <div className="section-header scroll-reveal">
-            <span className="section-tag">Institutional Mandate</span>
-            <h2 className="section-title">About the System</h2>
-            <p className="section-subtitle">
-              The Livestock Slaughter and Meat Inspection Management System (LSMIS) is a municipal technology platform developed specifically for Tinaan, City of Naga, Cebu, Philippines.
-            </p>
-          </div>
-
-          <div className="about-intro-box scroll-reveal">
-            <div className="about-intro-col">
-              <h4>Modernizing Veterinary Oversight</h4>
-              <p>
-                LSMIS supports abattoir operations by centralizing livestock receiving, lairage monitoring, ante-mortem and post-mortem clinical inspections, slaughter operations, digital carcass weighing, and permit issuance into an integrated, paperless system.
-              </p>
-            </div>
-            <div className="about-intro-col">
-              <h4>Safeguarding Public Health</h4>
-              <p>
-                Operating at the municipal slaughterhouse facility in Tinaan, City of Naga, Cebu, Philippines, the platform guarantees that every animal entering the slaughterhouse is clinically evaluated by licensed veterinarians, slaughtered humanely, and inspected pathologically so that only clean, wholesome, disease-free meat reaches consumer tables.
-              </p>
-            </div>
-          </div>
-
-          <div className="core-focus-header scroll-reveal">
-            <h3>Key Institutional Mandates</h3>
-            <p>Four primary pillars governing slaughterhouse operations in Tinaan, City of Naga, Cebu, Philippines:</p>
-          </div>
-
-          <div className="core-focus-grid stagger-group">
-            <div className="core-focus-card scroll-reveal-child">
-              <div className="core-focus-icon-box"><Icon.Cow size={20} /></div>
-              <h4>Complete Animal Traceability</h4>
-              <p>Digital encoding of farm origin, owner credentials, shipping permits, and food-grade ear tagging upon arrival at municipal lairage pens.</p>
-            </div>
-            <div className="core-focus-card scroll-reveal-child">
-              <div className="core-focus-icon-box"><Icon.Stethoscope size={20} /></div>
-              <h4>Rigorous Veterinary Inspection</h4>
-              <p>Mandatory clinical screening by licensed City Veterinarians, ensuring suspect or diseased livestock are immediately quarantined or condemned.</p>
-            </div>
-            <div className="core-focus-card scroll-reveal-child">
-              <div className="core-focus-icon-box"><Icon.Shield size={20} /></div>
-              <h4>Statutory Food Safety Standards</h4>
-              <p>Full compliance with the Meat Inspection Code of the Philippines (RA 9296 / RA 10536) and NMIS Class AA sanitary protocols.</p>
-            </div>
-            <div className="core-focus-card scroll-reveal-child">
-              <div className="core-focus-icon-box"><Icon.FileText size={20} /></div>
-              <h4>Official Permitting &amp; Clearance</h4>
-              <p>Immediate generation of Meat Inspection Certificates (MIC) and gate clearances, ensuring accredited meat reaches consumers safely.</p>
+            {/* Institutional Trust Badges */}
+            <div className="hero-trust-chips">
+              <div className="hero-chip-item">
+                <Icon.ShieldCheck size={16} />
+                <span>Class AA Abattoir Protocols</span>
+              </div>
+              <div className="hero-chip-item">
+                <Icon.Stethoscope size={16} />
+                <span>Certified Veterinary Oversight</span>
+              </div>
+              <div className="hero-chip-item">
+                <Icon.Tag size={16} />
+                <span>Complete Farm-to-Table Traceability</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section: 4 Core Feature Cards */}
-      <section className="features-section" id="features">
-        <div className="container">
-          <div className="section-header scroll-reveal">
-            <span className="section-tag">Core Modules</span>
-            <h2 className="section-title">System Features</h2>
-            <p className="section-subtitle">
-              Comprehensive capabilities designed to streamline end-to-end slaughterhouse operations for veterinarians, staff, and livestock owners.
-            </p>
-          </div>
+      {/* =========================================================
+          3. ABOUT SECTION
+          ========================================================= */}
+      <section className="landing-about landing-section" id="about" aria-label="About the System">
+        <div className="landing-container">
+          <div className="about-grid-layout">
+            {/* Text Column */}
+            <div className="about-text-content">
+              <div>
+                <span className="section-header-badge">Institutional Mandate</span>
+                <h2 className="section-header-title">About the System</h2>
+              </div>
 
-          <div className="features-grid stagger-group">
-            {featureCards.map((feat) => (
-              <div key={feat.title} className="feature-card scroll-reveal-child">
-                <div className="feature-card-header">
-                  <div className="feature-card-icon">{feat.icon}</div>
-                  <span className="feature-card-tag">{feat.tag}</span>
+              <p className="about-lead-paragraph">
+                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is the
+                official municipal technology backbone operating at the City of Naga Slaughterhouse
+                in Tinaan, City of Naga, Cebu.
+              </p>
+
+              <p className="about-body-paragraph">
+                Administered under the Office of the City Veterinarian, LSMIS transforms municipal
+                abattoir operations from manual logbooks to a secure, paperless management ecosystem.
+                By verifying every animal upon arrival, supervising humane processing lines, and
+                enforcing clinical examinations, the system ensures that only wholesome, disease-free
+                meat reaches local markets and consumer tables in compliance with Republic Act No. 9296
+                and Republic Act No. 10536.
+              </p>
+
+              <div className="about-highlights-list">
+                <div className="about-highlight-card">
+                  <div className="about-highlight-icon-box">
+                    <Icon.ShieldCheck size={20} />
+                  </div>
+                  <div>
+                    <h3 className="about-highlight-title">Safeguarding Public Food Safety</h3>
+                    <p className="about-highlight-desc">
+                      Mandatory ante-mortem screening and post-mortem pathological examinations
+                      prevent diseased or contaminated meat from entering the municipal food supply.
+                    </p>
+                  </div>
                 </div>
-                <h3 className="feature-card-title">{feat.title}</h3>
-                <p className="feature-card-desc">{feat.desc}</p>
-                <ul className="feature-card-list">
-                  {feat.items.map((item, idx) => (
-                    <li key={idx}>
-                      <Icon.Check size={12} />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+
+                <div className="about-highlight-card">
+                  <div className="about-highlight-icon-box">
+                    <Icon.Tag size={20} />
+                  </div>
+                  <div>
+                    <h3 className="about-highlight-title">Full Animal Traceability</h3>
+                    <p className="about-highlight-desc">
+                      Every animal is cataloged with owner provenance, shipping credentials, and
+                      ear tags from municipal lairage penning through final permit release.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="about-highlight-card">
+                  <div className="about-highlight-icon-box">
+                    <Icon.Award size={20} />
+                  </div>
+                  <div>
+                    <h3 className="about-highlight-title">Office of the City Veterinarian</h3>
+                    <p className="about-highlight-desc">
+                      Direct digital governance empowers licensed veterinarians to issue official
+                      Meat Inspection Certificates (MIC) and transparent condemnation reports.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Supporting Photograph Column */}
+            <div className="about-media-card">
+              <img
+                src={aboutVetImg}
+                alt="City Veterinarian conducting an ante-mortem inspection of livestock"
+                width="1376"
+                height="768"
+                loading="lazy"
+                decoding="async"
+              />
+              <div className="about-media-caption">
+                <span className="about-caption-text">
+                  Veterinary Ante-Mortem Clinical Evaluation
+                </span>
+                <span className="about-caption-tag">Tinaan Facility</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================
+          4. FEATURES SECTION
+          ========================================================= */}
+      <section className="landing-features landing-section" id="features" aria-label="System Features">
+        <div className="landing-container">
+          <div className="section-header-center">
+            <span className="section-header-badge">Core Capabilities</span>
+            <h2 className="section-header-title">Implemented System Modules</h2>
+            <p className="section-header-desc">
+              Dedicated operational modules engineered to streamline daily abattoir management,
+              veterinary oversight, and compliance documentation:
+            </p>
+          </div>
+
+          {/* 8 Implemented Modules Grid */}
+          <div className="features-grid-container">
+            {FEATURE_MODULES.map((feat) => (
+              <div key={feat.title} className="feature-module-card">
+                <div className="feature-card-icon-wrap">{feat.icon}</div>
+                <h3 className="feature-card-name">{feat.title}</h3>
+                <p className="feature-card-summary">{feat.desc}</p>
               </div>
             ))}
           </div>
+
+          {/* Post-Mortem Examination Showcase Banner */}
+          <div className="feature-showcase-banner">
+            <div className="feature-showcase-photo-wrap">
+              <img
+                src={inspectionImg}
+                alt="Veterinary Post-Mortem Carcass Examination in sanitized facility"
+                width="1376"
+                height="768"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <div className="feature-showcase-content">
+              <span className="section-header-badge">Veterinary Inspection Bay</span>
+              <h3 className="feature-showcase-title">
+                Rigorous Post-Mortem Pathological Scrutiny
+              </h3>
+              <p className="feature-showcase-text">
+                Every dressed carcass undergoes systematic veterinary evaluation of the head,
+                visceral internal organs, and carcass halves. The digital platform logs organ
+                findings, condemnation evidence, and sanitary clearances in real time before
+                carcasses proceed to certified weighing and stamping.
+              </p>
+              <div className="feature-showcase-badges">
+                <span className="showcase-badge-pill">Head &amp; Lymph Node Examination</span>
+                <span className="showcase-badge-pill">Visceral Organ Evaluation</span>
+                <span className="showcase-badge-pill">Condemnation Evidence Logging</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Workflow Section: 7-Step Sequential Process Timeline */}
-      <section className="workflow-section" id="workflow">
-        <div className="container">
-          <div className="section-header scroll-reveal">
-            <span className="section-tag">Operational Sequence</span>
-            <h2 className="section-title">Slaughterhouse Workflow</h2>
-            <p className="section-subtitle">
-              A standardized 7-step timeline ensuring complete traceability, humane animal treatment, and rigorous veterinary scrutiny at each physical station.
+      {/* =========================================================
+          5. WORKFLOW SECTION
+          ========================================================= */}
+      <section className="landing-workflow landing-section" id="workflow" aria-label="Slaughterhouse Workflow">
+        <div className="landing-container">
+          <div className="section-header-center">
+            <span className="section-header-badge">Operational Sequence</span>
+            <h2 className="section-header-title">Slaughterhouse Workflow</h2>
+            <p className="section-header-desc">
+              The standardized 8-step sequential process enforced at the City of Naga
+              Slaughterhouse, guaranteeing humane animal care and complete traceability:
             </p>
           </div>
 
-          <div className="workflow-timeline stagger-group">
-            {workflowSteps.map((step, index) => {
-              const isVet = step.role.toLowerCase().includes("vet");
+          {/* Desktop Horizontal Timeline Grid */}
+          <div className="workflow-desktop-timeline">
+            {WORKFLOW_STEPS.map((step) => {
+              const isVet = step.roleType === "vet";
               return (
-                <div key={step.step} className="workflow-step-card scroll-reveal-child">
-                  <div className="workflow-step-top">
-                    <div className="step-badge">Step {step.step}</div>
-                    <span className={`step-role-badge ${isVet ? "role-vet" : "role-staff"}`}>
+                <div key={step.step} className="workflow-step-box">
+                  <div className="workflow-step-header">
+                    <span className="workflow-number-badge">{step.step}</span>
+                    <span className={`workflow-actor-badge ${isVet ? "actor-vet" : "actor-staff"}`}>
                       {step.role}
                     </span>
                   </div>
-                  <div className={`workflow-step-icon ${isVet ? "icon-vet" : "icon-staff"}`}>
-                    {step.icon}
-                  </div>
-                  <h4 className="workflow-step-title">{step.title}</h4>
+                  <div className="workflow-step-icon">{step.icon}</div>
+                  <h3 className="workflow-step-name">{step.title}</h3>
                   <p className="workflow-step-desc">{step.desc}</p>
-                  {index < workflowSteps.length - 1 && (
-                    <div className="workflow-connector" aria-hidden="true">
-                      <Icon.ArrowRight size={16} />
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile Vertical Timeline */}
+          <div className="workflow-mobile-timeline">
+            {WORKFLOW_STEPS.map((step) => {
+              const isVet = step.roleType === "vet";
+              return (
+                <div key={step.step} className="mobile-step-card">
+                  <div className="mobile-step-left">
+                    <span className="workflow-number-badge">{step.step}</span>
+                  </div>
+                  <div className="mobile-step-right">
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                      <span className={`workflow-actor-badge ${isVet ? "actor-vet" : "actor-staff"}`}>
+                        {step.role}
+                      </span>
                     </div>
-                  )}
+                    <h3 className="workflow-step-name">{step.title}</h3>
+                    <p className="workflow-step-desc">{step.desc}</p>
+                  </div>
                 </div>
               );
             })}
@@ -584,93 +719,155 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Contact Section: Tinaan, City of Naga, Cebu, Philippines */}
-      <section className="contact-section" id="contact">
-        <div className="container">
-          <div className="contact-box scroll-reveal">
-            <div className="contact-info">
-              <span className="section-tag">Facility &amp; Support</span>
-              <h3>City Abattoir Administration</h3>
-              <p>
-                For livestock intake scheduling, veterinary clearances, meat inspection permits, or administrative inquiries, visit or contact our abattoir administration office.
-              </p>
+      {/* =========================================================
+          6. CONTACT SECTION
+          ========================================================= */}
+      <section className="landing-contact landing-section" id="contact" aria-label="Contact and Facility Information">
+        <div className="landing-container">
+          <div className="contact-layout-box">
+            {/* Official Facility & Office Details */}
+            <div className="contact-info-col">
+              <div>
+                <span className="section-header-badge">Administration &amp; Inquiries</span>
+                <h2 className="contact-office-title">Facility &amp; Administration</h2>
+                <p className="contact-office-desc">
+                  For intake scheduling, veterinary clearances, livestock registration, or slaughter
+                  permit verifications, contact our abattoir administration office.
+                </p>
+              </div>
 
-              <div className="contact-details-grid">
-                <div className="contact-detail-item">
-                  <span className="contact-detail-icon"><Icon.MapPin size={18} /></span>
+              <div className="contact-entries-grid">
+                <div className="contact-entry-item">
+                  <div className="contact-entry-icon">
+                    <Icon.MapPin size={18} />
+                  </div>
                   <div>
-                    <h5>Facility Location</h5>
-                    <span>Tinaan, City of Naga, Cebu, Philippines</span>
+                    <div className="contact-entry-label">Facility Location</div>
+                    <div className="contact-entry-val">
+                      City of Naga Slaughterhouse<br />
+                      Tinaan, City of Naga, Cebu, Philippines
+                    </div>
                   </div>
                 </div>
-                <div className="contact-detail-item">
-                  <span className="contact-detail-icon"><Icon.Phone size={18} /></span>
+
+                <div className="contact-entry-item">
+                  <div className="contact-entry-icon">
+                    <Icon.Award size={18} />
+                  </div>
                   <div>
-                    <h5>Operations Desk</h5>
-                    <span>(032) 272-6655</span>
+                    <div className="contact-entry-label">Governing Office</div>
+                    <div className="contact-entry-val">
+                      Office of the City Veterinarian<br />
+                      City Government of Naga, Cebu
+                    </div>
                   </div>
                 </div>
-                <div className="contact-detail-item">
-                  <span className="contact-detail-icon"><Icon.Mail size={18} /></span>
+
+                <div className="contact-entry-item">
+                  <div className="contact-entry-icon">
+                    <Icon.Phone size={18} />
+                  </div>
                   <div>
-                    <h5>Official Email</h5>
-                    <a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a>
+                    <div className="contact-entry-label">Operations Desk</div>
+                    <div className="contact-entry-val">
+                      <a href="tel:0322726655">(032) 272-6655</a>
+                    </div>
                   </div>
                 </div>
-                <div className="contact-detail-item">
-                  <span className="contact-detail-icon"><Icon.Clock size={18} /></span>
+
+                <div className="contact-entry-item">
+                  <div className="contact-entry-icon">
+                    <Icon.Mail size={18} />
+                  </div>
                   <div>
-                    <h5>Operating Hours</h5>
-                    <span>Monday – Saturday: 4:00 AM – 6:00 PM</span>
+                    <div className="contact-entry-label">Official Email</div>
+                    <div className="contact-entry-val">
+                      <a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="contact-entry-item" style={{ gridColumn: "1 / -1" }}>
+                  <div className="contact-entry-icon">
+                    <Icon.Clock size={18} />
+                  </div>
+                  <div>
+                    <div className="contact-entry-label">Operating Schedule</div>
+                    <div className="contact-entry-val">
+                      Monday to Saturday: 4:00 AM – 6:00 PM (Lairage Intake &amp; Slaughter Operations)
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="contact-action-panel">
-              <h4>Authorized System Access</h4>
-              <p>
-                Licensed veterinarians, slaughterhouse personnel, and registered livestock owners may sign in to access their assigned workspaces.
-              </p>
-              <Link
-                to="/login"
-                className="btn-contact-signin"
-              >
-                <span>Login to System</span>
-                <Icon.ArrowRight size={16} />
-              </Link>
+            {/* Facility Photograph & Authorized Access Panel */}
+            <div className="contact-media-col">
+              <div className="contact-facility-img-wrap">
+                <img
+                  src={facilityBgImg}
+                  alt="City of Naga Municipal Slaughterhouse facility exterior"
+                  width="1024"
+                  height="575"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <div className="contact-facility-img-overlay" />
+              </div>
+
+              <div className="contact-portal-box">
+                <span className="contact-portal-badge">Authorized Access</span>
+                <h3 className="contact-portal-title">Official System Portal</h3>
+                <p className="contact-portal-desc">
+                  Licensed veterinarians, slaughterhouse personnel, and registered livestock owners
+                  may sign in to access their assigned modules and records.
+                </p>
+                <Link to="/login" className="btn-contact-login">
+                  <Icon.LogIn size={16} />
+                  <span>Access System</span>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="landing-footer scroll-reveal">
-        <div className="container">
-          <div className="landing-footer-grid">
-            <div className="footer-brand">
-              <div className="footer-logo-row">
-                <div className="footer-logo">
-                  <img src={logoImg} alt="LSMIS Official Seal" />
+      {/* =========================================================
+          7. FOOTER
+          ========================================================= */}
+      <footer className="landing-footer" role="contentinfo">
+        <div className="landing-container">
+          <div className="footer-top-grid">
+            {/* Brand & Seals */}
+            <div className="footer-brand-box">
+              <div className="footer-seals-row">
+                <div className="footer-seal-item" title="City of Naga Official Seal">
+                  <img src="/naga_city_seal.png" alt="City of Naga Seal" width="40" height="40" />
                 </div>
-                <div>
-                  <h4>LSMIS</h4>
-                  <span className="footer-brand-sub">City of Naga, Cebu</span>
+                <div className="footer-seal-item" title="LSMIS Official Seal">
+                  <img src={logoImg} alt="LSMIS Official Seal" width="40" height="40" />
+                </div>
+                <div className="footer-seal-item" title="Bagong Pilipinas Official Seal">
+                  <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas Seal" width="40" height="40" />
                 </div>
               </div>
-              <p>
-                Livestock Slaughter and Meat Inspection Management System (LSMIS). Standardizing municipal abattoir operations and ensuring wholesome meat food safety.
+
+              <h4 className="footer-brand-heading">LSMIS · City of Naga</h4>
+              <div className="footer-brand-subheading">
+                Livestock Slaughter and Meat Inspection Management System
+              </div>
+              <p className="footer-brand-summary">
+                A dedicated municipal governance technology standardizing livestock intake,
+                humane abattoir operations, veterinary inspections, and sanitary meat permitting
+                in Tinaan, City of Naga, Cebu, Philippines.
               </p>
-              <div className="footer-status-pill">
-                <span className="footer-status-dot" />
-                <span>Operational · Tinaan, City of Naga, Cebu, Philippines</span>
-              </div>
             </div>
 
-            <div className="footer-col">
-              <h5>Quick Navigation</h5>
-              <ul>
-                {navLinks.map((item) => (
+            {/* Quick Navigation */}
+            <div>
+              <h5 className="footer-col-title">Navigation</h5>
+              <ul className="footer-links-list">
+                {NAV_ITEMS.map((item) => (
                   <li key={item.label}>
                     <a href={item.href} onClick={(e) => scrollToSection(e, item.href)}>
                       {item.label}
@@ -680,9 +877,10 @@ export const LandingPage = () => {
               </ul>
             </div>
 
-            <div className="footer-col">
-              <h5>Statutory Standards</h5>
-              <ul>
+            {/* Statutory Standards */}
+            <div>
+              <h5 className="footer-col-title">Statutory Mandates</h5>
+              <ul className="footer-links-list">
                 <li><span>Republic Act No. 9296</span></li>
                 <li><span>Republic Act No. 10536</span></li>
                 <li><span>NMIS Class AA Standards</span></li>
@@ -690,22 +888,35 @@ export const LandingPage = () => {
               </ul>
             </div>
 
-            <div className="footer-col">
-              <h5>Contact &amp; Support</h5>
-              <ul>
-                <li><span>City Abattoir Complex</span></li>
-                <li><span>Tinaan, City of Naga, Cebu, Philippines</span></li>
-                <li><span>Tel: (032) 272-6655</span></li>
+            {/* Office & Facility */}
+            <div>
+              <h5 className="footer-col-title">Administration</h5>
+              <ul className="footer-links-list">
+                <li><span>Office of the City Veterinarian</span></li>
+                <li><span>City of Naga Slaughterhouse</span></li>
+                <li><span>Tinaan, City of Naga, Cebu</span></li>
+                <li><a href="tel:0322726655">(032) 272-6655</a></li>
                 <li><a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a></li>
               </ul>
             </div>
           </div>
 
-          <div className="landing-footer-bottom">
-            <span>&copy; {new Date().getFullYear()} Livestock Slaughter and Meat Inspection Management System (LSMIS) · Tinaan, City of Naga, Cebu, Philippines.</span>
+          {/* Bottom Bar: Copyright, Illustrative Disclaimer & Back to Top */}
+          <div className="footer-bottom-bar">
+            <div>
+              <div>
+                &copy; {new Date().getFullYear()} City Government of Naga, Cebu · Office of the City
+                Veterinarian. All rights reserved.
+              </div>
+              <div className="footer-bottom-notice">
+                Photographic imagery depicting inspection procedures and abattoir operations are
+                illustrative representations for this information portal.
+              </div>
+            </div>
+
             <button
               type="button"
-              className="back-to-top-btn"
+              className="footer-back-to-top"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
               aria-label="Back to top of page"
             >
