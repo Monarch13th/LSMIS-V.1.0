@@ -125,20 +125,8 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
           try {
             const hb = await authSecurityService.heartbeatSession(cleanEmail, currentSessionId);
             if (!hb.isValid && hb.reason === "concurrent_login") {
-              // Confirm with validateUserActiveSession to guard against false-positive mismatches or stale DB records
-              const val = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
-              if (!val.isValid && val.reason === "concurrent_login") {
-                const confirmVal = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
-                if (!confirmVal.isValid && confirmVal.reason === "concurrent_login") {
-                  handleConcurrentLogout();
-                  return;
-                }
-              } else {
-                // False-positive mismatch: heal and re-sync active session
-                try {
-                  await authSecurityService.registerActiveSession(cleanEmail, currentSessionId);
-                } catch (_) {}
-              }
+              handleConcurrentLogout();
+              return;
             }
           } catch (_) {}
         }

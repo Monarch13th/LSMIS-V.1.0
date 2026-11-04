@@ -74,9 +74,6 @@ export const authService = {
       console.warn("Supabase local signout warning:", e);
     }
     sessionStorage.removeItem(SESSION_KEY);
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem("lsmis_active_session_id");
-    localStorage.removeItem("lsmis_active_session_id");
     localStorage.removeItem("lsmis_single_session_signal");
     sessionStorage.removeItem("lsmis_concurrent_logout_notice");
     return { error: null };

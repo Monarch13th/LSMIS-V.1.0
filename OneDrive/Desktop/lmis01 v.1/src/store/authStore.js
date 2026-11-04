@@ -93,6 +93,7 @@ const isGoogleOAuthHandshakeInProgress = () => {
   try {
     const pathname = window.location.pathname || "";
     const search = window.location.search || "";
+    const hash = window.location.hash || "";
     if (sessionStorage.getItem("lsmis_google_reg_pending")) return true;
 
     // If already on an authenticated route, the OAuth handshake is done; never block session resolution
@@ -112,11 +113,15 @@ const isGoogleOAuthHandshakeInProgress = () => {
       return false;
     }
 
-    // Only considered in progress if currently on /login or awaiting OAuth parameters
-    if (
-      (pathname === "/login" || search.includes("oauth_intent=") || search.includes("code=")) &&
-      sessionStorage.getItem("lsmis_google_oauth_intent")
-    ) {
+    const hasOAuthTokens =
+      hash.includes("access_token=") ||
+      search.includes("code=") ||
+      search.includes("oauth_intent=") ||
+      hash.includes("error=") ||
+      search.includes("error=");
+
+    // Only considered in progress if currently on /login or URL has OAuth parameters or in-flight markers
+    if (hasOAuthTokens || ((pathname === "/login" || pathname === "/") && Boolean(inFlightTs))) {
       return true;
     }
   } catch (_) { }
@@ -128,6 +133,7 @@ const isGoogleOAuthHandshakeInProgress = () => {
  */
 async function resolveUserSession(supabaseUser, existingCached = null) {
   if (!supabaseUser) return null;
+  if (isGoogleOAuthHandshakeInProgress()) return null;
 
   const email = (supabaseUser.email || "").toLowerCase().trim();
   const identities = Array.isArray(supabaseUser.identities) ? supabaseUser.identities : [];
@@ -154,7 +160,7 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     existingCached?.google_id ||
     null;
 
-  // If existing cached session matches the user and already has a verified role and session_id, preserve it immediately
+  // If existing cached session matches the user and already has a verified role and session_id, preserve it
   const currentInitial = getInitialSession();
   const cachedToUse = existingCached || currentInitial;
   if (
@@ -163,6 +169,10 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     cachedToUse.role &&
     cachedToUse.session_id
   ) {
+    // If the user authenticated via Google OAuth, cached session MUST be for role "owner"
+    if (isGoogleUser && cachedToUse.role !== "owner") {
+      return null;
+    }
     return {
       ...cachedToUse,
       user_id: supabaseUser.id,
@@ -171,9 +181,6 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
       google_id: googleId || cachedToUse.google_id,
     };
   }
-
-  // Only check in-progress OAuth handshake if we don't already hold a valid cached session
-  if (isGoogleOAuthHandshakeInProgress()) return null;
 
   let role = supabaseUser.user_metadata?.role || null;
   let name = supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || "";
@@ -206,8 +213,15 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
   // Check if role is definitively confirmed as personnel (Admin, Vet, Staff)
   const isPersonnel = role === "admin" || role === "vet" || role === "staff";
 
-  // Only check owners table if user is NOT verified personnel
-  if (!isPersonnel && (!role || role === "owner" || isGoogleUser)) {
+  // CRITICAL RULE: Google OAuth is strictly for approved Livestock Owners only.
+  // Personnel (Admin, Vet, Staff) accounts MUST NEVER be assigned or authenticated via Google OAuth.
+  if (isGoogleUser) {
+    if (isPersonnel) {
+      // Reject personnel attempting Google OAuth immediately
+      return null;
+    }
+
+    // Must be a verified approved owner in public.owners
     try {
       let ownerQ = supabase
         .from(TABLES.OWNERS)
@@ -222,30 +236,70 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
       }
 
       const { data: ownerRow } = await ownerQ.limit(1).maybeSingle();
-      if (ownerRow) {
-        const stLower = String(ownerRow.status || "").toLowerCase().trim();
-        const isApproved =
-          (stLower === "approved" || stLower === "active") &&
-          !String(ownerRow.id || "").startsWith("REG");
-        if (!isApproved) {
-          // Prevent unapproved, pending, rejected, or suspended owner accounts from restoring a session
-          return null;
-        }
-        role = "owner";
-        if (ownerRow.name) name = ownerRow.name;
-        if (ownerRow.username) username = ownerRow.username;
-        if (ownerRow.avatar_url) avatarUrl = ownerRow.avatar_url;
-        ownerId = ownerRow.id;
-      } else if (isGoogleUser || role === "owner") {
-        // Google OAuth is strictly for approved Owners; if no approved owner record exists, do not grant session
+      if (!ownerRow) {
         return null;
       }
+
+      const stLower = String(ownerRow.status || "").toLowerCase().trim();
+      const isApproved =
+        (stLower === "approved" || stLower === "active") &&
+        !String(ownerRow.id || "").startsWith("REG");
+
+      if (!isApproved) {
+        return null;
+      }
+
+      role = "owner";
+      if (ownerRow.name) name = ownerRow.name;
+      if (ownerRow.username) username = ownerRow.username;
+      if (ownerRow.avatar_url) avatarUrl = ownerRow.avatar_url;
+      ownerId = ownerRow.id;
     } catch (_) {
-      if (isGoogleUser) return null;
+      return null;
+    }
+
+    if (role !== "owner") {
+      return null;
+    }
+  } else {
+    // Non-Google user (standard Email & Password authentication for Admin, Vet, Staff, and manual Owners)
+    if (!isPersonnel && (!role || role === "owner")) {
+      try {
+        let ownerQ = supabase
+          .from(TABLES.OWNERS)
+          .select("id, name, username, status, avatar_url");
+
+        if (supabaseUser.id && email) {
+          ownerQ = ownerQ.or(`auth_user_id.eq.${supabaseUser.id},email.ilike.${email}`);
+        } else if (supabaseUser.id) {
+          ownerQ = ownerQ.eq("auth_user_id", supabaseUser.id);
+        } else {
+          ownerQ = ownerQ.ilike("email", email);
+        }
+
+        const { data: ownerRow } = await ownerQ.limit(1).maybeSingle();
+        if (ownerRow) {
+          const stLower = String(ownerRow.status || "").toLowerCase().trim();
+          const isApproved =
+            (stLower === "approved" || stLower === "active") &&
+            !String(ownerRow.id || "").startsWith("REG");
+          if (!isApproved) {
+            return null;
+          }
+          role = "owner";
+          if (ownerRow.name) name = ownerRow.name;
+          if (ownerRow.username) username = ownerRow.username;
+          if (ownerRow.avatar_url) avatarUrl = ownerRow.avatar_url;
+          ownerId = ownerRow.id;
+        }
+      } catch (_) {}
     }
   }
 
-  role = normalizeRole(role) || "staff";
+  role = normalizeRole(role);
+  if (!role) {
+    return null;
+  }
 
   // Retain existing session_id if already cached in this tab or initiated by client login; otherwise generate a fresh unique session UUID.
   let clientStoredSessionId = null;
@@ -299,6 +353,11 @@ export const initializeAuth = async () => {
       console.warn("Supabase getSession notice:", error);
     }
 
+    if (isGoogleOAuthHandshakeInProgress()) {
+      authStore.set({ session: null, loading: false, isInitialized: true });
+      return;
+    }
+
     const sbSession = data?.session;
     if (sbSession?.user) {
       const cached = getInitialSession();
@@ -349,6 +408,10 @@ export const initializeAuth = async () => {
           removeSessionStorageItem(STORAGE_KEYS.SESSION);
         } catch (_) { }
         authStore.set({ session: null, loading: false, isInitialized: true });
+        return;
+      }
+
+      if (isGoogleOAuthHandshakeInProgress()) {
         return;
       }
 

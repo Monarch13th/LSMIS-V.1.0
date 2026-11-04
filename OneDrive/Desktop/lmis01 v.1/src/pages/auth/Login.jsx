@@ -6,7 +6,7 @@ import { Icon } from "../../components/icons";
 import { isCapacitorNativeApp } from "../../utils/capacitor";
 import { useToast } from "../../components/notifications/Toast";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
-import { authStore, setSessionStorageItem } from "../../store/authStore";
+import { authStore } from "../../store/authStore";
 import { STORAGE_KEYS, TABLES, ROLE_LABELS } from "../../utils/constants";
 import { now, uuid } from "../../utils/helpers";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
@@ -165,6 +165,22 @@ export const Login = ({ embedded = false, initialView }) => {
 
   // If already authenticated with active role, redirect directly to assigned module
   useEffect(() => {
+    // Prevent premature redirection while Google OAuth handshake is running or URL contains OAuth tokens
+    const hash = typeof window !== "undefined" ? window.location.hash || "" : "";
+    const search = typeof window !== "undefined" ? window.location.search || "" : "";
+    const isOAuthInFlight =
+      Boolean(initialOAuthCallback?.hasOAuthTokens) ||
+      hash.includes("access_token=") ||
+      search.includes("code=") ||
+      search.includes("oauth_intent=") ||
+      Boolean(sessionStorage.getItem("lsmis_google_oauth_in_flight")) ||
+      Boolean(sessionStorage.getItem("lsmis_google_reg_pending")) ||
+      Boolean(inFlightOAuthRef.current);
+
+    if (isOAuthInFlight) {
+      return;
+    }
+
     if (!embedded && !authLoading && currentSession && currentRole) {
       const prevPath = location.state?.from?.pathname;
       if (prevPath && prevPath.startsWith(`/${currentRole}`)) {
@@ -529,7 +545,6 @@ export const Login = ({ embedded = false, initialView }) => {
         authSecurityService.setClientSessionId(activeSessionId);
         try {
           sessionStorage.setItem("lsmis_active_session_id", activeSessionId);
-          localStorage.setItem("lsmis_active_session_id", activeSessionId);
         } catch (_) {}
 
         const loginTimeIso = activeSessionUpdatedAt || new Date().toISOString();
@@ -548,28 +563,15 @@ export const Login = ({ embedded = false, initialView }) => {
           ts: Date.now(),
           login_time: loginTimeIso,
           cover_gradient,
+          ...(sbSession || {}),
         };
 
-        setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+        sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
         authStore.set({ session, loading: false, isInitialized: true });
         setGoogleLoginLoading(false);
 
-        // Clean in-flight OAuth markers immediately upon successful session creation
-        ownerAuthService.cleanGoogleOAuthState();
         try {
-          sessionStorage.removeItem("lsmis_google_oauth_in_flight");
-          sessionStorage.removeItem("lsmis_google_oauth_intent");
-          if (initialOAuthCallback) {
-            initialOAuthCallback.hasOAuthTokens = false;
-          }
-        } catch (_) {}
-
-        try {
-          supabase.from(TABLES.USERS).update({
-            active_session_id: activeSessionId,
-            active_session_updated_at: loginTimeIso,
-            last_login: now(),
-          }).ilike("email", cleanEmail).then();
+          supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
           registerLoginSession({ name, email: cleanEmail, role: "owner", module: "Dashboard", loginTime: loginTimeIso });
           logActivity({
             action: `Owner logged in via Google OAuth (${name} - owner)`,
@@ -595,7 +597,21 @@ export const Login = ({ embedded = false, initialView }) => {
         inFlightOAuthRef.current = false;
         try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
 
+        // Make sure any temporary or mismatched session in authStore/sessionStorage is purged
+        try {
+          sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+        } catch (_) {}
+        authStore.set({ session: null, loading: false, isInitialized: true });
+
         setView("signin");
+
+        if (err.code === "PERSONNEL_GOOGLE_LOGIN_BLOCKED" || err.message?.includes("Owner accounts only")) {
+          setError("Google login is available for registered and approved Owner accounts only. Please use your registered email and password.");
+          setIsShaking(true);
+          setTimeout(() => setIsShaking(false), 500);
+          setUnregisteredModalOpen(false);
+          return;
+        }
 
         if (err.code === "ACCOUNT_PENDING") {
           setError("Your account is awaiting Admin approval.");
@@ -1474,7 +1490,7 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session });
 
       // DB Activity logging & Presence Registration
@@ -1564,7 +1580,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
       // Code is valid — finalize login session!
       const { session, role, name, cleanEmail } = pending2FA;
-      setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session });
 
       try {

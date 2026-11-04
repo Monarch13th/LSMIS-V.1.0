@@ -295,7 +295,53 @@ export const ownerAuthService = {
 
     const cleanEmail = googleData.email;
 
-    // 1. Look up existing owner record in public.owners by email
+    // 1. Check public.users to identify Personnel accounts (Admin, Vet, Staff)
+    let dbUserRow = null;
+    try {
+      const { data: uRow } = await supabase
+        .from(TABLES.USERS)
+        .select("*")
+        .ilike("email", cleanEmail)
+        .limit(1)
+        .maybeSingle();
+      dbUserRow = uRow || null;
+    } catch (_) {}
+
+    if (dbUserRow) {
+      const r = String(dbUserRow.role || "").toLowerCase().trim();
+      const isPersonnel =
+        r === "admin" ||
+        r === "administrator" ||
+        r === "vet" ||
+        r === "veterinarian" ||
+        r === "staff" ||
+        r === "operator";
+
+      const isTriggerStub =
+        dbUserRow.id === googleData.authUserId &&
+        !dbUserRow.owner_id &&
+        !dbUserRow.username &&
+        (!dbUserRow.last_login || dbUserRow.last_login === "Never") &&
+        !isPersonnel;
+
+      if (isTriggerStub) {
+        // Clean up any auto-inserted trigger row for this unregistered Google account
+        try {
+          await supabase.from(TABLES.USERS).delete().eq("id", dbUserRow.id);
+        } catch (_) {}
+        dbUserRow = null;
+      } else if (isPersonnel) {
+        try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+        const personnelErr = new Error(
+          "Google login is available for registered and approved Owner accounts only. Please use your registered email and password."
+        );
+        personnelErr.code = "PERSONNEL_GOOGLE_LOGIN_BLOCKED";
+        personnelErr.email = cleanEmail;
+        throw personnelErr;
+      }
+    }
+
+    // 2. Look up existing owner record in public.owners by email
     let ownerAcct = null;
     try {
       const { data: dbOwner } = await supabase
@@ -312,18 +358,6 @@ export const ownerAuthService = {
       console.warn("Google login owner lookup warning:", e);
     }
 
-    // 2. Check public.users to see if this email belongs to Personnel (Admin/Vet/Staff) or a linked Owner
-    let dbUserRow = null;
-    try {
-      const { data: uRow } = await supabase
-        .from(TABLES.USERS)
-        .select("*")
-        .ilike("email", cleanEmail)
-        .limit(1)
-        .maybeSingle();
-      dbUserRow = uRow || null;
-    } catch (_) {}
-
     if (!ownerAcct && dbUserRow?.owner_id) {
       try {
         const { data: byOwnerId } = await supabase
@@ -336,33 +370,8 @@ export const ownerAuthService = {
       } catch (_) {}
     }
 
-    // If not an owner, check if it's an Admin/Vet/Staff account or an unregistered Google account
+    // 3. If not an owner, reject as unregistered
     if (!ownerAcct) {
-      if (dbUserRow) {
-        const r = String(dbUserRow.role || "").toLowerCase().trim();
-        const isTriggerStub =
-          dbUserRow.id === googleData.authUserId &&
-          !dbUserRow.owner_id &&
-          !dbUserRow.username &&
-          (!dbUserRow.last_login || dbUserRow.last_login === "Never") &&
-          r !== "admin" &&
-          r !== "administrator" &&
-          r !== "vet" &&
-          r !== "veterinarian";
-
-        if (isTriggerStub) {
-          // Clean up any auto-inserted trigger row for this unregistered Google account
-          try {
-            await supabase.from(TABLES.USERS).delete().eq("id", dbUserRow.id);
-          } catch (_) {}
-        } else if (r === "admin" || r === "administrator" || r === "vet" || r === "veterinarian" || r === "staff" || r === "operator") {
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-          throw new Error(
-            "Unauthorized access: Google Sign-In is available exclusively for Livestock Owner accounts. Admin, Veterinarian, and Staff personnel must sign in with their username/email and password."
-          );
-        }
-      }
-
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
       const notRegErr = new Error("This Google account is not registered. Please register an owner account first.");
       notRegErr.code = "ACCOUNT_NOT_REGISTERED";
