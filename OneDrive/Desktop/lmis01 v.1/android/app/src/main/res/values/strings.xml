@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LSMIS</string>
+    <string name="app_full_name">Livestock Slaughter and Meat Inspection Management System</string>
+    <string name="title_activity_main">LSMIS</string>
+    <string name="package_name">ph.gov.nagacity.lsmis</string>
+    <string name="custom_url_scheme">ph.gov.nagacity.lsmis</string>
+</resources>

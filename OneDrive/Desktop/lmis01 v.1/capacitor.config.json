@@ -1,0 +1,22 @@
+{
+  "appId": "ph.gov.nagacity.lsmis",
+  "appName": "LSMIS",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "allowNavigation": [
+      "zwuoebmkapoywkpyaahw.supabase.co",
+      "*.supabase.co",
+      "accounts.google.com",
+      "*.google.com",
+      "*.googleapis.com",
+      "*.gstatic.com"
+    ]
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  }
+}
