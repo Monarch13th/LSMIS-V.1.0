@@ -380,7 +380,9 @@ export const getClientIp = async () => {
     }
   } catch (_) {}
 
-  return "127.0.0.1";
+  const isLocalHost = typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  return isLocalHost ? "127.0.0.1" : null;
 };
 
 /* =========================================================================
@@ -438,7 +440,9 @@ export const logActivity = async ({
     try {
       clientIp = await getClientIp();
     } catch (_) {
-      clientIp = "127.0.0.1";
+      const isLocalHost = typeof window !== "undefined" &&
+        (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+      clientIp = isLocalHost ? "127.0.0.1" : null;
     }
   }
 

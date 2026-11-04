@@ -3631,7 +3631,7 @@ export const CarcassWeighing = () => {
         )}
       </Modal>
 
-      {/* Clean In-App Alert Dialog (replaces window.alert to eliminate localhost:5173 says) */}
+      {/* Clean In-App Alert Dialog (replaces native window.alert to provide polished in-app UX) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}

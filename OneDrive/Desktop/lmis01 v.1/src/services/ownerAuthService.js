@@ -56,12 +56,15 @@ export const ownerAuthService = {
 
     if (isCapacitorNative) {
       // Inside the installed Capacitor Android APK:
-      // Use the configured production HTTPS URL if set, otherwise use the allowlisted
-      // callback URL which MainActivity's BridgeWebViewClient intercepts back into https://localhost/login
+      // Use the configured production HTTPS URL if set. In development, allow localhost:5173 fallback.
       if (envProdUrl && !isLocalhostUrl(envProdUrl)) {
         resolvedBase = envProdUrl;
-      } else {
+      } else if (browserOrigin && !isLocalhostUrl(browserOrigin)) {
+        resolvedBase = browserOrigin;
+      } else if (!import.meta.env?.PROD) {
         resolvedBase = "http://localhost:5173";
+      } else {
+        resolvedBase = envProdUrl || browserOrigin;
       }
     } else if (import.meta.env?.PROD) {
       // Production: prefer non-localhost deployed HTTPS domain from browser origin or production env

@@ -317,7 +317,7 @@ export const CarcassInspection = () => {
       await vetService.createInspection("Post-Mortem", { ...payload, livestock_id: animal?.id || "", species: animal?.species || "Unknown" });
       const successMsg = `Carcass inspection successfully recorded and certified for tag ${payload.tag_number || ""}!`;
 
-      // Intercept success state: trigger clean in-app alert notification (eliminates localhost:5173 says)
+      // Intercept success state: trigger clean in-app alert notification
       setInAppAlert({
         title: "Carcass Inspection Certified",
         message: successMsg,
@@ -393,7 +393,7 @@ export const CarcassInspection = () => {
         />
       </Modal>
 
-      {/* Clean In-App Alert Dialog (replaces window.alert to eliminate localhost:5173 says) */}
+      {/* Clean In-App Alert Dialog (replaces native window.alert to provide polished in-app UX) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}
