@@ -74,18 +74,8 @@ export const Login = ({ embedded = false, initialView }) => {
   const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("lsmis_remember_me") === "true");
   const [isShaking, setIsShaking] = useState(false);
 
-  // Google OAuth state (Owner Login & Owner Create Account only)
+  // Google OAuth state (Owner Login only)
   const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
-  const [googleRegLoading, setGoogleRegLoading] = useState(false);
-  const [googleRegProfile, setGoogleRegProfile] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem("lsmis_google_reg_pending");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
-  const [googleAvatarError, setGoogleAvatarError] = useState(false);
   const oauthHandledRef = useRef(false);
   const signInInFlightRef = useRef(false);
   const inFlightOAuthRef = useRef(false);
@@ -103,22 +93,10 @@ export const Login = ({ embedded = false, initialView }) => {
   const [concurrentNoticeOpen, setConcurrentNoticeOpen] = useState(false);
 
   // Owner Registration state
-  const [regName, setRegName] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem("lsmis_google_reg_pending");
-      if (raw) return JSON.parse(raw)?.name || "";
-    } catch (_) { }
-    return "";
-  });
+  const [regName, setRegName] = useState("");
   const [regContact, setRegContact] = useState("");
   const [regAddress, setRegAddress] = useState("");
-  const [regEmail, setRegEmail] = useState(() => {
-    try {
-      const raw = sessionStorage.getItem("lsmis_google_reg_pending");
-      if (raw) return JSON.parse(raw)?.email || "";
-    } catch (_) { }
-    return "";
-  });
+  const [regEmail, setRegEmail] = useState("");
   const [regUsername, setRegUsername] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirmPassword, setRegConfirmPassword] = useState("");
@@ -213,10 +191,7 @@ export const Login = ({ embedded = false, initialView }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       if (view === "signin") emailRef.current?.focus();
-      else if (view === "register") {
-        if (googleRegProfile) regContactRef.current?.focus();
-        else regNameRef.current?.focus();
-      }
+      else if (view === "register") regNameRef.current?.focus();
       else if (view === "verify-otp") twoFaInputRef.current?.focus();
       else if (view === "forgot") {
         if (fpCodeSent) fpCodeRef.current?.focus();
@@ -224,7 +199,7 @@ export const Login = ({ embedded = false, initialView }) => {
       }
     }, 250);
     return () => clearTimeout(timer);
-  }, [view, fpCodeSent, googleRegProfile]);
+  }, [view, fpCodeSent]);
 
   // 2FA OTP resend cooldown timer
   useEffect(() => {
@@ -335,7 +310,6 @@ export const Login = ({ embedded = false, initialView }) => {
         inFlightOAuthRef.current = false;
         ownerAuthService.cleanGoogleOAuthState();
         setGoogleLoginLoading(false);
-        setGoogleRegLoading(false);
         // Quietly reset loading on cancellation without displaying an error alert
       } else if (msg.type === "LSMIS_GOOGLE_OAUTH_ERROR") {
         if (popupPollTimerRef.current) {
@@ -346,15 +320,9 @@ export const Login = ({ embedded = false, initialView }) => {
         inFlightOAuthRef.current = false;
         ownerAuthService.cleanGoogleOAuthState();
         setGoogleLoginLoading(false);
-        setGoogleRegLoading(false);
 
         const errMsg = msg.message || "Google authentication failed. Please try again.";
-        const storedIntent = sessionStorage.getItem("lsmis_google_oauth_intent");
-        if (view === "register" || storedIntent === "register") {
-          setRegError(errMsg);
-        } else {
-          setError(errMsg);
-        }
+        setError(errMsg);
       } else if (msg.type === "LSMIS_GOOGLE_OAUTH_CALLBACK" && msg.status === "success") {
         if (popupPollTimerRef.current) {
           clearInterval(popupPollTimerRef.current);
@@ -367,7 +335,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
     window.addEventListener("message", handleOAuthMessage);
     return () => window.removeEventListener("message", handleOAuthMessage);
-  }, [view]);
+  }, []);
 
   // ---- Detect Return from External Navigation / Browser Back Button (bfcache) ----
   useEffect(() => {
@@ -408,7 +376,6 @@ export const Login = ({ embedded = false, initialView }) => {
       }
       popupRef.current = null;
       setGoogleLoginLoading(false);
-      setGoogleRegLoading(false);
     };
 
     const handlePageShow = () => {
@@ -447,7 +414,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
     // 1. Handle OAuth provider error / user cancellation
     if (oauthError || oauthErrorDesc) {
-      const targetIntent = urlIntent || storedIntent || "login";
       const isCancellation =
         oauthError === "access_denied" ||
         oauthError === "cancelled" ||
@@ -466,7 +432,6 @@ export const Login = ({ embedded = false, initialView }) => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      setGoogleRegLoading(false);
       setGoogleLoginLoading(false);
 
       if (isCancellation) {
@@ -476,17 +441,10 @@ export const Login = ({ embedded = false, initialView }) => {
 
       const cleanMsg = decodeURIComponent(String(oauthErrorDesc || oauthError || "Google authentication failed. Please try again.")).replace(/\+/g, " ");
 
-      if (targetIntent === "register") {
-        setView("register");
-        setRegError(cleanMsg);
-        setRegShake(true);
-        setTimeout(() => setRegShake(false), 500);
-      } else {
-        setView("signin");
-        setError(cleanMsg);
-        setIsShaking(true);
-        setTimeout(() => setIsShaking(false), 500);
-      }
+      setView("signin");
+      setError(cleanMsg);
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
       return;
     }
 
@@ -500,17 +458,9 @@ export const Login = ({ embedded = false, initialView }) => {
       return;
     }
 
-    const effectiveIntent = (urlIntent || storedIntent) === "register" ? "register" : "login";
-
-    if (effectiveIntent === "register") {
-      setView("register");
-      setGoogleRegLoading(true);
-      setRegError("");
-    } else {
-      setView("signin");
-      setGoogleLoginLoading(true);
-      setError("");
-    }
+    setView("signin");
+    setGoogleLoginLoading(true);
+    setError("");
 
     let isCancelled = false;
 
@@ -534,190 +484,139 @@ export const Login = ({ embedded = false, initialView }) => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      if (effectiveIntent === "register") {
+      // Owner Login via Google OAuth
+      try {
+        const { owner, googleData } = await ownerAuthService.verifyAndConnectGoogleOwnerLogin(sbSession.user);
+        if (isCancelled) return;
+
+        const cleanEmail = googleData.email;
+        const ownerId = owner.id;
+        const name = owner.name || googleData.name || "Livestock Owner";
+        const userId = googleData.authUserId;
+
+        // Cover gradient
+        let cover_gradient = null;
         try {
-          // Create (or reuse) the Pending owner registration linked to this Google account
-          const { status, owner, googleData } = await ownerAuthService.registerGoogleOwner(sbSession.user);
-          if (isCancelled) return;
+          const storedProfile = localStorage.getItem("lmis_profile_" + cleanEmail);
+          if (storedProfile) {
+            cover_gradient = JSON.parse(storedProfile).cover_gradient;
+          }
+        } catch (_) { }
 
-          sessionStorage.removeItem("lsmis_google_reg_pending");
-          sessionStorage.removeItem("lsmis_google_reg_draft");
+        // Register Single Active Session
+        const clientSessionId = authSecurityService.getClientSessionId();
+        let activeSessionId = clientSessionId || uuid();
+        let activeSessionUpdatedAt = new Date().toISOString();
 
-          if (status === "approved") {
-            // Already an approved owner: do not create another record; direct them to Sign In
+        try {
+          const secRes = await authSecurityService.registerActiveSession(cleanEmail, activeSessionId, clientSessionId);
+          if (secRes?.is_active_elsewhere) {
             try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-            setGoogleRegProfile(null);
-            setGoogleRegLoading(false);
-            setView("signin");
-            setError(
-              `The Google account ${googleData.email} is already registered and approved. Please sign in using "Continue with Google".`
-            );
+            setGoogleLoginLoading(false);
+            inFlightOAuthRef.current = false;
+            ownerAuthService.cleanGoogleOAuthState();
+            setError("This account is currently being used on another device. Please try again later.");
+            setIsShaking(true);
+            setTimeout(() => setIsShaking(false), 500);
             return;
           }
-
-          // Pending (new or existing): end the temporary OAuth session so the pending
-          // account cannot reach the portal, then show the waiting page.
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-
-          const pendingInfo = {
-            id: owner?.id,
-            name: owner?.name || googleData.name,
-            email: owner?.email || googleData.email,
-            status: owner?.status || "Pending Approval",
-            avatar_url: owner?.avatar_url || googleData.avatarUrl || null,
-            auth_provider: "google",
-            registered_date: owner?.registered_date || null,
-            created_at: owner?.created_at || null,
-          };
-          try { sessionStorage.setItem("lsmis_pending_owner", JSON.stringify(pendingInfo)); } catch (_) {}
-
-          setGoogleRegProfile(null);
-          setGoogleRegLoading(false);
-          showToast("Registration submitted successfully! Awaiting administrator approval.", "success");
-          navigate("/owner/waiting-approval", { replace: true, state: { owner: pendingInfo } });
-        } catch (err) {
-          if (isCancelled) return;
-          sessionStorage.removeItem("lsmis_google_reg_pending");
-          sessionStorage.removeItem("lsmis_google_reg_draft");
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-          setGoogleRegProfile(null);
-          const msg = err.message || "Google registration failed. Please try again.";
-          setView("register");
-          setRegError(msg);
-          setRegShake(true);
-          setTimeout(() => setRegShake(false), 500);
-          setGoogleRegLoading(false);
+          if (secRes?.session_id) activeSessionId = secRes.session_id;
+          if (secRes?.updated_at) activeSessionUpdatedAt = secRes.updated_at;
+        } catch (e) {
+          console.warn("Google login registerActiveSession notice:", e);
         }
-      } else {
-        // Owner Login via Google OAuth
+
+        authSecurityService.setClientSessionId(activeSessionId);
         try {
-          const { owner, googleData } = await ownerAuthService.verifyAndConnectGoogleOwnerLogin(sbSession.user);
-          if (isCancelled) return;
+          sessionStorage.setItem("lsmis_active_session_id", activeSessionId);
+        } catch (_) {}
 
-          const cleanEmail = googleData.email;
-          const ownerId = owner.id;
-          const name = owner.name || googleData.name || "Livestock Owner";
-          const userId = googleData.authUserId;
+        const loginTimeIso = activeSessionUpdatedAt || new Date().toISOString();
+        const session = {
+          id: userId,
+          user_id: userId,
+          role: "owner",
+          name,
+          email: cleanEmail,
+          username: owner.username || cleanEmail.split("@")[0],
+          owner_id: ownerId,
+          google_id: googleData.googleId,
+          avatar_url: googleData.avatarUrl || owner.avatar_url || null,
+          auth_provider: "google",
+          session_id: activeSessionId,
+          ts: Date.now(),
+          login_time: loginTimeIso,
+          cover_gradient,
+          ...(sbSession || {}),
+        };
 
-          // Cover gradient
-          let cover_gradient = null;
-          try {
-            const storedProfile = localStorage.getItem("lmis_profile_" + cleanEmail);
-            if (storedProfile) {
-              cover_gradient = JSON.parse(storedProfile).cover_gradient;
-            }
-          } catch (_) { }
+        sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+        authStore.set({ session, loading: false, isInitialized: true });
+        setGoogleLoginLoading(false);
 
-          // Register Single Active Session
-          const clientSessionId = authSecurityService.getClientSessionId();
-          let activeSessionId = clientSessionId || uuid();
-          let activeSessionUpdatedAt = new Date().toISOString();
-
-          try {
-            const secRes = await authSecurityService.registerActiveSession(cleanEmail, activeSessionId, clientSessionId);
-            if (secRes?.is_active_elsewhere) {
-              try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-              setGoogleLoginLoading(false);
-              inFlightOAuthRef.current = false;
-              ownerAuthService.cleanGoogleOAuthState();
-              setError("This account is currently being used on another device. Please try again later.");
-              setIsShaking(true);
-              setTimeout(() => setIsShaking(false), 500);
-              return;
-            }
-            if (secRes?.session_id) activeSessionId = secRes.session_id;
-            if (secRes?.updated_at) activeSessionUpdatedAt = secRes.updated_at;
-          } catch (e) {
-            console.warn("Google login registerActiveSession notice:", e);
-          }
-
-          authSecurityService.setClientSessionId(activeSessionId);
-          try {
-            sessionStorage.setItem("lsmis_active_session_id", activeSessionId);
-          } catch (_) {}
-
-          const loginTimeIso = activeSessionUpdatedAt || new Date().toISOString();
-          const session = {
-            id: userId,
-            user_id: userId,
+        try {
+          supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
+          registerLoginSession({ name, email: cleanEmail, role: "owner", module: "Dashboard", loginTime: loginTimeIso });
+          logActivity({
+            action: `Owner logged in via Google OAuth (${name} - owner)`,
+            module: "Auth",
+            user: name,
             role: "owner",
-            name,
-            email: cleanEmail,
-            username: owner.username || cleanEmail.split("@")[0],
-            owner_id: ownerId,
-            google_id: googleData.googleId,
-            avatar_url: googleData.avatarUrl || owner.avatar_url || null,
-            auth_provider: "google",
-            session_id: activeSessionId,
-            ts: Date.now(),
-            login_time: loginTimeIso,
-            cover_gradient,
-            ...(sbSession || {}),
-          };
+            old_value: "Offline",
+            new_value: "Active Session (Google OAuth)",
+            field_changed: "session_state",
+          }).then();
+        } catch (_) { }
 
-          sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
-          authStore.set({ session, loading: false, isInitialized: true });
-          setGoogleLoginLoading(false);
+        showToast(`Welcome back, ${name}!`, "success");
+        const prevPath = location.state?.from?.pathname;
+        if (prevPath && prevPath.startsWith("/owner")) {
+          navigate(prevPath, { replace: true });
+        } else {
+          navigate("/owner", { replace: true });
+        }
+      } catch (err) {
+        if (isCancelled) return;
+        setGoogleLoginLoading(false);
+        inFlightOAuthRef.current = false;
+        try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
 
-          try {
-            supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
-            registerLoginSession({ name, email: cleanEmail, role: "owner", module: "Dashboard", loginTime: loginTimeIso });
-            logActivity({
-              action: `Owner logged in via Google OAuth (${name} - owner)`,
-              module: "Auth",
-              user: name,
-              role: "owner",
-              old_value: "Offline",
-              new_value: "Active Session (Google OAuth)",
-              field_changed: "session_state",
-            }).then();
-          } catch (_) { }
+        setView("signin");
 
-          showToast(`Welcome back, ${name}!`, "success");
-          const prevPath = location.state?.from?.pathname;
-          if (prevPath && prevPath.startsWith("/owner")) {
-            navigate(prevPath, { replace: true });
-          } else {
-            navigate("/owner", { replace: true });
-          }
-        } catch (err) {
-          if (isCancelled) return;
-          setGoogleLoginLoading(false);
-          inFlightOAuthRef.current = false;
-
-          if (err.code === "ACCOUNT_PENDING") {
-            try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-            const pendingOwner = err.owner || {};
-            const gData = err.googleData || {};
-            const pendingInfo = {
-              id: pendingOwner.id,
-              name: pendingOwner.name || gData.name,
-              email: pendingOwner.email || gData.email,
-              status: pendingOwner.status || "Pending Approval",
-              avatar_url: pendingOwner.avatar_url || gData.avatarUrl || null,
-              auth_provider: "google",
-              registered_date: pendingOwner.registered_date || null,
-              created_at: pendingOwner.created_at || null,
-            };
-            try { sessionStorage.setItem("lsmis_pending_owner", JSON.stringify(pendingInfo)); } catch (_) {}
-            showToast("Your registration is still awaiting administrator approval.", "info");
-            navigate("/owner/waiting-approval", { replace: true, state: { owner: pendingInfo } });
-            return;
-          }
-
-          if (err.code === "ACCOUNT_NOT_REGISTERED" || err.message?.includes("is not registered in LSMIS")) {
-            setError("");
-            setUnregisteredGoogleEmail(err.email || "");
-            setUnregisteredModalOpen(true);
-            return;
-          }
-
-          const msg = err.message || "Google authentication failed. Please try again.";
-          setView("signin");
-          setError(msg);
+        if (err.code === "ACCOUNT_PENDING") {
+          setError("Your account is awaiting Admin approval.");
           setIsShaking(true);
           setTimeout(() => setIsShaking(false), 500);
+          return;
         }
+
+        if (err.code === "ACCOUNT_NOT_REGISTERED" || err.message?.includes("is not registered")) {
+          setError("This Google account is not registered. Please register an owner account first.");
+          setIsShaking(true);
+          setTimeout(() => setIsShaking(false), 500);
+          setUnregisteredGoogleEmail(err.email || "");
+          setUnregisteredModalOpen(true);
+          return;
+        }
+
+        if (err.code === "ACCOUNT_REJECTED") {
+          setError(err.message || "Your account has been rejected by the administrator.");
+          setIsShaking(true);
+          setTimeout(() => setIsShaking(false), 500);
+          return;
+        }
+
+        if (err.code === "ACCOUNT_DEACTIVATED") {
+          setError(err.message || "Your account is deactivated. Please contact support.");
+          setIsShaking(true);
+          setTimeout(() => setIsShaking(false), 500);
+          return;
+        }
+
+        const msg = err.message || "Google authentication failed. Please try again.";
+        setError(msg);
+        setIsShaking(true);
+        setTimeout(() => setIsShaking(false), 500);
       }
     };
 
@@ -754,7 +653,6 @@ export const Login = ({ embedded = false, initialView }) => {
         if (!oauthHandledRef.current) {
           ownerAuthService.cleanGoogleOAuthState();
           inFlightOAuthRef.current = false;
-          setGoogleRegLoading(false);
           setGoogleLoginLoading(false);
         }
       }, 4000);
@@ -838,24 +736,11 @@ export const Login = ({ embedded = false, initialView }) => {
     setRegFieldErrors({});
     setRegShake(false);
     setRegLoading(false);
-    setGoogleRegLoading(false);
     setAgreementModalOpen(false);
     setUnregisteredModalOpen(false);
     setUnregisteredGoogleEmail("");
     setRegisteredOwnerInfo(null);
-    if (keepGoogleSessionCleanup) {
-      try {
-        const hadPendingGoogle = Boolean(sessionStorage.getItem("lsmis_google_reg_pending")) || Boolean(googleRegProfile);
-        sessionStorage.removeItem("lsmis_google_reg_pending");
-        sessionStorage.removeItem("lsmis_google_reg_draft");
-        ownerAuthService.cleanGoogleOAuthState();
-        if (hadPendingGoogle) {
-          supabase.auth.signOut({ scope: "local" }).catch(() => { });
-        }
-      } catch (_) { }
-      setGoogleRegProfile(null);
-      setGoogleAvatarError(false);
-    }
+    ownerAuthService.cleanGoogleOAuthState();
   };
 
   // ---- Initiate Google OAuth for Owner Login ----
@@ -906,80 +791,6 @@ export const Login = ({ embedded = false, initialView }) => {
       setIsShaking(true);
       setTimeout(() => setIsShaking(false), 500);
     }
-  };
-
-  // ---- Initiate Google OAuth for Owner Registration ----
-  const handleGoogleOwnerRegister = async () => {
-    // Prevent duplicate authentication requests
-    if (inFlightOAuthRef.current || googleRegLoading || regLoading) return;
-
-    setRegError("");
-    setGoogleRegLoading(true);
-    inFlightOAuthRef.current = true;
-    oauthHandledRef.current = false;
-
-    if (popupPollTimerRef.current) {
-      clearInterval(popupPollTimerRef.current);
-      popupPollTimerRef.current = null;
-    }
-
-    try {
-      // Save any partially entered non-Google fields so they persist across redirect
-      sessionStorage.setItem(
-        "lsmis_google_reg_draft",
-        JSON.stringify({
-          regContact,
-          regUsername,
-          regAddress,
-          regAgreement,
-        })
-      );
-    } catch (_) { }
-
-    try {
-      const res = await ownerAuthService.signInWithGoogle({ intent: "register", mode: "popup" });
-      const authUrl = res?.url;
-      if (!authUrl) {
-        throw new Error("Unable to obtain Google authentication URL. Please try again.");
-      }
-
-      // Same-tab redirect (see handleGoogleOwnerLogin): keeps the OAuth session in this tab.
-      ownerAuthService.setGoogleOAuthInFlight("register");
-      window.location.assign(authUrl);
-      return;
-    } catch (err) {
-      inFlightOAuthRef.current = false;
-      ownerAuthService.cleanGoogleOAuthState();
-      setGoogleRegLoading(false);
-
-      const isNetworkError =
-        !navigator.onLine ||
-        err.message?.toLowerCase().includes("failed to fetch") ||
-        err.message?.toLowerCase().includes("network") ||
-        err.message?.toLowerCase().includes("offline");
-
-      const msg = isNetworkError
-        ? "Network error: Unable to connect to Google authentication. Please check your internet connection and try again."
-        : (err.message || "Failed to connect with Google. Please try again.");
-
-      setRegError(msg);
-      setRegShake(true);
-      setTimeout(() => setRegShake(false), 500);
-    }
-  };
-
-  // ---- Disconnect Google Account on Registration Form ----
-  const handleDisconnectGoogleReg = async () => {
-    try {
-      sessionStorage.removeItem("lsmis_google_reg_pending");
-      sessionStorage.removeItem("lsmis_google_oauth_intent");
-      await supabase.auth.signOut({ scope: "local" });
-    } catch (_) { }
-    setGoogleRegProfile(null);
-    setGoogleAvatarError(false);
-    setRegEmail("");
-    setRegName("");
-    showToast("Google account disconnected.", "info");
   };
 
   const switchToForgot = (e) => {
@@ -1169,7 +980,6 @@ export const Login = ({ embedded = false, initialView }) => {
         username: regUsername.trim(),
         password: regPassword,
         agreementAccepted: regAgreement,
-        googleProfile: googleRegProfile,
       });
 
       const pendingInfo = {
@@ -1180,8 +990,8 @@ export const Login = ({ embedded = false, initialView }) => {
         contact: regContact.trim(),
         username: regUsername.trim(),
         status: res.owner?.status || "Pending Approval",
-        avatar_url: googleRegProfile?.avatarUrl || res.owner?.avatar_url || null,
-        auth_provider: googleRegProfile ? "google" : "email",
+        avatar_url: res.owner?.avatar_url || null,
+        auth_provider: "email",
         registered_date: res.owner?.registered_date || new Date().toISOString().split("T")[0],
         created_at: res.owner?.created_at || new Date().toISOString(),
       };
@@ -1205,8 +1015,6 @@ export const Login = ({ embedded = false, initialView }) => {
       setRegError("");
       setRegFieldErrors({});
       setRegShake(false);
-      setGoogleRegProfile(null);
-      setGoogleAvatarError(false);
 
       setView("reg-submitted");
       showToast("Registration submitted! Awaiting administrator approval.", "success");
@@ -2444,52 +2252,6 @@ export const Login = ({ embedded = false, initialView }) => {
                 </div>
 
                 <form onSubmit={submitOwnerRegistration} className={`login-form-body ${regShake ? "form-shake" : ""}`} noValidate autoComplete="off">
-                  {googleRegProfile && (
-                    <div className="google-connected-banner" role="status">
-                      <div className="google-connected-left">
-                        <div className="google-connected-avatar">
-                          {googleRegProfile.avatarUrl && !googleAvatarError ? (
-                            <img
-                              src={googleRegProfile.avatarUrl}
-                              alt={googleRegProfile.name || "Google Profile"}
-                              referrerPolicy="no-referrer"
-                              onError={() => setGoogleAvatarError(true)}
-                            />
-                          ) : (
-                            <GoogleLogo size={22} />
-                          )}
-                          <span className="google-connected-check" title="Verified Google Account">
-                            <Icon.Check size={10} />
-                          </span>
-                        </div>
-                        <div className="google-connected-info">
-                          <div className="google-connected-badge">
-                            <GoogleLogo size={12} />
-                            <span>Google Account Connected</span>
-                          </div>
-                          <div className="google-connected-name">
-                            {googleRegProfile.name || regName || "Google User"}
-                          </div>
-                          <div className="google-connected-email">
-                            {googleRegProfile.email}
-                          </div>
-                          <div className="google-connected-hint">
-                            Please complete the remaining required fields below to finish registration.
-                          </div>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="google-disconnect-btn"
-                        onClick={handleDisconnectGoogleReg}
-                        disabled={regLoading || googleRegLoading}
-                        title="Disconnect Google account"
-                      >
-                        Disconnect
-                      </button>
-                    </div>
-                  )}
-
                   {/* Full Name */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-name">Full Name <span className="req">*</span></label>
@@ -2509,7 +2271,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         }}
                         placeholder="e.g. Jastine Pardillo"
                         required
-                        disabled={regLoading || googleRegLoading}
+                        disabled={regLoading}
                       />
                     </div>
                     {regFieldErrors.name && (
@@ -2542,7 +2304,6 @@ export const Login = ({ embedded = false, initialView }) => {
                               try {
                                 const dup = await ownerAuthService.checkDuplicate({
                                   contact: digits,
-                                  excludeUserId: googleRegProfile?.googleId || null,
                                 });
                                 if (dup.duplicate && dup.field === "contact") {
                                   setRegFieldErrors((prev) => ({ ...prev, contact: dup.message }));
@@ -2552,7 +2313,7 @@ export const Login = ({ embedded = false, initialView }) => {
                           }}
                           placeholder="09171234567"
                           required
-                          disabled={regLoading || googleRegLoading}
+                          disabled={regLoading}
                         />
                       </div>
                       {regFieldErrors.contact && (
@@ -2585,7 +2346,6 @@ export const Login = ({ embedded = false, initialView }) => {
                               try {
                                 const dup = await ownerAuthService.checkDuplicate({
                                   username: u,
-                                  excludeUserId: googleRegProfile?.googleId || null,
                                 });
                                 if (dup.duplicate && dup.field === "username") {
                                   setRegFieldErrors((prev) => ({ ...prev, username: dup.message }));
@@ -2595,7 +2355,7 @@ export const Login = ({ embedded = false, initialView }) => {
                           }}
                           placeholder="e.g. jpardillo"
                           required
-                          disabled={regLoading || googleRegLoading}
+                          disabled={regLoading}
                         />
                       </div>
                       {regFieldErrors.username && (
@@ -2626,7 +2386,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         }}
                         placeholder="Barangay, City, Province (e.g. Sitio Baybay, Tinaan, Naga City)"
                         required
-                        disabled={regLoading || googleRegLoading}
+                        disabled={regLoading}
                       />
                     </div>
                     {regFieldErrors.address && (
@@ -2641,11 +2401,6 @@ export const Login = ({ embedded = false, initialView }) => {
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-email">
                       Email Address <span className="req">*</span>
-                      {googleRegProfile && (
-                        <span className="google-verified-email-pill">
-                          <Icon.CheckCircle size={12} /> Verified by Google
-                        </span>
-                      )}
                     </label>
                     <div className={`login-pwd-wrap ${regFieldErrors.email ? "has-error" : ""}`}>
                       <span className="login-pwd-icon"><Icon.Mail size={16} /></span>
@@ -2654,11 +2409,9 @@ export const Login = ({ embedded = false, initialView }) => {
                         ref={regEmailRef}
                         type="email"
                         autoComplete="off"
-                        className={`form-control ${googleRegProfile ? "input-google-locked" : ""}`}
+                        className="form-control"
                         value={regEmail}
-                        readOnly={Boolean(googleRegProfile)}
                         onChange={(e) => {
-                          if (googleRegProfile) return;
                           setRegEmail(e.target.value);
                           if (regFieldErrors.email) setRegFieldErrors(prev => ({ ...prev, email: "" }));
                           if (regError) setRegError("");
@@ -2669,7 +2422,6 @@ export const Login = ({ embedded = false, initialView }) => {
                             try {
                               const dup = await ownerAuthService.checkDuplicate({
                                 email: em,
-                                excludeUserId: googleRegProfile?.googleId || null,
                               });
                               if (dup.duplicate && dup.field === "email") {
                                 setRegFieldErrors((prev) => ({ ...prev, email: dup.message }));
@@ -2679,7 +2431,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         }}
                         placeholder="e.g. owner@example.com"
                         required
-                        disabled={regLoading || googleRegLoading}
+                        disabled={regLoading}
                       />
                     </div>
                     {regFieldErrors.email && (
@@ -2710,7 +2462,7 @@ export const Login = ({ embedded = false, initialView }) => {
                           }}
                           placeholder="Min 8 chars"
                           required
-                          disabled={regLoading || googleRegLoading}
+                          disabled={regLoading}
                         />
                         <button
                           type="button"
@@ -2747,7 +2499,7 @@ export const Login = ({ embedded = false, initialView }) => {
                           }}
                           placeholder="Re-enter password"
                           required
-                          disabled={regLoading || googleRegLoading}
+                          disabled={regLoading}
                         />
                         <button
                           type="button"
@@ -2822,7 +2574,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
                   <Button
                     type="submit"
-                    disabled={regLoading || googleRegLoading}
+                    disabled={regLoading}
                     block
                     size="lg"
                     className={`login-submit ${regLoading ? "is-submitting" : ""}`}
@@ -2836,35 +2588,6 @@ export const Login = ({ embedded = false, initialView }) => {
                       <span>Submit Registration</span>
                     )}
                   </Button>
-
-                  {/* Google sign-in is website-only: hidden inside the installed Android app */}
-                  {!isNativeAndroidApp && (
-                  <>
-                  <div className="login-oauth-divider" role="separator" aria-label="Google Registration Option">
-                    <span>{googleRegProfile ? "Switch Google Account" : "Or Register Using Google"}</span>
-                  </div>
-
-                  <button
-                    type="button"
-                    className={`btn-google-oauth ${googleRegLoading ? "is-loading" : ""}`}
-                    onClick={handleGoogleOwnerRegister}
-                    disabled={regLoading || googleRegLoading}
-                    aria-label="Continue with Google to pre-fill Owner Registration"
-                  >
-                    {googleRegLoading ? (
-                      <>
-                        <span className="spinner spinner-google" />
-                        <span>Connecting to Google...</span>
-                      </>
-                    ) : (
-                      <>
-                        <GoogleLogo size={19} />
-                        <span>Continue with Google</span>
-                      </>
-                    )}
-                  </button>
-                  </>
-                  )}
 
                   {/* Back to Sign In directly below Submit */}
                   <button
@@ -2915,24 +2638,6 @@ export const Login = ({ embedded = false, initialView }) => {
                   flexDirection: "column",
                   gap: 12
                 }}>
-                  {registeredOwnerInfo?.avatar_url && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 10, borderBottom: "1px solid var(--color-border, #e2e8f0)" }}>
-                      <img
-                        src={registeredOwnerInfo.avatar_url}
-                        alt={registeredOwnerInfo?.name || "Owner"}
-                        referrerPolicy="no-referrer"
-                        style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover", border: "2px solid #10b981" }}
-                      />
-                      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#10b981", display: "inline-flex", alignItems: "center", gap: 5 }}>
-                          <GoogleLogo size={13} /> Google Account Linked
-                        </span>
-                        <span style={{ fontSize: 12.5, color: "var(--color-text-secondary, #64748b)" }}>
-                          You can sign in with Google once approved
-                        </span>
-                      </div>
-                    </div>
-                  )}
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5 }}>
                     <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Registered Owner:</span>
                     <strong style={{ color: "var(--color-text, #0f172a)" }}>{registeredOwnerInfo?.name || "-"}</strong>
@@ -2941,14 +2646,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Email:</span>
                     <strong style={{ color: "var(--color-text, #0f172a)" }}>{registeredOwnerInfo?.email || "-"}</strong>
                   </div>
-                  {registeredOwnerInfo?.auth_provider === "google" && (
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14.5 }}>
-                      <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Auth Provider:</span>
-                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13.5, color: "var(--color-text, #0f172a)" }}>
-                        <GoogleLogo size={14} /> Connected with Google
-                      </span>
-                    </div>
-                  )}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14.5 }}>
                     <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Current Status:</span>
                     <span style={{
@@ -3434,7 +3131,7 @@ export const Login = ({ embedded = false, initialView }) => {
                 </div>
 
                 <p style={{ fontSize: "13.5px", color: "var(--color-text, #334155)", lineHeight: 1.6, margin: 0 }}>
-                  Your Google account is not registered in LSMIS. Please create an account first before logging in.
+                  This Google account is not registered. Please register an owner account first.
                 </p>
 
                 {unregisteredGoogleEmail && (

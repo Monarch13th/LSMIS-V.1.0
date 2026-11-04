@@ -247,379 +247,18 @@ export const ownerAuthService = {
    * - Retrieves Google email, full name, and profile picture
    * - Prevents duplicate accounts using the same email address
    */
-  async prepareGoogleRegistration(explicitUser = null) {
-    let user = explicitUser;
-    if (!user) {
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userData?.user) {
-        const { data: sessData } = await supabase.auth.getSession();
-        user = sessData?.session?.user || null;
-      } else {
-        user = userData.user;
-      }
-    }
-
-    if (!user) {
-      throw new Error("Google authentication session could not be verified. Please try again.");
-    }
-
-    const googleData = this.extractGoogleUserData(user);
-    if (!googleData || !googleData.email) {
-      try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      throw new Error("Unable to retrieve an email address from your Google account.");
-    }
-
-    const cleanEmail = googleData.email;
-
-    // 1. Check public.owners for existing owner with this email
-    try {
-      const { data: existingOwner } = await supabase
-        .from(TABLES.OWNERS)
-        .select("*")
-        .ilike("email", cleanEmail)
-        .limit(1)
-        .maybeSingle();
-
-      if (existingOwner) {
-        const hasRealContact = Boolean((existingOwner.contact || "").replace(/\D/g, "").length >= 7);
-        const hasAgreement = existingOwner.agreement_status === true;
-        const hasHistory = Array.isArray(existingOwner.history) && existingOwner.history.length > 0;
-        const isRegisteredOwner = hasRealContact || hasAgreement || hasHistory || Boolean(existingOwner.address);
-
-        if (isRegisteredOwner) {
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-          throw new Error(
-            `An account with the email address "${cleanEmail}" is already registered. Please sign in on the Login page using "Continue with Google" or use another Google account.`
-          );
-        } else {
-          // Clean up any blank trigger-generated stub row so registration can proceed cleanly
-          try {
-            await supabase.from(TABLES.OWNERS).delete().eq("id", existingOwner.id);
-          } catch (_) {}
-        }
-      }
-    } catch (err) {
-      if (err.message && err.message.includes("already registered")) throw err;
-    }
-
-    // 2. Check public.users for existing personnel or owner account with this email
-    try {
-      const { data: existingUser } = await supabase
-        .from(TABLES.USERS)
-        .select("*")
-        .ilike("email", cleanEmail)
-        .limit(1)
-        .maybeSingle();
-
-      if (existingUser) {
-        const roleLower = String(existingUser.role || "").toLowerCase().trim();
-        const isTriggerStub =
-          existingUser.id === googleData.authUserId &&
-          !existingUser.owner_id &&
-          !existingUser.username &&
-          (!existingUser.last_login || existingUser.last_login === "Never") &&
-          roleLower !== "admin" &&
-          roleLower !== "administrator" &&
-          roleLower !== "vet" &&
-          roleLower !== "veterinarian";
-
-        if (!isTriggerStub) {
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-          throw new Error(
-            `This email address "${cleanEmail}" is already associated with an existing account. Duplicate accounts are not permitted.`
-          );
-        } else {
-          // Remove the auto-created trigger stub until the owner completes the registration form
-          try {
-            await supabase.from(TABLES.USERS).delete().eq("id", existingUser.id);
-          } catch (_) {}
-        }
-      }
-    } catch (err) {
-      if (err.message && (err.message.includes("already") || err.message.includes("Duplicate"))) {
-        throw err;
-      }
-    }
-
-    return googleData;
+  async prepareGoogleRegistration() {
+    try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+    throw new Error("Online registration using Google OAuth is disabled. Please register using the standard owner registration form.");
   },
 
   /**
-   * Register a new Owner directly through Google OAuth:
-   * - Retrieves Google email, full name, profile picture, and Google user ID
-   * - Checks whether email already exists in public.owners
-   * - If account is new, creates an Owner registration record with status "Pending Approval"
-   * - Saves the Google user ID and associates it with the Owner record
-   * - Does not create duplicate Owner records
+   * Register a new Owner directly through Google OAuth (DISABLED):
+   * Owners must create accounts using the standard owner registration form with email and password.
    */
-  async registerGoogleOwner(explicitUser = null) {
-    let user = explicitUser;
-    if (!user) {
-      const { data: userData, error: userErr } = await supabase.auth.getUser();
-      if (userErr || !userData?.user) {
-        const { data: sessData } = await supabase.auth.getSession();
-        user = sessData?.session?.user || null;
-      } else {
-        user = userData.user;
-      }
-    }
-
-    if (!user) {
-      throw new Error("Google authentication session could not be verified. Please try again.");
-    }
-
-    const googleData = this.extractGoogleUserData(user);
-    if (!googleData || !googleData.email) {
-      try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      throw new Error("Unable to retrieve an email address from your Google account.");
-    }
-
-    const cleanEmail = googleData.email;
-
-    // 1. Check if an owner with this email already exists in public.owners
-    let existingOwner = null;
-    try {
-      const { data: dbOwner } = await supabase
-        .from(TABLES.OWNERS)
-        .select("*")
-        .ilike("email", cleanEmail)
-        .limit(1)
-        .maybeSingle();
-      if (dbOwner) existingOwner = dbOwner;
-    } catch (_) {}
-
-    if (existingOwner) {
-      // Ensure Google identity metadata is linked on the existing owner record
-      try {
-        const googleLinkPatch = {
-          google_id: googleData.googleId || existingOwner.google_id || null,
-          auth_user_id: googleData.authUserId || existingOwner.auth_user_id || null,
-          avatar_url: existingOwner.avatar_url || googleData.avatarUrl || null,
-          auth_provider: existingOwner.auth_provider || "google",
-          email_verified: true,
-        };
-        const { data: linkedOwner } = await supabase
-          .from(TABLES.OWNERS)
-          .update(googleLinkPatch)
-          .eq("id", existingOwner.id)
-          .select()
-          .maybeSingle();
-        if (linkedOwner) existingOwner = linkedOwner;
-      } catch (_) {}
-
-      const stLower = String(existingOwner.status || "").toLowerCase().trim();
-      const isApproved =
-        (stLower === "approved" || stLower === "active") &&
-        !String(existingOwner.id || "").startsWith("REG");
-
-      if (isApproved) {
-        return {
-          status: "approved",
-          owner: existingOwner,
-          googleData,
-        };
-      }
-
-      if (stLower.includes("reject")) {
-        const rejectErr = new Error("Your account registration was not approved. Please contact the administration.");
-        rejectErr.code = "ACCOUNT_REJECTED";
-        throw rejectErr;
-      }
-
-      // Ensure public.users row is also synced for this pending owner
-      try {
-        await supabase.from(TABLES.USERS).upsert(
-          {
-            id: googleData.authUserId,
-            full_name: existingOwner.name || googleData.name || cleanEmail.split("@")[0],
-            email: cleanEmail,
-            username: existingOwner.username || cleanEmail.split("@")[0],
-            role: "owner",
-            owner_id: existingOwner.id,
-            status: "Pending Approval",
-            google_id: googleData.googleId,
-            avatar_url: existingOwner.avatar_url || googleData.avatarUrl || null,
-            auth_provider: "google",
-          },
-          { onConflict: "id" }
-        );
-      } catch (_) {}
-
-      // Already pending
-      return {
-        status: "pending",
-        owner: existingOwner,
-        googleData,
-      };
-    }
-
-    // 2. Prevent personnel (Admin, Vet, Staff) from registering as an owner
-    try {
-      const { data: existingUser } = await supabase
-        .from(TABLES.USERS)
-        .select("*")
-        .ilike("email", cleanEmail)
-        .limit(1)
-        .maybeSingle();
-
-      if (existingUser) {
-        const roleLower = String(existingUser.role || "").toLowerCase().trim();
-        if (["admin", "administrator", "vet", "veterinarian", "staff", "operator"].includes(roleLower)) {
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-          throw new Error("This email is already associated with system personnel credentials. Please use another Google account.");
-        }
-      }
-    } catch (e) {
-      if (e.message?.includes("system personnel")) throw e;
-    }
-
-    // 3. Generate sequential temporary registration reference ID: REG-001-2026
-    const regTimestamp = new Date().toISOString();
-    const currentYear = new Date().getFullYear();
-    let nextRegNum = 1;
-    try {
-      const { data: allOwners } = await supabase.from(TABLES.OWNERS).select("id");
-      if (allOwners && allOwners.length > 0) {
-        const nums = allOwners
-          .map((r) => {
-            const m = String(r.id || "").match(/REG-(\d+)-(\d{4})/i) ||
-                      String(r.id || "").match(/REG-(\d{4})-(\d+)/i);
-            if (m) {
-              const numPart = m[1].length === 4 ? m[2] : m[1];
-              return parseInt(numPart, 10);
-            }
-            return 0;
-          })
-          .filter((n) => !isNaN(n) && n > 0);
-        if (nums.length > 0) {
-          nextRegNum = Math.max(...nums) + 1;
-        }
-      }
-    } catch (_) {}
-
-    const regRef = `REG-${String(nextRegNum).padStart(3, "0")}-${currentYear}`;
-    const displayName = googleData.name || cleanEmail.split("@")[0];
-    const username = cleanEmail.split("@")[0].replace(/[^a-zA-Z0-9_]/g, "_").slice(0, 30);
-
-    const historyEntries = [
-      {
-        stage: "Registration Submitted",
-        status: "Pending Approval",
-        timestamp: regTimestamp,
-        actor: displayName,
-        auth_provider: "google",
-        google_id: googleData.googleId,
-        auth_user_id: googleData.authUserId,
-        avatar_url: googleData.avatarUrl || null,
-        note: `Owner registration submitted via Google Sign-In (${cleanEmail}). Awaiting administrator review and approval.`,
-      },
-    ];
-
-    const newOwnerRecord = {
-      id: regRef,
-      name: displayName,
-      contact: "",
-      address: "",
-      email: cleanEmail,
-      username: username,
-      status: "Pending Approval",
-      email_verified: true,
-      email_verified_at: regTimestamp,
-      agreement_status: true,
-      agreement_version: "v1.0-2026",
-      agreement_accepted_at: regTimestamp,
-      registered_date: today(),
-      total_animals: 0,
-      approved_by: null,
-      approved_at: null,
-      rejection_reason: null,
-      google_id: googleData.googleId,
-      auth_user_id: googleData.authUserId,
-      avatar_url: googleData.avatarUrl || null,
-      auth_provider: "google",
-      history: historyEntries,
-    };
-
-    // Insert into public.owners
-    let savedOwner = newOwnerRecord;
-    const { data: insData, error: insErr } = await supabase
-      .from(TABLES.OWNERS)
-      .upsert(newOwnerRecord, { onConflict: "id" })
-      .select()
-      .maybeSingle();
-
-    if (insErr) {
-      console.error("Supabase owners upsert error in registerGoogleOwner:", insErr);
-      throw new Error(`Could not save your Google Owner registration (${insErr.message}). Please try again.`);
-    } else if (insData) {
-      savedOwner = insData;
-    }
-
-    // Insert / upsert into public.users
-    try {
-      await supabase.from(TABLES.USERS).upsert(
-        {
-          id: googleData.authUserId,
-          full_name: displayName,
-          email: cleanEmail,
-          username: username,
-          role: "owner",
-          owner_id: regRef,
-          status: "Pending Approval",
-          google_id: googleData.googleId,
-          avatar_url: googleData.avatarUrl || null,
-          auth_provider: "google",
-        },
-        { onConflict: "id" }
-      );
-    } catch (e) {
-      console.warn("Upsert public.users error:", e);
-    }
-
-    // Sync user metadata in Supabase Auth (auth.users)
-    try {
-      await supabase.auth.updateUser({
-        data: {
-          full_name: displayName,
-          username: username,
-          role: "owner",
-          owner_id: regRef,
-          status: "Pending Approval",
-          google_id: googleData.googleId,
-          avatar_url: googleData.avatarUrl || null,
-          auth_provider: "google",
-          google_connected: true,
-        },
-      });
-    } catch (_) {}
-
-    // Log Activity & Notify Admin
-    notifyChange(TABLES.OWNERS, "insert", savedOwner);
-    notifyDbChange(TABLES.USERS, "insert", { email: cleanEmail });
-    try {
-      notifyRole({
-        role: "admin",
-        title: "New Owner Registration Request",
-        message: `${displayName} (${cleanEmail}) registered via Google and is awaiting approval (${regRef}).`,
-        type: "owner_registration",
-        owner_id: regRef,
-      }).catch(() => {});
-      logActivity({
-        action: `New owner registered via Google OAuth (${displayName} - ${regRef})`,
-        module: "Owner Registration",
-        user: displayName,
-        role: "owner",
-        old_value: "Unregistered",
-        new_value: "Pending Approval",
-        field_changed: "status",
-      }).catch(() => {});
-    } catch (_) {}
-
-    return {
-      status: "pending",
-      owner: savedOwner,
-      googleData,
-    };
+  async registerGoogleOwner() {
+    try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+    throw new Error("Online registration using Google OAuth is disabled. Please register using the standard owner registration form.");
   },
 
   /**
@@ -722,7 +361,7 @@ export const ownerAuthService = {
       }
 
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      const notRegErr = new Error("Your Google account is not registered in LSMIS. Please create an account first before logging in.");
+      const notRegErr = new Error("This Google account is not registered. Please register an owner account first.");
       notRegErr.code = "ACCOUNT_NOT_REGISTERED";
       notRegErr.email = cleanEmail;
       throw notRegErr;
@@ -738,7 +377,8 @@ export const ownerAuthService = {
       (String(ownerAcct.id || "").startsWith("REG") && !stLower.includes("approved") && !stLower.includes("active"));
 
     if (isPending) {
-      const pendingErr = new Error("Your account is still awaiting approval.");
+      try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+      const pendingErr = new Error("Your account is awaiting Admin approval.");
       pendingErr.code = "ACCOUNT_PENDING";
       pendingErr.owner = ownerAcct;
       pendingErr.googleData = googleData;
@@ -747,7 +387,7 @@ export const ownerAuthService = {
 
     if (stLower.includes("reject")) {
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      const rejectErr = new Error("Your account registration was not approved. Please contact the administration.");
+      const rejectErr = new Error("Your account has been rejected by the administrator.");
       rejectErr.code = "ACCOUNT_REJECTED";
       throw rejectErr;
     }
@@ -761,7 +401,7 @@ export const ownerAuthService = {
 
     if (isDeactivated) {
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      const deactErr = new Error("Your account has been deactivated or suspended. Please contact the administration.");
+      const deactErr = new Error("Your account is deactivated. Please contact support.");
       deactErr.code = "ACCOUNT_DEACTIVATED";
       throw deactErr;
     }
