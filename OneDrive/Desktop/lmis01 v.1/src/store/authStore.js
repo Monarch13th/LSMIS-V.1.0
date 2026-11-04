@@ -169,8 +169,9 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     cachedToUse.role &&
     cachedToUse.session_id
   ) {
-    // If the user authenticated via Google OAuth, cached session MUST be for role "owner"
-    if (isGoogleUser && cachedToUse.role !== "owner") {
+    // If the user authenticated via Google OAuth, cached session MUST be for an authorized role
+    const validRoles = ["admin", "vet", "staff", "owner"];
+    if (isGoogleUser && !validRoles.includes(normalizeRole(cachedToUse.role))) {
       return null;
     }
     return {
@@ -188,11 +189,12 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
   let ownerId = supabaseUser.user_metadata?.owner_id || null;
   let dbActiveSessionId = null;
   let dbActiveSessionUpdatedAt = null;
+  let userStatus = null;
 
   try {
     const { data: userRow } = await supabase
       .from(TABLES.USERS)
-      .select("id, role, full_name, username, owner_id, active_session_id, active_session_updated_at, avatar_url")
+      .select("id, role, full_name, username, status, owner_id, active_session_id, active_session_updated_at, avatar_url")
       .or(`id.eq.${supabaseUser.id},email.ilike.${email}`)
       .limit(1)
       .maybeSingle();
@@ -201,6 +203,7 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
       if (userRow.role) role = normalizeRole(userRow.role) || userRow.role;
       if (userRow.full_name) name = userRow.full_name;
       if (userRow.username) username = userRow.username;
+      if (userRow.status) userStatus = userRow.status;
       if (userRow.owner_id) ownerId = userRow.owner_id;
       if (userRow.avatar_url) avatarUrl = userRow.avatar_url;
       if (userRow.active_session_id) dbActiveSessionId = userRow.active_session_id;
@@ -213,53 +216,60 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
   // Check if role is definitively confirmed as personnel (Admin, Vet, Staff)
   const isPersonnel = role === "admin" || role === "vet" || role === "staff";
 
-  // CRITICAL RULE: Google OAuth is strictly for approved Livestock Owners only.
-  // Personnel (Admin, Vet, Staff) accounts MUST NEVER be assigned or authenticated via Google OAuth.
+  // Google OAuth is supported for both Personnel (Admin, Vet, Staff) and approved Owners
   if (isGoogleUser) {
     if (isPersonnel) {
-      // Reject personnel attempting Google OAuth immediately
-      return null;
-    }
-
-    // Must be a verified approved owner in public.owners
-    try {
-      let ownerQ = supabase
-        .from(TABLES.OWNERS)
-        .select("id, name, username, status, avatar_url");
-
-      if (supabaseUser.id && email) {
-        ownerQ = ownerQ.or(`auth_user_id.eq.${supabaseUser.id},email.ilike.${email}`);
-      } else if (supabaseUser.id) {
-        ownerQ = ownerQ.eq("auth_user_id", supabaseUser.id);
-      } else {
-        ownerQ = ownerQ.ilike("email", email);
+      // Validate personnel account status (must not be deactivated, inactive, or terminated)
+      const stLower = String(userStatus || "").toLowerCase().trim();
+      if (
+        stLower === "inactive" ||
+        stLower === "deactivated" ||
+        stLower.includes("terminated") ||
+        stLower.includes("suspend")
+      ) {
+        return null;
       }
+    } else {
+      // Must be a verified approved owner in public.owners
+      try {
+        let ownerQ = supabase
+          .from(TABLES.OWNERS)
+          .select("id, name, username, status, avatar_url");
 
-      const { data: ownerRow } = await ownerQ.limit(1).maybeSingle();
-      if (!ownerRow) {
+        if (supabaseUser.id && email) {
+          ownerQ = ownerQ.or(`auth_user_id.eq.${supabaseUser.id},email.ilike.${email}`);
+        } else if (supabaseUser.id) {
+          ownerQ = ownerQ.eq("auth_user_id", supabaseUser.id);
+        } else {
+          ownerQ = ownerQ.ilike("email", email);
+        }
+
+        const { data: ownerRow } = await ownerQ.limit(1).maybeSingle();
+        if (!ownerRow) {
+          return null;
+        }
+
+        const stLower = String(ownerRow.status || "").toLowerCase().trim();
+        const isApproved =
+          (stLower === "approved" || stLower === "active") &&
+          !String(ownerRow.id || "").startsWith("REG");
+
+        if (!isApproved) {
+          return null;
+        }
+
+        role = "owner";
+        if (ownerRow.name) name = ownerRow.name;
+        if (ownerRow.username) username = ownerRow.username;
+        if (ownerRow.avatar_url) avatarUrl = ownerRow.avatar_url;
+        ownerId = ownerRow.id;
+      } catch (_) {
         return null;
       }
 
-      const stLower = String(ownerRow.status || "").toLowerCase().trim();
-      const isApproved =
-        (stLower === "approved" || stLower === "active") &&
-        !String(ownerRow.id || "").startsWith("REG");
-
-      if (!isApproved) {
+      if (role !== "owner") {
         return null;
       }
-
-      role = "owner";
-      if (ownerRow.name) name = ownerRow.name;
-      if (ownerRow.username) username = ownerRow.username;
-      if (ownerRow.avatar_url) avatarUrl = ownerRow.avatar_url;
-      ownerId = ownerRow.id;
-    } catch (_) {
-      return null;
-    }
-
-    if (role !== "owner") {
-      return null;
     }
   } else {
     // Non-Google user (standard Email & Password authentication for Admin, Vet, Staff, and manual Owners)

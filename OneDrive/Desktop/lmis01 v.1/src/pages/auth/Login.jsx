@@ -500,15 +500,19 @@ export const Login = ({ embedded = false, initialView }) => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      // Owner Login via Google OAuth
+      // Google Login via Google OAuth (Owner and Personnel)
       try {
-        const { owner, googleData } = await ownerAuthService.verifyAndConnectGoogleOwnerLogin(sbSession.user);
+        const result = await ownerAuthService.verifyAndConnectGoogleLogin(sbSession.user);
         if (isCancelled) return;
 
-        const cleanEmail = googleData.email;
-        const ownerId = owner.id;
-        const name = owner.name || googleData.name || "Livestock Owner";
-        const userId = googleData.authUserId;
+        const cleanEmail = result.googleData.email;
+        const role = result.role;
+        const name = result.name;
+        const username = result.username;
+        const ownerId = result.ownerId;
+        const userId = result.userId;
+        const avatarUrl = result.avatarUrl;
+        const googleId = result.googleData.googleId;
 
         // Cover gradient
         let cover_gradient = null;
@@ -551,13 +555,13 @@ export const Login = ({ embedded = false, initialView }) => {
         const session = {
           id: userId,
           user_id: userId,
-          role: "owner",
+          role,
           name,
           email: cleanEmail,
-          username: owner.username || cleanEmail.split("@")[0],
+          username: username || cleanEmail.split("@")[0],
           owner_id: ownerId,
-          google_id: googleData.googleId,
-          avatar_url: googleData.avatarUrl || owner.avatar_url || null,
+          google_id: googleId,
+          avatar_url: avatarUrl,
           auth_provider: "google",
           session_id: activeSessionId,
           ts: Date.now(),
@@ -572,12 +576,12 @@ export const Login = ({ embedded = false, initialView }) => {
 
         try {
           supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
-          registerLoginSession({ name, email: cleanEmail, role: "owner", module: "Dashboard", loginTime: loginTimeIso });
+          registerLoginSession({ name, email: cleanEmail, role, module: "Dashboard", loginTime: loginTimeIso });
           logActivity({
-            action: `Owner logged in via Google OAuth (${name} - owner)`,
+            action: `User logged in via Google OAuth (${name} - ${role})`,
             module: "Auth",
             user: name,
-            role: "owner",
+            role,
             old_value: "Offline",
             new_value: "Active Session (Google OAuth)",
             field_changed: "session_state",
@@ -586,10 +590,10 @@ export const Login = ({ embedded = false, initialView }) => {
 
         showToast(`Welcome back, ${name}!`, "success");
         const prevPath = location.state?.from?.pathname;
-        if (prevPath && prevPath.startsWith("/owner")) {
+        if (prevPath && prevPath.startsWith(`/${role}`)) {
           navigate(prevPath, { replace: true });
         } else {
-          navigate("/owner", { replace: true });
+          navigate(`/${role}`, { replace: true });
         }
       } catch (err) {
         if (isCancelled) return;
@@ -605,14 +609,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
         setView("signin");
 
-        if (err.code === "PERSONNEL_GOOGLE_LOGIN_BLOCKED" || err.message?.includes("Owner accounts only")) {
-          setError("Google login is available for registered and approved Owner accounts only. Please use your registered email and password.");
-          setIsShaking(true);
-          setTimeout(() => setIsShaking(false), 500);
-          setUnregisteredModalOpen(false);
-          return;
-        }
-
         if (err.code === "ACCOUNT_PENDING") {
           setError("Your account is awaiting Admin approval.");
           setIsShaking(true);
@@ -621,11 +617,11 @@ export const Login = ({ embedded = false, initialView }) => {
         }
 
         if (err.code === "ACCOUNT_NOT_REGISTERED" || err.message?.includes("is not registered")) {
-          setError("This Google account is not registered. Please register an owner account first.");
+          setError("This Google account is not registered in the system. Please use your registered account.");
           setIsShaking(true);
           setTimeout(() => setIsShaking(false), 500);
           setUnregisteredGoogleEmail(err.email || "");
-          setUnregisteredModalOpen(true);
+          setUnregisteredModalOpen(false);
           return;
         }
 
@@ -2235,8 +2231,8 @@ export const Login = ({ embedded = false, initialView }) => {
                   {/* Google sign-in is website-only: hidden inside the installed Android app */}
                   {!isNativeAndroidApp && (
                   <>
-                  <div className="login-oauth-divider" role="separator" aria-label="Owner Google Sign-In">
-                    <span>Owner Sign-In Option</span>
+                  <div className="login-oauth-divider" role="separator" aria-label="Google Sign-In">
+                    <span>or continue with</span>
                   </div>
 
                   <button
@@ -2244,7 +2240,7 @@ export const Login = ({ embedded = false, initialView }) => {
                     className={`btn-google-oauth ${googleLoginLoading ? "is-loading" : ""}`}
                     onClick={handleGoogleOwnerLogin}
                     disabled={loading || googleLoginLoading}
-                    aria-label="Continue with Google for Livestock Owners"
+                    aria-label="Continue with Google"
                   >
                     {googleLoginLoading ? (
                       <>

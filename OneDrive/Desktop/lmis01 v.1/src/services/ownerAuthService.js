@@ -6,6 +6,7 @@ import { logActivity, notifyOwner, notifyRole, activityService } from "./activit
 import { validatePassword } from "../utils/passwordValidation.js";
 import { validatePhilippineMobileNumber } from "../utils/phoneValidation.js";
 import { authSecurityService } from "./authSecurityService.js";
+import { adminService } from "./adminService.js";
 
 // Storage keys
 const LOCKOUT_PREFIX = "lmis_lockout_";
@@ -265,13 +266,14 @@ export const ownerAuthService = {
   },
 
   /**
-   * Verify Google OAuth login for an existing Owner account:
-   * - Blocks Admin, Veterinarian, and Staff accounts from using Google Sign-In
-   * - Verifies that the Google email matches an existing owner account
-   * - Prevents Pending, Rejected, or Suspended accounts from accessing the Owner dashboard
-   * - Associates and saves the Google user ID with the existing owner record in Supabase without creating duplicates
+   * Verify Google OAuth login for any registered account (Owner or Personnel - Admin, Vet, Staff):
+   * - Retrieves verified Google email and Google user identity
+   * - Matches against existing Supabase database records (public.users & public.owners)
+   * - Prevents unauthorized or unapproved accounts from accessing dashboards
+   * - Associates Google user ID with existing account without creating duplicate profiles
+   * - Returns verified role ("admin" | "vet" | "staff" | "owner") and user credentials
    */
-  async verifyAndConnectGoogleOwnerLogin(explicitUser = null) {
+  async verifyAndConnectGoogleLogin(explicitUser = null) {
     let user = explicitUser;
     if (!user) {
       const { data: userData, error: userErr } = await supabase.auth.getUser();
@@ -295,7 +297,7 @@ export const ownerAuthService = {
 
     const cleanEmail = googleData.email;
 
-    // 1. Check public.users to identify Personnel accounts (Admin, Vet, Staff)
+    // 1. Look up user record in public.users
     let dbUserRow = null;
     try {
       const { data: uRow } = await supabase
@@ -307,41 +309,33 @@ export const ownerAuthService = {
       dbUserRow = uRow || null;
     } catch (_) {}
 
-    if (dbUserRow) {
-      const r = String(dbUserRow.role || "").toLowerCase().trim();
-      const isPersonnel =
-        r === "admin" ||
-        r === "administrator" ||
-        r === "vet" ||
-        r === "veterinarian" ||
-        r === "staff" ||
-        r === "operator";
+    const rRaw = String(dbUserRow?.role || "").toLowerCase().trim();
+    const isPersonnel =
+      rRaw === "admin" ||
+      rRaw === "administrator" ||
+      rRaw === "vet" ||
+      rRaw === "veterinarian" ||
+      rRaw === "staff" ||
+      rRaw === "operator";
 
-      const isTriggerStub =
-        dbUserRow.id === googleData.authUserId &&
-        !dbUserRow.owner_id &&
-        !dbUserRow.username &&
-        (!dbUserRow.last_login || dbUserRow.last_login === "Never") &&
-        !isPersonnel;
+    // Clean up auto-inserted trigger stub if user is not a real registered account
+    const isTriggerStub =
+      dbUserRow &&
+      dbUserRow.id === googleData.authUserId &&
+      !dbUserRow.owner_id &&
+      !dbUserRow.username &&
+      (!dbUserRow.last_login || dbUserRow.last_login === "Never") &&
+      !isPersonnel &&
+      rRaw !== "owner";
 
-      if (isTriggerStub) {
-        // Clean up any auto-inserted trigger row for this unregistered Google account
-        try {
-          await supabase.from(TABLES.USERS).delete().eq("id", dbUserRow.id);
-        } catch (_) {}
-        dbUserRow = null;
-      } else if (isPersonnel) {
-        try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-        const personnelErr = new Error(
-          "Google login is available for registered and approved Owner accounts only. Please use your registered email and password."
-        );
-        personnelErr.code = "PERSONNEL_GOOGLE_LOGIN_BLOCKED";
-        personnelErr.email = cleanEmail;
-        throw personnelErr;
-      }
+    if (isTriggerStub) {
+      try {
+        await supabase.from(TABLES.USERS).delete().eq("id", dbUserRow.id);
+      } catch (_) {}
+      dbUserRow = null;
     }
 
-    // 2. Look up existing owner record in public.owners by email
+    // 2. Look up owner record in public.owners by email or linked owner_id
     let ownerAcct = null;
     try {
       const { data: dbOwner } = await supabase
@@ -370,16 +364,101 @@ export const ownerAuthService = {
       } catch (_) {}
     }
 
-    // 3. If not an owner, reject as unregistered
-    if (!ownerAcct) {
+    // 3. If neither a personnel account nor an owner account is found in Supabase:
+    if (!isPersonnel && !ownerAcct) {
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      const notRegErr = new Error("This Google account is not registered. Please register an owner account first.");
+      const notRegErr = new Error("This Google account is not registered in the system. Please use your registered account.");
       notRegErr.code = "ACCOUNT_NOT_REGISTERED";
       notRegErr.email = cleanEmail;
       throw notRegErr;
     }
 
-    // 3. Verify Owner Account Approval Status (block Pending, Rejected, and Deactivated accounts)
+    // 4. Handle Personnel (Admin, Vet, Staff) Accounts
+    if (isPersonnel) {
+      let normalizedRole = "staff";
+      if (rRaw === "administrator" || rRaw.includes("admin")) normalizedRole = "admin";
+      else if (rRaw === "veterinarian" || rRaw.includes("vet") || rRaw.includes("doctor")) normalizedRole = "vet";
+      else if (rRaw === "staff" || rRaw.includes("staff") || rRaw.includes("operator")) normalizedRole = "staff";
+
+      // Validate Admin account status
+      if (normalizedRole === "admin") {
+        const stLower = String(dbUserRow.status || "").toLowerCase().trim();
+        if (stLower === "inactive" || stLower === "deactivated" || stLower.includes("suspend") || stLower.includes("terminated")) {
+          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+          const deactErr = new Error("Your account is deactivated. Please contact support.");
+          deactErr.code = "ACCOUNT_DEACTIVATED";
+          throw deactErr;
+        }
+      } else {
+        // Validate Vet or Staff account status
+        try {
+          const termCheck = await adminService.checkUserTerminationStatus(cleanEmail);
+          if (termCheck.isTerminated) {
+            try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+            const deactMsg = termCheck.isDeactivated
+              ? "Your account has been deactivated by the Administrator."
+              : (termCheck.reason || "Your account has been temporarily restricted by the Administrator.");
+            const deactErr = new Error(deactMsg);
+            deactErr.code = "ACCOUNT_DEACTIVATED";
+            throw deactErr;
+          }
+        } catch (_) {}
+
+        const stLower = String(dbUserRow.status || "").toLowerCase().trim();
+        if (stLower === "inactive" || stLower === "deactivated" || stLower.includes("suspend")) {
+          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+          const deactErr = new Error("Your account is deactivated. Please contact support.");
+          deactErr.code = "ACCOUNT_DEACTIVATED";
+          throw deactErr;
+        }
+      }
+
+      // Personnel account is valid and active! Associate Google ID in public.users without creating duplicate profiles
+      const connectedAt = new Date().toISOString();
+      try {
+        const userPatch = {
+          last_login: now(),
+          google_id: googleData.googleId,
+        };
+        if (!dbUserRow.avatar_url && googleData.avatarUrl) {
+          userPatch.avatar_url = googleData.avatarUrl;
+        }
+        await supabase.from(TABLES.USERS).update(userPatch).eq("id", dbUserRow.id);
+      } catch (e) {
+        console.warn("Personnel Google connection update notice:", e);
+      }
+
+      // Sync metadata in Supabase Auth (auth.users)
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            full_name: dbUserRow.full_name || googleData.name,
+            username: dbUserRow.username || cleanEmail.split("@")[0],
+            role: normalizedRole,
+            status: "Active",
+            google_id: googleData.googleId,
+            avatar_url: dbUserRow.avatar_url || googleData.avatarUrl || null,
+            auth_provider: "google",
+            google_connected: true,
+          },
+        });
+      } catch (_) {}
+
+      return {
+        role: normalizedRole,
+        name: dbUserRow.full_name || googleData.name || (normalizedRole === "admin" ? "Administrator" : normalizedRole === "vet" ? "Veterinarian" : "Staff Personnel"),
+        username: dbUserRow.username || cleanEmail.split("@")[0],
+        userId: dbUserRow.id || googleData.authUserId,
+        ownerId: null,
+        avatarUrl: dbUserRow.avatar_url || googleData.avatarUrl || null,
+        userRow: dbUserRow,
+        ownerRow: null,
+        googleData,
+        user,
+      };
+    }
+
+    // 5. Handle Owner Accounts
     const stLower = String(ownerAcct.status || "").toLowerCase().trim();
     const isPending =
       stLower.includes("pending") ||
@@ -399,7 +478,10 @@ export const ownerAuthService = {
 
     if (stLower.includes("reject")) {
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      const rejectErr = new Error("Your account has been rejected by the administrator.");
+      const rejectMsg = ownerAcct.rejection_reason
+        ? `Your account has been rejected by the administrator. Reason: ${ownerAcct.rejection_reason}`
+        : "Your account has been rejected by the administrator.";
+      const rejectErr = new Error(rejectMsg);
       rejectErr.code = "ACCOUNT_REJECTED";
       throw rejectErr;
     }
@@ -413,12 +495,15 @@ export const ownerAuthService = {
 
     if (isDeactivated) {
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-      const deactErr = new Error("Your account is deactivated. Please contact support.");
+      const deactMsg = ownerAcct.suspension_reason
+        ? `Your account is deactivated. Reason: ${ownerAcct.suspension_reason}`
+        : "Your account is deactivated. Please contact support.";
+      const deactErr = new Error(deactMsg);
       deactErr.code = "ACCOUNT_DEACTIVATED";
       throw deactErr;
     }
 
-    // 4. Owner is Approved! Store and associate the Google user ID with the existing owner record in Supabase
+    // Owner is Approved! Store and associate Google user ID with existing owner record
     const connectedAt = new Date().toISOString();
     const currentHistory = Array.isArray(ownerAcct.history) ? [...ownerAcct.history] : [];
     const alreadyConnectedInHistory = currentHistory.some(
@@ -438,7 +523,6 @@ export const ownerAuthService = {
         note: `Google account (${cleanEmail}) linked to Owner ID ${ownerAcct.id}.`
       });
     } else {
-      // Update avatar_url / google_id in the existing history entry if needed
       for (let i = 0; i < currentHistory.length; i++) {
         if (currentHistory[i]?.google_id || currentHistory[i]?.auth_provider === "google") {
           currentHistory[i] = {
@@ -451,7 +535,7 @@ export const ownerAuthService = {
       }
     }
 
-    // Update existing public.owners record (never create a duplicate owner record)
+    // Update existing public.owners record (never create duplicate)
     try {
       const fullOwnerPatch = {
         email_verified: true,
@@ -468,7 +552,6 @@ export const ownerAuthService = {
         .eq("id", ownerAcct.id);
 
       if (ownerUpdErr) {
-        // Fallback if optional columns (google_id, auth_user_id, avatar_url, auth_provider) are not yet in schema cache
         await supabase
           .from(TABLES.OWNERS)
           .update({
@@ -491,6 +574,7 @@ export const ownerAuthService = {
         owner_id: ownerAcct.id,
         status: "Active",
         last_login: now(),
+        google_id: googleData.googleId,
       };
 
       if (dbUserRow?.id) {
@@ -524,7 +608,14 @@ export const ownerAuthService = {
     } catch (_) {}
 
     return {
-      owner: {
+      role: "owner",
+      name: ownerAcct.name || googleData.name || "Livestock Owner",
+      username: ownerAcct.username || cleanEmail.split("@")[0],
+      userId: dbUserRow?.id || googleData.authUserId,
+      ownerId: ownerAcct.id,
+      avatarUrl: ownerAcct.avatar_url || googleData.avatarUrl || null,
+      userRow: dbUserRow,
+      ownerRow: {
         ...ownerAcct,
         google_id: googleData.googleId,
         auth_user_id: googleData.authUserId,
@@ -534,6 +625,24 @@ export const ownerAuthService = {
       },
       googleData,
       user,
+    };
+  },
+
+  /**
+   * Backward-compatible alias for verifyAndConnectGoogleLogin
+   */
+  async verifyAndConnectGoogleOwnerLogin(explicitUser = null) {
+    const res = await this.verifyAndConnectGoogleLogin(explicitUser);
+    return {
+      owner: res.ownerRow || res.userRow,
+      googleData: res.googleData,
+      user: res.user,
+      role: res.role,
+      name: res.name,
+      username: res.username,
+      userId: res.userId,
+      ownerId: res.ownerId,
+      avatarUrl: res.avatarUrl,
     };
   },
 
