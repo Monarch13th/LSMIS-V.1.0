@@ -29,8 +29,24 @@ export const StageTile = ({ label, value, max = 0, tone = "emerald", onClick }) 
   </button>
 );
 
-export const ListRow = ({ gradient, icon, title, sub, end }) => (
-  <div className="dash-list-item">
+export const ListRow = ({ gradient, icon, title, sub, end, onClick }) => (
+  <div
+    className={`dash-list-item ${onClick ? "clickable" : ""}`}
+    onClick={onClick}
+    role={onClick ? "button" : undefined}
+    tabIndex={onClick ? 0 : undefined}
+    onKeyDown={
+      onClick
+        ? (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onClick();
+            }
+          }
+        : undefined
+    }
+    style={onClick ? { cursor: "pointer" } : undefined}
+  >
     <div className="dash-list-icon" style={{ background: gradient }}>{icon}</div>
     <div className="dash-list-body">
       <div className="dash-list-title" title={typeof title === "string" ? title : undefined}>{title}</div>

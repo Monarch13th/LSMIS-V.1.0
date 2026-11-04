@@ -2967,466 +2967,97 @@ export const CarcassWeighing = () => {
         onClose={() => setSelectedCarcass(null)}
         title="Official Carcass Scale Dossier & Certification"
         size="lg"
-        backdropStyle={{ zIndex: 1200 }}
-        footer={
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", width: "100%", alignItems: "center" }}>
-            <Button
-              variant="outline"
-              onClick={() => setSelectedCarcass(null)}
-              className="assign-team-fixed-btn"
-              style={{
-                width: 96,
-                minWidth: 96,
-                maxWidth: 96,
-                height: 36,
-                minHeight: 36,
-                maxHeight: 36,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 13,
-                fontWeight: 600,
-                boxSizing: "border-box",
-                transform: "none",
-              }}
-            >
-              Close
-            </Button>
-          </div>
-        }
       >
         {selectedCarcass && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* 1. Dossier Identification Header Banner */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            {/* Header Box */}
             <div
               style={{
+                padding: "18px 20px",
+                background: "var(--color-bg)",
+                borderRadius: 12,
+                border: "1.5px solid var(--color-border)",
                 display: "flex",
                 justifyContent: "space-between",
                 alignItems: "center",
-                padding: "14px 18px",
-                background: "var(--color-bg)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 10,
                 flexWrap: "wrap",
                 gap: 12,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div
-                  style={{
-                    width: 38,
-                    height: 38,
-                    borderRadius: 9,
-                    background: "rgba(16, 185, 129, 0.12)",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                    color: "#059669",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    flexShrink: 0,
-                  }}
-                >
-                  <Icon.Scale size={19} />
+              <div>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Republic of the Philippines · City Veterinary Office
                 </div>
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.06em",
-                        color: "var(--color-text-muted)",
-                      }}
-                    >
-                      Scale Ticket #
-                    </span>
-                    <TagBadge tag={selectedCarcass.tag_number} />
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      fontSize: 12,
-                      color: "var(--color-text-muted)",
-                      marginTop: 4,
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Icon.Calendar size={12.5} style={{ opacity: 0.75 }} />
-                    <span>
-                      Weighed:{" "}
-                      <strong style={{ color: "var(--color-text)", fontWeight: 600 }}>
-                        {selectedCarcass.weighed_at || selectedCarcass.created_at
-                          ? formatPhDateTime(selectedCarcass.weighed_at || selectedCarcass.created_at)
-                          : formatDate(selectedCarcass.date)}
-                      </strong>
-                    </span>
-                  </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
+                  Official Carcass Scale Dossier & Certification
+                </div>
+                <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
+                  Scale Ticket #{selectedCarcass.id || selectedCarcass.tag_number || "00001"} · Date: {selectedCarcass.weighed_at || selectedCarcass.created_at ? formatPhDateTime(selectedCarcass.weighed_at || selectedCarcass.created_at) : formatDate(selectedCarcass.date)}
                 </div>
               </div>
+              <Badge status={selectedCarcass.status || "Weighed"} />
+            </div>
 
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 12px",
-                    borderRadius: 6,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    background: "rgba(16, 185, 129, 0.11)",
-                    color: "#047857",
-                    border: "1px solid rgba(16, 185, 129, 0.28)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <Icon.Check size={13} style={{ flexShrink: 0 }} />
-                  <span>Certified Weighed</span>
-                </span>
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    padding: "5px 12px",
-                    borderRadius: 6,
-                    fontSize: 13,
-                    fontWeight: 800,
-                    fontVariantNumeric: "tabular-nums",
-                    background: "var(--color-surface)",
-                    color: "var(--color-text)",
-                    border: "1px solid var(--color-border)",
-                    whiteSpace: "nowrap",
-                  }}
-                >
+            {/* Animal Details Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Animal Tag #</div>
+                <div style={{ marginTop: 4 }}>
+                  <TagBadge tag={selectedCarcass.tag_number} />
+                </div>
+              </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species & Sex</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
+                  {selectedCarcass.species || "—"} · {formatSex(selectedCarcass.sex)}
+                </div>
+              </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Scale Net Weight</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#047857", fontVariantNumeric: "tabular-nums", marginTop: 4 }}>
                   {Number(selectedCarcass.weightVal || selectedCarcass.cold_weight || selectedCarcass.hot_weight || selectedCarcass.weight || 0).toFixed(2)} kg
-                </span>
-              </div>
-            </div>
-
-            {/* 2. Structured 2x2 Dossier Information Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
-              {/* Card 1: Livestock Owner & Producer */}
-              <div
-                style={{
-                  borderRadius: 10,
-                  border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "10px 16px",
-                    background: "var(--color-bg)",
-                    borderBottom: "1px solid var(--color-border)",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                  }}
-                >
-                  <Icon.User size={14} style={{ color: "var(--color-primary, #0284c7)", flexShrink: 0 }} />
-                  <span>Livestock Owner &amp; Producer</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", fontSize: 12.5 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Registered Name</span>
-                    <span style={{ fontWeight: 700, color: "var(--color-text)", textAlign: "right" }}>
-                      {selectedCarcass.owner_name}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Contact Phone</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-text)", textAlign: "right" }}>
-                      {selectedCarcass.owner_contact}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: 16,
-                      padding: "9px 16px",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Address</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-text)", textAlign: "right", lineHeight: 1.4 }}>
-                      {selectedCarcass.owner_address}
-                    </span>
-                  </div>
                 </div>
               </div>
-
-              {/* Card 2: Animal & Carcass Specifications */}
-              <div
-                style={{
-                  borderRadius: 10,
-                  border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "10px 16px",
-                    background: "var(--color-bg)",
-                    borderBottom: "1px solid var(--color-border)",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                  }}
-                >
-                  <Icon.Cow size={14} style={{ color: "#059669", flexShrink: 0 }} />
-                  <span>Animal &amp; Carcass Specifications</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", fontSize: 12.5 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Species</span>
-                    <span style={{ fontWeight: 700, color: "var(--color-text)", textAlign: "right" }}>
-                      {selectedCarcass.species}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Sex</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-text)", textAlign: "right" }}>
-                      {formatSex(selectedCarcass.sex)}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Scale Weight</span>
-                    <span style={{ fontWeight: 800, color: "#047857", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>
-                      {Number(selectedCarcass.weightVal || selectedCarcass.cold_weight || selectedCarcass.hot_weight || selectedCarcass.weight || 0).toFixed(2)} kg
-                    </span>
-                  </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Livestock Owner</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
+                  {selectedCarcass.owner_name || "—"}
                 </div>
               </div>
-
-              {/* Card 3: Veterinary Clearance */}
-              <div
-                style={{
-                  borderRadius: 10,
-                  border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "10px 16px",
-                    background: "var(--color-bg)",
-                    borderBottom: "1px solid var(--color-border)",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                  }}
-                >
-                  <Icon.Stethoscope size={14} style={{ color: "var(--color-primary, #0284c7)", flexShrink: 0 }} />
-                  <span>Veterinary Clearance</span>
-                </div>
-                <div style={{ display: "flex", flexDirection: "column", fontSize: 12.5 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Examining Veterinarian</span>
-                    <span style={{ fontWeight: 700, color: "var(--color-text)", textAlign: "right" }}>
-                      {selectedCarcass.inspector || "Dr. Dave"}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Post-Mortem Verdict</span>
-                    <Badge status={getCarcassDisplayVerdict(selectedCarcass.inspectionDecision)} />
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Inspection Date</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-text)", textAlign: "right" }}>
-                      {formatDate(selectedCarcass.postMortemDate)}
-                    </span>
-                  </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Certifying Veterinarian</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
+                  {selectedCarcass.weighed_by || selectedCarcass.operator || selectedCarcass.inspector || "Dr. Dave"}
                 </div>
               </div>
-
-              {/* Card 4: Scale Station Audit Trail */}
-              <div
-                style={{
-                  borderRadius: 10,
-                  border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: "10px 16px",
-                    background: "var(--color-bg)",
-                    borderBottom: "1px solid var(--color-border)",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                  }}
-                >
-                  <Icon.Award size={14} style={{ color: "#d97706", flexShrink: 0 }} />
-                  <span>Scale Station &amp; Branding Audit</span>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Official Brand / Stamp</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "#0284c7", fontFamily: "monospace", marginTop: 4 }}>
+                  {formatCarcassBrandCode(selectedCarcass.brand_code, selectedCarcass.tag_number)}
                 </div>
-                <div style={{ display: "flex", flexDirection: "column", fontSize: 12.5 }}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Certifying Veterinarian</span>
-                    <span style={{ fontWeight: 700, color: "var(--color-text)", textAlign: "right" }}>
-                      {selectedCarcass.weighed_by || selectedCarcass.operator || "Dr. Dave"}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                      borderBottom: "1px solid var(--color-border)",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Official Brand / Stamp</span>
-                    <span
-                      style={{
-                        fontWeight: 700,
-                        fontFamily: "monospace",
-                        color: "#0284c7",
-                        background: "rgba(14, 165, 233, 0.10)",
-                        padding: "2px 8px",
-                        borderRadius: 5,
-                        border: "1px solid rgba(14, 165, 233, 0.25)",
-                        textAlign: "right",
-                      }}
-                    >
-                      {formatCarcassBrandCode(selectedCarcass.brand_code, selectedCarcass.tag_number)}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      gap: 12,
-                      padding: "9px 16px",
-                    }}
-                  >
-                    <span style={{ color: "var(--color-text-muted)", flexShrink: 0 }}>Weighed &amp; Branded Time</span>
-                    <span
-                      style={{
-                        fontWeight: 600,
-                        color: "var(--color-text)",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        textAlign: "right",
-                      }}
-                    >
-                      <span>{formatDate(selectedCarcass.date)}</span>
-                      <span style={{ color: "var(--color-border)" }}>•</span>
-                      <span style={{ color: "var(--color-text-muted)" }}>
-                        {selectedCarcass.weighed_at || selectedCarcass.created_at
-                          ? formatPhTime(selectedCarcass.weighed_at || selectedCarcass.created_at)
-                          : "—"}
-                      </span>
-                    </span>
-                  </div>
+              </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Post-Mortem Verdict</div>
+                <div style={{ marginTop: 4 }}>
+                  <Badge status={getCarcassDisplayVerdict(selectedCarcass.inspectionDecision)} />
                 </div>
               </div>
             </div>
 
-            {/* 4. Full-Width Carcass Traceability & Process Audit Trail */}
-            <div>
+            {/* Producer & Abattoir Intake Details */}
+            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
+                Producer & Intake Particulars
+              </div>
+              <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8, display: "flex", flexDirection: "column", gap: 4 }}>
+                <div><strong>Contact Phone:</strong> {selectedCarcass.owner_contact || "—"}</div>
+                <div><strong>Address:</strong> {selectedCarcass.owner_address || "—"}</div>
+                <div><strong>Post-Mortem Date:</strong> {formatDate(selectedCarcass.postMortemDate)}</div>
+              </div>
+            </div>
+
+            {/* Carcass Traceability & Process Audit Trail */}
+            <div style={{ marginTop: 4 }}>
               <ProcessHistoryTimeline
                 record={
                   selectedCarcass.animal ||
@@ -3440,6 +3071,25 @@ export const CarcassWeighing = () => {
                 }
                 title="Carcass Traceability & Process Audit Trail"
               />
+            </div>
+
+            {/* Modal Actions */}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const target = selectedCarcass;
+                  setSelectedCarcass(null);
+                  handleOpenEditModal(target);
+                }}
+                style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Icon.Edit size={14} /> Edit Scale Record
+              </Button>
+              <Button onClick={() => setSelectedCarcass(null)}>
+                Close
+              </Button>
             </div>
           </div>
         )}

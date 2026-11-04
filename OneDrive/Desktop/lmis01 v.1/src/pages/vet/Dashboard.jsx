@@ -336,6 +336,7 @@ export const VetDashboard = () => {
                   key={i.id || `${i.tag_number}-${i.date}`}
                   gradient="linear-gradient(135deg, #0ea5e9, #0369a1)"
                   icon={<Icon.Stethoscope size={14} />}
+                  onClick={go("ante-mortem/records")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <TagBadge tag={i.tag_number} />
@@ -346,14 +347,6 @@ export const VetDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={i.decision || "Approved"} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={go("ante-mortem/records")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />
@@ -384,6 +377,7 @@ export const VetDashboard = () => {
                   key={i.id || `${i.tag_number}-${i.date}`}
                   gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)"
                   icon={<Icon.Activity size={14} />}
+                  onClick={go("post-mortem/records")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <TagBadge tag={i.tag_number} />
@@ -394,14 +388,6 @@ export const VetDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={i.decision || "Approved"} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={go("post-mortem/records")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />
@@ -433,6 +419,7 @@ export const VetDashboard = () => {
                 key={c.id || c.tag_number}
                 gradient="linear-gradient(135deg, #10b981, #047857)"
                 icon={<Icon.Scale size={14} />}
+                onClick={go("carcass-weighing")}
                 title={
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                     <TagBadge tag={c.tag_number} />
@@ -446,14 +433,6 @@ export const VetDashboard = () => {
                 end={
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <Badge status={c.status || "Weighed"} />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={go("carcass-weighing")}
-                      style={{ padding: "3px 8px", fontSize: 11.5 }}
-                    >
-                      View
-                    </Button>
                   </div>
                 }
               />

@@ -2357,9 +2357,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 fontWeight: postDecision === "Approved" ? 750 : 600,
                 cursor: "pointer",
                 transition: "all 140ms ease",
-                border: postDecision === "Approved" ? "1.5px solid #10b981" : "1.5px solid transparent",
-                background: postDecision === "Approved" ? "var(--color-surface, #ffffff)" : "transparent",
-                color: postDecision === "Approved" ? "#047857" : "var(--color-text-muted, #64748b)",
+                border: postDecision === "Approved" ? "1.5px solid var(--color-success, #10b981)" : "1.5px solid transparent",
+                background: postDecision === "Approved" ? "var(--color-surface)" : "transparent",
+                color: postDecision === "Approved" ? "var(--color-success, #10b981)" : "var(--color-text-muted)",
                 boxShadow: postDecision === "Approved" ? "0 2px 6px rgba(16, 185, 129, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                 pointerEvents: "auto",
                 userSelect: "none",
@@ -2368,7 +2368,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               }}
               title="Carcass is approved and fully fit for human consumption"
             >
-              <Icon.Check size={13} style={{ color: postDecision === "Approved" ? "#059669" : "#10b981", pointerEvents: "none" }} />
+              <Icon.Check size={13} style={{ color: "var(--color-success, #10b981)", pointerEvents: "none" }} />
               <span style={{ pointerEvents: "none" }}>Fit for Consumption</span>
             </button>
 
@@ -2392,9 +2392,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 fontWeight: postDecision === "Partial" ? 750 : 600,
                 cursor: "pointer",
                 transition: "all 140ms ease",
-                border: postDecision === "Partial" ? "1.5px solid #f59e0b" : "1.5px solid transparent",
-                background: postDecision === "Partial" ? "var(--color-surface, #ffffff)" : "transparent",
-                color: postDecision === "Partial" ? "#b45309" : "var(--color-text-muted, #64748b)",
+                border: postDecision === "Partial" ? "1.5px solid var(--color-warning, #f59e0b)" : "1.5px solid transparent",
+                background: postDecision === "Partial" ? "var(--color-surface)" : "transparent",
+                color: postDecision === "Partial" ? "var(--color-warning, #f59e0b)" : "var(--color-text-muted)",
                 boxShadow: postDecision === "Partial" ? "0 2px 6px rgba(245, 158, 11, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                 pointerEvents: "auto",
                 userSelect: "none",
@@ -2403,7 +2403,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               }}
               title="Condemn specific pathological cuts or organs; main carcass proceeds"
             >
-              <Icon.Scale size={13} style={{ color: postDecision === "Partial" ? "#d97706" : "#f59e0b", pointerEvents: "none" }} />
+              <Icon.Scale size={13} style={{ color: "var(--color-warning, #f59e0b)", pointerEvents: "none" }} />
               <span style={{ pointerEvents: "none" }}>Partially Condemned</span>
             </button>
 
@@ -2427,9 +2427,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 fontWeight: postDecision === "Condemned" ? 750 : 600,
                 cursor: "pointer",
                 transition: "all 140ms ease",
-                border: postDecision === "Condemned" ? "1.5px solid #ef4444" : "1.5px solid transparent",
-                background: postDecision === "Condemned" ? "var(--color-surface, #ffffff)" : "transparent",
-                color: postDecision === "Condemned" ? "#b91c1c" : "var(--color-text-muted, #64748b)",
+                border: postDecision === "Condemned" ? "1.5px solid var(--color-danger, #ef4444)" : "1.5px solid transparent",
+                background: postDecision === "Condemned" ? "var(--color-surface)" : "transparent",
+                color: postDecision === "Condemned" ? "var(--color-danger, #ef4444)" : "var(--color-text-muted)",
                 boxShadow: postDecision === "Condemned" ? "0 2px 6px rgba(239, 68, 68, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                 pointerEvents: "auto",
                 userSelect: "none",
@@ -2438,7 +2438,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               }}
               title="Entire carcass is unfit for consumption and totally condemned"
             >
-              <Icon.AlertTriangle size={13} style={{ color: postDecision === "Condemned" ? "#dc2626" : "#ef4444", pointerEvents: "none" }} />
+              <Icon.AlertTriangle size={13} style={{ color: "var(--color-danger, #ef4444)", pointerEvents: "none" }} />
               <span style={{ pointerEvents: "none" }}>Condemned</span>
             </button>
           </div>

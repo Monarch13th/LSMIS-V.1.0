@@ -1660,9 +1660,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 fontWeight: anteDecision === "Approved" ? 750 : 600,
                 cursor: "pointer",
                 transition: "all 140ms ease",
-                border: anteDecision === "Approved" ? "1.5px solid #10b981" : "1.5px solid transparent",
-                background: anteDecision === "Approved" ? "var(--color-surface, #ffffff)" : "transparent",
-                color: anteDecision === "Approved" ? "#047857" : "var(--color-text-muted, #64748b)",
+                border: anteDecision === "Approved" ? "1.5px solid var(--color-success, #10b981)" : "1.5px solid transparent",
+                background: anteDecision === "Approved" ? "var(--color-surface)" : "transparent",
+                color: anteDecision === "Approved" ? "var(--color-success, #10b981)" : "var(--color-text-muted)",
                 boxShadow: anteDecision === "Approved" ? "0 2px 6px rgba(16, 185, 129, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                 pointerEvents: "auto",
                 userSelect: "none",
@@ -1671,7 +1671,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               }}
               title="Livestock is approved and fit for slaughter"
             >
-              <Icon.Check size={13} style={{ color: anteDecision === "Approved" ? "#059669" : "#10b981", pointerEvents: "none" }} />
+              <Icon.Check size={13} style={{ color: "var(--color-success, #10b981)", pointerEvents: "none" }} />
               <span style={{ pointerEvents: "none" }}>Fit for Slaughter</span>
             </button>
 
@@ -1695,9 +1695,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 fontWeight: anteDecision === "Condemned" ? 750 : 600,
                 cursor: "pointer",
                 transition: "all 140ms ease",
-                border: anteDecision === "Condemned" ? "1.5px solid #ef4444" : "1.5px solid transparent",
-                background: anteDecision === "Condemned" ? "var(--color-surface, #ffffff)" : "transparent",
-                color: anteDecision === "Condemned" ? "#b91c1c" : "var(--color-text-muted, #64748b)",
+                border: anteDecision === "Condemned" ? "1.5px solid var(--color-danger, #ef4444)" : "1.5px solid transparent",
+                background: anteDecision === "Condemned" ? "var(--color-surface)" : "transparent",
+                color: anteDecision === "Condemned" ? "var(--color-danger, #ef4444)" : "var(--color-text-muted)",
                 boxShadow: anteDecision === "Condemned" ? "0 2px 6px rgba(239, 68, 68, 0.25), 0 1px 2px rgba(0, 0, 0, 0.05)" : "none",
                 pointerEvents: "auto",
                 userSelect: "none",
@@ -1706,7 +1706,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               }}
               title="Livestock shows severe pathology / moribund symptoms and is rejected/condemned"
             >
-              <Icon.AlertTriangle size={13} style={{ color: anteDecision === "Condemned" ? "#dc2626" : "#ef4444", pointerEvents: "none" }} />
+              <Icon.AlertTriangle size={13} style={{ color: "var(--color-danger, #ef4444)", pointerEvents: "none" }} />
               <span style={{ pointerEvents: "none" }}>Condemned</span>
             </button>
           </div>

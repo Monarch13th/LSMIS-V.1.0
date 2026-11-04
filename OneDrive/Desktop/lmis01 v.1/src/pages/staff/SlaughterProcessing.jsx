@@ -3231,9 +3231,10 @@ export const SlaughterProcessing = () => {
                   height: 36,
                   padding: "6px 12px 6px 32px",
                   borderRadius: 8,
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid var(--color-border)",
                   fontSize: 12.5,
-                  background: "#ffffff",
+                  background: "var(--color-surface)",
+                  color: "var(--color-text)",
                 }}
               />
               <Icon.Search
@@ -3243,7 +3244,7 @@ export const SlaughterProcessing = () => {
                   left: 10,
                   top: "50%",
                   transform: "translateY(-50%)",
-                  color: "#94a3b8",
+                  color: "var(--color-text-muted)",
                 }}
               />
               {modalSearch && (
@@ -3257,7 +3258,7 @@ export const SlaughterProcessing = () => {
                     transform: "translateY(-50%)",
                     background: "none",
                     border: "none",
-                    color: "#94a3b8",
+                    color: "var(--color-text-muted)",
                     cursor: "pointer",
                     padding: 0,
                   }}
@@ -3284,11 +3285,11 @@ export const SlaughterProcessing = () => {
                 style={{
                   padding: "32px 16px",
                   textAlign: "center",
-                  color: "#64748b",
+                  color: "var(--color-text-muted)",
                   fontSize: 13,
-                  background: "#f8fafc",
+                  background: "var(--color-bg)",
                   borderRadius: 8,
-                  border: "1px dashed #cbd5e1",
+                  border: "1px dashed var(--color-border)",
                 }}
               >
                 {modalSearch
@@ -3307,19 +3308,19 @@ export const SlaughterProcessing = () => {
                   <div
                     key={grp.key}
                     style={{
-                      border: selectedInGrp.length > 0 ? "1.5px solid #0284c7" : "1px solid #e2e8f0",
+                      border: selectedInGrp.length > 0 ? "1.5px solid var(--color-primary, #059669)" : "1px solid var(--color-border)",
                       borderRadius: 10,
-                      background: "#ffffff",
+                      background: "var(--color-surface)",
                       overflow: "hidden",
                       transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-                      boxShadow: selectedInGrp.length > 0 ? "0 2px 8px rgba(2, 132, 199, 0.08)" : "none",
+                      boxShadow: selectedInGrp.length > 0 ? "0 2px 8px rgba(5, 150, 105, 0.08)" : "none",
                     }}
                   >
                     {/* Owner Card Header */}
                     <div
                       style={{
                         padding: "12px 16px",
-                        background: selectedInGrp.length > 0 ? "rgba(2, 132, 199, 0.04)" : "#ffffff",
+                        background: selectedInGrp.length > 0 ? "var(--color-primary-light, rgba(5, 150, 105, 0.08))" : "var(--color-surface)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
@@ -3346,7 +3347,7 @@ export const SlaughterProcessing = () => {
                             style={{
                               fontSize: 14.5,
                               fontWeight: 700,
-                              color: "#0f172a",
+                              color: "var(--color-text)",
                               letterSpacing: "-0.01em",
                             }}
                           >
@@ -3357,7 +3358,7 @@ export const SlaughterProcessing = () => {
                               style={{
                                 fontSize: 11,
                                 fontWeight: 700,
-                                color: "#d97706",
+                                color: "var(--color-warning, #d97706)",
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 3,
@@ -3381,9 +3382,9 @@ export const SlaughterProcessing = () => {
                             fontWeight: 700,
                             padding: "3px 8px",
                             borderRadius: 6,
-                            background: "#f1f5f9",
-                            color: "#334155",
-                            border: "1px solid #e2e8f0",
+                            background: "var(--color-bg)",
+                            color: "var(--color-text-muted)",
+                            border: "1px solid var(--color-border)",
                           }}
                           title="Total eligible livestock for this owner"
                         >

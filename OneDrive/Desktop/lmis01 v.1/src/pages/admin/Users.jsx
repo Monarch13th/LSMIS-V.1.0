@@ -358,15 +358,15 @@ export const Users = () => {
               gap: 5,
               fontSize: "0.78rem",
               fontWeight: 700,
-              color: "#b45309",
-              background: "#fef3c7",
-              border: "1px solid #fde68a",
+              color: "var(--color-warning, #d97706)",
+              background: "var(--color-warning-bg, rgba(245, 158, 11, 0.15))",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
               padding: "2px 8px",
               borderRadius: "5px",
               whiteSpace: "nowrap",
             }}
           >
-            <Icon.ShieldCheck size={13} style={{ color: "#d97706" }} />
+            <Icon.ShieldCheck size={13} style={{ color: "var(--color-warning, #d97706)" }} />
             Administrator
           </span>
         );
@@ -379,15 +379,15 @@ export const Users = () => {
               gap: 5,
               fontSize: "0.78rem",
               fontWeight: 700,
-              color: "#0369a1",
-              background: "#e0f2fe",
-              border: "1px solid #bae6fd",
+              color: "var(--color-info, #0284c7)",
+              background: "var(--color-info-bg, rgba(14, 165, 233, 0.15))",
+              border: "1px solid rgba(14, 165, 233, 0.3)",
               padding: "2px 8px",
               borderRadius: "5px",
               whiteSpace: "nowrap",
             }}
           >
-            <Icon.Stethoscope size={13} style={{ color: "#0284c7" }} />
+            <Icon.Stethoscope size={13} style={{ color: "var(--color-info, #0284c7)" }} />
             Veterinary Inspector
           </span>
         );
@@ -400,15 +400,15 @@ export const Users = () => {
               gap: 5,
               fontSize: "0.78rem",
               fontWeight: 700,
-              color: "#6d28d9",
-              background: "#ede9fe",
-              border: "1px solid #ddd6fe",
+              color: "var(--color-violet, #7c3aed)",
+              background: "var(--color-violet-bg, rgba(139, 92, 246, 0.15))",
+              border: "1px solid rgba(139, 92, 246, 0.3)",
               padding: "2px 8px",
               borderRadius: "5px",
               whiteSpace: "nowrap",
             }}
           >
-            <Icon.Cow size={13} style={{ color: "#7c3aed" }} />
+            <Icon.Cow size={13} style={{ color: "var(--color-violet, #7c3aed)" }} />
             Slaughterhouse Staff
           </span>
         );
@@ -608,20 +608,20 @@ export const Users = () => {
               <col style={{ width: "16%" }} />
             </colgroup>
             <thead>
-              <tr style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)" }}>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+              <tr style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
+                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   PERSONNEL DETAILS
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   ROLE &amp; CONTACT
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   DATE REGISTERED
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   STATUS &amp; PRESENCE
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
                   ACTIONS
                 </th>
               </tr>
@@ -640,15 +640,15 @@ export const Users = () => {
                     onClick={() => { setEditing(u); setModalOpen(true); }}
                     style={{
                       cursor: "pointer",
-                      borderBottom: "1px solid #f1f5f9",
+                      borderBottom: "1px solid var(--color-border)",
                       transition: "background-color 0.15s ease",
-                      background: isDeactivated ? "rgba(254, 242, 242, 0.25)" : "#ffffff",
+                      background: isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.08))" : "transparent",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = isDeactivated ? "rgba(254, 242, 242, 0.45)" : "#f8fafc")
+                      (e.currentTarget.style.background = isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.15))" : "var(--color-bg)")
                     }
                     onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = isDeactivated ? "rgba(254, 242, 242, 0.25)" : "#ffffff")
+                      (e.currentTarget.style.background = isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.08))" : "transparent")
                     }
                     className="personnel-table-row"
                     title="Click to view or edit personnel profile"
@@ -812,71 +812,32 @@ export const Users = () => {
                       <div onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex", gap: "6px", justifyContent: "center", alignItems: "center", flexWrap: "nowrap" }}>
                         <button
                           type="button"
+                          className="btn btn-outline btn-sm"
                           onClick={() => { setEditing(u); setModalOpen(true); }}
-                          style={{
-                            padding: "6px 12px",
-                            borderRadius: "6px",
-                            border: "1px solid #bae6fd",
-                            background: "#f0f9ff",
-                            color: "#0369a1",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "5px",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            transition: "all 0.15s ease",
-                          }}
                           title="Edit personnel profile"
                         >
-                          <Icon.Edit size={13} style={{ color: "#0284c7" }} />
+                          <Icon.Edit size={13} />
                           <span>Edit</span>
                         </button>
                         {(u.role === "vet" || u.role === "staff") && (
                           isDeactivated ? (
                             <button
                               type="button"
+                              className="btn btn-success btn-sm"
                               onClick={() => handleToggleDeactivate(u)}
-                              style={{
-                                padding: "6px 12px",
-                                borderRadius: "6px",
-                                border: "1px solid #bbf7d0",
-                                background: "#f0fdf4",
-                                color: "#166534",
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "5px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                transition: "all 0.15s ease",
-                              }}
                               title="Activate personnel account"
                             >
-                              <Icon.CheckCircle size={13} style={{ color: "#16a34a" }} />
+                              <Icon.CheckCircle size={13} />
                               <span>Activate</span>
                             </button>
                           ) : (
                             <button
                               type="button"
+                              className="btn btn-danger btn-sm"
                               onClick={() => handleToggleDeactivate(u)}
-                              style={{
-                                padding: "6px 12px",
-                                borderRadius: "6px",
-                                border: "1px solid #fecaca",
-                                background: "#fef2f2",
-                                color: "#991b1b",
-                                cursor: "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "5px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                transition: "all 0.15s ease",
-                              }}
                               title="Deactivate personnel account"
                             >
-                              <Icon.XCircle size={13} style={{ color: "#dc2626" }} />
+                              <Icon.XCircle size={13} />
                               <span>Deactivate</span>
                             </button>
                           )

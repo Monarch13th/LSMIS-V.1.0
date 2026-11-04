@@ -192,6 +192,7 @@ export const AdminDashboard = () => {
                   key={p.id || p.permit_no}
                   gradient="linear-gradient(135deg, #10b981, #047857)"
                   icon={<Icon.FileText size={14} />}
+                  onClick={() => navigate("/admin/permits")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <strong>{p.permit_no}</strong>
@@ -202,14 +203,6 @@ export const AdminDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={p.status || "Active"} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => navigate("/admin/permits")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />
@@ -242,6 +235,7 @@ export const AdminDashboard = () => {
                     key={u.id}
                     gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)"
                     icon={initials(u.full_name)}
+                    onClick={() => navigate("/admin/users")}
                     title={u.full_name || "Personnel"}
                     sub={`${u.email || "No email"} · ${login ? `Last login ${formatDateTime(login)}` : "Never logged in"}`}
                     end={
@@ -252,14 +246,6 @@ export const AdminDashboard = () => {
                             {u.role || "Staff"}
                           </span>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => navigate("/admin/users")}
-                          style={{ padding: "3px 8px", fontSize: 11.5 }}
-                        >
-                          View
-                        </Button>
                       </div>
                     }
                   />

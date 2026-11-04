@@ -243,6 +243,7 @@ export const StaffDashboard = () => {
                   key={l.id || l.tag_number}
                   gradient="linear-gradient(135deg, #10b981, #047857)"
                   icon={<Icon.Cow size={14} />}
+                  onClick={go("owners")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <TagBadge tag={l.tag_number} />
@@ -253,14 +254,6 @@ export const StaffDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={l.status} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={go("owners")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />
@@ -291,6 +284,7 @@ export const StaffDashboard = () => {
                   key={m.id || m.tag_number}
                   gradient="linear-gradient(135deg, #0ea5e9, #0284c7)"
                   icon={<Icon.Tag size={14} />}
+                  onClick={go("animal-marking")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <TagBadge tag={m.tag_number} />
@@ -301,14 +295,6 @@ export const StaffDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={m.status || "Marked"} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={go("animal-marking")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />
@@ -342,6 +328,7 @@ export const StaffDashboard = () => {
                   key={p.id || p.tag_number}
                   gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)"
                   icon={<Icon.Scissors size={14} />}
+                  onClick={go("slaughter-processing")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <TagBadge tag={p.tag_number} />
@@ -352,14 +339,6 @@ export const StaffDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={p.status || "In Progress"} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={go("slaughter-processing")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />
@@ -390,6 +369,7 @@ export const StaffDashboard = () => {
                   key={pm.id || pm.permit_no}
                   gradient="linear-gradient(135deg, #f59e0b, #d97706)"
                   icon={<Icon.FileText size={14} />}
+                  onClick={go("permits")}
                   title={
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
                       <TagBadge tag={pm.tag_number} />
@@ -400,14 +380,6 @@ export const StaffDashboard = () => {
                   end={
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <Badge status={pm.status || "Active"} />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={go("permits")}
-                        style={{ padding: "3px 8px", fontSize: 11.5 }}
-                      >
-                        View
-                      </Button>
                     </div>
                   }
                 />

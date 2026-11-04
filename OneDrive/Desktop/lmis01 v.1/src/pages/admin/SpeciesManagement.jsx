@@ -614,7 +614,7 @@ export const SpeciesManagement = () => {
                             height: 50,
                             borderRadius: 8,
                             overflow: "hidden",
-                            background: "#ffffff",
+                            background: "var(--color-surface)",
                             border: "1px solid var(--color-border)",
                             display: "flex",
                             alignItems: "center",
@@ -692,9 +692,9 @@ export const SpeciesManagement = () => {
                           gap: "5px",
                           fontSize: "12px",
                           fontWeight: 700,
-                          color: isActive ? "#166534" : "#dc2626",
-                          background: isActive ? "#f0fdf4" : "#fef2f2",
-                          border: `1px solid ${isActive ? "#bbf7d0" : "#fecaca"}`,
+                          color: isActive ? "var(--color-success, #10b981)" : "var(--color-danger, #ef4444)",
+                          background: isActive ? "var(--color-success-bg, rgba(16, 185, 129, 0.15))" : "var(--color-danger-bg, rgba(239, 68, 68, 0.15))",
+                          border: `1px solid ${isActive ? "rgba(16, 185, 129, 0.3)" : "rgba(239, 68, 68, 0.3)"}`,
                           padding: "3px 8px",
                           borderRadius: "6px",
                         }}
@@ -704,7 +704,7 @@ export const SpeciesManagement = () => {
                             width: 6,
                             height: 6,
                             borderRadius: "50%",
-                            background: isActive ? "#16a34a" : "#dc2626",
+                            background: isActive ? "var(--color-success, #10b981)" : "var(--color-danger, #ef4444)",
                           }}
                         />
                         {isActive ? "Active" : "Inactive"}
@@ -725,21 +725,8 @@ export const SpeciesManagement = () => {
                         {/* Edit Button */}
                         <button
                           type="button"
+                          className="btn btn-outline btn-sm"
                           onClick={() => handleOpenEditModal(spec)}
-                          style={{
-                            padding: "5px 9px",
-                            borderRadius: "6px",
-                            border: "1px solid var(--color-border)",
-                            background: "transparent",
-                            color: "var(--color-text)",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            fontSize: "12px",
-                            fontWeight: 600,
-                            transition: "all 0.15s ease",
-                          }}
                           title="Edit species"
                         >
                           <Icon.Edit size={13} />
@@ -750,47 +737,21 @@ export const SpeciesManagement = () => {
                         {isActive ? (
                           <button
                             type="button"
+                            className="btn btn-danger btn-sm"
                             onClick={() => setConfirmStatusToggle(spec)}
-                            style={{
-                              padding: "5px 9px",
-                              borderRadius: "6px",
-                              border: "1px solid #fecaca",
-                              background: "#fef2f2",
-                              color: "#991b1b",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              fontSize: "12px",
-                              fontWeight: 600,
-                              transition: "all 0.15s ease",
-                            }}
                             title="Deactivate species (hide from new intake)"
                           >
-                            <Icon.XCircle size={13} style={{ color: "#dc2626" }} />
+                            <Icon.XCircle size={13} />
                             <span>Deactivate</span>
                           </button>
                         ) : (
                           <button
                             type="button"
+                            className="btn btn-success btn-sm"
                             onClick={() => setConfirmStatusToggle(spec)}
-                            style={{
-                              padding: "5px 9px",
-                              borderRadius: "6px",
-                              border: "1px solid #bbf7d0",
-                              background: "#f0fdf4",
-                              color: "#166534",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "4px",
-                              fontSize: "12px",
-                              fontWeight: 600,
-                              transition: "all 0.15s ease",
-                            }}
                             title="Activate species"
                           >
-                            <Icon.CheckCircle size={13} style={{ color: "#16a34a" }} />
+                            <Icon.CheckCircle size={13} />
                             <span>Activate</span>
                           </button>
                         )}
@@ -1165,27 +1126,76 @@ export const SpeciesManagement = () => {
       <Modal
         open={Boolean(viewingSpecies)}
         onClose={() => setViewingSpecies(null)}
-        title="Species Details"
-        size="md"
-        dialogStyle={{ maxWidth: "480px" }}
-        bodyStyle={{ padding: "18px 22px" }}
+        title="Official Species Profile & Configuration"
+        size="lg"
       >
         {viewingSpecies && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+            {/* Header Box */}
+            <div
+              style={{
+                padding: "18px 20px",
+                background: "var(--color-bg)",
+                borderRadius: 12,
+                border: "1.5px solid var(--color-border)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 12,
+              }}
+            >
+              <div>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                  Republic of the Philippines · City Veterinary Office
+                </div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
+                  Livestock Species Profile — {viewingSpecies.name}
+                </div>
+                <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
+                  Species Tag Code: {viewingSpecies.code || "—"} · Date Added: {formatDate(viewingSpecies.created_at) || "—"}
+                </div>
+              </div>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  color: viewingSpecies.status === "Active" ? "#166534" : "#dc2626",
+                  background: viewingSpecies.status === "Active" ? "#f0fdf4" : "#fef2f2",
+                  border: `1px solid ${viewingSpecies.status === "Active" ? "#bbf7d0" : "#fecaca"}`,
+                  padding: "4px 10px",
+                  borderRadius: "6px",
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626",
+                  }}
+                />
+                {viewingSpecies.status || "Active"}
+              </span>
+            </div>
+
             {/* High-res Image Preview */}
             <div
               style={{
                 width: "100%",
-                height: 180,
+                height: 200,
                 borderRadius: 10,
                 overflow: "hidden",
-                background: "#ffffff",
+                background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
-                padding: 10,
+                padding: 12,
               }}
             >
               {viewingSpecies.image_url ? (
@@ -1203,101 +1213,52 @@ export const SpeciesManagement = () => {
                 />
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--color-text-muted)" }}>
-                  <Icon.Cow size={44} />
-                  <span style={{ fontSize: "0.78rem" }}>No image uploaded</span>
+                  <Icon.Cow size={48} />
+                  <span style={{ fontSize: "0.82rem" }}>No high-resolution species image uploaded</span>
                 </div>
               )}
             </div>
 
-            {/* Info Grid */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <div>
-                  <h3 style={{ fontSize: "1.1rem", fontWeight: 750, color: "var(--color-text)", margin: 0 }}>
-                    {viewingSpecies.name}
-                  </h3>
-                  {viewingSpecies.code && (
-                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                      Tag Code: <strong style={{ color: "var(--color-text)" }}>{viewingSpecies.code}</strong>
-                    </span>
-                  )}
+            {/* Species Details Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species Name</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
+                  {viewingSpecies.name}
                 </div>
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    fontSize: "12px",
-                    fontWeight: 700,
-                    color: viewingSpecies.status === "Active" ? "#166534" : "#dc2626",
-                    background: viewingSpecies.status === "Active" ? "#f0fdf4" : "#fef2f2",
-                    border: `1px solid ${viewingSpecies.status === "Active" ? "#bbf7d0" : "#fecaca"}`,
-                    padding: "3px 8px",
-                    borderRadius: "6px",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 6,
-                      height: 6,
-                      borderRadius: "50%",
-                      background: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626",
-                    }}
-                  />
+              </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Tag Code Prefix</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: "#0284c7", fontFamily: "monospace", marginTop: 4 }}>
+                  {viewingSpecies.code || "—"}
+                </div>
+              </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Linked Livestock</div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#047857", marginTop: 4 }}>
+                  {livestockCounts[viewingSpecies.id] || livestockCounts[viewingSpecies.name] || 0} heads
+                </div>
+              </div>
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Registration Status</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626", marginTop: 4 }}>
                   {viewingSpecies.status || "Active"}
-                </span>
-              </div>
-
-              {/* Description */}
-              <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
-                <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 4 }}>
-                  Description
-                </div>
-                <div style={{ fontSize: "0.85rem", color: "var(--color-text)" }}>
-                  {viewingSpecies.description || <span style={{ opacity: 0.5, fontStyle: "italic" }}>No description provided.</span>}
-                </div>
-              </div>
-
-              {/* Metadata details */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 2 }}>
-                    Date Added
-                  </div>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
-                    {formatDate(viewingSpecies.created_at) || "—"}
-                  </div>
-                </div>
-
-                <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
-                  <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 2 }}>
-                    Linked Livestock
-                  </div>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
-                    {livestockCounts[viewingSpecies.id] || livestockCounts[viewingSpecies.name] || 0} heads
-                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Description Section */}
+            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
+                Species Description & Operational Notes
+              </div>
+              <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
+                {viewingSpecies.description || "No official description or operational notes provided for this livestock species."}
+              </div>
+            </div>
+
             {/* Modal Actions */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 8,
-                paddingTop: 12,
-                borderTop: "1px solid var(--color-border)",
-              }}
-            >
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setViewingSpecies(null)}
-                style={{ height: "36px", padding: "0 14px", fontSize: "0.82rem" }}
-              >
-                Close
-              </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
               <button
                 type="button"
                 className="btn btn-primary"
@@ -1310,6 +1271,14 @@ export const SpeciesManagement = () => {
               >
                 <Icon.Edit size={13} />
                 <span>Edit Species</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setViewingSpecies(null)}
+                style={{ height: "36px", padding: "0 14px", fontSize: "0.82rem" }}
+              >
+                Close
               </button>
             </div>
           </div>

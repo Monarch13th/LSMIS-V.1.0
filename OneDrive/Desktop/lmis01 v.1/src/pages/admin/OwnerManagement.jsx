@@ -1651,18 +1651,13 @@ export const OwnerManagement = () => {
         )}
       </Modal>
       {/* ========================================================================= */}
-      {/* MODAL 3: OWNER REGISTRATION DETAILS (TABLE VIEW) */}
+      {/* MODAL 3: OWNER REGISTRATION DETAILS (STANDARDIZED VIEW) */}
       {/* ========================================================================= */}
       <Modal
         open={!!selectedOwner}
         onClose={() => setSelectedOwner(null)}
         title="Owner Registration Details"
         size="lg"
-        footer={
-          <Button variant="outline" size="sm" onClick={() => setSelectedOwner(null)}>
-            Close
-          </Button>
-        }
       >
         {selectedOwner && (() => {
           const ownerName = selectedOwner.name || selectedOwner.full_name || "—";
@@ -1670,87 +1665,20 @@ export const OwnerManagement = () => {
           const regDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "—";
           const adminNote = selectedOwner.rejection_reason || selectedOwner.notes;
 
-          const sections = [
-            {
-              title: "Account Identification",
-              rows: [
-                { icon: <Icon.Tag size={14} />, field: "Owner ID", value: formatOwnerId(selectedOwner), mono: true, strong: true, accent: "#0369a1" },
-                { icon: <Icon.User size={14} />, field: "Full Name", value: ownerName, strong: true },
-                { icon: <Icon.Key size={14} />, field: "Username", value: selectedOwner.username ? `@${selectedOwner.username}` : "—", mono: true },
-                {
-                  icon: <Icon.ShieldCheck size={14} />,
-                  field: "Auth Provider",
-                  custom: (selectedOwner.auth_provider === "google" || selectedOwner.google_id) ? (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#2563eb", fontWeight: 700, fontSize: "0.82rem" }}>
-                      <GoogleLogo size={13} /> Google OAuth (Connected)
-                    </span>
-                  ) : (
-                    <span style={{ color: "var(--color-text)", fontWeight: 500 }}>
-                      Email & Password
-                    </span>
-                  ),
-                },
-              ],
-            },
-            {
-              title: "Contact Information",
-              rows: [
-                { icon: <Icon.Mail size={14} />, field: "Email Address", value: selectedOwner.email || "—", mono: true },
-                { icon: <Icon.Phone size={14} />, field: "Contact Number", value: selectedOwner.contact || selectedOwner.phone || "—", mono: true },
-                { icon: <Icon.MapPin size={14} />, field: "Address", value: selectedOwner.address || "—" },
-              ],
-            },
-            {
-              title: "Registration & Compliance",
-              rows: [
-                { icon: <Icon.Calendar size={14} />, field: "Registration Date", value: regDate },
-                { icon: <Icon.ShieldCheck size={14} />, field: "Account Status", custom: getStatusBadge(selectedOwner) },
-                {
-                  icon: <Icon.FileText size={14} />,
-                  field: "Terms & User Agreement",
-                  custom: (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", fontWeight: 600 }}>
-                      <Icon.CheckCircle size={14} /> Accepted
-                    </span>
-                  ),
-                },
-                ...(adminNote ? [{ icon: <Icon.Info size={14} />, field: "Administrative Remarks", value: adminNote }] : []),
-              ],
-            },
-          ];
-
-          const labelCell = {
-            width: "34%",
-            padding: "11px 18px",
-            borderRight: "1px solid #e5e7eb",
-            borderBottom: "1px solid #eef2f6",
-            background: "#fafbfc",
-            color: "#475569",
-            fontSize: "0.8rem",
-            fontWeight: 600,
-            verticalAlign: "middle",
-          };
-          const valueCell = {
-            padding: "11px 18px",
-            borderBottom: "1px solid var(--color-border)",
-            color: "var(--color-text)",
-            fontSize: "0.86rem",
-            verticalAlign: "middle",
-            wordBreak: "break-word",
-          };
-
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              {/* Record Header */}
+              {/* Header Box */}
               <div
                 style={{
+                  padding: "18px 20px",
+                  background: "var(--color-bg)",
+                  borderRadius: 12,
+                  border: "1.5px solid var(--color-border)",
                   display: "flex",
-                  alignItems: "center",
                   justifyContent: "space-between",
-                  gap: 14,
+                  alignItems: "center",
                   flexWrap: "wrap",
-                  paddingBottom: 16,
-                  borderBottom: "1px solid var(--color-border)",
+                  gap: 12,
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
@@ -1766,25 +1694,24 @@ export const OwnerManagement = () => {
                         }
                       }}
                       style={{
-                        width: 48,
-                        height: 48,
+                        width: 46,
+                        height: 46,
                         borderRadius: "50%",
                         objectFit: "cover",
-                        border: "2px solid #3b82f6",
+                        border: "2px solid #0284c7",
                         flexShrink: 0,
                       }}
                     />
                   ) : null}
                   <div
                     style={{
-                      width: 48,
-                      height: 48,
+                      width: 46,
+                      height: 46,
                       borderRadius: "50%",
-                      background: "#0f3d66",
+                      background: "#0284c7",
                       color: "#ffffff",
                       fontWeight: 700,
                       fontSize: "1rem",
-                      letterSpacing: "0.02em",
                       display: selectedOwner.avatar_url ? "none" : "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1793,82 +1720,102 @@ export const OwnerManagement = () => {
                   >
                     {initials(ownerName) || "OW"}
                   </div>
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontSize: "1.05rem", fontWeight: 700, color: "var(--color-text)", lineHeight: 1.25 }}>{ownerName}</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, fontSize: "0.78rem", color: "var(--color-text-muted)", flexWrap: "wrap" }}>
-                      <span className="mono" style={{ color: "var(--color-info)", fontWeight: 600 }}>{formatOwnerId(selectedOwner)}</span>
-                      <span style={{ color: "var(--color-border)" }}>|</span>
-                      <span>Livestock Owner Account</span>
+                  <div>
+                    <div style={{ fontSize: 11.5, fontWeight: 800, color: "#0284c7", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      Republic of the Philippines · City Veterinary Office
+                    </div>
+                    <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
+                      Livestock Owner Dossier — {ownerName}
+                    </div>
+                    <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
+                      Owner ID: {formatOwnerId(selectedOwner)} · Registered: {regDate}
                     </div>
                   </div>
                 </div>
                 <div>{getStatusBadge(selectedOwner)}</div>
               </div>
 
-              {/* Structured Details Table */}
-              <div style={{ overflowX: "auto", border: "1px solid var(--color-border)", borderRadius: 8, background: "var(--color-surface)" }}>
-                <table style={{ width: "100%", minWidth: 520, borderCollapse: "collapse", textAlign: "left" }}>
-                  <colgroup>
-                    <col style={{ width: "34%" }} />
-                    <col />
-                  </colgroup>
-                  <tbody>
-                    {sections.map((section, sIdx) => (
-                      <Fragment key={`sec-${sIdx}`}>
-                        <tr>
-                          <th
-                            colSpan={2}
-                            style={{
-                              padding: "9px 18px",
-                              background: "#f1f5f9",
-                              borderTop: sIdx === 0 ? "none" : "1px solid #e2e8f0",
-                              borderBottom: "1px solid #e2e8f0",
-                              fontSize: "0.7rem",
-                              fontWeight: 700,
-                              color: "#334155",
-                              textTransform: "uppercase",
-                              letterSpacing: "0.08em",
-                            }}
-                          >
-                            {section.title}
-                          </th>
-                        </tr>
-                        {section.rows.map((row, rIdx) => (
-                          <tr key={`row-${sIdx}-${rIdx}`}>
-                            <td style={labelCell}>
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
-                                <span style={{ color: "#94a3b8", display: "inline-flex" }}>{row.icon}</span>
-                                {row.field}
-                              </span>
-                            </td>
-                            <td
-                              className={row.mono ? "mono" : ""}
-                              style={{
-                                ...valueCell,
-                                fontWeight: row.strong ? 600 : 500,
-                                color: row.value === "—" ? "#94a3b8" : row.accent || valueCell.color,
-                              }}
-                            >
-                              {row.custom
-                                ? row.custom
-                                : typeof row.value === "object" && row.value !== null
-                                ? (row.value.label ?? row.value.value ?? "—")
-                                : row.value}
-                            </td>
-                          </tr>
-                        ))}
-                      </Fragment>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Owner Details Grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Owner ID</div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "#0369a1", fontFamily: "monospace", marginTop: 4 }}>
+                    {formatOwnerId(selectedOwner)}
+                  </div>
+                </div>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Full Name</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
+                    {ownerName}
+                  </div>
+                </div>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Username</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", fontFamily: "monospace", marginTop: 4 }}>
+                    {selectedOwner.username ? `@${selectedOwner.username}` : "—"}
+                  </div>
+                </div>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Contact Number</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", fontFamily: "monospace", marginTop: 4 }}>
+                    {selectedOwner.contact || selectedOwner.phone || "—"}
+                  </div>
+                </div>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Email Address</div>
+                  <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }} className="truncate" title={selectedOwner.email}>
+                    {selectedOwner.email || "—"}
+                  </div>
+                </div>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Auth Provider</div>
+                  <div style={{ marginTop: 4 }}>
+                    {(selectedOwner.auth_provider === "google" || selectedOwner.google_id) ? (
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#2563eb", fontWeight: 700, fontSize: "0.82rem" }}>
+                        <GoogleLogo size={13} /> Google OAuth
+                      </span>
+                    ) : (
+                      <span style={{ color: "var(--color-text)", fontWeight: 600, fontSize: "0.86rem" }}>
+                        Email & Password
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
+                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>User Agreement</div>
+                  <div style={{ marginTop: 4 }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, color: "#047857", fontWeight: 600, fontSize: "0.86rem" }}>
+                      <Icon.CheckCircle size={14} /> Accepted
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              {/* Action Buttons inside Details Modal */}
-              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10, paddingTop: 10 }}>
-                <Button variant="outline" size="sm" onClick={() => setSelectedOwner(null)}>
-                  Close
-                </Button>
-                {getNormalizedStatus(selectedOwner) !== "Pending Approval" && getNormalizedStatus(selectedOwner) !== "Rejected" && (
+              {/* Address Particulars */}
+              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
+                  Residential / Farm Address
+                </div>
+                <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
+                  {selectedOwner.address || "No complete street or barangay address provided."}
+                </div>
+              </div>
+
+              {/* Administrative Remarks if any */}
+              {adminNote && (
+                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
+                    Administrative Remarks & Verification Notes
+                  </div>
+                  <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
+                    {adminNote}
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Actions */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
+                {getNormalizedStatus(selectedOwner) !== "Pending Approval" && getNormalizedStatus(selectedOwner) !== "Rejected" ? (
                   <Button
                     variant="primary"
                     size="sm"
@@ -1877,11 +1824,15 @@ export const OwnerManagement = () => {
                       setSelectedOwner(null);
                       openEditOwnerModal(toEdit);
                     }}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 6 }}
                   >
                     <Icon.Edit size={14} />
                     <span>Edit Profile</span>
                   </Button>
-                )}
+                ) : <div />}
+                <Button variant="outline" size="sm" onClick={() => setSelectedOwner(null)}>
+                  Close
+                </Button>
               </div>
             </div>
           );
@@ -1985,22 +1936,22 @@ export const OwnerManagement = () => {
           >
             {/* Warning / Alert Banner */}
             <div style={{
-              background: "#fffbeb",
-              border: "1px solid #fde68a",
+              background: "var(--color-warning-bg, rgba(245, 158, 11, 0.12))",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
               borderRadius: "8px",
               padding: "10px 14px",
               display: "flex",
               alignItems: "flex-start",
               gap: 10,
-              color: "#92400e"
+              color: "var(--color-text)",
             }}>
-              <Icon.AlertTriangle size={18} style={{ color: "#d97706", flexShrink: 0, marginTop: 2 }} />
+              <Icon.AlertTriangle size={18} style={{ color: "var(--color-warning, #d97706)", flexShrink: 0, marginTop: 2 }} />
               <div style={{ fontSize: "0.8rem", lineHeight: 1.45 }}>
-                <strong style={{ color: "#78350f", display: "block", marginBottom: 2 }}>
-                  Warning: Modifying Producer Account Details
+                <strong style={{ color: "var(--color-warning, #d97706)", display: "block", marginBottom: 2 }}>
+                  Notice: Modifying Producer Account Details
                 </strong>
-                <span>
-                  Changes made here will be updated directly in the Supabase database (<strong>public.owners</strong> &amp; <strong>public.users</strong>). Modifying contact, email, or status will directly affect system records and portal authentication.
+                <span style={{ color: "var(--color-text-muted)" }}>
+                  Changes will immediately update the producer's official account, contact records, and system verification status.
                 </span>
               </div>
             </div>
