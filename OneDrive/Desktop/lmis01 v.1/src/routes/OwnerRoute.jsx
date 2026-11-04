@@ -1,9 +1,27 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { ROLES } from "../utils/constants";
+import { ROLES, STORAGE_KEYS } from "../utils/constants";
+import { normalizeRole, getSessionStorageItem } from "../store/authStore";
 
 export const OwnerRoute = ({ children }) => {
-  const { role, loading, isInitialized } = useAuth();
+  const { session, role, loading, isInitialized } = useAuth();
+  const location = useLocation();
+
+  const activeRole = normalizeRole(role || session?.role);
+
+  // Check fallback session in storage if auth state is briefly synchronizing
+  const getFallbackRole = () => {
+    try {
+      const raw = getSessionStorageItem(STORAGE_KEYS.SESSION);
+      if (raw) {
+        const s = JSON.parse(raw);
+        return normalizeRole(s?.role);
+      }
+    } catch (_) {}
+    return null;
+  };
+
+  const effectiveRole = activeRole || getFallbackRole();
 
   if (loading || !isInitialized) {
     return (
@@ -15,7 +33,7 @@ export const OwnerRoute = ({ children }) => {
     );
   }
 
-  if (!role) return <Navigate to="/login" replace />;
-  if (role !== ROLES.OWNER && role !== "owner") return <Navigate to={`/${role}`} replace />;
+  if (!effectiveRole) return <Navigate to="/login" state={{ from: location }} replace />;
+  if (effectiveRole !== ROLES.OWNER && effectiveRole !== "owner") return <Navigate to={`/${effectiveRole}`} replace />;
   return children;
 };

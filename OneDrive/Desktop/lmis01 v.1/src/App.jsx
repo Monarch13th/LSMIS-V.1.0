@@ -80,6 +80,7 @@ import { repairCorruptedMockData } from "./utils/repairStorage";
 import { STORAGE_KEYS } from "./utils/constants";
 import { initialOAuthCallback } from "./services/supabaseClient";
 import { isInstalledApp } from "./utils/capacitor";
+import { getSessionStorageItem } from "./store/authStore";
 
 /**
  * "/" entry point. Browser tabs get the public Landing Page. The installed APK / installed PWA
@@ -132,7 +133,7 @@ const Shell = () => {
         hash.includes("error_description=");
 
       if (pathname !== "/login" && (hasOAuthCallbackParams || (isFreshInFlight && storedIntent))) {
-        const existingSession = sessionStorage.getItem(STORAGE_KEYS.SESSION);
+        const existingSession = getSessionStorageItem(STORAGE_KEYS.SESSION);
         if (!existingSession) {
           const effectiveIntent = storedIntent || "login";
           const nextSearch = search.includes("oauth_intent=")
@@ -143,6 +144,20 @@ const Shell = () => {
           const nextHash = hash || initialOAuthCallback?.hash || "";
           navigate(`/login${nextSearch}${nextHash}`, { replace: true });
           return;
+        } else {
+          // A valid authenticated session exists; clean in-flight markers so they never bounce
+          if (initialOAuthCallback) {
+            initialOAuthCallback.hasOAuthTokens = false;
+          }
+          if (
+            pathname.startsWith("/owner") ||
+            pathname.startsWith("/admin") ||
+            pathname.startsWith("/vet") ||
+            pathname.startsWith("/staff")
+          ) {
+            sessionStorage.removeItem("lsmis_google_oauth_in_flight");
+            sessionStorage.removeItem("lsmis_google_oauth_intent");
+          }
         }
       }
 

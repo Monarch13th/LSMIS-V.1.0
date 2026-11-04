@@ -843,7 +843,9 @@ export const adminService = {
 
       // Matches current session exactly or client stored session — valid!
       const clientSessionId = authSecurityService.getClientSessionId();
-      const tabSessionId = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("lsmis_active_session_id") : null;
+      const tabSessionId =
+        (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("lsmis_active_session_id") : null) ||
+        (typeof localStorage !== "undefined" ? localStorage.getItem("lsmis_active_session_id") : null);
       if (
         dbSessionId.trim() === currentSessionId.trim() ||
         (clientSessionId && dbSessionId.trim() === clientSessionId.trim()) ||

@@ -128,7 +128,6 @@ const isGoogleOAuthHandshakeInProgress = () => {
  */
 async function resolveUserSession(supabaseUser, existingCached = null) {
   if (!supabaseUser) return null;
-  if (isGoogleOAuthHandshakeInProgress()) return null;
 
   const email = (supabaseUser.email || "").toLowerCase().trim();
   const identities = Array.isArray(supabaseUser.identities) ? supabaseUser.identities : [];
@@ -155,7 +154,7 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     existingCached?.google_id ||
     null;
 
-  // If existing cached session matches the user and already has a verified role and session_id, preserve it
+  // If existing cached session matches the user and already has a verified role and session_id, preserve it immediately
   const currentInitial = getInitialSession();
   const cachedToUse = existingCached || currentInitial;
   if (
@@ -172,6 +171,9 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
       google_id: googleId || cachedToUse.google_id,
     };
   }
+
+  // Only check in-progress OAuth handshake if we don't already hold a valid cached session
+  if (isGoogleOAuthHandshakeInProgress()) return null;
 
   let role = supabaseUser.user_metadata?.role || null;
   let name = supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || "";
@@ -350,6 +352,22 @@ export const initializeAuth = async () => {
         return;
       }
 
+      // During background token refresh or user updates, preserve and refresh the active session
+      if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
+        const current = authStore.get()?.session || getInitialSession();
+        if (current && current.role && current.session_id) {
+          const updated = {
+            ...current,
+            ts: Date.now(),
+          };
+          try {
+            setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(updated));
+          } catch (_) {}
+          authStore.set({ session: updated, loading: false, isInitialized: true });
+          return;
+        }
+      }
+
       if (sbSession?.user) {
         // If an active session is already loaded in authStore with a session_id and matches the user, don't overwrite it
         const currentStoreSession = authStore.get()?.session;
@@ -370,7 +388,7 @@ export const initializeAuth = async () => {
           } catch (_) { }
           authStore.set({ session: resolved, loading: false, isInitialized: true });
         }
-      } else if (!sbSession && event !== "USER_UPDATED") {
+      } else if (!sbSession && event !== "USER_UPDATED" && event !== "TOKEN_REFRESHED") {
         const cached = getInitialSession();
         if (!cached) {
           authStore.set({ session: null, loading: false, isInitialized: true });
