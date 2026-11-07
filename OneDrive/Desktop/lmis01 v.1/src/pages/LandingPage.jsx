@@ -314,8 +314,13 @@ export const LandingPage = () => {
               })}
             </nav>
 
-            {/* Nav Actions: Mobile Toggle, Login */}
+            {/* Nav Actions: Register Owner, Login, Mobile Toggle */}
             <div className="nav-actions">
+              <Link to="/register" className="nav-btn-register">
+                <Icon.UserPlus size={15} />
+                <span>Register Owner</span>
+              </Link>
+
               <Link to="/login" className="nav-btn-login">
                 <Icon.LogIn size={15} />
                 <span>Login</span>
