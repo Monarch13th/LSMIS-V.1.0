@@ -1720,6 +1720,7 @@ export const CarcassWeighing = () => {
                               }
                             }}
                             style={{
+                              height: 32,
                               padding: "6px 14px",
                               fontSize: 12,
                               fontWeight: 700,
@@ -2188,6 +2189,7 @@ export const CarcassWeighing = () => {
                               setSelectedOwnerKey(grp.key);
                             }}
                             style={{
+                              height: 32,
                               padding: "6px 14px",
                               fontSize: 12,
                               fontWeight: 700,

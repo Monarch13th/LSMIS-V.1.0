@@ -817,7 +817,7 @@ export const MultiLivestockForm = ({
             }}
           >
             <Icon.Plus size={15} />
-            <span>+ Add Another Livestock Entry</span>
+            <span>Add Another Livestock Entry</span>
           </button>
         </div>
       </div>

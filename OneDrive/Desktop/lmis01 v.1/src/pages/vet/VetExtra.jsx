@@ -2423,6 +2423,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                                 variant="outline"
                                 onClick={() => setViewRec(r)}
                                 style={{
+                                  height: 32,
                                   padding: "4px 9px",
                                   fontSize: 12,
                                   fontWeight: 600,
@@ -2438,6 +2439,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                                 variant="outline"
                                 onClick={() => handleOpenEdit(r)}
                                 style={{
+                                  height: 32,
                                   padding: "4px 9px",
                                   fontSize: 12,
                                   fontWeight: 600,
@@ -4780,6 +4782,7 @@ export const EvidenceUpload = ({
                               variant="outline"
                               onClick={() => setSelectedOwnerKey(grp.key)}
                               style={{
+                                height: 32,
                                 padding: "6px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,
@@ -5160,6 +5163,7 @@ export const EvidenceUpload = ({
                               variant="outline"
                               onClick={() => setSelectedOwnerKey(grp.key)}
                               style={{
+                                height: 32,
                                 padding: "6px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,
@@ -7151,6 +7155,7 @@ export const VetSlaughterHistory = () => {
                           variant="outline"
                           onClick={() => setSelectedRecord(r)}
                           style={{
+                            height: 32,
                             display: "inline-flex",
                             alignItems: "center",
                             gap: 5,

@@ -842,52 +842,8 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         throw err;
       }
 
-      // Check remaining pending records from the local awaiting queue (instant in-memory check)
-      const allSubmittedTags = succeededTags;
-      const submittedSet = new Set(allSubmittedTags.map((t) => String(t).trim().toLowerCase()));
-
-      const stillPendingAcrossAll = (awaitingLivestock || []).filter(
-        (a) => !submittedSet.has(String(a.tag_number || "").trim().toLowerCase())
-      );
-
-      const firstTag = allSubmittedTags[0] || targetTagForModal;
-      let targetOwner = null;
-      if (firstTag) {
-        const clean = String(firstTag).trim().toLowerCase();
-        const found = (awaitingLivestock || []).find((a) => String(a.tag_number || "").trim().toLowerCase() === clean);
-        targetOwner = found?.owner_name || resolveOwnerName({ tag_number: firstTag });
-      }
-      if (!targetOwner || targetOwner === "Ã¢â‚¬â€") {
-        targetOwner = records?.[0]?.owner_name || payload?.owner_name;
-      }
-
-      // 1. Check current owner's remaining records to preserve owner grouping
-      if (targetOwner && targetOwner !== "Ã¢â‚¬â€" && targetOwner !== "Unknown Owner") {
-        const cleanTargetOwner = String(targetOwner).trim().toLowerCase();
-        const stillPendingForOwner = stillPendingAcrossAll.filter((a) => {
-          const oName = String(a.owner_name || resolveOwnerName(a) || "").trim().toLowerCase();
-          return oName && oName === cleanTargetOwner;
-        });
-
-        if (stillPendingForOwner.length > 0) {
-          const nextTag = stillPendingForOwner[0].tag_number;
-          setTargetTagForModal(nextTag);
-          setModalOpen(true);
-          return;
-        }
-      }
-
-      // 2. Current owner has no remaining records (or owner was unknown).
-      if (stillPendingAcrossAll.length > 0) {
-        const nextTag = stillPendingAcrossAll[0].tag_number;
-        setTargetTagForModal(nextTag);
-        setModalOpen(true);
-        return;
-      } else {
-        setModalOpen(false);
-        setTargetTagForModal("");
-        return;
-      }
+      // Keep the user on the currently inspected record; do NOT automatically switch to another tag.
+      return { succeededTags, failedTags };
     } catch (err) {
       console.error(err);
       showToast(err.message || "Failed to record Ante-Mortem inspection", "error");
@@ -1334,6 +1290,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           variant="outline"
                           onClick={() => setSelectedOwnerKey(grp.key)}
                           style={{
+                            height: 32,
                             padding: "6px 12px",
                             fontSize: 12,
                             fontWeight: 700,
@@ -1478,6 +1435,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                               variant="outline"
                               onClick={() => setSelectedOwnerKey(grp.key)}
                               style={{
+                                height: 32,
                                 padding: "6px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,
@@ -1495,6 +1453,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                               size="sm"
                               onClick={() => handleOpenModal(allTags)}
                               style={{
+                                height: 32,
                                 padding: "6px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,
@@ -1963,6 +1922,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                                 handleOpenModal(item.tag_number);
                               }}
                               style={{
+                                height: 32,
                                 padding: "5px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,

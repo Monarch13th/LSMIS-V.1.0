@@ -1033,55 +1033,8 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         throw err;
       }
 
-      // Check remaining pending carcasses from the local awaiting queue (instant in-memory check)
-      const allSubmittedTags = succeededTags;
-      const submittedSet = new Set(allSubmittedTags.map((t) => String(t).trim().toLowerCase()));
-
-      const stillPendingAcrossAll = (awaitingCarcasses || []).filter(
-        (c) => !submittedSet.has(String(c.tag_number || "").trim().toLowerCase())
-      );
-
-      const firstTag = allSubmittedTags[0] || targetTagForModal;
-      let targetOwner = null;
-      if (firstTag) {
-        const clean = String(firstTag).trim().toLowerCase();
-        const found = (awaitingCarcasses || []).find((c) => String(c.tag_number || "").trim().toLowerCase() === clean);
-        targetOwner = found?.owner_name || resolveOwnerName({ tag_number: firstTag });
-      }
-      if (!targetOwner || targetOwner === "Ã¢â‚¬â€") {
-        targetOwner = records?.[0]?.owner_name || payload?.owner_name;
-      }
-
-      // 1. Check current owner's remaining carcasses to preserve owner grouping
-      if (targetOwner && targetOwner !== "Ã¢â‚¬â€" && targetOwner !== "Unknown Owner") {
-        const cleanTargetOwner = String(targetOwner).trim().toLowerCase();
-        const stillPendingForOwner = stillPendingAcrossAll.filter((c) => {
-          const oName = String(c.owner_name || resolveOwnerName(c) || "").trim().toLowerCase();
-          return oName && oName === cleanTargetOwner;
-        });
-
-        if (stillPendingForOwner.length > 0) {
-          const nextTag = stillPendingForOwner[0].tag_number;
-          setTargetTagForModal(nextTag);
-          setPostDecision("Approved");
-          setModalOpen(true);
-          return;
-        }
-      }
-
-      // 2. Current owner has no remaining carcasses (or owner was unknown).
-      if (stillPendingAcrossAll.length > 0) {
-        const nextTag = stillPendingAcrossAll[0].tag_number;
-        setTargetTagForModal(nextTag);
-        setPostDecision("Approved");
-        setModalOpen(true);
-        return;
-      } else {
-        setModalOpen(false);
-        setTargetTagForModal("");
-        setPostDecision("Approved");
-        return;
-      }
+      // Keep the user on the currently inspected record; do NOT automatically switch to another tag.
+      return { succeededTags, failedTags };
     } catch (err) {
       console.error(err);
       showToast(err.message || "Failed to record Post-Mortem inspection", "error");
@@ -1763,6 +1716,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           variant="outline"
                           onClick={() => setSelectedOwnerKey(grp.key)}
                           style={{
+                            height: 32,
                             padding: "6px 12px",
                             fontSize: 12,
                             fontWeight: 700,
@@ -1906,6 +1860,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               variant="outline"
                               onClick={() => setSelectedOwnerKey(grp.key)}
                               style={{
+                                height: 32,
                                 padding: "6px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,
@@ -1923,6 +1878,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               size="sm"
                               onClick={() => handleOpenModal(allTags)}
                               style={{
+                                height: 32,
                                 padding: "6px 12px",
                                 fontSize: 12,
                                 fontWeight: 700,
@@ -2295,6 +2251,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               handleOpenModal(item.tag_number);
                             }}
                             style={{
+                              height: 32,
                               padding: "5px 12px",
                               fontSize: 12,
                               fontWeight: 700,

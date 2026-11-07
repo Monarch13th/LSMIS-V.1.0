@@ -1319,6 +1319,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             setSelectedOwnerKey(grp.key);
                           }}
                           style={{
+                            height: 32,
                             padding: "6px 14px",
                             fontSize: 12,
                             fontWeight: 700,

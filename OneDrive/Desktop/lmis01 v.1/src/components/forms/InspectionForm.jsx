@@ -534,8 +534,53 @@ export const InspectionForm = ({
 }) => {
   const { showToast } = useToast();
   const [selectedSingleTag, setSelectedSingleTag] = useState(initialTag || "");
-  const [selectedBatchTags, setSelectedBatchTags] = useState(() => {
+  const [internalDecision, setInternalDecision] = useState(propDecision || "Approved");
+  const decision = propDecision !== undefined ? propDecision : internalDecision;
+  const setDecision = onDecisionChange || setInternalDecision;
+
+  // Itemized condemned animals/carcasses state (Ante-Mortem & Whole Carcass Post-Mortem)
+  const [anteCondemned, setAnteCondemned] = useState(() => {
     if ((propDecision || "Approved") === "Condemned") {
+      const splitTags = String(initialTag || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (splitTags.length > 0) {
+        const defaultReason = type === "Post-Mortem" ? CONDEMNED_REASONS_LIST[0] : ANTE_CONDEMNED_REASONS[0];
+        const defaultPreset = type === "Post-Mortem" ? POST_CONDEMNED_PRESETS[0] : ANTE_CONDEMNED_PRESETS[0];
+        return splitTags.map((tag) => ({
+          id: Date.now() + Math.random(),
+          tag_number: tag,
+          reason: defaultReason,
+          findings: defaultPreset,
+          customReason: "",
+          photos: [],
+        }));
+      }
+    }
+    return [];
+  });
+
+  // Multi-animal & multi-part Partial Condemnation state (Post-Mortem)
+  const [partialAnimals, setPartialAnimals] = useState(() => {
+    if ((propDecision || "") === "Partial") {
+      const splitTags = String(initialTag || "")
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (splitTags.length > 0) {
+        return splitTags.map((tag) => ({
+          id: Date.now() + Math.random(),
+          tag_number: tag,
+          parts: [createNewCut(CARCASS_AREAS[0])],
+        }));
+      }
+    }
+    return [];
+  });
+
+  const [selectedBatchTags, setSelectedBatchTags] = useState(() => {
+    if ((propDecision || "Approved") === "Condemned" || (propDecision || "") === "Partial") {
       return [];
     }
     if (initialTag) {
@@ -546,12 +591,13 @@ export const InspectionForm = ({
     }
     return (livestock || []).map((l) => l.tag_number).filter(Boolean);
   });
-  const [internalDecision, setInternalDecision] = useState(propDecision || "Approved");
-  const decision = propDecision !== undefined ? propDecision : internalDecision;
-  const setDecision = onDecisionChange || setInternalDecision;
+
   const [findings, setFindings] = useState(() => {
     if (decision === "Condemned") {
       return type === "Ante-Mortem" ? ANTE_CONDEMNED_PRESETS[0] : POST_CONDEMNED_PRESETS[0];
+    }
+    if (decision === "Partial") {
+      return "Passed with Partial Condemnation";
     }
     return type === "Ante-Mortem" ? ANTE_APPROVED_PRESETS[0] : POST_APPROVED_PRESETS[0];
   });
@@ -561,6 +607,8 @@ export const InspectionForm = ({
   const [formAlert, setFormAlert] = useState(null);
   const [pendingConfirm, setPendingConfirm] = useState(null);
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  const [activeExpandedOwner, setActiveExpandedOwner] = useState(null);
   const hasInitializedRef = useRef(false);
 
   const navigateToValidationError = (missingItems, errors) => {
@@ -593,109 +641,123 @@ export const InspectionForm = ({
     }
   };
 
-  useEffect(() => {
-    if (propDecision && propDecision !== internalDecision) {
-      setInternalDecision(propDecision);
+  // Get all tags currently selected or targeted across decisions without losing context
+  const getCurrentSelectedTags = useCallback(() => {
+    if (decision === "Condemned" && anteCondemned.length > 0) {
+      return anteCondemned.map((c) => String(c.tag_number || "").trim()).filter(Boolean);
     }
-    const splitTags = String(initialTag || "")
-      .split(",")
-      .map((t) => t.trim())
-      .filter(Boolean);
-    const isSingle = (livestock || []).length <= 1;
-    const singleTag = isSingle ? (splitTags[0] || sortedLivestock[0]?.tag_number || "") : "";
-
-    if (type === "Ante-Mortem" && propDecision) {
-      if (propDecision === "Approved") {
-        setFindings(ANTE_APPROVED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          setSelectedBatchTags([singleTag]);
-          setAnteCondemned([]);
-        }
-      } else if (propDecision === "Condemned") {
-        setFindings(ANTE_CONDEMNED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          setSelectedBatchTags([]);
-          const defaultReason = ANTE_CONDEMNED_REASONS[0];
-          const defaultPreset = ANTE_CONDEMNED_PRESETS[0];
-          setAnteCondemned([
-            {
-              id: Date.now(),
-              tag_number: singleTag,
-              reason: defaultReason,
-              findings: defaultPreset,
-              customReason: "",
-              photos: [],
-            },
-          ]);
-        }
-      }
-    } else if (type === "Post-Mortem" && propDecision) {
-      if (propDecision === "Approved") {
-        setFindings(POST_APPROVED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          selectFitToSlaughter(singleTag);
-        }
-      } else if (propDecision === "Partial") {
-        setFindings("Passed with Partial Condemnation");
-        if (isSingle && singleTag) {
-          selectPartial(singleTag);
-        }
-      } else if (propDecision === "Condemned") {
-        setFindings(POST_CONDEMNED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          selectCondemned(singleTag);
-        }
-      }
+    if (decision === "Partial" && partialAnimals.length > 0) {
+      return partialAnimals.map((a) => String(a.tag_number || "").trim()).filter(Boolean);
     }
-  }, [propDecision]);
+    if (selectedBatchTags.length > 0) {
+      return selectedBatchTags.map((t) => String(t || "").trim()).filter(Boolean);
+    }
+    if (selectedSingleTag) {
+      return [selectedSingleTag.trim()];
+    }
+    if (initialTag) {
+      return String(initialTag)
+        .split(",")
+        .map((t) => t.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }, [decision, anteCondemned, partialAnimals, selectedBatchTags, selectedSingleTag, initialTag]);
 
-  const handleSelectDecision = (val) => {
+  // Robust, tag-preserving category switching (Fit for Consumption <-> Condemned <-> Partially Condemned)
+  const handleSelectDecision = useCallback((val) => {
+    if (!val) return;
     setDecision(val);
-    const isSingle = (livestock || []).length <= 1;
-    const singleTag = isSingle ? (initialTag || selectedSingleTag || sortedLivestock[0]?.tag_number || "") : "";
+    setInternalDecision(val);
+
+    const activeTags = getCurrentSelectedTags();
 
     if (type === "Ante-Mortem") {
       if (val === "Approved") {
         setFindings(ANTE_APPROVED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          selectFitToSlaughter(singleTag);
+        if (activeTags.length > 0) {
+          setSelectedBatchTags(activeTags);
+          setAnteCondemned([]);
         }
       } else if (val === "Condemned") {
         setFindings(ANTE_CONDEMNED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          selectCondemned(singleTag);
+        if (activeTags.length > 0) {
+          setSelectedBatchTags([]);
+          const defaultReason = ANTE_CONDEMNED_REASONS[0];
+          const defaultPreset = ANTE_CONDEMNED_PRESETS[0];
+          setAnteCondemned(
+            activeTags.map((tag) => ({
+              id: Date.now() + Math.random(),
+              tag_number: tag,
+              reason: defaultReason,
+              findings: defaultPreset,
+              customReason: "",
+              photos: [],
+            }))
+          );
         }
       }
     } else {
+      // Post-Mortem
       if (val === "Approved") {
         setFindings(POST_APPROVED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          selectFitToSlaughter(singleTag);
+        if (activeTags.length > 0) {
+          setSelectedBatchTags(activeTags);
+          setAnteCondemned([]);
+          setPartialAnimals([]);
         }
       } else if (val === "Partial") {
         setFindings("Passed with Partial Condemnation");
-        if (isSingle && singleTag) {
-          selectPartial(singleTag);
+        if (activeTags.length > 0) {
+          setSelectedBatchTags([]);
+          setAnteCondemned([]);
+          setPartialAnimals(
+            activeTags.map((tag) => ({
+              id: Date.now() + Math.random(),
+              tag_number: tag,
+              parts: [createNewCut(CARCASS_AREAS[0])],
+            }))
+          );
         }
       } else if (val === "Condemned") {
         setFindings(POST_CONDEMNED_PRESETS[0]);
-        if (isSingle && singleTag) {
-          selectCondemned(singleTag);
+        if (activeTags.length > 0) {
+          setSelectedBatchTags([]);
+          setPartialAnimals([]);
+          const defaultReason = CONDEMNED_REASONS_LIST[0];
+          const defaultPreset = POST_CONDEMNED_PRESETS[0];
+          setAnteCondemned(
+            activeTags.map((tag) => ({
+              id: Date.now() + Math.random(),
+              tag_number: tag,
+              reason: defaultReason,
+              findings: defaultPreset,
+              customReason: "",
+              photos: [],
+            }))
+          );
         }
       }
     }
-  };
+  }, [type, getCurrentSelectedTags, setDecision]);
+
+  useEffect(() => {
+    if (propDecision && propDecision !== internalDecision) {
+      handleSelectDecision(propDecision);
+    }
+  }, [propDecision, internalDecision, handleSelectDecision]);
 
   const handleConfirmSubmit = async () => {
-    if (!pendingConfirm) return;
+    if (!pendingConfirm || isSaved) return;
     setSubmitting(true);
     try {
       await onSubmit(pendingConfirm.payloadToSubmit);
+      setIsSaved(true);
       setFormAlert({
         type: "success",
         message: pendingConfirm.successMessage,
       });
-      pendingConfirm.onSuccess?.();
+      // Preserve currently inspected record and tag
       setPendingConfirm(null);
     } catch (err) {
       console.error("Error saving inspection:", err);
@@ -711,39 +773,6 @@ export const InspectionForm = ({
       setSubmitting(false);
     }
   };
-
-  // Itemized condemned animals/carcasses state (Ante-Mortem & Whole Carcass Post-Mortem)
-  const [anteCondemned, setAnteCondemned] = useState(() => {
-    if ((propDecision || "Approved") === "Condemned") {
-      const splitTags = String(initialTag || "")
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean);
-      const isSingle = splitTags.length === 1 || (!initialTag && (livestock || []).length === 1);
-      const target = isSingle ? (splitTags[0] || livestock[0]?.tag_number || "") : "";
-      if (target) {
-        const defaultReason = type === "Post-Mortem" ? CONDEMNED_REASONS_LIST[0] : ANTE_CONDEMNED_REASONS[0];
-        const defaultPreset = type === "Post-Mortem" ? POST_CONDEMNED_PRESETS[0] : ANTE_CONDEMNED_PRESETS[0];
-        return [
-          {
-            id: Date.now(),
-            tag_number: target,
-            reason: defaultReason,
-            findings: defaultPreset,
-            customReason: "",
-            photos: [],
-          },
-        ];
-      }
-    }
-    return [];
-  });
-
-  // Multi-animal & multi-part Partial Condemnation state (Post-Mortem)
-  const [partialAnimals, setPartialAnimals] = useState([]);
-
-  // Single active expanded owner for owner dropdown groups in tag selection
-  const [activeExpandedOwner, setActiveExpandedOwner] = useState(null);
 
   const isOwnerExpanded = (ownerName) => {
     return Boolean(ownerName && activeExpandedOwner === ownerName);
@@ -2070,43 +2099,7 @@ export const InspectionForm = ({
                 return (
                   <div
                     key={opt.value}
-                    onClick={() => {
-                      setDecision(opt.value);
-                      const isSingle = (livestock || []).length <= 1;
-                      const singleTag = isSingle ? (initialTag || selectedSingleTag || sortedLivestock[0]?.tag_number || "") : "";
-
-                      if (type === "Ante-Mortem") {
-                        if (opt.value === "Approved") {
-                          setFindings(ANTE_APPROVED_PRESETS[0]);
-                          if (isSingle && singleTag) {
-                            selectFitToSlaughter(singleTag);
-                          }
-                        } else if (opt.value === "Condemned") {
-                          setFindings(ANTE_CONDEMNED_PRESETS[0]);
-                          if (isSingle && singleTag) {
-                            selectCondemned(singleTag);
-                          }
-                        }
-                      } else {
-                        // Post-Mortem
-                        if (opt.value === "Approved") {
-                          setFindings(POST_APPROVED_PRESETS[0]);
-                          if (isSingle && singleTag) {
-                            selectFitToSlaughter(singleTag);
-                          }
-                        } else if (opt.value === "Partial") {
-                          setFindings("Passed with Partial Condemnation");
-                          if (isSingle && singleTag) {
-                            selectPartial(singleTag);
-                          }
-                        } else if (opt.value === "Condemned") {
-                          setFindings(POST_CONDEMNED_PRESETS[0]);
-                          if (isSingle && singleTag) {
-                            selectCondemned(singleTag);
-                          }
-                        }
-                      }
-                    }}
+                    onClick={() => handleSelectDecision(opt.value)}
                     style={{
                       padding: "10px 14px",
                       borderRadius: 10,
@@ -3365,35 +3358,40 @@ export const InspectionForm = ({
                         );
                     })}
 
-                      {/* Add Another Part to This Carcass Button & Subtotal */}
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2, flexWrap: "wrap", gap: 8 }}>
+                      {/* Add Another Part Button (Matching Add Another Livestock Button) */}
+                      <div style={{ marginTop: 6, marginBottom: 4 }}>
                         <button
                           type="button"
                           onClick={() => addPartToAnimal(animal.id)}
                           style={{
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            padding: "6px 12px",
-                            borderRadius: 6,
-                            fontSize: 12,
-                            fontWeight: 700,
-                            background: "#fef3c7",
-                            color: "#92400e",
-                            border: "1px solid #fcd34d",
+                            width: "100%",
+                            padding: "11px 16px",
+                            borderRadius: 8,
+                            border: "1.5px dashed #f59e0b",
+                            background: "rgba(245, 158, 11, 0.05)",
+                            color: "#b45309",
+                            fontSize: 13,
+                            fontWeight: 750,
                             cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 8,
+                            transition: "all 0.15s ease",
+                            boxSizing: "border-box",
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.background = "rgba(245, 158, 11, 0.12)";
+                            e.currentTarget.style.borderColor = "#d97706";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = "rgba(245, 158, 11, 0.05)";
+                            e.currentTarget.style.borderColor = "#f59e0b";
                           }}
                         >
-                          <Icon.Plus size={13} /> Add Another Part to Tag #{animal.tag_number || `Carcass ${animalIdx + 1}`}
+                          <Icon.Plus size={15} />
+                          <span>Add Another Part</span>
                         </button>
-
-                        <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e" }}>
-                          Subtotal:{" "}
-                          <strong style={{ fontSize: 13, color: "#78350f" }}>
-                            {animalSubtotalWeight.toFixed(2)} kg
-                          </strong>{" "}
-                          ({animal.parts.length} cut{animal.parts.length === 1 ? "" : "s"})
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -3674,19 +3672,22 @@ export const InspectionForm = ({
           disabled={submitting}
           style={{ height: 36, padding: "0 16px", fontSize: 13, borderRadius: 8 }}
         >
-          Cancel
+          {isSaved ? "Close" : "Cancel"}
         </Button>
         <Button
           type="submit"
           size="sm"
-          disabled={submitting}
+          disabled={submitting || isSaved}
           onClick={(e) => {
             e.preventDefault();
+            if (isSaved) return;
             handleSubmit(e);
           }}
           style={{
             height: 36,
-            background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+            background: isSaved
+              ? "#94a3b8"
+              : "linear-gradient(135deg, #10b981 0%, #047857 100%)",
             color: "#ffffff",
             fontWeight: 700,
             padding: "0 18px",
@@ -3695,13 +3696,19 @@ export const InspectionForm = ({
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
-            boxShadow: "0 2px 6px rgba(16, 185, 129, 0.28)",
+            boxShadow: isSaved ? "none" : "0 2px 6px rgba(16, 185, 129, 0.28)",
+            cursor: isSaved ? "not-allowed" : "pointer",
           }}
         >
           {submitting ? (
             <>
               <Icon.RefreshCw size={14} className="animate-spin" />
               <span>Recording Inspection...</span>
+            </>
+          ) : isSaved ? (
+            <>
+              <Icon.Check size={16} />
+              <span>Inspection Recorded</span>
             </>
           ) : (
             <>

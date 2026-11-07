@@ -2471,6 +2471,7 @@ export const RoleReportsModule = ({
                             variant="outline"
                             onClick={() => setViewingCondemnation(grp.items[0])}
                             style={{
+                              height: 32,
                               padding: "6px 12px",
                               fontSize: 12,
                               fontWeight: 700,
@@ -2488,6 +2489,7 @@ export const RoleReportsModule = ({
                             variant="outline"
                             onClick={() => setSelectedOwnerKey(grp.key)}
                             style={{
+                              height: 32,
                               padding: "6px 12px",
                               fontSize: 12,
                               fontWeight: 700,
@@ -2931,6 +2933,7 @@ export const RoleReportsModule = ({
                               variant="outline"
                               onClick={() => setViewingCondemnation(item)}
                               style={{
+                                height: 32,
                                 padding: "5px 10px",
                                 fontSize: 12,
                                 fontWeight: 700,
