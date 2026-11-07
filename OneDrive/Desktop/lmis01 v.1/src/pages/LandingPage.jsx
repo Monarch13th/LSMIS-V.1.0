@@ -811,42 +811,56 @@ export const LandingPage = () => {
           ========================================================= */}
       <footer className="landing-footer" role="contentinfo">
         <div className="landing-container">
-          <div className="footer-minimal-inner">
-            {/* Brand & Location */}
+          <div className="footer-top-grid">
+            {/* Brand & Single Original Seal */}
             <div className="footer-brand-box">
-              <div className="footer-logo-row">
+              <div className="footer-seals-row">
                 <div className="footer-seal-item" title="LSMIS Official Seal">
                   <img src={logoImg} alt="LSMIS Official Seal" width="44" height="44" />
                 </div>
-                <div>
-                  <h4 className="footer-brand-heading">LSMIS</h4>
-                  <div className="footer-brand-subheading">
-                    Livestock Slaughter and Meat Inspection Management System
-                  </div>
-                  <div className="footer-brand-location">
-                    Tinaan, City of Naga, Cebu
-                  </div>
-                </div>
+              </div>
+
+              <h4 className="footer-brand-heading">LSMIS</h4>
+              <div className="footer-brand-subheading">
+                Livestock Slaughter and Meat Inspection Management System
+              </div>
+              <div className="footer-brand-location">
+                Tinaan, City of Naga, Cebu
               </div>
             </div>
 
-            {/* Quick Links */}
-            <div className="footer-links-box">
-              <span className="footer-links-title">Quick Links</span>
-              <nav className="footer-links-nav" aria-label="Footer Navigation">
-                {NAV_ITEMS.map((item, idx) => (
-                  <span key={item.label} className="footer-nav-item-wrap">
-                    <a
-                      href={item.href}
-                      onClick={(e) => scrollToSection(e, item.href)}
-                      className="footer-nav-link"
-                    >
+            {/* Quick Navigation */}
+            <div>
+              <h5 className="footer-col-title">Navigation</h5>
+              <ul className="footer-links-list">
+                {NAV_ITEMS.map((item) => (
+                  <li key={item.label}>
+                    <a href={item.href} onClick={(e) => scrollToSection(e, item.href)}>
                       {item.label}
                     </a>
-                    {idx < NAV_ITEMS.length - 1 && <span className="footer-nav-separator">|</span>}
-                  </span>
+                  </li>
                 ))}
-              </nav>
+              </ul>
+            </div>
+
+            {/* Statutory Standards */}
+            <div>
+              <h5 className="footer-col-title">Standards</h5>
+              <ul className="footer-links-list">
+                <li><span>Republic Act No. 9296</span></li>
+                <li><span>Republic Act No. 10536</span></li>
+                <li><span>NMIS Guidelines</span></li>
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div>
+              <h5 className="footer-col-title">Contact</h5>
+              <ul className="footer-links-list">
+                <li><span>Tinaan, City of Naga, Cebu</span></li>
+                <li><a href="tel:0322726655">(032) 272-6655</a></li>
+                <li><a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a></li>
+              </ul>
             </div>
           </div>
 
