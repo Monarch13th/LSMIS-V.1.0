@@ -162,6 +162,18 @@ export const MultiLivestockForm = ({
     }, 0);
   }, [entries]);
 
+  // Escape key handling for confirmation modal
+  useEffect(() => {
+    if (!showConfirm) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && !submitting) {
+        setShowConfirm(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showConfirm, submitting]);
+
   // Add another livestock entry - starts with NO selected sex ("")
   const handleAddLivestockEntry = () => {
     const lastEntry = entries[entries.length - 1];
@@ -886,49 +898,329 @@ export const MultiLivestockForm = ({
         </div>
       </div>
 
-      {/* Confirmation Dialog on Submit with itemized breakdown */}
-      <ConfirmDialog
-        open={showConfirm}
-        title="Confirm Livestock Registration"
-        message={
-          <div>
-            <p style={{ margin: "0 0 10px 0" }}>
-              Are you sure you want to register incoming livestock for <strong>{ownerName}</strong>?
-            </p>
+      {/* Confirmation Dialog on Submit with itemized breakdown matching reference design */}
+      {showConfirm && (
+        <div
+          className="modal-backdrop confirm-modal-backdrop"
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1200,
+            background: "rgba(15, 23, 42, 0.55)",
+            backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 16,
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !submitting) {
+              setShowConfirm(false);
+            }
+          }}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="confirm-livestock-reg-title"
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: 490,
+              background: "var(--color-surface, #ffffff)",
+              borderRadius: 14,
+              border: "1px solid var(--color-border, #e2e8f0)",
+              boxShadow: "0 20px 45px -10px rgba(0, 0, 0, 0.35)",
+              padding: "20px 22px 20px 22px",
+              boxSizing: "border-box",
+              animation: "modalFadeIn 0.18s ease-out",
+            }}
+          >
+            {/* Header: Left checkmark badge + title, Right close button */}
             <div
               style={{
-                background: "var(--color-bg)",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                padding: "8px 12px",
-                maxHeight: 180,
-                overflowY: "auto",
-                fontSize: 12,
                 display: "flex",
-                flexDirection: "column",
-                gap: 6,
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: "50%",
+                    background: "#dcfce7",
+                    color: "#16a34a",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon.Check size={17} strokeWidth={2.6} />
+                </div>
+                <h3
+                  id="confirm-livestock-reg-title"
+                  style={{
+                    margin: 0,
+                    fontSize: 16.5,
+                    fontWeight: 700,
+                    color: "var(--color-text, #0f172a)",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  Confirm Livestock Registration
+                </h3>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => !submitting && setShowConfirm(false)}
+                disabled={submitting}
+                aria-label="Close dialog"
+                style={{
+                  border: "none",
+                  background: "transparent",
+                  color: "var(--color-text-muted, #64748b)",
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  padding: 4,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  borderRadius: 6,
+                }}
+              >
+                <Icon.X size={18} />
+              </button>
+            </div>
+
+            {/* Prompt sentence */}
+            <p
+              style={{
+                margin: "14px 0 14px 0",
+                fontSize: 13.5,
+                lineHeight: 1.5,
+                color: "var(--color-text-secondary, #334155)",
                 textAlign: "left",
               }}
             >
-              {entries.map((item, i) => (
-                <div key={item.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span>
-                    <strong>#{i + 1}</strong>: {item.species} ({item.sex || "Unspecified"}) · {formatAgeString(item.age_value, item.age_unit)}
-                  </span>
-                  <span style={{ fontWeight: 700, color: "#059669" }}>
-                    {item.quantity} {parseInt(item.quantity, 10) === 1 ? "head" : "heads"}
-                  </span>
-                </div>
-              ))}
+              Are you sure you want to register incoming livestock for{" "}
+              <strong style={{ color: "var(--color-text, #0f172a)" }}>{ownerName}</strong>?
+            </p>
+
+            {/* Scrollable details table container */}
+            <div
+              style={{
+                border: "1px solid var(--color-border, #e2e8f0)",
+                borderRadius: 9,
+                overflow: "hidden",
+                background: "var(--color-bg, #ffffff)",
+              }}
+            >
+              <div
+                style={{
+                  maxHeight: 220,
+                  overflowY: "auto",
+                  scrollbarWidth: "thin",
+                }}
+              >
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontSize: 13,
+                    textAlign: "left",
+                  }}
+                >
+                  <thead
+                    style={{
+                      position: "sticky",
+                      top: 0,
+                      background: "var(--color-surface-subtle, #f8fafc)",
+                      zIndex: 3,
+                    }}
+                  >
+                    <tr style={{ borderBottom: "1px solid var(--color-border, #e2e8f0)" }}>
+                      <th
+                        style={{
+                          padding: "9px 12px",
+                          fontWeight: 700,
+                          color: "var(--color-text-secondary, #475569)",
+                          fontSize: 12,
+                        }}
+                      >
+                        Species
+                      </th>
+                      <th
+                        style={{
+                          padding: "9px 12px",
+                          fontWeight: 700,
+                          color: "var(--color-text-secondary, #475569)",
+                          fontSize: 12,
+                        }}
+                      >
+                        Sex
+                      </th>
+                      <th
+                        style={{
+                          padding: "9px 12px",
+                          fontWeight: 700,
+                          color: "var(--color-text-secondary, #475569)",
+                          fontSize: 12,
+                        }}
+                      >
+                        Age
+                      </th>
+                      <th
+                        style={{
+                          padding: "9px 12px",
+                          fontWeight: 700,
+                          color: "var(--color-text-secondary, #475569)",
+                          fontSize: 12,
+                          textAlign: "right",
+                        }}
+                      >
+                        Quantity
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {entries.map((item, i) => (
+                      <tr
+                        key={item.id || i}
+                        style={{
+                          borderBottom:
+                            i < entries.length - 1
+                              ? "1px solid var(--color-border, #f1f5f9)"
+                              : "none",
+                          background:
+                            i % 2 === 0
+                              ? "transparent"
+                              : "var(--color-surface-subtle, #fafafa)",
+                        }}
+                      >
+                        <td
+                          style={{
+                            padding: "9px 12px",
+                            fontWeight: 600,
+                            color: "var(--color-text, #0f172a)",
+                          }}
+                        >
+                          {item.species}
+                        </td>
+                        <td
+                          style={{
+                            padding: "9px 12px",
+                            color: "var(--color-text-secondary, #334155)",
+                          }}
+                        >
+                          {item.sex || "Unspecified"}
+                        </td>
+                        <td
+                          style={{
+                            padding: "9px 12px",
+                            color: "var(--color-text-secondary, #334155)",
+                          }}
+                        >
+                          {formatAgeString(item.age_value, item.age_unit) || "—"}
+                        </td>
+                        <td
+                          style={{
+                            padding: "9px 12px",
+                            fontWeight: 600,
+                            color: "var(--color-text, #0f172a)",
+                            textAlign: "right",
+                          }}
+                        >
+                          {item.quantity} {parseInt(item.quantity, 10) === 1 ? "head" : "heads"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Total Banner at the bottom of the table */}
+              <div
+                style={{
+                  background: "#dcfce7",
+                  borderTop: "1px solid #bbf7d0",
+                  padding: "10px 14px",
+                  textAlign: "center",
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  color: "#065f46",
+                }}
+              >
+                Total Livestock: {totalHeadCount} {totalHeadCount === 1 ? "head" : "heads"}
+              </div>
+            </div>
+
+            {/* Footer Buttons: Cancel on left, Confirm Registration on right */}
+            <div
+              style={{
+                display: "flex",
+                gap: 12,
+                marginTop: 18,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowConfirm(false)}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  height: 40,
+                  padding: "0 16px",
+                  borderRadius: 8,
+                  border: "1.5px solid var(--color-border, #cbd5e1)",
+                  background: "var(--color-bg, #ffffff)",
+                  color: "var(--color-text, #334155)",
+                  fontWeight: 600,
+                  fontSize: 13.5,
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmSubmit}
+                disabled={submitting}
+                style={{
+                  flex: 1,
+                  height: 40,
+                  padding: "0 16px",
+                  borderRadius: 8,
+                  border: "none",
+                  background: "#065f46",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  cursor: submitting ? "not-allowed" : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                  boxShadow: "0 2px 6px rgba(6, 95, 70, 0.25)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {submitting ? (
+                  <>
+                    <Icon.RefreshCw size={14} className="animate-spin" />
+                    <span>Registering...</span>
+                  </>
+                ) : (
+                  "Confirm Registration"
+                )}
+              </button>
             </div>
           </div>
-        }
-        confirmText="Register"
-        confirmVariant="success"
-        loading={submitting}
-        onConfirm={handleConfirmSubmit}
-        onCancel={() => setShowConfirm(false)}
-      />
+        </div>
+      )}
 
       {/* Confirmation Dialog on Removing Entry with data */}
       <ConfirmDialog
