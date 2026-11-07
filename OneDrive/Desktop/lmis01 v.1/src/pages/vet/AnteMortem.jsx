@@ -1713,6 +1713,21 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             : `Awaiting Ante-Mortem Inspection — ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
+        dialogStyle={{
+          minHeight: "560px",
+          maxHeight: "88vh",
+          width: "100%",
+          maxWidth: "1120px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          flex: 1,
+          minHeight: "420px",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 24px",
+        }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
@@ -1749,9 +1764,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         }
       >
         {selectedOwnerView && (
-          <div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {activeTab === "inspected" ? (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
@@ -1852,7 +1867,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 </table>
               </div>
             ) : (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>

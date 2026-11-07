@@ -2320,11 +2320,7 @@ export const RoleReportsModule = ({
                     <tr
                       key={grp.key}
                       onClick={() => {
-                        if (activeType === "condemnation" && grp.items.length === 1) {
-                          setViewingCondemnation(grp.items[0]);
-                        } else {
-                          setSelectedOwnerKey(grp.key);
-                        }
+                        setSelectedOwnerKey(grp.key);
                       }}
                       style={{
                         transition: "background 140ms ease",
@@ -2465,43 +2461,23 @@ export const RoleReportsModule = ({
                         style={{ padding: "14px 18px", verticalAlign: "middle", textAlign: "right" }}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        {activeType === "condemnation" && grp.items.length === 1 ? (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setViewingCondemnation(grp.items[0])}
-                            style={{
-                              height: 32,
-                              padding: "6px 12px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            <Icon.Eye size={13} /> View Details
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedOwnerKey(grp.key)}
-                            style={{
-                              height: 32,
-                              padding: "6px 12px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            <Icon.Eye size={13} /> {activeType === "condemnation" ? "View Details" : "View"}
-                          </Button>
-                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setSelectedOwnerKey(grp.key)}
+                          style={{
+                            height: 32,
+                            padding: "6px 12px",
+                            fontSize: 12,
+                            fontWeight: 700,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          <Icon.Eye size={13} /> View
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -2527,6 +2503,21 @@ export const RoleReportsModule = ({
             : "Report Details"
         }
         size="xl"
+        dialogStyle={{
+          minHeight: "560px",
+          maxHeight: "88vh",
+          width: "100%",
+          maxWidth: "1120px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          flex: 1,
+          minHeight: "420px",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 24px",
+        }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             {selectedRecord ? (
@@ -2809,12 +2800,14 @@ export const RoleReportsModule = ({
           })()
         ) : selectedOwnerView ? (
           /* Level 1: Owner Itemized Records Table inside Modal */
-          <div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <div
               style={{
                 overflowX: "auto",
                 overflowY: "auto",
-                maxHeight: "55vh",
+                flex: 1,
+                minHeight: "380px",
+                maxHeight: "56vh",
                 border: "none",
                 boxShadow: "none",
                 scrollbarWidth: "thin",
@@ -2823,15 +2816,15 @@ export const RoleReportsModule = ({
               <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                   <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Stage</th>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species &amp; Sex</th>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date &amp; Time</th>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>{isRegMarking ? "Type of Marking" : "Details / Findings"}</th>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                    <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: activeType === "condemnation" ? "left" : "right" }}>Responsible Personnel</th>
+                    <th style={{ width: "15%", minWidth: 130, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                    <th style={{ width: "14%", minWidth: 130, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Stage</th>
+                    <th style={{ width: "13%", minWidth: 120, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species &amp; Sex</th>
+                    <th style={{ width: "18%", minWidth: 160, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date &amp; Time</th>
+                    <th style={{ width: "15%", minWidth: 140, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>{isRegMarking ? "Type of Marking" : "Details / Findings"}</th>
+                    <th style={{ width: "11%", minWidth: 110, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
+                    <th style={{ width: "14%", minWidth: 140, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: activeType === "condemnation" ? "left" : "right" }}>Responsible Personnel</th>
                     {activeType === "condemnation" && (
-                      <th style={{ padding: "10px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th style={{ width: "10%", minWidth: 100, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
                     )}
                   </tr>
                 </thead>
@@ -2852,7 +2845,7 @@ export const RoleReportsModule = ({
                           }
                         }}
                       >
-                        <td style={{ padding: "10px 14px" }}>
+                        <td style={{ width: "15%", minWidth: 130, padding: "12px 14px", verticalAlign: "middle" }}>
                           <span
                             onClick={(e) => {
                               e.stopPropagation();
@@ -2875,21 +2868,21 @@ export const RoleReportsModule = ({
                             <span>{item.tag_number}</span>
                           </span>
                         </td>
-                        <td style={{ padding: "10px 14px" }}>
+                        <td style={{ width: "14%", minWidth: 130, padding: "12px 14px", verticalAlign: "middle" }}>
                           <span style={{ fontSize: 12, fontWeight: 700, color: "#0284c7" }}>
                             {item.stageLabel}
                           </span>
                         </td>
-                        <td style={{ padding: "10px 14px", fontSize: 12, fontWeight: 600 }}>
+                        <td style={{ width: "13%", minWidth: 120, padding: "12px 14px", verticalAlign: "middle", fontSize: 12, fontWeight: 600 }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                             <span style={{ color: "var(--color-text)", fontWeight: 700 }}>{item.species}</span>
                             <span style={{ fontSize: 11, color: "var(--color-text-muted)", fontWeight: 500 }}>{item.sex}</span>
                           </div>
                         </td>
-                        <td style={{ padding: "10px 14px", fontSize: 12, color: "var(--color-text)", whiteSpace: "nowrap" }}>
+                        <td style={{ width: "18%", minWidth: 160, padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)", whiteSpace: "nowrap" }}>
                           {item.date ? formatPhDateTime(item.date) : "—"}
                         </td>
-                        <td style={{ padding: "10px 14px", fontSize: 12, color: "var(--color-text)", maxWidth: 280 }}>
+                        <td style={{ width: "15%", minWidth: 140, padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)" }}>
                           {isRegMarking ? (
                             <span
                               style={{
@@ -2914,18 +2907,18 @@ export const RoleReportsModule = ({
                             </div>
                           )}
                         </td>
-                        <td style={{ padding: "10px 14px" }}>
+                        <td style={{ width: "11%", minWidth: 110, padding: "12px 14px", verticalAlign: "middle" }}>
                           <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 12, fontWeight: 700, color: stStyle.color }}>
                             <span style={{ width: 6, height: 6, borderRadius: "50%", background: stStyle.color, flexShrink: 0 }} />
                             {stStyle.label}
                           </span>
                         </td>
-                        <td style={{ padding: "10px 14px", fontSize: 12, color: "var(--color-text-muted)", fontWeight: 600, textAlign: activeType === "condemnation" ? "left" : "right" }}>
+                        <td style={{ width: "14%", minWidth: 140, padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text-muted)", fontWeight: 600, textAlign: activeType === "condemnation" ? "left" : "right" }}>
                           {item.personnel}
                         </td>
                         {activeType === "condemnation" && (
                           <td
-                            style={{ padding: "10px 14px", textAlign: "right", verticalAlign: "middle" }}
+                            style={{ width: "10%", minWidth: 100, padding: "12px 14px", textAlign: "right", verticalAlign: "middle" }}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <Button

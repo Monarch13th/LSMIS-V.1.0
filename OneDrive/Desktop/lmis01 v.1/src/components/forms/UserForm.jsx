@@ -316,7 +316,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             {/* Contact Number */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Contact Number
+                Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #64748b)" }}>(Optional)</span>
               </label>
               <div className="login-pwd-wrap">
                 <span className="login-pwd-icon"><Icon.Phone size={14} /></span>
@@ -345,7 +345,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                 style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
               >
                 <option value="staff">Slaughterhouse Staff</option>
-                <option value="vet">Veterinarian (Meat Inspector)</option>
+                <option value="vet">Veterinary Inspector</option>
               </select>
             </div>
           </div>
@@ -403,152 +403,146 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
           </div>
         </div>
       ) : (
-        /* Edit Mode Layout: 2-Column Grid */
-        <div className="user-form-modal-grid">
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Full Name & Username */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="personnel-fullname" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                  Full Name <span className="req">*</span>
-                </label>
-                <div className="login-pwd-wrap">
-                  <span className="login-pwd-icon"><Icon.User size={14} /></span>
-                  <input
-                    id="personnel-fullname"
-                    type="text"
-                    className="form-control"
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value);
-                      if (error) setError("");
-                    }}
-                    placeholder="e.g. Juan Dela Cruz"
-                    style={{ height: "36px", fontSize: "0.82rem" }}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="personnel-username" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                  Username <span className="req">*</span>
-                </label>
-                <div className="login-pwd-wrap">
-                  <span className="login-pwd-icon"><Icon.Tag size={14} /></span>
-                  <input
-                    id="personnel-username"
-                    type="text"
-                    className="form-control"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      if (error) setError("");
-                    }}
-                    placeholder="e.g. jdelacruz"
-                    style={{ height: "36px", fontSize: "0.82rem" }}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Email Address */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="personnel-email" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Email Address <span className="req">*</span>
-              </label>
-              <div className={`login-pwd-wrap ${emailError ? "has-error" : ""}`}>
-                <span className="login-pwd-icon"><Icon.Mail size={14} /></span>
-                <input
-                  id="personnel-email"
-                  type="email"
-                  className="form-control"
-                  value={emailVal}
-                  onChange={(e) => {
-                    setEmailVal(e.target.value);
-                    if (emailError) setEmailError("");
-                    if (error) setError("");
-                  }}
-                  onBlur={handleEmailBlur}
-                  placeholder="personnel@nagacityabattoir.gov.ph"
-                  style={{ height: "36px", fontSize: "0.82rem" }}
-                  required
-                />
-              </div>
-              {emailError && (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "5px",
-                    marginTop: "3px",
-                    fontSize: "0.75rem",
-                    color: "#dc2626",
-                    fontWeight: 500,
-                  }}
-                >
-                  <Icon.AlertTriangle size={12} />
-                  <span>{emailError}</span>
-                </div>
-              )}
-            </div>
-
-            {/* Contact Number */}
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Contact Number
-              </label>
-              <div className="login-pwd-wrap">
-                <span className="login-pwd-icon"><Icon.Phone size={14} /></span>
-                <input
-                  id="personnel-contact"
-                  type="tel"
-                  className="form-control"
-                  value={contactVal}
-                  onChange={(e) => setContactVal(e.target.value)}
-                  placeholder="09XXXXXXXXX"
-                  style={{ height: "36px", fontSize: "0.82rem" }}
-                />
-              </div>
+        /* Edit Mode Layout: 2-Column Balanced Grid */
+        <div className="user-form-edit-grid">
+          {/* Row 1, Col 1: Full Name */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="personnel-fullname" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
+              Full Name <span className="req">*</span>
+            </label>
+            <div className="login-pwd-wrap">
+              <span className="login-pwd-icon"><Icon.User size={14} /></span>
+              <input
+                id="personnel-fullname"
+                type="text"
+                className="form-control"
+                value={fullName}
+                onChange={(e) => {
+                  setFullName(e.target.value);
+                  if (error) setError("");
+                }}
+                placeholder="e.g. Juan Dela Cruz"
+                style={{ height: "36px", fontSize: "0.82rem" }}
+                required
+              />
             </div>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Role Selection & Account Status */}
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "10px" }}>
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="personnel-role" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                  Role <span className="req">*</span>
-                </label>
-                <select
-                  id="personnel-role"
-                  className="form-control"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
-                >
-                  <option value="staff">Slaughterhouse Staff</option>
-                  <option value="vet">Veterinarian (Meat Inspector)</option>
-                  {role === "admin" && <option value="admin">System Administrator</option>}
-                </select>
-              </div>
+          {/* Row 1, Col 2: Username */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="personnel-username" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
+              Username <span className="req">*</span>
+            </label>
+            <div className="login-pwd-wrap">
+              <span className="login-pwd-icon"><Icon.Tag size={14} /></span>
+              <input
+                id="personnel-username"
+                type="text"
+                className="form-control"
+                value={username}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  if (error) setError("");
+                }}
+                placeholder="e.g. jdelacruz"
+                style={{ height: "36px", fontSize: "0.82rem" }}
+                required
+              />
+            </div>
+          </div>
 
-              <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="personnel-status" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                  Account Status <span className="req">*</span>
-                </label>
-                <select
-                  id="personnel-status"
-                  className="form-control"
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value)}
-                  style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+          {/* Row 2, Col 1: Role */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="personnel-role" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
+              Role <span className="req">*</span>
+            </label>
+            <select
+              id="personnel-role"
+              className="form-control"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
+            >
+              <option value="staff">Slaughterhouse Staff</option>
+              <option value="vet">Veterinary Inspector</option>
+              {role === "admin" && <option value="admin">System Administrator</option>}
+            </select>
+          </div>
+
+          {/* Row 2, Col 2: Account Status */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="personnel-status" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
+              Account Status <span className="req">*</span>
+            </label>
+            <select
+              id="personnel-status"
+              className="form-control"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+              style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
+            >
+              <option value="Active">Active</option>
+              <option value="Inactive">Inactive</option>
+            </select>
+          </div>
+
+          {/* Row 3, Col 1: Email Address */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="personnel-email" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
+              Email Address <span className="req">*</span>
+            </label>
+            <div className={`login-pwd-wrap ${emailError ? "has-error" : ""}`}>
+              <span className="login-pwd-icon"><Icon.Mail size={14} /></span>
+              <input
+                id="personnel-email"
+                type="email"
+                className="form-control"
+                value={emailVal}
+                onChange={(e) => {
+                  setEmailVal(e.target.value);
+                  if (emailError) setEmailError("");
+                  if (error) setError("");
+                }}
+                onBlur={handleEmailBlur}
+                placeholder="personnel@nagacityabattoir.gov.ph"
+                style={{ height: "36px", fontSize: "0.82rem" }}
+                required
+              />
+            </div>
+            {emailError && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  marginTop: "3px",
+                  fontSize: "0.75rem",
+                  color: "#dc2626",
+                  fontWeight: 500,
+                }}
+              >
+                <Icon.AlertTriangle size={12} />
+                <span>{emailError}</span>
               </div>
+            )}
+          </div>
+
+          {/* Row 3, Col 2: Contact Number */}
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
+              Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #64748b)" }}>(Optional)</span>
+            </label>
+            <div className="login-pwd-wrap">
+              <span className="login-pwd-icon"><Icon.Phone size={14} /></span>
+              <input
+                id="personnel-contact"
+                type="tel"
+                className="form-control"
+                value={contactVal}
+                onChange={(e) => setContactVal(e.target.value)}
+                placeholder="09XXXXXXXXX"
+                style={{ height: "36px", fontSize: "0.82rem" }}
+              />
             </div>
           </div>
         </div>

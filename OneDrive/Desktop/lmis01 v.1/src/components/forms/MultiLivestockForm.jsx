@@ -7,6 +7,7 @@ import { listSpecies } from "../../services/speciesService";
 import { TABLES } from "../../utils/constants";
 import { supabase } from "../../services/supabaseClient";
 import { scrollToFirstError } from "../../utils/formValidation";
+import { SearchableAgeInput, validateAgeInput, extractAgeComponents } from "../common/SearchableAgeInput";
 
 export const SPECIES_CONFIG = [
   { id: "Hog", label: "Hog", color: "#a855f7", dbId: "spec-hog", image_url: null },
@@ -31,6 +32,7 @@ const createInitialEntry = (defaultSpecies = "Hog", defaultSex = "") => ({
   species: defaultSpecies,
   species_id: null,
   sex: defaultSex,
+  age: "",
   age_value: "",
   age_unit: "Months",
   quantity: 1,
@@ -192,6 +194,7 @@ export const MultiLivestockForm = ({
   const hasEnteredData = (entry) => {
     return Boolean(
       (entry.sex && entry.sex.trim()) ||
+      (entry.age && String(entry.age).trim()) ||
       (entry.age_value && String(entry.age_value).trim()) ||
       (entry.quantity && parseInt(entry.quantity, 10) > 1)
     );
@@ -249,40 +252,17 @@ export const MultiLivestockForm = ({
       if (field === "species" && value) delete next[`species_${entryId}`];
       if (field === "sex" && value) delete next[`sex_${entryId}`];
 
-      // Instant integer validation for age while typing
-      if (field === "age_value") {
+      // Instant validation for age while typing or selecting
+      if (field === "age" || field === "age_value") {
         const strVal = String(value || "").trim();
-        if (strVal.includes(".") || (strVal && !/^\d+$/.test(strVal))) {
-          next[`age_${entryId}`] = "Age must be a positive whole number (no decimals allowed).";
-        } else if (strVal && parseInt(strVal, 10) <= 0) {
-          next[`age_${entryId}`] = "Please enter a valid age greater than 0.";
-        } else if (strVal && parseInt(strVal, 10) > 0) {
-          const isYear = String(effectiveAgeUnit || "").toLowerCase().startsWith("year");
-          const ageNum = parseInt(strVal, 10);
-          if (!isYear && ageNum > 240) {
-            next[`age_${entryId}`] = "Age in months cannot exceed 240 (20 years).";
-          } else if (isYear && ageNum > 30) {
-            next[`age_${entryId}`] = "Age in years cannot exceed 30.";
+        if (!strVal) {
+          delete next[`age_${entryId}`];
+        } else {
+          const err = validateAgeInput(strVal);
+          if (err) {
+            next[`age_${entryId}`] = err;
           } else {
             delete next[`age_${entryId}`];
-          }
-        }
-      }
-
-      // Re-validate limits when age_unit changes
-      if (field === "age_unit") {
-        const isYear = String(value || "").toLowerCase().startsWith("year");
-        const strVal = String(effectiveAgeValue || "").trim();
-        if (strVal && /^\d+$/.test(strVal)) {
-          const ageNum = parseInt(strVal, 10);
-          if (ageNum > 0) {
-            if (!isYear && ageNum > 240) {
-              next[`age_${entryId}`] = "Age in months cannot exceed 240 (20 years).";
-            } else if (isYear && ageNum > 30) {
-              next[`age_${entryId}`] = "Age in years cannot exceed 30.";
-            } else {
-              delete next[`age_${entryId}`];
-            }
           }
         }
       }
@@ -322,20 +302,13 @@ export const MultiLivestockForm = ({
         newErrors[`sex_${item.id}`] = `Entry #${num}: Please select animal sex (Male or Female).`;
       }
 
-      const isYear = String(item.age_unit || "").toLowerCase().startsWith("year");
-      const ageValStr = String(item.age_value || "").trim();
-      if (!ageValStr) {
+      const ageStr = String(item.age || item.age_value || "").trim();
+      if (!ageStr) {
         newErrors[`age_${item.id}`] = `Entry #${num}: Please enter animal age.`;
-      } else if (ageValStr.includes(".") || !/^\d+$/.test(ageValStr)) {
-        newErrors[`age_${item.id}`] = `Entry #${num}: Age must be a positive whole number (no decimals allowed).`;
       } else {
-        const ageNum = parseInt(ageValStr, 10);
-        if (isNaN(ageNum) || ageNum <= 0) {
-          newErrors[`age_${item.id}`] = `Entry #${num}: Please enter a valid age greater than 0.`;
-        } else if (!isYear && ageNum > 240) {
-          newErrors[`age_${item.id}`] = `Entry #${num}: Age in months cannot exceed 240 (20 years).`;
-        } else if (isYear && ageNum > 30) {
-          newErrors[`age_${item.id}`] = `Entry #${num}: Age in years cannot exceed 30.`;
+        const ageErr = validateAgeInput(ageStr);
+        if (ageErr) {
+          newErrors[`age_${item.id}`] = `Entry #${num}: ${ageErr}`;
         }
       }
 
@@ -396,20 +369,17 @@ export const MultiLivestockForm = ({
         const matchedSpecies = (speciesList || []).find(
           (s) => s.id === item.species || s.label === item.species
         );
-        const ageVal = parseInt(item.age_value, 10);
-        const isYear = String(item.age_unit || "").toLowerCase().startsWith("year");
-        const normalizedUnit = isYear
-          ? (ageVal === 1 ? "Year" : "Years")
-          : (ageVal === 1 ? "Month" : "Months");
-        const formattedAge = formatAgeString(item.age_value, item.age_unit);
+        const ageStr = String(item.age || item.age_value || "").trim();
+        const { age_months, age_value, age_unit } = extractAgeComponents(ageStr);
 
         return {
           species: item.species,
           species_id: item.species_id || matchedSpecies?.dbId || null,
           sex: item.sex,
-          age_months: formattedAge,
-          age_value: isNaN(ageVal) ? null : ageVal,
-          age_unit: normalizedUnit,
+          age: age_months,
+          age_months: age_months,
+          age_value: age_value,
+          age_unit: age_unit,
           quantity: parseInt(item.quantity, 10) || 1,
         };
       });
@@ -727,10 +697,10 @@ export const MultiLivestockForm = ({
                   )}
                 </div>
 
-                {/* Field 3: Age & Unit */}
+                {/* Field 3: Age (Searchable Dropdown with Manual Text Input) */}
                 <div>
                   <label
-                    htmlFor={`age-value-${entry.id}`}
+                    htmlFor={`age_${entry.id}`}
                     style={{
                       fontSize: 12,
                       fontWeight: 700,
@@ -741,80 +711,15 @@ export const MultiLivestockForm = ({
                   >
                     Age <span style={{ color: "#ef4444" }}>*</span>
                   </label>
-                  <div className="age-input-group">
-                    <input
-                      id={`age_${entry.id}`}
-                      type="number"
-                      step="1"
-                      min="1"
-                      inputMode="numeric"
-                      placeholder="e.g. 6"
-                      className="form-control"
-                      value={entry.age_value}
-                      onKeyDown={(e) => {
-                        // Disallow decimal point, comma, signs, and exponent notation
-                        if (e.key === "." || e.key === "," || e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E") {
-                          e.preventDefault();
-                        }
-                      }}
-                      onBeforeInput={(e) => {
-                        if (e.data && /[.,\-+eE]/.test(e.data)) {
-                          e.preventDefault();
-                        }
-                      }}
-                      onPaste={(e) => {
-                        const pasted = e.clipboardData?.getData("text");
-                        if (pasted && /[.,\-+eE]/.test(pasted)) {
-                          e.preventDefault();
-                          const digitsOnly = pasted.replace(/[^\d]/g, "");
-                          if (digitsOnly) {
-                            handleUpdateEntry(entry.id, "age_value", digitsOnly);
-                          }
-                        }
-                      }}
-                      onChange={(e) => {
-                        handleUpdateEntry(entry.id, "age_value", e.target.value);
-                      }}
-                      style={{
-                        height: 44,
-                        borderRadius: 8,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        background: "var(--color-bg)",
-                        color: "var(--color-text)",
-                        borderColor: errors[`age_${entry.id}`] ? "#ef4444" : "var(--color-border)",
-                      }}
-                    />
-                    {(() => {
-                      const isYear = String(entry.age_unit || "").toLowerCase().startsWith("year");
-                      const rawAgeStr = String(entry.age_value || "").trim();
-                      const isInt = /^\d+$/.test(rawAgeStr);
-                      const ageInt = isInt ? parseInt(rawAgeStr, 10) : NaN;
-                      const isSingular = !isNaN(ageInt) && ageInt === 1;
-                      const monthOptionLabel = isSingular ? "Month" : "Months";
-                      const yearOptionLabel = isSingular ? "Year" : "Years";
-
-                      return (
-                        <select
-                          id={`age-unit-${entry.id}`}
-                          className="form-control"
-                          value={isYear ? "Years" : "Months"}
-                          onChange={(e) => handleUpdateEntry(entry.id, "age_unit", e.target.value)}
-                          style={{
-                            height: 44,
-                            borderRadius: 8,
-                            fontSize: 12.5,
-                            fontWeight: 700,
-                            background: "var(--color-bg)",
-                            color: "var(--color-text)",
-                          }}
-                        >
-                          <option value="Months">{monthOptionLabel}</option>
-                          <option value="Years">{yearOptionLabel}</option>
-                        </select>
-                      );
-                    })()}
-                  </div>
+                  <SearchableAgeInput
+                    id={`age_${entry.id}`}
+                    value={entry.age || ""}
+                    onChange={(val) => {
+                      handleUpdateEntry(entry.id, "age", val);
+                    }}
+                    error={errors[`age_${entry.id}`]}
+                    placeholder="e.g. 6 months, 1 year, 1 year and 6 months"
+                  />
 
                   {errors[`age_${entry.id}`] && (
                     <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
@@ -1202,7 +1107,7 @@ export const MultiLivestockForm = ({
                             color: "var(--color-text-secondary, #334155)",
                           }}
                         >
-                          {formatAgeString(item.age_value, item.age_unit) || "—"}
+                          {item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "—")}
                         </td>
                         <td
                           style={{

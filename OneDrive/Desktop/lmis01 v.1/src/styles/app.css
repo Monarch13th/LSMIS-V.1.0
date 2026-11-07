@@ -1057,6 +1057,19 @@ textarea.has-error:focus {
     gap: 12px !important;
   }
 }
+
+.user-form-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+  align-items: start;
+}
+@media (max-width: 680px) {
+  .user-form-edit-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+}
 .modal-header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 24px;

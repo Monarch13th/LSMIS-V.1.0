@@ -301,8 +301,12 @@ export const generateNextTag = (rows, species) => {
 export const formatLivestockAge = (itemOrVal, unitFallback) => {
   if (itemOrVal === null || itemOrVal === undefined || itemOrVal === "") return "—";
 
-  // If passed object with age_value & age_unit
+  // If passed object with age_months / age / age_value & age_unit
   if (typeof itemOrVal === "object" && itemOrVal !== null) {
+    const raw = itemOrVal.age_months ?? itemOrVal.age;
+    if (raw && typeof raw === "string" && /months?|mos|years?|yrs|days?/i.test(raw)) {
+      return formatLivestockAge(raw, itemOrVal.age_unit);
+    }
     if (itemOrVal.age_value !== undefined && itemOrVal.age_value !== null && itemOrVal.age_value !== "") {
       const num = parseInt(itemOrVal.age_value, 10);
       if (!isNaN(num)) {
@@ -312,7 +316,6 @@ export const formatLivestockAge = (itemOrVal, unitFallback) => {
           : (num === 1 ? "1 Month" : `${num} Months`);
       }
     }
-    const raw = itemOrVal.age_months ?? itemOrVal.age;
     return formatLivestockAge(raw, itemOrVal.age_unit);
   }
 

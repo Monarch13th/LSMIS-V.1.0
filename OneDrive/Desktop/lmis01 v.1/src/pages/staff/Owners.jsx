@@ -480,7 +480,7 @@ export const Owners = ({ initialTab = "owners" }) => {
           species: entry.species,
           species_id: entry.species_id || null,
           sex: entry.sex,
-          age_months: (entry.age_months || "").trim(),
+          age_months: (entry.age_months || entry.age || "").trim(),
           age_value: ageVal,
           age_unit: ageUnit,
           quantity: 1,

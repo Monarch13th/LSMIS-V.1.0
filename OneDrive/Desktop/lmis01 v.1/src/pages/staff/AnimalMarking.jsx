@@ -7,6 +7,7 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { staffService } from "../../services/staffService";
 import { formatDate, formatPhDateTime, formatTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
+import { SearchableAgeInput, validateAgeInput, extractAgeComponents } from "../../components/common/SearchableAgeInput";
 
 const MARK_TYPES = [
   {
@@ -1115,7 +1116,7 @@ export const AnimalMarking = ({ navTabs }) => {
       species: item.species || "Cattle",
       quantity: item.quantity && Number(item.quantity) >= 1 ? Number(item.quantity) : 1,
       sex: item.sex ? (String(item.sex).toLowerCase().startsWith("f") ? "Female" : "Male") : "Male",
-      age: formatLivestockAge(item) !== "—" ? formatLivestockAge(item) : "",
+      age: item.age_months || item.age || (formatLivestockAge(item) !== "—" ? formatLivestockAge(item) : ""),
       mark_type: item.mark_type || "Ear Tag",
     });
   };
@@ -1128,6 +1129,12 @@ export const AnimalMarking = ({ navTabs }) => {
       showToast("Age is required.", "error");
       return;
     }
+    const ageErr = validateAgeInput(cleanAge);
+    if (ageErr) {
+      showToast(ageErr, "error");
+      return;
+    }
+    const { age_months, age_value, age_unit } = extractAgeComponents(cleanAge);
     const qty = parseInt(editForm.quantity, 10);
     const validQty = isNaN(qty) || qty < 1 ? 1 : qty;
     setSavingEdit(true);
@@ -1138,6 +1145,8 @@ export const AnimalMarking = ({ navTabs }) => {
         head_count: 1,
         sex: editForm.sex || "Male",
         age_months: cleanAge,
+        age_value,
+        age_unit,
         mark_type: editTarget.mark_type || editForm.mark_type || "Ear Tag",
       };
       await staffService.updateLivestock(editTarget.id, payload);
@@ -1687,6 +1696,21 @@ export const AnimalMarking = ({ navTabs }) => {
             : `Marked Livestock Records — ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
+        dialogStyle={{
+          minHeight: "560px",
+          maxHeight: "88vh",
+          width: "100%",
+          maxWidth: "1120px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          flex: 1,
+          minHeight: "420px",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 24px",
+        }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
@@ -1723,12 +1747,14 @@ export const AnimalMarking = ({ navTabs }) => {
         }
       >
         {selectedOwnerView && (
-          <div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <div
               style={{
                 overflowX: "auto",
                 overflowY: "auto",
-                maxHeight: "55vh",
+                flex: 1,
+                minHeight: "380px",
+                maxHeight: "56vh",
                 border: "none",
                 boxShadow: "none",
                 scrollbarWidth: "thin",
@@ -2516,41 +2542,17 @@ export const AnimalMarking = ({ navTabs }) => {
                 </div>
               </div>
 
-              {/* 4. Age */}
+              {/* 4. Age (Searchable Dropdown with Manual Text Input) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontSize: 12, fontWeight: 700, marginBottom: 5, color: "var(--color-text)", display: "block" }}>
                   Age <span style={{ color: "#ef4444" }}>*</span>
                 </label>
-                <input
-                  type="text"
-                  className="form-control"
-                  required
-                  list="edit-animal-age-presets"
-                  value={editForm.age}
-                  onChange={(e) => setEditForm((prev) => ({ ...prev, age: e.target.value }))}
-                  placeholder="e.g. 1 year and 9 months"
-                  style={{
-                    width: "100%",
-                    height: 38,
-                    borderRadius: 8,
-                    border: "1px solid var(--color-border)",
-                    background: "var(--color-bg)",
-                    color: "var(--color-text)",
-                    fontSize: 13,
-                    fontWeight: 600,
-                    padding: "0 10px",
-                    outline: "none",
-                  }}
+                <SearchableAgeInput
+                  id="edit-animal-age"
+                  value={editForm.age || ""}
+                  onChange={(val) => setEditForm((prev) => ({ ...prev, age: val }))}
+                  placeholder="e.g. 6 months, 1 year, 1 year and 6 months"
                 />
-                <datalist id="edit-animal-age-presets">
-                  <option value="6 months" />
-                  <option value="8 months" />
-                  <option value="1 year" />
-                  <option value="1 year and 6 months" />
-                  <option value="2 years" />
-                  <option value="2 years and 6 months" />
-                  <option value="3 years" />
-                </datalist>
               </div>
             </div>
 
