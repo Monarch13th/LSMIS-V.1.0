@@ -2,14 +2,18 @@ import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { Icon } from "../icons";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
 import { OwnerBottomNav } from "./OwnerBottomNav";
 import { OwnerDesktopGate } from "../owner/OwnerDesktopGate";
 import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
 import logoImg from "../../assets/logo.jpg";
 
-export const OwnerMobileLayout = ({ theme, onToggleTheme }) => {
+export const OwnerMobileLayout = ({ theme: propTheme, onToggleTheme: propToggleTheme }) => {
   const { ownerId } = useAuth();
+  const { theme: ctxTheme, toggleTheme: ctxToggleTheme } = useTheme();
+  const theme = propTheme || ctxTheme;
+  const onToggleTheme = propToggleTheme || ctxToggleTheme;
   const location = useLocation();
   const [unreadCount, setUnreadCount] = useState(0);
 

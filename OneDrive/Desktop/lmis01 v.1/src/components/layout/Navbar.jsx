@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { Icon } from "../icons";
 import { useAuth } from "../../hooks/useAuth";
+import { useTheme } from "../../hooks/useTheme";
 import { NotificationBell } from "../notifications/NotificationBell";
 import { initials, greeting } from "../../utils/helpers";
 import { formatDate } from "../../utils/formatters";
@@ -39,8 +40,11 @@ const PAGE_TITLES = {
   "permit-config": "Meat Permit Configuration",
 };
 
-export const Navbar = ({ onMenuClick, theme, onToggleTheme }) => {
+export const Navbar = ({ onMenuClick, theme: propTheme, onToggleTheme: propToggleTheme }) => {
   const { session } = useAuth();
+  const { theme: ctxTheme, toggleTheme: ctxToggleTheme } = useTheme();
+  const theme = propTheme || ctxTheme;
+  const onToggleTheme = propToggleTheme || ctxToggleTheme;
   const location = useLocation();
 
   const [currentTime, setCurrentTime] = useState(new Date());

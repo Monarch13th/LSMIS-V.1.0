@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/icons";
-import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../hooks/useAuth";
 import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
@@ -167,7 +166,6 @@ export const LandingPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const mobileMenuRef = useRef(null);
 
-  const { theme, toggleTheme } = useTheme();
   const { role, isAuthenticated, loading: authLoading, isInitialized: authInitialized } = useAuth();
   const navigate = useNavigate();
 
@@ -316,18 +314,8 @@ export const LandingPage = () => {
               })}
             </nav>
 
-            {/* Nav Actions: Theme Toggle, Mobile Toggle, Login */}
+            {/* Nav Actions: Mobile Toggle, Login */}
             <div className="nav-actions">
-              <button
-                type="button"
-                className="nav-theme-toggle"
-                onClick={toggleTheme}
-                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-                title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-              >
-                {theme === "dark" ? <Icon.Sun size={17} /> : <Icon.Moon size={17} />}
-              </button>
-
               <Link to="/login" className="nav-btn-login">
                 <Icon.LogIn size={15} />
                 <span>Login</span>

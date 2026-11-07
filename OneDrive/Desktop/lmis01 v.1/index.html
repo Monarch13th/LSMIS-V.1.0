@@ -19,20 +19,26 @@
     <script>
       (function() {
         try {
-          var sessionRaw = sessionStorage.getItem('lsmis_session') || localStorage.getItem('lsmis_session');
-          var userTheme = 'light';
-          if (sessionRaw) {
-            try {
-              var sess = JSON.parse(sessionRaw);
-              var id = sess && (sess.id || sess.user_id || (sess.email ? String(sess.email).toLowerCase().trim() : null) || sess.username || sess.role);
-              if (id) {
-                userTheme = localStorage.getItem('lsmis_theme_user_' + id) || 'light';
-              }
-            } catch (e) {}
-          } else {
-            userTheme = localStorage.getItem('lsmis_theme_guest') || 'light';
+          var path = (window.location.pathname || '').toLowerCase();
+          var isPublic = !path || path === '/' || path === '/login' || path === '/register' ||
+                         path === '/forgot-password' || path === '/reset-password' ||
+                         path.indexOf('/login') === 0 || path.indexOf('/register') === 0 ||
+                         path.indexOf('/forgot-password') === 0 || path.indexOf('/reset-password') === 0;
+          
+          var theme = 'light';
+          if (!isPublic) {
+            var sessionRaw = sessionStorage.getItem('lsmis_session') || localStorage.getItem('lsmis_session');
+            if (sessionRaw) {
+              try {
+                var sess = JSON.parse(sessionRaw);
+                var id = sess && (sess.id || sess.user_id || (sess.email ? String(sess.email).toLowerCase().trim() : null) || sess.username);
+                if (id) {
+                  var stored = localStorage.getItem('lsmis_theme_user_' + id);
+                  if (stored === 'dark') theme = 'dark';
+                }
+              } catch (e) {}
+            }
           }
-          var theme = (userTheme === 'dark') ? 'dark' : 'light';
           document.documentElement.setAttribute('data-theme', theme);
           if (theme === 'dark') {
             document.documentElement.classList.add('dark');
