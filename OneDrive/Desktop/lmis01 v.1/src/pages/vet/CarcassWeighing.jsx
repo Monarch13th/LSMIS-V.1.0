@@ -2211,6 +2211,7 @@ export const CarcassWeighing = () => {
                               handleOpenOwnerBatch(grp);
                             }}
                             style={{
+                              height: 32,
                               padding: "6px 14px",
                               fontSize: 12,
                               fontWeight: 700,
@@ -2383,7 +2384,8 @@ export const CarcassWeighing = () => {
                     handleOpenOwnerBatch(target);
                   }}
                   style={{
-                    padding: "7px 14px",
+                    height: 32,
+                    padding: "6px 14px",
                     fontSize: 12.5,
                     fontWeight: 700,
                     background: "linear-gradient(135deg, #10b981, #059669)",
@@ -2396,7 +2398,7 @@ export const CarcassWeighing = () => {
                   <Icon.Scale size={14} /> Weigh All Carcasses ({selectedOwnerView.items.length})
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => setSelectedOwnerKey(null)} style={{ minWidth: 80, fontWeight: 700 }}>
+              <Button variant="outline" size="sm" onClick={() => setSelectedOwnerKey(null)} style={{ height: 32, minWidth: 80, fontWeight: 700 }}>
                 Close
               </Button>
             </div>
@@ -2534,6 +2536,7 @@ export const CarcassWeighing = () => {
                             size="sm"
                             onClick={() => handleOpenSingle(item)}
                             style={{
+                              height: 32,
                               padding: "5px 12px",
                               fontSize: 12,
                               fontWeight: 700,

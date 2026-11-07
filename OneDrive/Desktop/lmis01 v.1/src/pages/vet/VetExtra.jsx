@@ -3443,8 +3443,8 @@ export const DisposalRecords = ({ type }) => {
                       <span className={`badge ${r.status === "Completed" ? "badge-approved" : "badge-pending"}`}>{r.status}</span>
                     </td>
                     <td>
-                      <Button size="sm" variant="outline" onClick={() => setViewRec(r)}>
-                        <Icon.Eye /> View
+                      <Button size="sm" variant="outline" onClick={() => setViewRec(r)} style={{ height: 32, display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        <Icon.Eye size={13} /> View
                       </Button>
                     </td>
                   </tr>
@@ -3495,7 +3495,7 @@ export const DisposalRecords = ({ type }) => {
 
       {/* View Modal */}
       <Modal open={!!viewRec} onClose={() => setViewRec(null)} title="Disposal Record Details"
-        footer={<Button variant="outline" onClick={() => setViewRec(null)}>Close</Button>}>
+        footer={<Button variant="outline" size="sm" onClick={() => setViewRec(null)} style={{ height: 32 }}>Close</Button>}>
         {viewRec && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -6343,7 +6343,7 @@ export const EvidenceUpload = ({
                           Photo {currentPhotoIndex + 1} of {tagPhotos.length}
                         </span>
                       )}
-                      <Button size="sm" variant="outline" onClick={() => setIsEnlarged(false)}>
+                      <Button size="sm" variant="outline" onClick={() => setIsEnlarged(false)} style={{ height: 32 }}>
                         Close Enlarged View
                       </Button>
                     </div>

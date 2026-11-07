@@ -648,7 +648,7 @@
   transform: translateY(0);
 }
 
-.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 8px; }
+.btn-sm { height: 32px; min-height: 32px; padding: 6px 12px; font-size: 12px; border-radius: 8px; box-sizing: border-box; }
 .btn-lg { padding: 11px 20px; font-size: 14.5px; border-radius: 10px; }
 .btn-block { width: 100%; justify-content: center; }
 .btn svg { width: 15px; height: 15px; flex-shrink: 0; }
@@ -838,7 +838,7 @@ textarea.form-control { resize: vertical; min-height: 90px; line-height: 1.5; }
 .table tbody tr:last-child td { border-bottom: none; }
 .table .actions { display: flex; gap: 4px; }
 .table .icon-btn {
-  width: 32px; height: 32px;
+  width: 32px; height: 32px; min-height: 32px; box-sizing: border-box;
   display: inline-flex; align-items: center; justify-content: center;
   border-radius: 8px;
   border: 1.5px solid #cbd5e1;

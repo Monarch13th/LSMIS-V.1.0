@@ -579,7 +579,7 @@
 }
 .table td { padding: 13px 16px; font-size: 13px; }
 .table .mono { font-size: 11.5px; }
-.table .icon-btn { width: 30px; height: 30px; border-radius: 7px; }
+.table .icon-btn { width: 32px; height: 32px; min-height: 32px; border-radius: 7px; box-sizing: border-box; }
 .table .icon-btn svg { width: 14px; height: 14px; }
 
 /* ===== Badges — clean text ===== */
@@ -598,7 +598,7 @@
 
 /* ===== Buttons — crisp ===== */
 .btn { border-radius: 9px; font-size: 12.5px; padding: 8px 14px; }
-.btn-sm { padding: 5px 10px; font-size: 11.5px; border-radius: 7px; }
+.btn-sm { height: 32px; min-height: 32px; padding: 5px 12px; font-size: 11.5px; border-radius: 7px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
 .btn-lg { padding: 10px 18px; font-size: 13.5px; }
 .btn svg { width: 14px; height: 14px; }
 

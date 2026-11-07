@@ -2040,7 +2040,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                   <Icon.Activity size={14} /> Inspect All Carcasses
                 </Button>
               )}
-              <Button variant="outline" size="sm" onClick={() => setSelectedOwnerKey(null)} style={{ minWidth: 80, fontWeight: 700 }}>
+              <Button variant="outline" size="sm" onClick={() => setSelectedOwnerKey(null)} style={{ height: 32, minWidth: 80, fontWeight: 700 }}>
                 Close
               </Button>
             </div>
@@ -2574,7 +2574,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               >
                 <Icon.Trash size={14} /> Delete Inspection
               </Button>
-              <Button onClick={() => setSelectedInspection(null)}>
+              <Button size="sm" onClick={() => setSelectedInspection(null)} style={{ height: 32 }}>
                 Close
               </Button>
             </div>
