@@ -1,6 +1,6 @@
 /* =========================================================
    LSMIS Landing Page — Premium Modern Government Design System
-   City Government of Naga, Cebu · Office of the City Veterinarian
+   Tinaan, City of Naga, Cebu
    Primary: Dark Forest Green (#173D32)
    Backgrounds: #FFFFFF / #F3F4F0 Alternate Sections
    Text: Dark Charcoal (#1A201C, #2B302D)
@@ -1594,34 +1594,23 @@
 }
 
 /* =========================================================
-   7. FOOTER
+   7. FOOTER (Minimal & Compact)
    ========================================================= */
 .landing-footer {
   background-color: var(--lsmis-green-950);
   color: rgba(255, 255, 255, 0.82);
-  padding: 64px 0 32px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: clamp(28px, 4vh, 40px) 0 clamp(18px, 2.5vh, 24px) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.footer-top-grid {
-  display: grid;
-  grid-template-columns: 1.8fr 1fr 1fr 1fr;
-  gap: 40px;
-  margin-bottom: 48px;
-}
-
-@media (max-width: 960px) {
-  .footer-top-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-  }
-}
-
-@media (max-width: 640px) {
-  .footer-top-grid {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
+.footer-minimal-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: clamp(18px, 2.5vh, 24px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-wrap: wrap;
 }
 
 .footer-brand-box {
@@ -1629,11 +1618,10 @@
   flex-direction: column;
 }
 
-.footer-seals-row {
+.footer-logo-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 14px;
 }
 
 .footer-seal-item {
@@ -1643,7 +1631,8 @@
   overflow: hidden;
   background-color: #FFFFFF;
   padding: 2px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
 }
 
 .footer-seal-item img {
@@ -1655,74 +1644,85 @@
 }
 
 .footer-brand-heading {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   color: #FFFFFF;
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
+  line-height: 1.2;
 }
 
 .footer-brand-subheading {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 500;
   color: #A3D9C3;
-  margin: 0 0 14px 0;
+  line-height: 1.3;
 }
 
-.footer-brand-summary {
-  font-size: 13px;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.72);
-  margin: 0 0 18px 0;
+.footer-brand-location {
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
+  margin-top: 2px;
 }
 
-.footer-col-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #FFFFFF;
-  margin: 0 0 16px 0;
-}
-
-.footer-links-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.footer-links-box {
   display: flex;
   flex-direction: column;
+  gap: 8px;
+}
+
+.footer-links-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer-links-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.footer-nav-item-wrap {
+  display: inline-flex;
+  align-items: center;
   gap: 10px;
 }
 
-.footer-links-list li a,
-.footer-links-list li span {
-  color: rgba(255, 255, 255, 0.72);
+.footer-nav-link {
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 13.5px;
+  font-weight: 600;
   transition: color 0.18s ease;
 }
 
-.footer-links-list li a:hover {
+.footer-nav-link:hover {
   color: #FFFFFF;
   text-decoration: underline;
 }
 
+.footer-nav-separator {
+  color: rgba(255, 255, 255, 0.3);
+  font-size: 12px;
+}
+
 /* Footer Bottom Bar */
 .footer-bottom-bar {
-  padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: clamp(14px, 2vh, 20px);
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.6);
+  flex-wrap: wrap;
 }
 
-.footer-bottom-notice {
-  font-size: 11.5px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-top: 4px;
+.footer-copyright-text {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 .footer-back-to-top {
@@ -1732,16 +1732,25 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #FFFFFF;
-  padding: 7px 14px;
+  padding: 6px 14px;
   border-radius: var(--lsmis-radius-sm);
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .footer-back-to-top:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+@media (max-width: 768px) {
+  .footer-minimal-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
 }
 
 /* =========================================================

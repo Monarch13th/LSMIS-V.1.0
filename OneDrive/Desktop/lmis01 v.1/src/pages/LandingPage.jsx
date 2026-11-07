@@ -53,42 +53,42 @@ const NAV_ITEMS = [
 const FEATURE_MODULES = [
   {
     title: "Livestock Registration",
-    desc: "Digital intake of owner credentials, shipping permits, provenance verification, and lairage penning allocation.",
+    desc: "Record animal intake, owner details, origin, and pen assignments.",
     icon: <Icon.Cow size={22} />,
   },
   {
     title: "Animal Marking",
-    desc: "Official ear tag and lot identification marking, establishing end-to-end traceability across slaughter lines.",
+    desc: "Assign official ear tags and identification marks for animal tracking.",
     icon: <Icon.Tag size={22} />,
   },
   {
     title: "Ante-Mortem Inspection",
-    desc: "Clinical veterinary screening for animal disease indicators, quarantine evaluation, and slaughter fitness clearances.",
+    desc: "Document clinical evaluations of live animals before slaughter.",
     icon: <Icon.Stethoscope size={22} />,
   },
   {
     title: "Slaughter Operations",
-    desc: "Sequential monitoring of humane stunning, bleeding, scalding, dehairing, and sanitary evisceration line processing.",
+    desc: "Monitor operational stages from stunning to final carcass preparation.",
     icon: <Icon.Activity size={22} />,
   },
   {
     title: "Post-Mortem Inspection",
-    desc: "Rigorous veterinary pathological examination of head, visceral organs, carcass halves, and condemnation logging.",
+    desc: "Record examination results for visceral organs and dressed carcasses.",
     icon: <Icon.ClipboardCheck size={22} />,
   },
   {
     title: "Carcass Weighing",
-    desc: "Precise digital scale capture of warm dressed carcass weights, meat grading, and condemnation accounting.",
+    desc: "Log verified carcass weights and official sanitary brand codes.",
     icon: <Icon.Scale size={22} />,
   },
   {
-    title: "Meat Permit Management",
-    desc: "Automated generation and issuance of official Meat Inspection Certificates (MIC) and distribution gate clearances.",
+    title: "Meat Permits",
+    desc: "Issue verified meat inspection permits and gate clearances.",
     icon: <Icon.FileText size={22} />,
   },
   {
-    title: "Records and Reports",
-    desc: "Regulatory abattoir audit trails, daily slaughter summaries, fee reconciliations, and statutory compliance logs.",
+    title: "Reports & Audit Logs",
+    desc: "Maintain searchable operational logs, daily summaries, and activity records.",
     icon: <Icon.Report size={22} />,
   },
 ];
@@ -96,66 +96,66 @@ const FEATURE_MODULES = [
 const WORKFLOW_STEPS = [
   {
     step: 1,
-    title: "Register Livestock",
-    role: "Slaughterhouse Staff",
+    title: "Livestock Registration",
+    role: "Staff",
     roleType: "staff",
-    desc: "Intake validation of livestock ownership, certificates, origin, and municipal lairage pen assignment.",
+    desc: "Record owner details, animal count, origin, and pen allocation.",
     icon: <Icon.Cow size={18} />,
   },
   {
     step: 2,
     title: "Animal Marking",
-    role: "Slaughterhouse Staff",
+    role: "Staff",
     roleType: "staff",
-    desc: "Assignment of official tamper-evident ear tags and lot numbers for complete municipal tracking.",
+    desc: "Apply official ear tags and lot numbers for traceability.",
     icon: <Icon.Tag size={18} />,
   },
   {
     step: 3,
     title: "Ante-Mortem Inspection",
-    role: "Veterinary Inspector",
+    role: "Veterinarian",
     roleType: "vet",
-    desc: "Clinical veterinary examination of live animals to screen for disease symptoms and verify slaughter fitness.",
+    desc: "Examine live animals to verify fitness for slaughter.",
     icon: <Icon.Stethoscope size={18} />,
   },
   {
     step: 4,
-    title: "Assign Team Operator",
-    role: "Slaughterhouse Staff",
+    title: "Team Assignment",
+    role: "Staff",
     roleType: "staff",
-    desc: "Designation of certified slaughterhouse teams to approved animals awaiting slaughter line execution.",
+    desc: "Assign abattoir processing teams to approved animals.",
     icon: <Icon.Users size={18} />,
   },
   {
     step: 5,
     title: "Ready for Slaughter",
-    role: "Slaughterhouse Staff",
+    role: "Staff",
     roleType: "staff",
-    desc: "Execution of humane stunning, bleeding, scalding, dehairing, and sanitary processing line protocols.",
+    desc: "Process approved animals through standard slaughter stages.",
     icon: <Icon.Scissors size={18} />,
   },
   {
     step: 6,
     title: "Post-Mortem Inspection",
-    role: "Veterinary Inspector",
+    role: "Veterinarian",
     roleType: "vet",
-    desc: "Detailed pathological exam of head, visceral internal organs, and split carcass halves for food safety.",
+    desc: "Inspect internal organs and carcass halves for consumption safety.",
     icon: <Icon.ClipboardCheck size={18} />,
   },
   {
     step: 7,
     title: "Carcass Weighing",
-    role: "Veterinary Inspector",
+    role: "Veterinarian",
     roleType: "vet",
-    desc: "Digital scale weighing of warm dressed carcass, official grade stamping, and final sanitary clearance.",
+    desc: "Capture certified carcass weights and brand numbers.",
     icon: <Icon.Scale size={18} />,
   },
   {
     step: 8,
     title: "Meat Permit",
-    role: "Slaughterhouse Staff",
+    role: "Staff",
     roleType: "staff",
-    desc: "Issuance of official Meat Inspection Certificates (MIC) and authorized municipal dispatch gate passes.",
+    desc: "Issue verified meat inspection permits and gate passes.",
     icon: <Icon.FileText size={18} />,
   },
 ];
@@ -286,14 +286,14 @@ export const LandingPage = () => {
               href="#top"
               onClick={(e) => scrollToSection(e, "#top")}
               className="nav-brand-link"
-              aria-label="City of Naga LSMIS - Home"
+              aria-label="LSMIS - Home"
             >
               <div className="nav-brand-logo">
-                <img src={logoImg} alt="City of Naga LSMIS Seal" width="44" height="44" />
+                <img src={logoImg} alt="LSMIS Seal" width="44" height="44" />
               </div>
               <div className="nav-brand-text">
                 <span className="nav-brand-title">LSMIS</span>
-                <span className="nav-brand-sub">City of Naga · Slaughterhouse</span>
+                <span className="nav-brand-sub">Tinaan, City of Naga, Cebu</span>
               </div>
             </a>
 
@@ -368,7 +368,7 @@ export const LandingPage = () => {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src={logoImg} alt="LSMIS" width="32" height="32" style={{ borderRadius: "50%" }} />
             <span style={{ fontWeight: 800, fontSize: 16, color: "var(--lsmis-charcoal-900)" }}>
-              LSMIS Naga
+              LSMIS
             </span>
           </div>
           <button
@@ -447,7 +447,7 @@ export const LandingPage = () => {
         <div className="hero-media-wrapper" aria-hidden="true">
           <img
             src={heroInspectorImg}
-            alt="Meat Inspector inside City of Naga municipal slaughterhouse facility"
+            alt="Meat inspection inside the facility"
             className="hero-media-img"
             width="1376"
             height="768"
@@ -463,18 +463,17 @@ export const LandingPage = () => {
             {/* Small Institutional Label */}
             <div className="hero-badge-pill">
               <span className="hero-badge-dot" />
-              <span>City of Naga LSMIS</span>
+              <span>Tinaan, City of Naga, Cebu</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="hero-main-title">
-              Modernizing Livestock <br className="hero-title-br" />Slaughter and <span>Meat Inspection</span>.
+              Modernizing Livestock <br className="hero-title-br" />Slaughter and <span>Meat Inspection</span>
             </h1>
 
             {/* Description */}
             <p className="hero-lead-text">
-              A centralized digital platform for managing livestock registration, slaughterhouse
-              operations, veterinary inspections, carcass weighing, and meat permit records.
+              A digital system for managing livestock registration, inspections, slaughter operations, and meat permits.
             </p>
 
             {/* Action Buttons */}
@@ -496,15 +495,15 @@ export const LandingPage = () => {
             <div className="hero-trust-chips">
               <div className="hero-chip-item">
                 <Icon.ShieldCheck size={16} />
-                <span>Class AA Abattoir Protocols</span>
+                <span>Verified Inspection Protocols</span>
               </div>
               <div className="hero-chip-item">
                 <Icon.Stethoscope size={16} />
-                <span>Certified Veterinary Oversight</span>
+                <span>Veterinary Oversight</span>
               </div>
               <div className="hero-chip-item">
                 <Icon.Tag size={16} />
-                <span>Complete Farm-to-Table Traceability</span>
+                <span>Livestock Traceability</span>
               </div>
             </div>
           </div>
@@ -520,23 +519,20 @@ export const LandingPage = () => {
             {/* Text Column */}
             <div className="about-text-content">
               <div>
-                <span className="section-header-badge">Institutional Mandate</span>
+                <span className="section-header-badge">System Overview</span>
                 <h2 className="section-header-title">About the System</h2>
               </div>
 
               <p className="about-lead-paragraph">
-                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is the
-                official municipal technology backbone operating at the City of Naga Slaughterhouse
-                in Tinaan, City of Naga, Cebu.
+                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is a digital
+                platform designed to manage livestock intake, inspections, slaughter operations, and
+                meat permitting in Tinaan, City of Naga, Cebu.
               </p>
 
               <p className="about-body-paragraph">
-                Administered under the Office of the City Veterinarian, LSMIS transforms municipal
-                abattoir operations from manual logbooks to a secure, paperless management ecosystem.
-                By verifying every animal upon arrival, supervising humane processing lines, and
-                enforcing clinical examinations, the system ensures that only wholesome, disease-free
-                meat reaches local markets and consumer tables in compliance with Republic Act No. 9296
-                and Republic Act No. 10536.
+                LSMIS replaces manual logbooks with secure digital recordkeeping. The system tracks
+                each animal from registration through ante-mortem and post-mortem inspections, carcass
+                weighing, and permit issuance, ensuring accurate operational records.
               </p>
 
               <div className="about-highlights-list">
@@ -545,10 +541,9 @@ export const LandingPage = () => {
                     <Icon.ShieldCheck size={20} />
                   </div>
                   <div>
-                    <h3 className="about-highlight-title">Safeguarding Public Food Safety</h3>
+                    <h3 className="about-highlight-title">Inspection Management</h3>
                     <p className="about-highlight-desc">
-                      Mandatory ante-mortem screening and post-mortem pathological examinations
-                      prevent diseased or contaminated meat from entering the municipal food supply.
+                      Record ante-mortem clinical evaluations and post-mortem pathological findings in real time.
                     </p>
                   </div>
                 </div>
@@ -558,23 +553,21 @@ export const LandingPage = () => {
                     <Icon.Tag size={20} />
                   </div>
                   <div>
-                    <h3 className="about-highlight-title">Full Animal Traceability</h3>
+                    <h3 className="about-highlight-title">Livestock Tracking</h3>
                     <p className="about-highlight-desc">
-                      Every animal is cataloged with owner provenance, shipping credentials, and
-                      ear tags from municipal lairage penning through final permit release.
+                      Monitor animal registration, official ear tag assignments, and pen allocations.
                     </p>
                   </div>
                 </div>
 
                 <div className="about-highlight-card">
                   <div className="about-highlight-icon-box">
-                    <Icon.Award size={20} />
+                    <Icon.FileText size={20} />
                   </div>
                   <div>
-                    <h3 className="about-highlight-title">Office of the City Veterinarian</h3>
+                    <h3 className="about-highlight-title">Permits &amp; Records</h3>
                     <p className="about-highlight-desc">
-                      Direct digital governance empowers licensed veterinarians to issue official
-                      Meat Inspection Certificates (MIC) and transparent condemnation reports.
+                      Generate certified carcass weights and official meat inspection permits upon clearance.
                     </p>
                   </div>
                 </div>
@@ -585,7 +578,7 @@ export const LandingPage = () => {
             <div className="about-media-card">
               <img
                 src={aboutVetImg}
-                alt="City Veterinarian conducting an ante-mortem inspection of livestock"
+                alt="Ante-mortem inspection of livestock"
                 width="1376"
                 height="768"
                 loading="lazy"
@@ -593,9 +586,9 @@ export const LandingPage = () => {
               />
               <div className="about-media-caption">
                 <span className="about-caption-text">
-                  Veterinary Ante-Mortem Clinical Evaluation
+                  Ante-Mortem Clinical Evaluation
                 </span>
-                <span className="about-caption-tag">Tinaan Facility</span>
+                <span className="about-caption-tag">Tinaan, City of Naga, Cebu</span>
               </div>
             </div>
           </div>
@@ -608,11 +601,10 @@ export const LandingPage = () => {
       <section className="landing-features landing-section" id="features" aria-label="System Features">
         <div className="landing-container">
           <div className="section-header-center">
-            <span className="section-header-badge">Core Capabilities</span>
-            <h2 className="section-header-title">Implemented System Modules</h2>
+            <span className="section-header-badge">Core Modules</span>
+            <h2 className="section-header-title">System Features</h2>
             <p className="section-header-desc">
-              Dedicated operational modules engineered to streamline daily abattoir management,
-              veterinary oversight, and compliance documentation:
+              Key operational modules implemented to manage livestock records, inspections, and permits:
             </p>
           </div>
 
@@ -632,7 +624,7 @@ export const LandingPage = () => {
             <div className="feature-showcase-photo-wrap">
               <img
                 src={inspectionImg}
-                alt="Veterinary Post-Mortem Carcass Examination in sanitized facility"
+                alt="Post-mortem carcass examination"
                 width="1376"
                 height="768"
                 loading="lazy"
@@ -640,20 +632,19 @@ export const LandingPage = () => {
               />
             </div>
             <div className="feature-showcase-content">
-              <span className="section-header-badge">Veterinary Inspection Bay</span>
+              <span className="section-header-badge">Inspection Process</span>
               <h3 className="feature-showcase-title">
-                Rigorous Post-Mortem Pathological Scrutiny
+                Post-Mortem Examination
               </h3>
               <p className="feature-showcase-text">
-                Every dressed carcass undergoes systematic veterinary evaluation of the head,
-                visceral internal organs, and carcass halves. The digital platform logs organ
-                findings, condemnation evidence, and sanitary clearances in real time before
-                carcasses proceed to certified weighing and stamping.
+                Dressed carcasses and visceral organs undergo systematic veterinary evaluation.
+                The system records examination findings, condemnation details, and sanitary clearances
+                before carcasses proceed to certified weighing.
               </p>
               <div className="feature-showcase-badges">
-                <span className="showcase-badge-pill">Head &amp; Lymph Node Examination</span>
-                <span className="showcase-badge-pill">Visceral Organ Evaluation</span>
-                <span className="showcase-badge-pill">Condemnation Evidence Logging</span>
+                <span className="showcase-badge-pill">Head &amp; Organ Examination</span>
+                <span className="showcase-badge-pill">Condemnation Logging</span>
+                <span className="showcase-badge-pill">Sanitary Clearance</span>
               </div>
             </div>
           </div>
@@ -663,14 +654,13 @@ export const LandingPage = () => {
       {/* =========================================================
           5. WORKFLOW SECTION
           ========================================================= */}
-      <section className="landing-workflow landing-section" id="workflow" aria-label="Slaughterhouse Workflow">
+      <section className="landing-workflow landing-section" id="workflow" aria-label="System Workflow">
         <div className="landing-container">
           <div className="section-header-center">
-            <span className="section-header-badge">Operational Sequence</span>
-            <h2 className="section-header-title">Slaughterhouse Workflow</h2>
+            <span className="section-header-badge">Sequential Process</span>
+            <h2 className="section-header-title">System Workflow</h2>
             <p className="section-header-desc">
-              The standardized 8-step sequential process enforced at the City of Naga
-              Slaughterhouse, guaranteeing humane animal care and complete traceability:
+              The eight-stage operational workflow enforced across the platform:
             </p>
           </div>
 
@@ -722,17 +712,16 @@ export const LandingPage = () => {
       {/* =========================================================
           6. CONTACT SECTION
           ========================================================= */}
-      <section className="landing-contact landing-section" id="contact" aria-label="Contact and Facility Information">
+      <section className="landing-contact landing-section" id="contact" aria-label="Contact Information">
         <div className="landing-container">
           <div className="contact-layout-box">
             {/* Official Facility & Office Details */}
             <div className="contact-info-col">
               <div>
-                <span className="section-header-badge">Administration &amp; Inquiries</span>
-                <h2 className="contact-office-title">Facility &amp; Administration</h2>
+                <span className="section-header-badge">Inquiries &amp; Support</span>
+                <h2 className="contact-office-title">Contact Information</h2>
                 <p className="contact-office-desc">
-                  For intake scheduling, veterinary clearances, livestock registration, or slaughter
-                  permit verifications, contact our abattoir administration office.
+                  For system inquiries, account support, or permit verification, reach out through the verified contact channels below.
                 </p>
               </div>
 
@@ -742,23 +731,9 @@ export const LandingPage = () => {
                     <Icon.MapPin size={18} />
                   </div>
                   <div>
-                    <div className="contact-entry-label">Facility Location</div>
+                    <div className="contact-entry-label">Location</div>
                     <div className="contact-entry-val">
-                      City of Naga Slaughterhouse<br />
-                      Tinaan, City of Naga, Cebu, Philippines
-                    </div>
-                  </div>
-                </div>
-
-                <div className="contact-entry-item">
-                  <div className="contact-entry-icon">
-                    <Icon.Award size={18} />
-                  </div>
-                  <div>
-                    <div className="contact-entry-label">Governing Office</div>
-                    <div className="contact-entry-val">
-                      Office of the City Veterinarian<br />
-                      City Government of Naga, Cebu
+                      Tinaan, City of Naga, Cebu
                     </div>
                   </div>
                 </div>
@@ -768,7 +743,7 @@ export const LandingPage = () => {
                     <Icon.Phone size={18} />
                   </div>
                   <div>
-                    <div className="contact-entry-label">Operations Desk</div>
+                    <div className="contact-entry-label">Telephone</div>
                     <div className="contact-entry-val">
                       <a href="tel:0322726655">(032) 272-6655</a>
                     </div>
@@ -787,14 +762,14 @@ export const LandingPage = () => {
                   </div>
                 </div>
 
-                <div className="contact-entry-item" style={{ gridColumn: "1 / -1" }}>
+                <div className="contact-entry-item">
                   <div className="contact-entry-icon">
                     <Icon.Clock size={18} />
                   </div>
                   <div>
                     <div className="contact-entry-label">Operating Schedule</div>
                     <div className="contact-entry-val">
-                      Monday to Saturday: 4:00 AM – 6:00 PM (Lairage Intake &amp; Slaughter Operations)
+                      Monday to Saturday: 4:00 AM – 6:00 PM
                     </div>
                   </div>
                 </div>
@@ -806,7 +781,7 @@ export const LandingPage = () => {
               <div className="contact-facility-img-wrap">
                 <img
                   src={facilityBgImg}
-                  alt="City of Naga Municipal Slaughterhouse facility exterior"
+                  alt="Facility in Tinaan, City of Naga, Cebu"
                   width="1024"
                   height="575"
                   loading="lazy"
@@ -819,8 +794,7 @@ export const LandingPage = () => {
                 <span className="contact-portal-badge">Authorized Access</span>
                 <h3 className="contact-portal-title">Official System Portal</h3>
                 <p className="contact-portal-desc">
-                  Licensed veterinarians, slaughterhouse personnel, and registered livestock owners
-                  may sign in to access their assigned modules and records.
+                  Authorized personnel and registered livestock owners may sign in to access their assigned modules and records.
                 </p>
                 <Link to="/login" className="btn-contact-login">
                   <Icon.LogIn size={16} />
@@ -837,76 +811,50 @@ export const LandingPage = () => {
           ========================================================= */}
       <footer className="landing-footer" role="contentinfo">
         <div className="landing-container">
-          <div className="footer-top-grid">
-            {/* Brand & Single Original Seal */}
+          <div className="footer-minimal-inner">
+            {/* Brand & Location */}
             <div className="footer-brand-box">
-              <div className="footer-seals-row">
+              <div className="footer-logo-row">
                 <div className="footer-seal-item" title="LSMIS Official Seal">
                   <img src={logoImg} alt="LSMIS Official Seal" width="44" height="44" />
                 </div>
+                <div>
+                  <h4 className="footer-brand-heading">LSMIS</h4>
+                  <div className="footer-brand-subheading">
+                    Livestock Slaughter and Meat Inspection Management System
+                  </div>
+                  <div className="footer-brand-location">
+                    Tinaan, City of Naga, Cebu
+                  </div>
+                </div>
               </div>
-
-              <h4 className="footer-brand-heading">LSMIS · City of Naga</h4>
-              <div className="footer-brand-subheading">
-                Livestock Slaughter and Meat Inspection Management System
-              </div>
-              <p className="footer-brand-summary">
-                A dedicated municipal governance technology standardizing livestock intake,
-                humane abattoir operations, veterinary inspections, and sanitary meat permitting
-                in Tinaan, City of Naga, Cebu, Philippines.
-              </p>
             </div>
 
-            {/* Quick Navigation */}
-            <div>
-              <h5 className="footer-col-title">Navigation</h5>
-              <ul className="footer-links-list">
-                {NAV_ITEMS.map((item) => (
-                  <li key={item.label}>
-                    <a href={item.href} onClick={(e) => scrollToSection(e, item.href)}>
+            {/* Quick Links */}
+            <div className="footer-links-box">
+              <span className="footer-links-title">Quick Links</span>
+              <nav className="footer-links-nav" aria-label="Footer Navigation">
+                {NAV_ITEMS.map((item, idx) => (
+                  <span key={item.label} className="footer-nav-item-wrap">
+                    <a
+                      href={item.href}
+                      onClick={(e) => scrollToSection(e, item.href)}
+                      className="footer-nav-link"
+                    >
                       {item.label}
                     </a>
-                  </li>
+                    {idx < NAV_ITEMS.length - 1 && <span className="footer-nav-separator">|</span>}
+                  </span>
                 ))}
-              </ul>
-            </div>
-
-            {/* Statutory Standards */}
-            <div>
-              <h5 className="footer-col-title">Statutory Mandates</h5>
-              <ul className="footer-links-list">
-                <li><span>Republic Act No. 9296</span></li>
-                <li><span>Republic Act No. 10536</span></li>
-                <li><span>NMIS Class AA Standards</span></li>
-                <li><span>City of Naga Revenue Code</span></li>
-              </ul>
-            </div>
-
-            {/* Office & Facility */}
-            <div>
-              <h5 className="footer-col-title">Administration</h5>
-              <ul className="footer-links-list">
-                <li><span>Office of the City Veterinarian</span></li>
-                <li><span>City of Naga Slaughterhouse</span></li>
-                <li><span>Tinaan, City of Naga, Cebu</span></li>
-                <li><a href="tel:0322726655">(032) 272-6655</a></li>
-                <li><a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a></li>
-              </ul>
+              </nav>
             </div>
           </div>
 
-          {/* Bottom Bar: Copyright, Illustrative Disclaimer & Back to Top */}
+          {/* Bottom Bar: Copyright & Back to Top */}
           <div className="footer-bottom-bar">
-            <div>
-              <div>
-                &copy; {new Date().getFullYear()} City Government of Naga, Cebu · Office of the City
-                Veterinarian. All rights reserved.
-              </div>
-              <div className="footer-bottom-notice">
-                Photographic imagery depicting inspection procedures and abattoir operations are
-                illustrative representations for this information portal.
-              </div>
-            </div>
+            <span className="footer-copyright-text">
+              &copy; 2026 City of Naga, Cebu. All rights reserved.
+            </span>
 
             <button
               type="button"
