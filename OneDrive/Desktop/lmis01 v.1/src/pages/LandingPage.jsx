@@ -814,16 +814,22 @@ export const LandingPage = () => {
           <div className="footer-top-grid">
             {/* Brand & Single Original Seal */}
             <div className="footer-brand-box">
-              <div className="footer-seals-row">
+              <div className="footer-brand-lockup">
                 <div className="footer-seal-item" title="LSMIS Official Seal">
-                  <img src={logoImg} alt="LSMIS Official Seal" width="44" height="44" />
+                  <img src={logoImg} alt="LSMIS Official Seal" width="48" height="48" />
+                </div>
+                <div className="footer-brand-title-group">
+                  <h4 className="footer-brand-heading">LSMIS</h4>
+                  <div className="footer-brand-subheading">
+                    Livestock Slaughter and Meat Inspection Management System
+                  </div>
                 </div>
               </div>
 
-              <h4 className="footer-brand-heading">LSMIS</h4>
-              <div className="footer-brand-subheading">
-                Livestock Slaughter and Meat Inspection Management System
-              </div>
+              <p className="footer-brand-summary">
+                A digital system for livestock registration, veterinary inspections, slaughter operations, and meat permits.
+              </p>
+
               <div className="footer-brand-location">
                 Tinaan, City of Naga, Cebu
               </div>
