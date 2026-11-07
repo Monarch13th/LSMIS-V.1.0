@@ -833,71 +833,79 @@ export const LandingPage = () => {
       </section>
 
       {/* =========================================================
-          7. FOOTER (Compact Municipal Abattoir Layout)
+          7. FOOTER
           ========================================================= */}
       <footer className="landing-footer" role="contentinfo">
         <div className="landing-container">
-          <div className="footer-compact-main">
-            {/* Brand & Institutional Seals */}
-            <div className="footer-compact-brand">
+          <div className="footer-top-grid">
+            {/* Brand & Single Original Seal */}
+            <div className="footer-brand-box">
               <div className="footer-seals-row">
-                <div className="footer-seal-item" title="City of Naga Official Seal">
-                  <img src="/naga_city_seal.png" alt="City of Naga Seal" width="36" height="36" />
-                </div>
                 <div className="footer-seal-item" title="LSMIS Official Seal">
-                  <img src={logoImg} alt="LSMIS Official Seal" width="36" height="36" />
-                </div>
-                <div className="footer-seal-item" title="Bagong Pilipinas Official Seal">
-                  <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas Seal" width="36" height="36" />
+                  <img src={logoImg} alt="LSMIS Official Seal" width="44" height="44" />
                 </div>
               </div>
-              <div className="footer-brand-info">
-                <h4 className="footer-brand-heading">LSMIS · City of Naga</h4>
-                <div className="footer-brand-subheading">
-                  Office of the City Veterinarian · Tinaan, Naga City, Cebu
-                </div>
+
+              <h4 className="footer-brand-heading">LSMIS · City of Naga</h4>
+              <div className="footer-brand-subheading">
+                Livestock Slaughter and Meat Inspection Management System
               </div>
+              <p className="footer-brand-summary">
+                A dedicated municipal governance technology standardizing livestock intake,
+                humane abattoir operations, veterinary inspections, and sanitary meat permitting
+                in Tinaan, City of Naga, Cebu, Philippines.
+              </p>
             </div>
 
-            {/* Compact Essential Navigation & Contacts */}
-            <div className="footer-compact-links-wrap">
-              <div className="footer-links-group">
-                <span className="footer-group-label">Quick Links</span>
-                <nav className="footer-nav-row" aria-label="Footer Navigation">
-                  {NAV_ITEMS.map((item) => (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      onClick={(e) => scrollToSection(e, item.href)}
-                      className="footer-nav-link"
-                    >
+            {/* Quick Navigation */}
+            <div>
+              <h5 className="footer-col-title">Navigation</h5>
+              <ul className="footer-links-list">
+                {NAV_ITEMS.map((item) => (
+                  <li key={item.label}>
+                    <a href={item.href} onClick={(e) => scrollToSection(e, item.href)}>
                       {item.label}
                     </a>
-                  ))}
-                </nav>
-              </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-              <div className="footer-links-group">
-                <span className="footer-group-label">Mandates & Contact</span>
-                <div className="footer-meta-row">
-                  <span>RA 9296</span>
-                  <span className="footer-bullet">•</span>
-                  <span>RA 10536</span>
-                  <span className="footer-bullet">•</span>
-                  <span>NMIS Class AA</span>
-                  <span className="footer-bullet">•</span>
-                  <a href="tel:0322726655">(032) 272-6655</a>
-                  <span className="footer-bullet">•</span>
-                  <a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a>
-                </div>
-              </div>
+            {/* Statutory Standards */}
+            <div>
+              <h5 className="footer-col-title">Statutory Mandates</h5>
+              <ul className="footer-links-list">
+                <li><span>Republic Act No. 9296</span></li>
+                <li><span>Republic Act No. 10536</span></li>
+                <li><span>NMIS Class AA Standards</span></li>
+                <li><span>City of Naga Revenue Code</span></li>
+              </ul>
+            </div>
+
+            {/* Office & Facility */}
+            <div>
+              <h5 className="footer-col-title">Administration</h5>
+              <ul className="footer-links-list">
+                <li><span>Office of the City Veterinarian</span></li>
+                <li><span>City of Naga Slaughterhouse</span></li>
+                <li><span>Tinaan, City of Naga, Cebu</span></li>
+                <li><a href="tel:0322726655">(032) 272-6655</a></li>
+                <li><a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a></li>
+              </ul>
             </div>
           </div>
 
-          {/* Bottom Bar: Copyright & Back to Top */}
+          {/* Bottom Bar: Copyright, Illustrative Disclaimer & Back to Top */}
           <div className="footer-bottom-bar">
-            <div className="footer-copyright-text">
-              &copy; {new Date().getFullYear()} City Government of Naga, Cebu · Office of the City Veterinarian. All rights reserved.
+            <div>
+              <div>
+                &copy; {new Date().getFullYear()} City Government of Naga, Cebu · Office of the City
+                Veterinarian. All rights reserved.
+              </div>
+              <div className="footer-bottom-notice">
+                Photographic imagery depicting inspection procedures and abattoir operations are
+                illustrative representations for this information portal.
+              </div>
             </div>
 
             <button
@@ -907,7 +915,7 @@ export const LandingPage = () => {
               aria-label="Back to top of page"
             >
               <span>Back to Top</span>
-              <Icon.ChevronUp size={13} />
+              <Icon.ChevronUp size={14} />
             </button>
           </div>
         </div>
