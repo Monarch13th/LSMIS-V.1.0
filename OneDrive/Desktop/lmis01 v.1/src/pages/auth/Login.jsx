@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { Modal, AlertDialog } from "../../components/ui/Modal";
 import { Icon } from "../../components/icons";
-import { isCapacitorNativeApp } from "../../utils/capacitor";
+import { isCapacitorNativeApp, isInstalledApp } from "../../utils/capacitor";
 import { useToast } from "../../components/notifications/Toast";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 import { authStore } from "../../store/authStore";
@@ -71,6 +71,52 @@ export const Login = ({ embedded = false, initialView }) => {
   const [loading, setLoading] = useState(false);
   // Installed Capacitor Android app: Google sign-in is hidden (website-only)
   const isNativeAndroidApp = isCapacitorNativeApp();
+  // Installed mobile application detection (Capacitor Android APK or installed standalone PWA)
+  const isInstalled = isInstalledApp();
+
+  // Smooth, professional opening animation when launching the installed mobile application
+  const [showLaunchSplash, setShowLaunchSplash] = useState(() => {
+    if (!isInstalled) return false;
+    try {
+      if (sessionStorage.getItem("lsmis_launch_splash_seen") === "true") {
+        return false;
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  });
+  const [splashFadingOut, setSplashFadingOut] = useState(false);
+
+  useEffect(() => {
+    if (!showLaunchSplash) return;
+    const holdTimer = setTimeout(() => {
+      setSplashFadingOut(true);
+    }, 1100);
+
+    const endTimer = setTimeout(() => {
+      setShowLaunchSplash(false);
+      try {
+        sessionStorage.setItem("lsmis_launch_splash_seen", "true");
+      } catch (_) {}
+    }, 1450);
+
+    return () => {
+      clearTimeout(holdTimer);
+      clearTimeout(endTimer);
+    };
+  }, [showLaunchSplash]);
+
+  // Lock history in installed mobile app so back action does not navigate to landing page
+  useEffect(() => {
+    if (isInstalled) {
+      try {
+        if (window.location.pathname === "/login") {
+          window.history.replaceState(null, "", "/login");
+        }
+      } catch (_) {}
+    }
+  }, [isInstalled]);
   const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("lsmis_remember_me") === "true");
   const [isShaking, setIsShaking] = useState(false);
 
@@ -1882,19 +1928,48 @@ export const Login = ({ embedded = false, initialView }) => {
   };
 
   return (
-    <div className={`login-page${embedded ? " login-page-embedded" : ""}`}>
+    <div className={`login-page${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""}`}>
+      {/* Professional Opening Animation for Installed Mobile App */}
+      {showLaunchSplash && (
+        <div className={`lsmis-launch-splash ${splashFadingOut ? "fade-out" : ""}`} role="status" aria-live="polite">
+          <div className="launch-splash-content">
+            <div className="launch-splash-logo-wrap">
+              <img src={logoImg} alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
+            </div>
+            <div className="launch-splash-text">
+              <h1 className="launch-splash-title">LSMIS</h1>
+              <p className="launch-splash-sub">Livestock Slaughter &amp; Meat Inspection System</p>
+              <span className="launch-splash-loc">City Government of Naga, Cebu</span>
+            </div>
+            <div className="launch-splash-loader">
+              <div className="launch-splash-loader-bar" />
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="login-container">
         {/* Left brand panel */}
         <div className="login-brand">
           <div>
             <div className="login-brand-header">
-              <Link to="/" className="login-brand-header-link" title="Return to Landing Page">
-                <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
-                <div>
-                  <h1>LSMIS</h1>
-                  <p>Republic of the Philippines</p>
+              {isInstalled ? (
+                <div className="login-brand-header-link" style={{ cursor: "default" }}>
+                  <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
+                  <div>
+                    <h1>LSMIS</h1>
+                    <p>Republic of the Philippines</p>
+                  </div>
                 </div>
-              </Link>
+              ) : (
+                <Link to="/" className="login-brand-header-link" title="Return to Landing Page">
+                  <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
+                  <div>
+                    <h1>LSMIS</h1>
+                    <p>Republic of the Philippines</p>
+                  </div>
+                </Link>
+              )}
             </div>
             <div className="login-brand-hero">
               <h2>Livestock Slaughter and Meat Inspection Management System</h2>
@@ -1937,6 +2012,16 @@ export const Login = ({ embedded = false, initialView }) => {
         <div className="login-form-wrap">
 
           <div className={`login-box login-form ${isShaking ? "shake-error" : ""}`}>
+
+            {/* Mobile / Installed App Brand Header */}
+            <div className="login-mobile-brand">
+              <div className="login-mobile-logo">
+                <img src={logoImg} alt="LSMIS Official Logo" width="62" height="62" />
+              </div>
+              <div className="login-mobile-title">LSMIS</div>
+              <div className="login-mobile-subtitle">Livestock Slaughter &amp; Meat Inspection</div>
+              <span className="login-mobile-badge">City Government of Naga, Cebu</span>
+            </div>
 
             {/* LOGIN SUCCESS ANIMATION OVERLAY */}
             {view === "verify-otp" ? (
@@ -2257,8 +2342,8 @@ export const Login = ({ embedded = false, initialView }) => {
                   </>
                   )}
 
-                  {!embedded && (
-                    <Link to="/" className="btn-back-to-landing">
+                  {!embedded && !isInstalled && (
+                    <Link to="/" className="btn-back-to-landing btn-back-to-home">
                       <Icon.ArrowLeft size={16} />
                       <span>Back to Landing Page</span>
                     </Link>

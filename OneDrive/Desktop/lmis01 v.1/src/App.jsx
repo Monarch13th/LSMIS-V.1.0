@@ -91,8 +91,20 @@ const LandingGate = () => {
   if (!isInstalledApp()) return <LandingPage />;
   if (loading || !isInitialized) {
     return (
-      <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "var(--color-bg, #ffffff)" }}>
-        <img src="/logo.jpg" alt="LSMIS" width={72} height={72} style={{ borderRadius: "50%", opacity: 0.9 }} />
+      <div className="lsmis-launch-splash" role="status" aria-live="polite">
+        <div className="launch-splash-content">
+          <div className="launch-splash-logo-wrap">
+            <img src="/logo.jpg" alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
+          </div>
+          <div className="launch-splash-text">
+            <h1 className="launch-splash-title">LSMIS</h1>
+            <p className="launch-splash-sub">Livestock Slaughter &amp; Meat Inspection System</p>
+            <span className="launch-splash-loc">City Government of Naga, Cebu</span>
+          </div>
+          <div className="launch-splash-loader">
+            <div className="launch-splash-loader-bar" />
+          </div>
+        </div>
       </div>
     );
   }

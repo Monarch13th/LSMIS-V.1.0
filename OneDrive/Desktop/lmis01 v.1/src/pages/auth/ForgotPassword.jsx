@@ -8,6 +8,7 @@ import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
+import { isInstalledApp } from "../../utils/capacitor";
 import logoImg from "../../assets/logo.jpg";
 
 export const ForgotPassword = () => {
@@ -170,20 +171,32 @@ export const ForgotPassword = () => {
     }
   };
 
+  const isInstalled = isInstalledApp();
+
   return (
-    <div className="login-page">
+    <div className={`login-page${isInstalled ? " is-installed-app" : ""}`}>
       <div className="login-container">
         {/* Left brand panel */}
         <div className="login-brand">
           <div>
             <div className="login-brand-header">
-              <Link to="/" className="login-brand-header-link" title="Return to Landing Page">
-                <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
-                <div>
-                  <h1>LSMIS</h1>
-                  <p>Republic of the Philippines</p>
+              {isInstalled ? (
+                <div className="login-brand-header-link" style={{ cursor: "default" }}>
+                  <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
+                  <div>
+                    <h1>LSMIS</h1>
+                    <p>Republic of the Philippines</p>
+                  </div>
                 </div>
-              </Link>
+              ) : (
+                <Link to="/" className="login-brand-header-link" title="Return to Landing Page">
+                  <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
+                  <div>
+                    <h1>LSMIS</h1>
+                    <p>Republic of the Philippines</p>
+                  </div>
+                </Link>
+              )}
             </div>
             <div className="login-brand-hero">
               <span className="login-pill">
@@ -228,6 +241,16 @@ export const ForgotPassword = () => {
         {/* Right form panel */}
         <div className="login-form-wrap">
           <div className="login-box login-form">
+
+            {/* Mobile / Installed App Brand Header */}
+            <div className="login-mobile-brand">
+              <div className="login-mobile-logo">
+                <img src={logoImg} alt="LSMIS Official Logo" width="62" height="62" />
+              </div>
+              <div className="login-mobile-title">LSMIS</div>
+              <div className="login-mobile-subtitle">Livestock Slaughter &amp; Meat Inspection</div>
+              <span className="login-mobile-badge">City Government of Naga, Cebu</span>
+            </div>
             
             {/* Header - Unified with Sign In */}
             <div className="login-form-head">

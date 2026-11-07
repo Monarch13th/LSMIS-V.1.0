@@ -923,7 +923,7 @@ export const MultiLivestockForm = ({
             </div>
           </div>
         }
-        confirmText="Yes, Register Livestock"
+        confirmText="Register"
         confirmVariant="success"
         loading={submitting}
         onConfirm={handleConfirmSubmit}
