@@ -122,6 +122,8 @@ CREATE TABLE public.livestock (
   breed text,
   sex text,
   age_months text,
+  age_value integer,
+  age_unit text,
   weight numeric,
   owner_id text,
   owner_name text,

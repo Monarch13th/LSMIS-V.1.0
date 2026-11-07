@@ -8,7 +8,7 @@ import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../hooks/useAuth";
 import { TABLES } from "../../utils/constants";
-import { formatDate, formatPhDateTime, formatCertDateTime, formatSex } from "../../utils/formatters";
+import { formatDate, formatPhDateTime, formatCertDateTime, formatSex, formatLivestockAge } from "../../utils/formatters";
 import { today, initials } from "../../utils/helpers";
 import { scrollToFirstError } from "../../utils/formValidation";
 import { useState, useRef, useEffect, useMemo, useCallback, Fragment } from "react";
@@ -225,7 +225,7 @@ export const AnimalInspectionHistory = () => {
                     <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 4 }}>
                       <span>Owner: <strong style={{ color: "var(--color-text-secondary)" }}>{a.owner_name || "—"}</strong></span>
                       {a.sex && <span style={{ marginLeft: 12 }}>Sex: <strong style={{ color: "var(--color-text-secondary)" }}>{formatSex(a.sex)}</strong></span>}
-                      {a.age_months && <span style={{ marginLeft: 12 }}>Age: {a.age_months}</span>}
+                      {a.age_months && <span style={{ marginLeft: 12 }}>Age: {formatLivestockAge(a)}</span>}
                     </div>
                   </div>
 

@@ -8,7 +8,7 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { vetService } from "../../services/vetService";
 import { InspectionForm } from "../../components/forms/InspectionForm";
-import { formatDate, formatPhDateTime, initials, today, formatSex } from "../../utils/helpers";
+import { formatDate, formatPhDateTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
 import { CondemnedMeatRecords, EvidenceUpload } from "./VetExtra";
 import { getCondemnationStage, matchesStage, isAnteCondemnedStatus } from "./condemnationStage";
 import { useCondemnationEvidenceIndex } from "./condemnationEvidenceIndex";
@@ -1867,12 +1867,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                   </thead>
                   <tbody>
                     {(selectedOwnerView.items || []).map((item) => {
-                      const rawAge = item.age_months ?? item.age;
-                      const formattedAge = !rawAge && rawAge !== 0
-                        ? "—"
-                        : /months?|mos|years?|yrs|days?/i.test(String(rawAge))
-                        ? String(rawAge)
-                        : `${rawAge} mos`;
+                      const formattedAge = formatLivestockAge(item);
 
                       return (
                         <tr key={item.id || item.tag_number} style={{ borderBottom: "1px solid var(--color-border)" }}>

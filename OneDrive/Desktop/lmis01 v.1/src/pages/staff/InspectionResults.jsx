@@ -4,7 +4,7 @@ import { Button, Badge, Modal, EmptyState, TagBadge, Pagination } from "../../co
 import { Icon } from "../../components/icons";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
-import { formatPhDateTime, formatDate, formatSex } from "../../utils/formatters";
+import { formatPhDateTime, formatDate, formatSex, formatLivestockAge } from "../../utils/formatters";
 import { initials, today } from "../../utils/helpers";
 import {
   isAnteCondemnedDecision,
@@ -388,7 +388,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           species: i.species || animal?.species || "Livestock",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          age: formatLivestockAge(animal),
           owner,
           date: i.inspected_at || i.date || animal?.created_at || today(),
           findings: i.findings || "Normal clinical appearance, fit for slaughter",
@@ -438,7 +438,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           species: p.species || animal?.species || "Carcass",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          age: formatLivestockAge(animal),
           owner,
           date: p.inspected_at || p.date || today(),
           findings: p.findings || "Carcass and viscera free of pathology, approved for food",
@@ -496,7 +496,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           species: p.species || animal?.species || "Carcass",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          age: formatLivestockAge(animal),
           owner,
           date: p.inspected_at || p.date || today(),
           findings: p.findings || "Localized pathology identified on specific carcass parts",
@@ -530,7 +530,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           species: c.species || animal?.species || "Carcass",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          age: formatLivestockAge(animal),
           owner,
           date: c.date || c.created_at || today(),
           findings: c.findings || c.reason || "Part condemned during post-mortem",
@@ -579,7 +579,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           species: c.species || animal?.species || "Carcass",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          age: formatLivestockAge(animal),
           owner,
           date: c.date || today(),
           findings: c.findings || c.reason || "Localized condemnation recorded",
@@ -713,7 +713,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         species: c.species || animal?.species || existing?.species || "Livestock",
         breed: animal?.breed || existing?.breed || "—",
         sex: animal?.sex || existing?.sex || "—",
-        age: animal?.age || existing?.age || "—",
+        age: formatLivestockAge(animal) !== "—" ? formatLivestockAge(animal) : (existing?.age || "—"),
         owner: owner.name !== "—" ? owner : (existing?.owner || owner),
         date: c.date || existing?.date || today(),
         stage: stage === "Ante-Mortem" ? "Ante-Mortem (Live Animal)" : "Post-Mortem (Whole Carcass)",
@@ -742,7 +742,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         species: l.species || "Livestock",
         breed: l.breed || "—",
         sex: l.sex || "—",
-        age: l.age || "—",
+        age: formatLivestockAge(l),
         owner,
         date: l.received_date || l.created_at || today(),
         stage: "Ante-Mortem (Live Animal)",

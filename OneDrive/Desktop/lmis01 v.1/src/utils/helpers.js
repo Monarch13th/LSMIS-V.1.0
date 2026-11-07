@@ -281,5 +281,5 @@ export const getStepUser = (steps, stepKey) => {
 };
 
 // Re-exports for backward compatibility (canonical home is formatters.js)
-export { formatCurrency, formatDate, formatDateTime, formatPhDateTime, formatCertDateTime, formatPhDate, formatPhTime, formatLongDate, formatFullDate, formatNumber, formatTime, truncate, formatSex } from "./formatters.js";
+export { formatCurrency, formatDate, formatDateTime, formatPhDateTime, formatCertDateTime, formatPhDate, formatPhTime, formatLongDate, formatFullDate, formatNumber, formatTime, truncate, formatSex, formatLivestockAge } from "./formatters.js";
 

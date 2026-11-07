@@ -6,7 +6,7 @@ import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { staffService } from "../../services/staffService";
-import { formatDate, formatPhDateTime, formatTime, initials, today, formatSex } from "../../utils/helpers";
+import { formatDate, formatPhDateTime, formatTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
 
 const MARK_TYPES = [
   {
@@ -1115,7 +1115,7 @@ export const AnimalMarking = ({ navTabs }) => {
       species: item.species || "Cattle",
       quantity: item.quantity && Number(item.quantity) >= 1 ? Number(item.quantity) : 1,
       sex: item.sex ? (String(item.sex).toLowerCase().startsWith("f") ? "Female" : "Male") : "Male",
-      age: item.age_months !== null && item.age_months !== undefined ? String(item.age_months) : "",
+      age: formatLivestockAge(item) !== "—" ? formatLivestockAge(item) : "",
       mark_type: item.mark_type || "Ear Tag",
     });
   };
@@ -1800,11 +1800,7 @@ export const AnimalMarking = ({ navTabs }) => {
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{item.species}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{formatSex(item.sex)}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>
-                          {item.age_months
-                            ? (/months?|mos|years?|yrs|days?/i.test(String(item.age_months))
-                              ? String(item.age_months)
-                              : `${item.age_months} mos`)
-                            : "—"}
+                          {formatLivestockAge(item)}
                         </td>
                         <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
                           {formatPhDateTime(item.mark_date || item.created_at || item.registered_at)}
@@ -2121,7 +2117,7 @@ export const AnimalMarking = ({ navTabs }) => {
                   >
                     {selected.age_months && (
                       <span>
-                        Age: <strong style={{ color: "var(--color-text)" }}>{selected.age_months} {String(selected.age_months).toLowerCase().includes("month") || String(selected.age_months).toLowerCase().includes("year") || String(selected.age_months).toLowerCase().includes("age") ? "" : "mos"}</strong>
+                        Age: <strong style={{ color: "var(--color-text)" }}>{formatLivestockAge(selected)}</strong>
                       </span>
                     )}
                     {selected.breed && (

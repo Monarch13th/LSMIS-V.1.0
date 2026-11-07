@@ -7,7 +7,7 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../hooks/useAuth";
 import { TABLES, OPERATOR_TEAMS } from "../../utils/constants";
 import { staffService } from "../../services/staffService";
-import { formatDate, formatFullDate, formatTime, formatPhDateTime, formatPhDate, initials, today, isWaitingForSlaughter, isStepDone, getStepTimestamp, getStepUser, formatSex } from "../../utils/helpers";
+import { formatDate, formatFullDate, formatTime, formatPhDateTime, formatPhDate, initials, today, isWaitingForSlaughter, isStepDone, getStepTimestamp, getStepUser, formatSex, formatLivestockAge } from "../../utils/helpers";
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
 import { getCurrentActor } from "../../utils/processHistory";
 
@@ -3080,11 +3080,7 @@ export const SlaughterProcessing = () => {
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{s.species}</td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{formatSex(s.sex)}</td>
                           <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>
-                            {s.age_months
-                              ? (/months?|mos|years?|yrs|days?/i.test(String(s.age_months))
-                                ? String(s.age_months)
-                                : `${s.age_months} mos`)
-                              : "—"}
+                            {formatLivestockAge(s)}
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
                             {formatPhDateTime(s.mark_date || s.scheduled_date || s.date || s.created_at)}
