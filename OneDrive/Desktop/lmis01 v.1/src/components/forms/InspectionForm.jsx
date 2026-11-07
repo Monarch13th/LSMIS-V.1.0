@@ -35,7 +35,7 @@ const CheckboxWithIndeterminate = ({ checked, indeterminate, onChange, style, id
   );
 };
 
-export const CONDEMNED_PARTS_LIST = [
+export const CARCASS_AREAS = [
   "Head",
   "Shoulder Meat",
   "Left Front Leg",
@@ -44,6 +44,80 @@ export const CONDEMNED_PARTS_LIST = [
   "Right Hind Leg",
   "Carcass Body"
 ];
+
+export const SPECIFIC_PARTS_BY_AREA = {
+  "Head": [
+    "Right Cheek",
+    "Left Cheek",
+    "Jaw Lymph Nodes",
+    "Whole Head",
+    "Other"
+  ],
+  "Shoulder Meat": [
+    "Right Shoulder",
+    "Left Shoulder",
+    "Right Upper Shoulder",
+    "Left Upper Shoulder",
+    "Other"
+  ],
+  "Left Front Leg": [
+    "Elbow",
+    "Front Knee",
+    "Upper Front Leg",
+    "Lower Front Leg / Hoof",
+    "Other"
+  ],
+  "Right Front Leg": [
+    "Elbow",
+    "Front Knee",
+    "Upper Front Leg",
+    "Lower Front Leg / Hoof",
+    "Other"
+  ],
+  "Left Hind Leg": [
+    "Hock",
+    "Back Knee",
+    "Upper Hind Leg",
+    "Lower Hind Leg / Hoof",
+    "Other"
+  ],
+  "Right Hind Leg": [
+    "Hock",
+    "Back Knee",
+    "Upper Hind Leg",
+    "Lower Hind Leg / Hoof",
+    "Other"
+  ],
+  "Carcass Body": [
+    "Back",
+    "Belly",
+    "Chest",
+    "Ribs",
+    "Other"
+  ]
+};
+
+export const CONDEMNED_PARTS_LIST = CARCASS_AREAS;
+
+export const createNewCut = (area = "Head") => {
+  const defaultArea = CARCASS_AREAS.includes(area) ? area : CARCASS_AREAS[0];
+  const defaultSpecific = SPECIFIC_PARTS_BY_AREA[defaultArea]?.[0] || "Other";
+  return {
+    id: Date.now() + Math.random(),
+    carcassArea: defaultArea,
+    part: defaultArea,
+    specificPart: defaultSpecific,
+    customSpecificPart: "",
+    location: defaultSpecific,
+    weight: "",
+    reason: CONDEMNED_REASONS_LIST[0],
+    customReason: "",
+    photo: null,
+    photoName: "",
+    photos: [],
+    disposition: "Condemned / Rendered",
+  };
+};
 
 export const CONDEMNED_REASONS_LIST = [
   "Abnormal Appearance",
@@ -952,21 +1026,7 @@ export const InspectionForm = ({
         {
           id: Date.now() + Math.random(),
           tag_number: tag,
-          parts: [
-            {
-              id: Date.now() + Math.random() + 1,
-              part: CONDEMNED_PARTS_LIST[0],
-              customPart: "",
-              location: "",
-              weight: "",
-              reason: CONDEMNED_REASONS_LIST[0],
-              customReason: "",
-              photo: null,
-              photoName: "",
-              photos: [],
-              disposition: DISPOSITION_OPTIONS[0],
-            },
-          ],
+          parts: [createNewCut(CARCASS_AREAS[0])],
         },
       ];
     });
@@ -1211,22 +1271,7 @@ export const InspectionForm = ({
         if (a.id !== animalId) return a;
         return {
           ...a,
-          parts: [
-            ...a.parts,
-            {
-              id: Date.now() + Math.random(),
-              part: CONDEMNED_PARTS_LIST[0],
-              customPart: "",
-              location: "",
-              weight: "",
-              reason: CONDEMNED_REASONS_LIST[0],
-              customReason: "",
-              photo: null,
-              photoName: "",
-              photos: [],
-              disposition: DISPOSITION_OPTIONS[0],
-            }
-          ]
+          parts: [...a.parts, createNewCut(CARCASS_AREAS[0])],
         };
       })
     );
@@ -1239,21 +1284,7 @@ export const InspectionForm = ({
         const newParts = a.parts.filter((p) => p.id !== partId);
         return {
           ...a,
-          parts: newParts.length > 0 ? newParts : [
-            {
-              id: Date.now() + Math.random(),
-              part: CONDEMNED_PARTS_LIST[0],
-              customPart: "",
-              location: "",
-              weight: "",
-              reason: CONDEMNED_REASONS_LIST[0],
-              customReason: "",
-              photo: null,
-              photoName: "",
-              photos: [],
-              disposition: DISPOSITION_OPTIONS[0],
-            }
-          ]
+          parts: newParts.length > 0 ? newParts : [createNewCut(CARCASS_AREAS[0])],
         };
       })
     );
@@ -1265,7 +1296,36 @@ export const InspectionForm = ({
         if (a.id !== animalId) return a;
         return {
           ...a,
-          parts: a.parts.map((p) => (p.id === partId ? { ...p, [field]: value } : p))
+          parts: a.parts.map((p) => {
+            if (p.id !== partId) return p;
+            if (field === "carcassArea" || field === "part") {
+              const defaultSpecific = SPECIFIC_PARTS_BY_AREA[value]?.[0] || "Other";
+              return {
+                ...p,
+                carcassArea: value,
+                part: value,
+                specificPart: defaultSpecific,
+                customSpecificPart: "",
+                location: defaultSpecific,
+              };
+            }
+            if (field === "specificPart") {
+              return {
+                ...p,
+                specificPart: value,
+                location: value === "Other" ? (p.customSpecificPart || "") : value,
+                customSpecificPart: value === "Other" ? p.customSpecificPart : "",
+              };
+            }
+            if (field === "customSpecificPart") {
+              return {
+                ...p,
+                customSpecificPart: value,
+                location: value,
+              };
+            }
+            return { ...p, [field]: value };
+          }),
         };
       })
     );
@@ -1579,32 +1639,33 @@ export const InspectionForm = ({
 
           for (let j = 0; j < (entry.parts || []).length; j++) {
             const cut = entry.parts[j];
-            if (!cut.part) {
+            const area = cut.carcassArea || cut.part;
+            if (!area) {
               missing.push({
                 category: "Text Input",
-                fieldId: `cut-part-${cut.id}`,
-                label: `Cut Part (Tag #${entry.tag_number || `#${i + 1}`})`,
-                message: "Please select a condemned part.",
+                fieldId: `cut-area-${cut.id}`,
+                label: `Carcass Area (Tag #${entry.tag_number || `#${i + 1}`})`,
+                message: "Please select a main carcass area.",
               });
-              errors[`cut-part-${cut.id}`] = "Condemned part is required.";
+              errors[`cut-area-${cut.id}`] = "Carcass area is required.";
             }
-            if (cut.part === "Other" && !(cut.customPart || "").trim()) {
+            if (!cut.specificPart) {
               missing.push({
                 category: "Text Input",
-                fieldId: `cut-custom-part-${cut.id}`,
-                label: `Custom Cut Name (Tag #${entry.tag_number || `#${i + 1}`})`,
-                message: "Please specify the custom cut name.",
+                fieldId: `cut-specific-${cut.id}`,
+                label: `Specific Part (Tag #${entry.tag_number || `#${i + 1}`})`,
+                message: "Please select a specific condemned part.",
               });
-              errors[`cut-custom-part-${cut.id}`] = "Custom cut name is required.";
+              errors[`cut-specific-${cut.id}`] = "Specific part is required.";
             }
-            if (!cut.location || !(cut.location || "").trim()) {
+            if (cut.specificPart === "Other" && !(cut.customSpecificPart || cut.customPart || "").trim()) {
               missing.push({
                 category: "Text Input",
-                fieldId: `cut-loc-${cut.id}`,
-                label: `Cut Location (Tag #${entry.tag_number || `#${i + 1}`})`,
-                message: "Please enter the location or area.",
+                fieldId: `cut-custom-specific-${cut.id}`,
+                label: `Custom Specific Part (Tag #${entry.tag_number || `#${i + 1}`})`,
+                message: "Please specify the condemned part.",
               });
-              errors[`cut-loc-${cut.id}`] = "Location is required.";
+              errors[`cut-custom-specific-${cut.id}`] = "Please specify the condemned part.";
             }
             const w = parseFloat(cut.weight);
             if (isNaN(w) || w <= 0) {
@@ -1632,7 +1693,7 @@ export const InspectionForm = ({
               missing.push({
                 category: "Photo Evidence",
                 fieldId: `cut-photos-${cut.id}`,
-                label: `Cut Evidence Photo (Tag #${entry.tag_number || `#${i + 1}`} · ${cut.part || "Cut"})`,
+                label: `Cut Evidence Photo (Tag #${entry.tag_number || `#${i + 1}`} · ${cut.specificPart || area || "Cut"})`,
                 message: "Please upload at least one evidence photo for each condemned cut.",
               });
               errors[`cut-photos-${cut.id}`] = "Evidence photo is required.";
@@ -1717,27 +1778,33 @@ export const InspectionForm = ({
       // Partial Condemnation records
       for (const entry of partialAnimals) {
         const cutsPayload = entry.parts.map((p) => {
-          const partName = p.part === "Other" ? (p.customPart || "Other Cut").trim() : p.part;
+          const areaName = p.carcassArea || p.part || "Head";
+          const specificPartName = p.specificPart === "Other"
+            ? (p.customSpecificPart || p.customPart || "Other Cut").trim()
+            : (p.specificPart || p.location || "").trim();
+          const partDisplay = specificPartName ? `${areaName} - ${specificPartName}` : areaName;
           const reasonName = isOtherReason(p.reason) ? (p.customReason || "Other").trim() : p.reason;
           const weightVal = parseFloat(p.weight) || 0;
-          const locName = (p.location || "").trim();
           return {
-            part: partName,
-            location: locName,
+            part: areaName,
+            carcass_area: areaName,
+            specific_part: specificPartName,
+            custom_part: p.specificPart === "Other" ? (p.customSpecificPart || p.customPart || "") : "",
+            location: specificPartName,
             weight: weightVal,
             weight_kg: weightVal,
             reason: reasonName,
             photo: p.photo || (p.photos?.[0]?.preview || null),
             photoName: p.photoName || (p.photos?.[0]?.name || ""),
             photos: p.photos || (p.photo ? [{ preview: p.photo, name: p.photoName }] : []),
-            disposition: p.disposition || DISPOSITION_OPTIONS[0],
+            disposition: "Condemned / Rendered",
             quantity: `${weightVal} kg`,
-            notes: `Part: ${partName}${locName ? ` · Location: ${locName}` : ""} · Reason: ${reasonName} · Disposition: ${p.disposition || DISPOSITION_OPTIONS[0]}`,
+            notes: `Part: ${partDisplay} · Reason: ${reasonName}`,
           };
         });
 
         const partsSummary = cutsPayload
-          .map((p) => `${p.part} - ${p.weight_kg} kg [${p.reason}]`)
+          .map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : p.part} - ${p.weight_kg} kg [${p.reason}]`)
           .join("; ");
 
         const details = getAnimalDetails(entry.tag_number);
@@ -3002,24 +3069,20 @@ export const InspectionForm = ({
               {partialAnimals.map((animal, animalIdx) => {
                 const details = getAnimalDetails(animal.tag_number);
                 const availableTags = getAvailableTagsForPartialCard(animal.id);
-                const animalSubtotalWeight = animal.parts.reduce((sum, p) => sum + (parseFloat(p.weight) || 0), 0);
 
                 return (
                   <div
                     key={animal.id}
                     style={{
-                      border: "1.5px solid #fde68a",
-                      background: "#fffdf7",
-                      borderRadius: 12,
-                      padding: "16px 18px",
+                      borderTop: animalIdx > 0 ? "1px solid var(--color-border, #e2e8f0)" : "none",
+                      paddingTop: animalIdx > 0 ? 14 : 0,
                       display: "flex",
                       flexDirection: "column",
                       gap: 14,
-                      boxShadow: "0 2px 8px rgba(245, 158, 11, 0.08)",
                     }}
                   >
                     {/* Carcass Header */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #fef3c7", paddingBottom: 10, flexWrap: "wrap", gap: 8 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--color-border, #fef3c7)", paddingBottom: 10, flexWrap: "wrap", gap: 8 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span
                           style={{
@@ -3098,13 +3161,6 @@ export const InspectionForm = ({
 
                     {/* Condemned Cuts for this Carcass */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      <div style={{ fontSize: 12, fontWeight: 800, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.04em", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
-                        <span>Condemned Cuts &amp; Organs for Tag #{animal.tag_number || `Carcass ${animalIdx + 1}`} ({animal.parts.length})</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "#b45309", textTransform: "none" }}>
-                          Main carcass proceeds to Carcass Weighing
-                        </span>
-                      </div>
-
                       {animal.parts.map((part, partIdx) => {
                         return (
                           <div
@@ -3119,74 +3175,83 @@ export const InspectionForm = ({
                               gap: 12,
                             }}
                           >
-                            {/* Grid Row 1: Condemned Part, Location/Area, Weight (kg), Pathology/Reason, Disposition, Remove Button */}
+                            {/* Grid Row 1: Carcass Area, Specific Part, Weight (kg), Pathology/Reason, Remove Button */}
                             <div
                               style={{
                                 display: "grid",
-                                gridTemplateColumns: "1.2fr 1fr 0.8fr 1.2fr 1fr 32px",
+                                gridTemplateColumns: "1.1fr 1.3fr 0.8fr 1.2fr 32px",
                                 gap: 12,
                                 alignItems: "start",
                               }}
                             >
-                              {/* 1. Condemned Part */}
+                              {/* 1. Main Carcass Area */}
                               <div>
                                 <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
-                                  Condemned Part #{partIdx + 1} <span style={{ color: "#ef4444" }}>*</span>
+                                  Carcass Area <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <select
+                                  id={`cut-area-${part.id}`}
                                   className="form-control"
-                                  value={part.part}
-                                  onChange={(e) => updateAnimalPart(animal.id, part.id, "part", e.target.value)}
+                                  value={part.carcassArea || part.part || CARCASS_AREAS[0]}
+                                  onChange={(e) => updateAnimalPart(animal.id, part.id, "carcassArea", e.target.value)}
                                   style={{ height: 36, fontSize: 12.5, borderRadius: 6 }}
                                 >
-                                  {CONDEMNED_PARTS_LIST.map((p) => (
-                                    <option key={p} value={p}>{p}</option>
+                                  {CARCASS_AREAS.map((a) => (
+                                    <option key={a} value={a}>{a}</option>
                                   ))}
                                 </select>
-                                {part.part === "Other" && (
+                              </div>
+
+                              {/* 2. Specific Condemned Part */}
+                              <div>
+                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
+                                  Specific Part <span style={{ color: "#ef4444" }}>*</span>
+                                </label>
+                                <select
+                                  id={`cut-specific-${part.id}`}
+                                  className="form-control"
+                                  value={part.specificPart || ""}
+                                  onChange={(e) => updateAnimalPart(animal.id, part.id, "specificPart", e.target.value)}
+                                  style={{
+                                    height: 36,
+                                    fontSize: 12.5,
+                                    borderRadius: 6,
+                                    borderColor: attemptedSubmit && !part.specificPart ? "#ef4444" : undefined,
+                                    backgroundColor: attemptedSubmit && !part.specificPart ? "#fef2f2" : undefined,
+                                  }}
+                                >
+                                  {(SPECIFIC_PARTS_BY_AREA[part.carcassArea || part.part || "Head"] || ["Other"]).map((sp) => (
+                                    <option key={sp} value={sp}>{sp}</option>
+                                  ))}
+                                </select>
+
+                                {part.specificPart === "Other" && (
                                   <div style={{ marginTop: 6 }}>
                                     <label style={{ fontSize: 10.5, fontWeight: 700, color: "#d97706", display: "block", marginBottom: 2 }}>
                                       Specify Condemned Part <span style={{ color: "#ef4444" }}>*</span>
                                     </label>
                                     <input
+                                      id={`cut-custom-specific-${part.id}`}
                                       type="text"
                                       className="form-control"
-                                      placeholder="e.g. Neck meat, Tail, Rib section..."
-                                      value={part.customPart || ""}
-                                      onChange={(e) => updateAnimalPart(animal.id, part.id, "customPart", e.target.value)}
-                                      style={{ height: 34, fontSize: 12, borderRadius: 6, borderColor: "#f59e0b" }}
+                                      placeholder="Specify cut/part..."
+                                      value={part.customSpecificPart || ""}
+                                      onChange={(e) => updateAnimalPart(animal.id, part.id, "customSpecificPart", e.target.value)}
+                                      style={{
+                                        height: 34,
+                                        fontSize: 12,
+                                        borderRadius: 6,
+                                        borderColor: attemptedSubmit && !(part.customSpecificPart || "").trim() ? "#ef4444" : "#f59e0b",
+                                        backgroundColor: attemptedSubmit && !(part.customSpecificPart || "").trim() ? "#fef2f2" : undefined,
+                                      }}
                                       required
                                     />
+                                    {attemptedSubmit && !(part.customSpecificPart || "").trim() && (
+                                      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", marginTop: 2, display: "block" }}>
+                                        ⚠️ Please specify the condemned part.
+                                      </span>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-
-                              {/* 2. Location / Area */}
-                              <div>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
-                                  Location / Area <span style={{ color: "#ef4444" }}>*</span>
-                                </label>
-                                <input
-                                  id={`cut-loc-${part.id}`}
-                                  type="text"
-                                  className="form-control"
-                                  placeholder="e.g. Left liver lobe, Upper portion of left hind leg..."
-                                  value={part.location || ""}
-                                  onChange={(e) => updateAnimalPart(animal.id, part.id, "location", e.target.value)}
-                                  style={{
-                                    height: 36,
-                                    fontSize: 12.5,
-                                    borderRadius: 6,
-                                    borderColor: attemptedSubmit && !(part.location || "").trim() ? "#ef4444" : undefined,
-                                    backgroundColor: attemptedSubmit && !(part.location || "").trim() ? "#fef2f2" : undefined,
-                                    boxShadow: attemptedSubmit && !(part.location || "").trim() ? "0 0 0 3px rgba(239, 68, 68, 0.15)" : undefined,
-                                  }}
-                                  required
-                                />
-                                {attemptedSubmit && !(part.location || "").trim() && (
-                                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                                    ⚠️ Location / Area is required. Please specify location.
-                                  </span>
                                 )}
                               </div>
 
@@ -3217,15 +3282,15 @@ export const InspectionForm = ({
                                       boxShadow: attemptedSubmit && (!part.weight || isNaN(parseFloat(part.weight)) || parseFloat(part.weight) <= 0) ? "0 0 0 3px rgba(239, 68, 68, 0.15)" : undefined,
                                     }}
                                   />
-                                {attemptedSubmit && (!part.weight || isNaN(parseFloat(part.weight)) || parseFloat(part.weight) <= 0) && (
-                                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                                    ⚠️ Weight (kg) is required and must be greater than 0 kg.
-                                  </span>
-                                )}
                                   <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#64748b", fontWeight: 700, pointerEvents: "none" }}>
                                     kg
                                   </span>
                                 </div>
+                                {attemptedSubmit && (!part.weight || isNaN(parseFloat(part.weight)) || parseFloat(part.weight) <= 0) && (
+                                  <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
+                                    ⚠️ Weight (kg) is required and must be &gt; 0 kg.
+                                  </span>
+                                )}
                               </div>
 
                               {/* 4. Pathology / Reason */}
@@ -3263,23 +3328,6 @@ export const InspectionForm = ({
                                 )}
                               </div>
 
-                              {/* 5. Disposition */}
-                              <div>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
-                                  Disposition <span style={{ color: "#ef4444" }}>*</span>
-                                </label>
-                                <select
-                                  className="form-control"
-                                  value={part.disposition || DISPOSITION_OPTIONS[0]}
-                                  onChange={(e) => updateAnimalPart(animal.id, part.id, "disposition", e.target.value)}
-                                  style={{ height: 36, fontSize: 12.5, borderRadius: 6 }}
-                                >
-                                  {DISPOSITION_OPTIONS.map((d) => (
-                                    <option key={d} value={d}>{d}</option>
-                                  ))}
-                                </select>
-                              </div>
-
                               {/* Remove Cut Button */}
                               <div style={{ display: "flex", justifyContent: "center", paddingTop: 18 }}>
                                 <button
@@ -3309,7 +3357,7 @@ export const InspectionForm = ({
                               <MultiEvidenceUploader
                                 photos={part.photos || []}
                                 onChange={(newPhotos) => updateAnimalPart(animal.id, part.id, "photos", newPhotos)}
-                                label={`Cut Evidence Photos (${part.part || "Cut"})`}
+                                label={`Cut Evidence Photos (${part.specificPart || part.carcassArea || "Cut"})`}
                                 hasError={attemptedSubmit}
                               />
                             </div>
@@ -3319,31 +3367,25 @@ export const InspectionForm = ({
 
                       {/* Add Another Part to This Carcass Button & Subtotal */}
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 2, flexWrap: "wrap", gap: 8 }}>
-                        {animal.parts.length < CONDEMNED_PARTS_LIST.length ? (
-                          <button
-                            type="button"
-                            onClick={() => addPartToAnimal(animal.id)}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                              padding: "6px 12px",
-                              borderRadius: 6,
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: "#fef3c7",
-                              color: "#92400e",
-                              border: "1px solid #fcd34d",
-                              cursor: "pointer",
-                            }}
-                          >
-                            <Icon.Plus size={13} /> Add Another Part to Tag #{animal.tag_number || `Carcass ${animalIdx + 1}`}
-                          </button>
-                        ) : (
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: "#64748b", background: "#f1f5f9", border: "1px solid #e2e8f0", padding: "4px 10px", borderRadius: 6 }}>
-                            All available cuts selected ({CONDEMNED_PARTS_LIST.length}/{CONDEMNED_PARTS_LIST.length})
-                          </span>
-                        )}
+                        <button
+                          type="button"
+                          onClick={() => addPartToAnimal(animal.id)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: 700,
+                            background: "#fef3c7",
+                            color: "#92400e",
+                            border: "1px solid #fcd34d",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <Icon.Plus size={13} /> Add Another Part to Tag #{animal.tag_number || `Carcass ${animalIdx + 1}`}
+                        </button>
 
                         <div style={{ fontSize: 12, fontWeight: 700, color: "#92400e" }}>
                           Subtotal:{" "}
@@ -3359,47 +3401,6 @@ export const InspectionForm = ({
               })}
 
 
-            </div>
-          )}
-
-          {/* Running Overall Partial Condemnation Summary */}
-          {partialAnimals.length > 0 && (
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 10,
-                padding: "12px 16px",
-                background: "linear-gradient(135deg, #fffbeb, #fef3c7)",
-                border: "1px solid #fde68a",
-                borderRadius: 8,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#92400e" }}>
-                  Partial Condemnation Summary: {partialAnimals.length} Carcass{partialAnimals.length === 1 ? "" : "es"} Selected
-                </div>
-                <div style={{ fontSize: 11.5, color: "#b45309", marginTop: 2 }}>
-                  All {partialAnimals.length} carcass{partialAnimals.length === 1 ? "" : "es"} remain &quot;Passed with Partial Condemnation&quot; and will proceed to Carcass Weighing.
-                </div>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", textTransform: "uppercase" }}>Total Cuts</div>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: "#78350f" }}>
-                    {partialAnimals.reduce((acc, a) => acc + (a.parts?.length || 0), 0)} cut(s)
-                  </div>
-                </div>
-                <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#92400e", textTransform: "uppercase" }}>Total Weight</div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#78350f" }}>
-                    {partialAnimals.reduce((acc, a) => acc + (a.parts || []).reduce((s, p) => s + (parseFloat(p.weight) || 0), 0), 0).toFixed(2)} kg
-                  </div>
-                </div>
-              </div>
             </div>
           )}
         </div>
@@ -3685,11 +3686,7 @@ export const InspectionForm = ({
           }}
           style={{
             height: 36,
-            background: decision === "Condemned"
-              ? "linear-gradient(135deg, #dc2626, #b91c1c)"
-              : decision === "Partial"
-              ? "linear-gradient(135deg, #d97706, #b45309)"
-              : "linear-gradient(135deg, #0284c7, #0369a1)",
+            background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
             color: "#ffffff",
             fontWeight: 700,
             padding: "0 18px",
@@ -3698,21 +3695,18 @@ export const InspectionForm = ({
             display: "inline-flex",
             alignItems: "center",
             gap: 6,
+            boxShadow: "0 2px 6px rgba(16, 185, 129, 0.28)",
           }}
         >
           {submitting ? (
-            "Saving Inspection..."
-          ) : decision === "Partial" ? (
             <>
-              <Icon.Scale size={16} /> Approve Partial Condemnation
-            </>
-          ) : decision === "Condemned" ? (
-            <>
-              <Icon.AlertTriangle size={16} /> {type === "Ante-Mortem" ? "Condemn Livestock" : "Condemn Carcass"}
+              <Icon.RefreshCw size={14} className="animate-spin" />
+              <span>Recording Inspection...</span>
             </>
           ) : (
             <>
-              <Icon.Check size={16} /> Approve
+              <Icon.ClipboardCheck size={16} />
+              <span>Record Inspection</span>
             </>
           )}
         </Button>
@@ -3829,15 +3823,7 @@ export const InspectionForm = ({
             </div>
           ) : ""
         }
-        confirmText={
-          pendingConfirm?.isCondemnation || (pendingConfirm?.summary?.condemnedCount > 0 && pendingConfirm?.summary?.approvedCount === 0)
-            ? "Confirm Condemnation"
-            : (pendingConfirm?.summary?.partialCount || 0) > 0 && pendingConfirm?.summary?.approvedCount === 0 && pendingConfirm?.summary?.condemnedCount === 0
-            ? "Confirm Partial Condemnation"
-            : pendingConfirm?.summary?.approvedCount > 0 && pendingConfirm?.summary?.condemnedCount === 0
-            ? (type === "Ante-Mortem" ? "Yes, Approve Livestock" : "Yes, Approve Carcass")
-            : "Yes, Approve & Certify"
-        }
+        confirmText="Record Inspection"
         confirmVariant={
           pendingConfirm?.isCondemnation || (pendingConfirm?.summary?.condemnedCount > 0 && pendingConfirm?.summary?.approvedCount === 0)
             ? "danger"

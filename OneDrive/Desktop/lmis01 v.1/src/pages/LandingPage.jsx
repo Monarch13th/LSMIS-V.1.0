@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/icons";
+import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../hooks/useAuth";
 import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
@@ -166,6 +167,7 @@ export const LandingPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const mobileMenuRef = useRef(null);
 
+  const { theme, toggleTheme } = useTheme();
   const { role, isAuthenticated, loading: authLoading, isInitialized: authInitialized } = useAuth();
   const navigate = useNavigate();
 
@@ -284,14 +286,14 @@ export const LandingPage = () => {
               href="#top"
               onClick={(e) => scrollToSection(e, "#top")}
               className="nav-brand-link"
-              aria-label="LSMIS - Home"
+              aria-label="City of Naga LSMIS - Home"
             >
               <div className="nav-brand-logo">
-                <img src={logoImg} alt="LSMIS Seal" width="44" height="44" />
+                <img src={logoImg} alt="City of Naga LSMIS Seal" width="44" height="44" />
               </div>
               <div className="nav-brand-text">
                 <span className="nav-brand-title">LSMIS</span>
-                <span className="nav-brand-sub">Tinaan, City of Naga, Cebu</span>
+                <span className="nav-brand-sub">City of Naga - Slaughterhouse</span>
               </div>
             </a>
 
@@ -314,12 +316,17 @@ export const LandingPage = () => {
               })}
             </nav>
 
-            {/* Nav Actions: Register Owner, Login, Mobile Toggle */}
+            {/* Nav Actions: Theme Toggle, Login, Mobile Toggle */}
             <div className="nav-actions">
-              <Link to="/register" className="nav-btn-register">
-                <Icon.UserPlus size={15} />
-                <span>Register Owner</span>
-              </Link>
+              <button
+                type="button"
+                className="nav-theme-toggle"
+                onClick={toggleTheme}
+                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+                title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+              >
+                {theme === "dark" ? <Icon.Sun size={17} /> : <Icon.Moon size={17} />}
+              </button>
 
               <Link to="/login" className="nav-btn-login">
                 <Icon.LogIn size={15} />
@@ -800,74 +807,72 @@ export const LandingPage = () => {
       </section>
 
       {/* =========================================================
-          7. FOOTER
+          7. FOOTER (Compact Municipal Abattoir Layout)
           ========================================================= */}
       <footer className="landing-footer" role="contentinfo">
         <div className="landing-container">
-          <div className="footer-top-grid">
-            {/* Brand & Single Original Seal */}
-            <div className="footer-brand-box">
-              <div className="footer-brand-lockup">
-                <div className="footer-seal-item" title="LSMIS Official Seal">
-                  <img src={logoImg} alt="LSMIS Official Seal" width="48" height="48" />
+          <div className="footer-compact-main">
+            {/* Brand & Institutional Seals */}
+            <div className="footer-compact-brand">
+              <div className="footer-seals-row">
+                <div className="footer-seal-item" title="City of Naga Official Seal">
+                  <img src="/naga_city_seal.png" alt="City of Naga Seal" width="36" height="36" />
                 </div>
-                <div className="footer-brand-title-group">
-                  <h4 className="footer-brand-heading">LSMIS</h4>
-                  <div className="footer-brand-subheading">
-                    Livestock Slaughter and Meat Inspection Management System
-                  </div>
+                <div className="footer-seal-item" title="LSMIS Official Seal">
+                  <img src={logoImg} alt="LSMIS Official Seal" width="36" height="36" />
+                </div>
+                <div className="footer-seal-item" title="Bagong Pilipinas Official Seal">
+                  <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas Seal" width="36" height="36" />
                 </div>
               </div>
-
-              <p className="footer-brand-summary">
-                A digital system for livestock registration, veterinary inspections, slaughter operations, and meat permits.
-              </p>
-
-              <div className="footer-brand-location">
-                Tinaan, City of Naga, Cebu
+              <div className="footer-brand-info">
+                <h4 className="footer-brand-heading">LSMIS · City of Naga</h4>
+                <div className="footer-brand-subheading">
+                  Office of the City Veterinarian - Tinaan, Naga City, Cebu
+                </div>
               </div>
             </div>
 
-            {/* Quick Navigation */}
-            <div>
-              <h5 className="footer-col-title">Navigation</h5>
-              <ul className="footer-links-list">
-                {NAV_ITEMS.map((item) => (
-                  <li key={item.label}>
-                    <a href={item.href} onClick={(e) => scrollToSection(e, item.href)}>
+            {/* Compact Essential Navigation & Contacts */}
+            <div className="footer-compact-links-wrap">
+              <div className="footer-links-group">
+                <span className="footer-group-label">Quick Links</span>
+                <nav className="footer-nav-row" aria-label="Footer Navigation">
+                  {NAV_ITEMS.map((item) => (
+                    <a
+                      key={item.label}
+                      href={item.href}
+                      onClick={(e) => scrollToSection(e, item.href)}
+                      className="footer-nav-link"
+                    >
                       {item.label}
                     </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
+                  ))}
+                </nav>
+              </div>
 
-            {/* Statutory Standards */}
-            <div>
-              <h5 className="footer-col-title">Standards</h5>
-              <ul className="footer-links-list">
-                <li><span>Republic Act No. 9296</span></li>
-                <li><span>Republic Act No. 10536</span></li>
-                <li><span>NMIS Guidelines</span></li>
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h5 className="footer-col-title">Contact</h5>
-              <ul className="footer-links-list">
-                <li><span>Tinaan, City of Naga, Cebu</span></li>
-                <li><a href="tel:0322726655">(032) 272-6655</a></li>
-                <li><a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a></li>
-              </ul>
+              <div className="footer-links-group">
+                <span className="footer-group-label">Mandates & Contact</span>
+                <div className="footer-meta-row">
+                  <span>RA 9296</span>
+                  <span className="footer-bullet">•</span>
+                  <span>RA 10536</span>
+                  <span className="footer-bullet">•</span>
+                  <span>NMIS Class AA</span>
+                  <span className="footer-bullet">•</span>
+                  <a href="tel:0322726655">(032) 272-6655</a>
+                  <span className="footer-bullet">•</span>
+                  <a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Bottom Bar: Copyright & Back to Top */}
           <div className="footer-bottom-bar">
-            <span className="footer-copyright-text">
-              &copy; 2026 City of Naga, Cebu. All rights reserved.
-            </span>
+            <div className="footer-copyright-text">
+              &copy; {new Date().getFullYear()} City Government of Naga, Cebu · Office of the City Veterinarian. All rights reserved.
+            </div>
 
             <button
               type="button"
@@ -876,7 +881,7 @@ export const LandingPage = () => {
               aria-label="Back to top of page"
             >
               <span>Back to Top</span>
-              <Icon.ChevronUp size={14} />
+              <Icon.ChevronUp size={13} />
             </button>
           </div>
         </div>

@@ -3080,7 +3080,11 @@ export const SlaughterProcessing = () => {
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{s.species}</td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{formatSex(s.sex)}</td>
                           <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>
-                            {s.age_months ? `${s.age_months} mos` : "—"}
+                            {s.age_months
+                              ? (/months?|mos|years?|yrs|days?/i.test(String(s.age_months))
+                                ? String(s.age_months)
+                                : `${s.age_months} mos`)
+                              : "—"}
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
                             {formatPhDateTime(s.mark_date || s.scheduled_date || s.date || s.created_at)}

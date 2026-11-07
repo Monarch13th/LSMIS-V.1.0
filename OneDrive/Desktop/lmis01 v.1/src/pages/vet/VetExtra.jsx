@@ -12,7 +12,7 @@ import { formatDate, formatPhDateTime, formatCertDateTime, formatSex } from "../
 import { today, initials } from "../../utils/helpers";
 import { useState, useRef, useEffect, useMemo, useCallback, Fragment } from "react";
 import { vetService } from "../../services/vetService";
-import { InspectionForm, CONDEMNED_PARTS_LIST, CONDEMNED_REASONS_LIST } from "../../components/forms/InspectionForm";
+import { InspectionForm, CONDEMNED_PARTS_LIST, CONDEMNED_REASONS_LIST, CARCASS_AREAS, SPECIFIC_PARTS_BY_AREA } from "../../components/forms/InspectionForm";
 import {
   getCondemnationStage,
   matchesStage,
@@ -1537,9 +1537,11 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return;
     }
 
-    const effectiveLocation = (form.location || "").trim();
+    const effectiveLocation = (addScope === "partial"
+      ? (form.specific_part === "Other" ? (form.custom_part || "").trim() : (form.specific_part || form.location || "").trim())
+      : (form.location || "").trim());
     if (!effectiveLocation) {
-      showToast("Please enter the location or area.", "error");
+      showToast(addScope === "partial" ? "Please select a specific condemned part." : "Please enter the location or area.", "error");
       return;
     }
 
@@ -1572,7 +1574,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     }
 
 
-    if (!form.disposition || !form.disposition.trim()) {
+    if (addScope !== "partial" && (!form.disposition || !form.disposition.trim())) {
       showToast("Please select a disposition.", "error");
       return;
     }
@@ -2589,89 +2591,130 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             </div>
           )}
 
-          {/* 1. Condemned Part & 2. Location / Area */}
+          {/* 1. Condemned Part & 2. Specific Part / Location */}
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
-                Condemned Part <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
+                {addScope === "partial" ? "Carcass Area" : "Condemned Part"} <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
               </label>
               {type === "Ante-Mortem" ? (
                 <Input value="Live Animal" disabled />
               ) : addScope === "whole" ? (
                 <Input value="Whole Carcass" disabled />
               ) : (
-                <>
-                  <select
-                    value={form.part}
-                    onChange={(e) => setForm({ ...form, part: e.target.value })}
-                    style={{
-                      width: "100%",
-                      height: 38,
-                      borderRadius: 8,
-                      border: "1px solid var(--color-border)",
-                      background: "var(--color-surface)",
-                      fontSize: 13,
-                      padding: "0 10px",
-                      fontWeight: 600,
-                      color: "var(--color-text)",
-                    }}
-                  >
-                    {CONDEMNED_PARTS_LIST.map((p) => (
-                      <option key={p} value={p}>{p}</option>
-                    ))}
-                  </select>
-                  {form.part === "Other" && (
-                    <input
-                      type="text"
-                      placeholder="Specify condemned part/cut *..."
-                      value={form.custom_part || ""}
-                      onChange={(e) => setForm({ ...form, custom_part: e.target.value })}
-                      style={{
-                        width: "100%",
-                        height: 34,
-                        marginTop: 6,
-                        borderRadius: 6,
-                        border: "1px solid var(--color-border)",
-                        background: "var(--color-surface)",
-                        color: "var(--color-text)",
-                        padding: "0 8px",
-                        fontSize: 12,
-                      }}
-                    />
-                  )}
-                </>
+                <select
+                  value={form.part || CARCASS_AREAS[0]}
+                  onChange={(e) => {
+                    const newArea = e.target.value;
+                    const defaultSpecific = SPECIFIC_PARTS_BY_AREA[newArea]?.[0] || "Other";
+                    setForm({
+                      ...form,
+                      part: newArea,
+                      specific_part: defaultSpecific,
+                      location: defaultSpecific,
+                      custom_part: "",
+                    });
+                  }}
+                  style={{
+                    width: "100%",
+                    height: 38,
+                    borderRadius: 8,
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-surface)",
+                    fontSize: 13,
+                    padding: "0 10px",
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                  }}
+                >
+                  {CARCASS_AREAS.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
               )}
             </div>
 
-            <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: attemptedSave && !form.location?.trim() ? "#ef4444" : "var(--color-text)", marginBottom: 4 }}>
-                Location / Area <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="e.g. Left liver lobe, Upper portion of left hind leg, Area near shoulder joint..."
-                value={form.location || ""}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                style={{
-                  width: "100%",
-                  height: 38,
-                  borderRadius: 8,
-                  border: attemptedSave && !form.location?.trim() ? "1.5px solid #ef4444" : "1px solid var(--color-border)",
-                  background: attemptedSave && !form.location?.trim() ? "#fef2f2" : "var(--color-surface)",
-                  fontSize: 13,
-                  padding: "0 10px",
-                  fontWeight: 600,
-                  color: "var(--color-text)",
-                  boxShadow: attemptedSave && !form.location?.trim() ? "0 0 0 3px rgba(239, 68, 68, 0.15)" : "none",
-                }}
-              />
-              {attemptedSave && !form.location?.trim() && (
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 4, display: "block" }}>
-                  ⚠️ Location / Area is required. Please specify the location.
-                </span>
-              )}
-            </div>
+            {addScope === "partial" ? (
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
+                  Specific Part <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
+                </label>
+                <select
+                  value={form.specific_part || SPECIFIC_PARTS_BY_AREA[form.part]?.[0] || "Other"}
+                  onChange={(e) => {
+                    const sp = e.target.value;
+                    setForm({
+                      ...form,
+                      specific_part: sp,
+                      location: sp === "Other" ? (form.custom_part || "") : sp,
+                      custom_part: sp === "Other" ? form.custom_part : "",
+                    });
+                  }}
+                  style={{
+                    width: "100%",
+                    height: 38,
+                    borderRadius: 8,
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-surface)",
+                    fontSize: 13,
+                    padding: "0 10px",
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                  }}
+                >
+                  {(SPECIFIC_PARTS_BY_AREA[form.part || CARCASS_AREAS[0]] || ["Other"]).map((sp) => (
+                    <option key={sp} value={sp}>{sp}</option>
+                  ))}
+                </select>
+                {form.specific_part === "Other" && (
+                  <input
+                    type="text"
+                    placeholder="Specify condemned part *..."
+                    value={form.custom_part || ""}
+                    onChange={(e) => {
+                      const cp = e.target.value;
+                      setForm({ ...form, custom_part: cp, location: cp });
+                    }}
+                    style={{
+                      width: "100%",
+                      height: 34,
+                      marginTop: 6,
+                      borderRadius: 6,
+                      border: "1px solid #f59e0b",
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      padding: "0 8px",
+                      fontSize: 12,
+                    }}
+                    required
+                  />
+                )}
+              </div>
+            ) : (
+              <div>
+                <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: attemptedSave && !form.location?.trim() ? "#ef4444" : "var(--color-text)", marginBottom: 4 }}>
+                  Location / Area <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. General / Systemic..."
+                  value={form.location || ""}
+                  onChange={(e) => setForm({ ...form, location: e.target.value })}
+                  style={{
+                    width: "100%",
+                    height: 38,
+                    borderRadius: 8,
+                    border: attemptedSave && !form.location?.trim() ? "1.5px solid #ef4444" : "1px solid var(--color-border)",
+                    background: attemptedSave && !form.location?.trim() ? "#fef2f2" : "var(--color-surface)",
+                    fontSize: 13,
+                    padding: "0 10px",
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           {/* 3. Weight (kg) & 4. Pathology / Reason */}
@@ -2891,31 +2934,33 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             )}
           </div>
 
-          {/* 7. Disposition */}
-          <div>
-            <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
-              Disposition <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
-            </label>
-            <select
-              value={form.disposition}
-              onChange={(e) => setForm({ ...form, disposition: e.target.value })}
-              style={{
-                width: "100%",
-                height: 38,
-                borderRadius: 8,
-                border: "1px solid var(--color-border)",
-                background: "var(--color-surface)",
-                fontSize: 13,
-                padding: "0 10px",
-                fontWeight: 600,
-                color: "var(--color-text)",
-              }}
-            >
-              {DISPOSITION_OPTIONS.map((d) => (
-                <option key={d} value={d}>{d}</option>
-              ))}
-            </select>
-          </div>
+          {/* 7. Disposition - Only shown for Whole Carcass / Ante-Mortem, REMOVED for Partial Condemnation */}
+          {addScope !== "partial" && (
+            <div>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
+                Disposition <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
+              </label>
+              <select
+                value={form.disposition}
+                onChange={(e) => setForm({ ...form, disposition: e.target.value })}
+                style={{
+                  width: "100%",
+                  height: 38,
+                  borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                  fontSize: 13,
+                  padding: "0 10px",
+                  fontWeight: 600,
+                  color: "var(--color-text)",
+                }}
+              >
+                {DISPOSITION_OPTIONS.map((d) => (
+                  <option key={d} value={d}>{d}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
             <Input

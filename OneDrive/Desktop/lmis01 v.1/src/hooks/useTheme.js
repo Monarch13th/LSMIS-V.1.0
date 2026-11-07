@@ -92,48 +92,53 @@ export const ThemeProvider = ({ children }) => {
   const pathname = location?.pathname || (typeof window !== "undefined" ? window.location.pathname : "/");
   const isPublic = isPublicPath(pathname);
 
-  // Active theme state for the currently logged-in account
+  // Active theme state
   const [theme, setThemeState] = useState(() => {
-    if (isPublic) return "light";
-    return getStoredUserTheme(session);
+    if (session) return getStoredUserTheme(session);
+    if (typeof localStorage !== "undefined") {
+      const g = localStorage.getItem("lsmis_theme_guest");
+      if (g === "dark" || g === "light") return g;
+    }
+    return "light";
   });
 
   // Whenever the route or session transitions:
   useEffect(() => {
-    if (isPublicPath(pathname)) {
-      // Requirement 1 & 2: Public pages strictly use default light theme
-      applyThemeToDom("light");
-    } else if (session) {
+    if (session && !isPublicPath(pathname)) {
       // Authenticated system route: load and apply this user's independent preference
       const userTheme = getStoredUserTheme(session);
       setThemeState(userTheme);
       applyThemeToDom(userTheme);
+    } else if (pathname === "/") {
+      // Landing page: load guest preference if toggled, otherwise light
+      const guestTheme = (typeof localStorage !== "undefined" && localStorage.getItem("lsmis_theme_guest")) || "light";
+      setThemeState(guestTheme);
+      applyThemeToDom(guestTheme);
+    } else if (isPublicPath(pathname)) {
+      // Public authentication pages (login, register, forgot-password): strictly default light
+      applyThemeToDom("light");
     } else {
-      // Unauthenticated non-public fallback: light
       applyThemeToDom("light");
     }
   }, [pathname, session?.id, session?.email, session?.role]);
 
   const updateTheme = useCallback((newTheme) => {
-    // Only authenticated sessions can set and persist theme preference
-    if (!session) return;
     const safeTheme = newTheme === "dark" ? "dark" : "light";
     try {
-      const keys = getUserThemeKeys(session);
-      keys.forEach((key) => {
-        localStorage.setItem(key, safeTheme);
-      });
-      // Optionally persist in Supabase Auth user metadata
-      if (supabase?.auth?.updateUser) {
-        supabase.auth.updateUser({ data: { theme: safeTheme } }).catch(() => {});
+      if (session) {
+        const keys = getUserThemeKeys(session);
+        keys.forEach((key) => {
+          localStorage.setItem(key, safeTheme);
+        });
+        if (supabase?.auth?.updateUser) {
+          supabase.auth.updateUser({ data: { theme: safeTheme } }).catch(() => {});
+        }
+      } else {
+        localStorage.setItem("lsmis_theme_guest", safeTheme);
       }
     } catch (_) {}
 
-    // Apply to DOM immediately if on an authenticated page
-    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
-    if (!isPublicPath(currentPath)) {
-      applyThemeToDom(safeTheme);
-    }
+    applyThemeToDom(safeTheme);
     setThemeState(safeTheme);
   }, [session]);
 
@@ -142,7 +147,7 @@ export const ThemeProvider = ({ children }) => {
   }, [theme, updateTheme]);
 
   const value = useMemo(() => ({
-    theme: isPublic ? "light" : theme,
+    theme,
     setTheme: updateTheme,
     toggleTheme,
     isPublic,

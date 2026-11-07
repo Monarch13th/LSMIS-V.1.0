@@ -498,7 +498,7 @@ export const Owners = ({ initialTab = "owners" }) => {
     setRegistrationSuccessDialog({
       open: true,
       title: "Livestock Registered Successfully",
-      message: "The livestock record has been saved successfully.",
+      message: `Successfully registered ${rowsToInsert.length} livestock ${rowsToInsert.length === 1 ? "record" : "records"} for ${targetOwnerName}. Newly registered livestock are now queued in Animal Marking.`,
     });
   };
 
@@ -1396,7 +1396,24 @@ export const Owners = ({ initialTab = "owners" }) => {
         open={!!intakeModalOwner}
         onClose={() => setIntakeModalOwner(null)}
         title={intakeModalOwner ? `Register Incoming Livestock — ${intakeModalOwner.name}` : "Register Incoming Livestock"}
-        size="lg"
+        dialogStyle={{
+          maxWidth: 820,
+          width: "95vw",
+          height: "82vh",
+          maxHeight: 700,
+          minHeight: 520,
+          display: "flex",
+          flexDirection: "column",
+        }}
+        headerStyle={{ padding: "14px 20px", flexWrap: "nowrap", gap: 12, flexShrink: 0 }}
+        bodyStyle={{
+          padding: "18px 20px 0 20px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          overflow: "hidden",
+        }}
       >
         {intakeModalOwner && (
           <MultiLivestockForm

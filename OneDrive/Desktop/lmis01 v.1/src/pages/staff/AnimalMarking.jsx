@@ -1799,7 +1799,13 @@ export const AnimalMarking = ({ navTabs }) => {
                         </td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{item.species}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{formatSex(item.sex)}</td>
-                        <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>{item.age_months ? `${item.age_months} mos` : "—"}</td>
+                        <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>
+                          {item.age_months
+                            ? (/months?|mos|years?|yrs|days?/i.test(String(item.age_months))
+                              ? String(item.age_months)
+                              : `${item.age_months} mos`)
+                            : "—"}
+                        </td>
                         <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
                           {formatPhDateTime(item.mark_date || item.created_at || item.registered_at)}
                         </td>
