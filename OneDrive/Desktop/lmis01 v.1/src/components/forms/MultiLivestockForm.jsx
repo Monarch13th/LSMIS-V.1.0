@@ -225,6 +225,8 @@ export const MultiLivestockForm = ({
 
   // Update specific field on an entry without affecting any other entry
   const handleUpdateEntry = (entryId, field, value) => {
+    let currentEntry = null;
+
     setEntries((prev) =>
       prev.map((item) => {
         if (item.id !== entryId) return item;
@@ -233,9 +235,14 @@ export const MultiLivestockForm = ({
           const matched = speciesList.find((s) => s.id === value || s.label === value);
           updated.species_id = matched?.dbId || null;
         }
+        currentEntry = updated;
         return updated;
       })
     );
+
+    const target = currentEntry || entries.find((item) => item.id === entryId) || {};
+    const effectiveAgeUnit = field === "age_unit" ? value : target.age_unit;
+    const effectiveAgeValue = field === "age_value" ? value : target.age_value;
 
     setErrors((prev) => {
       const next = { ...prev };
@@ -250,7 +257,7 @@ export const MultiLivestockForm = ({
         } else if (strVal && parseInt(strVal, 10) <= 0) {
           next[`age_${entryId}`] = "Please enter a valid age greater than 0.";
         } else if (strVal && parseInt(strVal, 10) > 0) {
-          const isYear = String(updated.age_unit || "").toLowerCase().startsWith("year");
+          const isYear = String(effectiveAgeUnit || "").toLowerCase().startsWith("year");
           const ageNum = parseInt(strVal, 10);
           if (!isYear && ageNum > 240) {
             next[`age_${entryId}`] = "Age in months cannot exceed 240 (20 years).";
@@ -265,7 +272,7 @@ export const MultiLivestockForm = ({
       // Re-validate limits when age_unit changes
       if (field === "age_unit") {
         const isYear = String(value || "").toLowerCase().startsWith("year");
-        const strVal = String(updated.age_value || "").trim();
+        const strVal = String(effectiveAgeValue || "").trim();
         if (strVal && /^\d+$/.test(strVal)) {
           const ageNum = parseInt(strVal, 10);
           if (ageNum > 0) {
