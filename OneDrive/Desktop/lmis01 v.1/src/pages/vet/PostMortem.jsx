@@ -1848,7 +1848,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               color: "#7c3aed",
                             }}
                           >
-                            <Icon.Activity size={13} /> Slaughtered Ã‚Â· Ready for Vet
+                            <Icon.Activity size={13} /> Slaughtered · Ready for Vet
                           </span>
                         </td>
 
@@ -2240,7 +2240,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </td>
                         <td style={{ padding: "12px 14px" }}>
                           <span style={{ fontSize: 12, fontWeight: 600, color: "#7c3aed" }}>
-                            Slaughter Completed Ã‚Â· Ready for Vet
+                            Slaughter Completed · Ready for Vet
                           </span>
                         </td>
                         <td style={{ padding: "12px 14px", textAlign: "right" }}>
@@ -2459,13 +2459,13 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             >
               <div>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: "#8b5cf6", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Republic of the Philippines Ã‚Â· City Veterinary Office
+                  Republic of the Philippines · City Veterinary Office
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
                   Post-Mortem Inspection Certificate
                 </div>
                 <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                  Record ID: #{selectedInspection.id || "00001"} Ã‚Â· Date: {formatPhDateTime(selectedInspection.inspected_at || selectedInspection.created_at || selectedInspection.date)}
+                  Record ID: #{selectedInspection.id || "00001"} · Date: {formatPhDateTime(selectedInspection.inspected_at || selectedInspection.created_at || selectedInspection.date)}
                 </div>
               </div>
               <Badge status={selectedInspection.decision || "Approved"} />
@@ -2482,7 +2482,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species & Sex</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {selectedInspection.species || selectedInspection.animal?.species || resolveAnimal(selectedInspection)?.species || "Ã¢â‚¬â€"} Ã‚Â· {formatSex(selectedInspection.sex || selectedInspection.animal?.sex || resolveAnimal(selectedInspection)?.sex)}
+                  {selectedInspection.species || selectedInspection.animal?.species || resolveAnimal(selectedInspection)?.species || "Ã¢â‚¬â€"} · {formatSex(selectedInspection.sex || selectedInspection.animal?.sex || resolveAnimal(selectedInspection)?.sex)}
                 </div>
               </div>
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
