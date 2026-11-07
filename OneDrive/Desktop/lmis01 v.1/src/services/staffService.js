@@ -231,12 +231,22 @@ export const staffService = {
       actor,
     });
 
+    const ageVal = p.age_value !== undefined && p.age_value !== null && !isNaN(p.age_value)
+      ? Number(p.age_value)
+      : (p.age_months ? parseInt(p.age_months, 10) || null : null);
+    const isYear = String(p.age_unit || p.age_months || "").toLowerCase().includes("year");
+    const ageUnit = p.age_unit
+      ? String(p.age_unit).trim()
+      : (p.age_months ? (isYear ? (ageVal === 1 ? "Year" : "Years") : (ageVal === 1 ? "Month" : "Months")) : null);
+
     const row = {
       id: p.id || uuid(),
       tag_number: p.tag_number,
       species: p.species,
       sex: p.sex || null,
       age_months: p.age_months || null,
+      age_value: ageVal,
+      age_unit: ageUnit,
       quantity: rawQty,
       owner_id: targetOwnerId,
       owner_name: targetOwnerName,
@@ -260,13 +270,17 @@ export const staffService = {
       insertedData = insData;
     }
 
-    if (insertErr && /registered_at|created_by|registered_by|process_history|schema cache|column/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
+    if (insertErr && /registered_at|created_by|registered_by|process_history|age_value|age_unit|schema cache|column/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
       const fallbackRow = { ...row };
       delete fallbackRow.created_by;
       delete fallbackRow.created_by_user_id;
       delete fallbackRow.registered_by;
       delete fallbackRow.registered_by_user_id;
       delete fallbackRow.process_history;
+      if (/age_value|age_unit/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
+        delete fallbackRow.age_value;
+        delete fallbackRow.age_unit;
+      }
       if (/registered_at/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
         delete fallbackRow.registered_at;
       }
@@ -383,6 +397,14 @@ export const staffService = {
         actor,
       });
 
+      const ageVal = p.age_value !== undefined && p.age_value !== null && !isNaN(p.age_value)
+        ? Number(p.age_value)
+        : (p.age_months ? parseInt(p.age_months, 10) || null : null);
+      const isYear = String(p.age_unit || p.age_months || "").toLowerCase().includes("year");
+      const ageUnit = p.age_unit
+        ? String(p.age_unit).trim()
+        : (p.age_months ? (isYear ? (ageVal === 1 ? "Year" : "Years") : (ageVal === 1 ? "Month" : "Months")) : null);
+
       return {
         id: p.id || uuid(),
         tag_number: p.tag_number,
@@ -390,6 +412,8 @@ export const staffService = {
         species_id: p.species_id || null,
         sex: p.sex || null,
         age_months: p.age_months || null,
+        age_value: ageVal,
+        age_unit: ageUnit,
         quantity: rawQty,
         owner_id: targetOwnerId,
         owner_name: targetOwnerName,
@@ -414,7 +438,7 @@ export const staffService = {
       insertedRows = insData;
     }
 
-    if (insertErr && /registered_at|created_by|registered_by|process_history|schema cache|column/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
+    if (insertErr && /registered_at|created_by|registered_by|process_history|age_value|age_unit|schema cache|column/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
       const fallbackRows = rows.map((r) => {
         const fb = { ...r };
         delete fb.created_by;
@@ -422,6 +446,10 @@ export const staffService = {
         delete fb.registered_by;
         delete fb.registered_by_user_id;
         delete fb.process_history;
+        if (/age_value|age_unit/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
+          delete fb.age_value;
+          delete fb.age_unit;
+        }
         if (/registered_at/i.test(`${insertErr.message || ""} ${insertErr.details || ""}`)) {
           delete fb.registered_at;
         }

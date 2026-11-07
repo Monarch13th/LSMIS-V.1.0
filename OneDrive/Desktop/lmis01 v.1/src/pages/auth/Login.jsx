@@ -16,6 +16,7 @@ import { supabase, initialOAuthCallback } from "../../services/supabaseClient";
 import { adminService } from "../../services/adminService";
 import { authSecurityService } from "../../services/authSecurityService";
 import { useAuth } from "../../hooks/useAuth";
+import { scrollToFirstError } from "../../utils/formValidation";
 import logoImg from "../../assets/logo.jpg";
 
 // Official Google 4-Color "G" Brand Logo
@@ -1028,15 +1029,21 @@ export const Login = ({ embedded = false, initialView }) => {
       setRegShake(true);
       setTimeout(() => setRegShake(false), 500);
 
-      // Focus the first invalid field
-      if (firstKey === "name" && regNameRef.current) regNameRef.current.focus();
-      else if (firstKey === "contact" && regContactRef.current) regContactRef.current.focus();
-      else if (firstKey === "username" && regUsernameRef.current) regUsernameRef.current.focus();
-      else if (firstKey === "address" && regAddressRef.current) regAddressRef.current.focus();
-      else if (firstKey === "email" && regEmailRef.current) regEmailRef.current.focus();
-      else if (firstKey === "password" && regPasswordRef.current) regPasswordRef.current.focus();
-      else if (firstKey === "confirmPassword" && regConfirmPasswordRef.current) regConfirmPasswordRef.current.focus();
-      else if (firstKey === "agreement" && regAgreementRef.current) regAgreementRef.current.focus();
+      // Focus and smoothly scroll to the first invalid field
+      const refMap = {
+        name: regNameRef,
+        contact: regContactRef,
+        username: regUsernameRef,
+        address: regAddressRef,
+        email: regEmailRef,
+        password: regPasswordRef,
+        confirmPassword: regConfirmPasswordRef,
+        agreement: regAgreementRef,
+      };
+      const targetRef = refMap[firstKey];
+      if (targetRef && targetRef.current) {
+        scrollToFirstError(targetRef.current, { offset: 80 });
+      }
 
       return;
     }
@@ -1129,15 +1136,24 @@ export const Login = ({ embedded = false, initialView }) => {
     const inputIdentifier = email.trim();
     const inputPassword = password;
 
-    if (!inputIdentifier || !inputPassword) {
-      setError("Please enter both email and password.");
+    if (!inputIdentifier) {
+      setError("Please enter your email address.");
       triggerShake();
+      scrollToFirstError("login-email", { offset: 80 });
+      return;
+    }
+
+    if (!inputPassword) {
+      setError("Please enter your password.");
+      triggerShake();
+      scrollToFirstError("login-password", { offset: 80 });
       return;
     }
 
     if (!inputIdentifier.includes("@")) {
       setError("Please enter a valid email address.");
       triggerShake();
+      scrollToFirstError("login-email", { offset: 80 });
       return;
     }
 

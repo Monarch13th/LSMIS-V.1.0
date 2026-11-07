@@ -6,6 +6,7 @@ import { ConfirmDialog } from "../ui/Modal";
 import { listSpecies } from "../../services/speciesService";
 import { TABLES } from "../../utils/constants";
 import { supabase } from "../../services/supabaseClient";
+import { scrollToFirstError } from "../../utils/formValidation";
 
 export const SPECIES_CONFIG = [
   { id: "Hog", label: "Hog", color: "#a855f7", dbId: "spec-hog", image_url: null },
@@ -249,7 +250,33 @@ export const MultiLivestockForm = ({
         } else if (strVal && parseInt(strVal, 10) <= 0) {
           next[`age_${entryId}`] = "Please enter a valid age greater than 0.";
         } else if (strVal && parseInt(strVal, 10) > 0) {
-          delete next[`age_${entryId}`];
+          const isYear = String(updated.age_unit || "").toLowerCase().startsWith("year");
+          const ageNum = parseInt(strVal, 10);
+          if (!isYear && ageNum > 240) {
+            next[`age_${entryId}`] = "Age in months cannot exceed 240 (20 years).";
+          } else if (isYear && ageNum > 30) {
+            next[`age_${entryId}`] = "Age in years cannot exceed 30.";
+          } else {
+            delete next[`age_${entryId}`];
+          }
+        }
+      }
+
+      // Re-validate limits when age_unit changes
+      if (field === "age_unit") {
+        const isYear = String(value || "").toLowerCase().startsWith("year");
+        const strVal = String(updated.age_value || "").trim();
+        if (strVal && /^\d+$/.test(strVal)) {
+          const ageNum = parseInt(strVal, 10);
+          if (ageNum > 0) {
+            if (!isYear && ageNum > 240) {
+              next[`age_${entryId}`] = "Age in months cannot exceed 240 (20 years).";
+            } else if (isYear && ageNum > 30) {
+              next[`age_${entryId}`] = "Age in years cannot exceed 30.";
+            } else {
+              delete next[`age_${entryId}`];
+            }
+          }
         }
       }
 
@@ -321,6 +348,31 @@ export const MultiLivestockForm = ({
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       showToast("Please complete all required fields with whole numbers before submitting.", "error");
+
+      // Automatically navigate and scroll to the first invalid field in form order
+      let firstErrorId = null;
+      for (const item of entries) {
+        if (newErrors[`species_${item.id}`]) {
+          firstErrorId = `species_${item.id}`;
+          break;
+        }
+        if (newErrors[`sex_${item.id}`]) {
+          firstErrorId = `sex_${item.id}`;
+          break;
+        }
+        if (newErrors[`age_${item.id}`]) {
+          firstErrorId = `age_${item.id}`;
+          break;
+        }
+        if (newErrors[`quantity_${item.id}`]) {
+          firstErrorId = `quantity_${item.id}`;
+          break;
+        }
+      }
+
+      if (firstErrorId) {
+        scrollToFirstError(firstErrorId, { offset: 90 });
+      }
       return;
     }
 
@@ -337,6 +389,11 @@ export const MultiLivestockForm = ({
         const matchedSpecies = (speciesList || []).find(
           (s) => s.id === item.species || s.label === item.species
         );
+        const ageVal = parseInt(item.age_value, 10);
+        const isYear = String(item.age_unit || "").toLowerCase().startsWith("year");
+        const normalizedUnit = isYear
+          ? (ageVal === 1 ? "Year" : "Years")
+          : (ageVal === 1 ? "Month" : "Months");
         const formattedAge = formatAgeString(item.age_value, item.age_unit);
 
         return {
@@ -344,8 +401,8 @@ export const MultiLivestockForm = ({
           species_id: item.species_id || matchedSpecies?.dbId || null,
           sex: item.sex,
           age_months: formattedAge,
-          age_value: parseInt(item.age_value, 10),
-          age_unit: item.age_unit,
+          age_value: isNaN(ageVal) ? null : ageVal,
+          age_unit: normalizedUnit,
           quantity: parseInt(item.quantity, 10) || 1,
         };
       });
@@ -587,7 +644,7 @@ export const MultiLivestockForm = ({
 
                     {/* Species Dropdown */}
                     <select
-                      id={`species-${entry.id}`}
+                      id={`species_${entry.id}`}
                       className="form-control"
                       value={entry.species}
                       onChange={(e) => handleUpdateEntry(entry.id, "species", e.target.value)}
@@ -631,7 +688,7 @@ export const MultiLivestockForm = ({
                   >
                     Sex <span style={{ color: "#ef4444" }}>*</span>
                   </label>
-                  <div className="sex-toggle-group">
+                  <div id={`sex_${entry.id}`} className="sex-toggle-group">
                     <button
                       type="button"
                       className={`sex-toggle-btn ${entry.sex === "Male" ? "active-male" : ""}`}
@@ -679,7 +736,7 @@ export const MultiLivestockForm = ({
                   </label>
                   <div className="age-input-group">
                     <input
-                      id={`age-value-${entry.id}`}
+                      id={`age_${entry.id}`}
                       type="number"
                       step="1"
                       min="1"
@@ -691,6 +748,21 @@ export const MultiLivestockForm = ({
                         // Disallow decimal point, comma, signs, and exponent notation
                         if (e.key === "." || e.key === "," || e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E") {
                           e.preventDefault();
+                        }
+                      }}
+                      onBeforeInput={(e) => {
+                        if (e.data && /[.,\-+eE]/.test(e.data)) {
+                          e.preventDefault();
+                        }
+                      }}
+                      onPaste={(e) => {
+                        const pasted = e.clipboardData?.getData("text");
+                        if (pasted && /[.,\-+eE]/.test(pasted)) {
+                          e.preventDefault();
+                          const digitsOnly = pasted.replace(/[^\d]/g, "");
+                          if (digitsOnly) {
+                            handleUpdateEntry(entry.id, "age_value", digitsOnly);
+                          }
                         }
                       }}
                       onChange={(e) => {
@@ -748,7 +820,7 @@ export const MultiLivestockForm = ({
                 {/* Field 4: Quantity */}
                 <div>
                   <label
-                    htmlFor={`quantity-${entry.id}`}
+                    htmlFor={`quantity_${entry.id}`}
                     style={{
                       fontSize: 12,
                       fontWeight: 700,
@@ -760,7 +832,7 @@ export const MultiLivestockForm = ({
                     Quantity (Heads) <span style={{ color: "#ef4444" }}>*</span>
                   </label>
                   <input
-                    id={`quantity-${entry.id}`}
+                    id={`quantity_${entry.id}`}
                     type="number"
                     step="1"
                     min="1"

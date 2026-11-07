@@ -21,6 +21,7 @@ import {
   uploadSpeciesImage,
   deleteSpeciesImage,
 } from "../../services/speciesService";
+import { scrollToFirstError } from "../../utils/formValidation";
 
 export const SpeciesManagement = () => {
   const { showToast } = useToast();
@@ -236,6 +237,11 @@ export const SpeciesManagement = () => {
 
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      if (errors.name) {
+        scrollToFirstError("species-name-input", { offset: 80 });
+      } else if (errors.image) {
+        scrollToFirstError("species-image-dropzone", { offset: 80 });
+      }
       return;
     }
 
@@ -249,6 +255,7 @@ export const SpeciesManagement = () => {
         setFormErrors({
           name: `A species named "${cleanName}" already exists. Species names must be unique.`,
         });
+        scrollToFirstError("species-name-input", { offset: 80 });
         return;
       }
     } catch (chkErr) {
@@ -815,6 +822,7 @@ export const SpeciesManagement = () => {
               Species Name <span style={{ color: "#ef4444" }}>*</span>
             </label>
             <input
+              id="species-name-input"
               type="text"
               className="form-control"
               placeholder="e.g. Hog, Cattle, Carabao, Goat, Sheep"
@@ -860,6 +868,7 @@ export const SpeciesManagement = () => {
             {!imagePreview ? (
               /* Empty Upload Dropzone */
               <div
+                id="species-image-dropzone"
                 onClick={() => fileInputRef.current?.click()}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}

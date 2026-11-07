@@ -10,6 +10,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { TABLES } from "../../utils/constants";
 import { formatDate, formatPhDateTime, formatCertDateTime, formatSex } from "../../utils/formatters";
 import { today, initials } from "../../utils/helpers";
+import { scrollToFirstError } from "../../utils/formValidation";
 import { useState, useRef, useEffect, useMemo, useCallback, Fragment } from "react";
 import { vetService } from "../../services/vetService";
 import { InspectionForm, CONDEMNED_PARTS_LIST, CONDEMNED_REASONS_LIST, CARCASS_AREAS, SPECIFIC_PARTS_BY_AREA } from "../../components/forms/InspectionForm";
@@ -1525,6 +1526,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     setAttemptedSave(true);
     if (!form.tag_number) {
       showToast("Please select an animal tag number.", "error");
+      scrollToFirstError("condemnation-tag-select", { offset: 90 });
       return;
     }
 
@@ -1534,6 +1536,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
 
     if (!effectivePart || !effectivePart.trim()) {
       showToast("Please select a condemned part.", "error");
+      scrollToFirstError("condemnation-part-select", { offset: 90 });
       return;
     }
 
@@ -1542,18 +1545,21 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       : (form.location || "").trim());
     if (!effectiveLocation) {
       showToast(addScope === "partial" ? "Please select a specific condemned part." : "Please enter the location or area.", "error");
+      scrollToFirstError(addScope === "partial" ? "condemnation-location-select" : "condemnation-location-input", { offset: 90 });
       return;
     }
 
     const w = parseFloat(form.weight_kg);
     if (isNaN(w) || w <= 0) {
       showToast("Please enter a valid weight greater than 0 kg.", "error");
+      scrollToFirstError("condemnation-weight-input", { offset: 90 });
       return;
     }
 
     const effectiveReason = (form.reason === "Other" ? (form.custom_reason?.trim() || "") : form.reason) || form.reason;
     if (!effectiveReason || !effectiveReason.trim()) {
       showToast("Please select a pathology or reason.", "error");
+      scrollToFirstError("condemnation-reason-select", { offset: 90 });
       return;
     }
 
@@ -2518,7 +2524,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             </div>
           ) : (
             <>
-              <Select label="Animal Tag Number" required value={form.tag_number} onChange={(e) => handleTagChange(e.target.value)}>
+              <Select id="condemnation-tag-select" label="Animal Tag Number" required value={form.tag_number} onChange={(e) => handleTagChange(e.target.value)}>
                 <option value="">-- Select animal --</option>
                 {eligibleAnimals.map((l) => (
                   <option key={l.id || l.tag_number} value={l.tag_number}>
@@ -2605,6 +2611,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 <Input value="Whole Carcass" disabled />
               ) : (
                 <select
+                  id="condemnation-part-select"
                   value={form.part || CARCASS_AREAS[0]}
                   onChange={(e) => {
                     const newArea = e.target.value;
@@ -2642,6 +2649,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   Specific Part <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
                 </label>
                 <select
+                  id="condemnation-location-select"
                   value={form.specific_part || SPECIFIC_PARTS_BY_AREA[form.part]?.[0] || "Other"}
                   onChange={(e) => {
                     const sp = e.target.value;
@@ -2698,6 +2706,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   Location / Area <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
                 </label>
                 <input
+                  id="condemnation-location-input"
                   type="text"
                   required
                   placeholder="e.g. General / Systemic..."
@@ -2726,6 +2735,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 Weight (kg) <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
               </label>
               <input
+                id="condemnation-weight-input"
                 type="number"
                 step="0.01"
                 min="0.01"
@@ -2759,6 +2769,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 Pathology / Reason <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
               </label>
               <select
+                id="condemnation-reason-select"
                 value={form.reason}
                 onChange={(e) => setForm({ ...form, reason: e.target.value })}
                 style={{

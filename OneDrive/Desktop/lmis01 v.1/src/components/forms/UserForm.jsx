@@ -6,6 +6,7 @@ import { validatePassword, getPasswordValidationError } from "../../utils/passwo
 import { isEmailTakenAcrossSystem } from "../../services/adminService";
 import { initials } from "../../utils/helpers";
 import { ROLE_LABELS } from "../../utils/constants";
+import { scrollToFirstError } from "../../utils/formValidation";
 
 export const UserForm = ({ initial, onSubmit, onCancel }) => {
   const [showPwd, setShowPwd] = useState(false);
@@ -44,15 +45,18 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
 
     if (!fullName.trim()) {
       setError("Full Name is required.");
+      scrollToFirstError("personnel-fullname", { offset: 80 });
       return;
     }
     if (!username.trim()) {
       setError("Username is required.");
+      scrollToFirstError("personnel-username", { offset: 80 });
       return;
     }
     const cleanEmail = emailVal.trim().toLowerCase();
     if (!cleanEmail) {
       setError("Email Address is required.");
+      scrollToFirstError("personnel-email", { offset: 80 });
       return;
     }
 
@@ -63,6 +67,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         const msg = "This email address is already in use by another account. Please use another email.";
         setError(msg);
         setEmailError(msg);
+        scrollToFirstError("personnel-email", { offset: 80 });
         setSubmitting(false);
         return;
       }
@@ -81,6 +86,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         const val = validatePassword(password);
         if (!val.isValid) {
           setError(getPasswordValidationError(password));
+          scrollToFirstError("personnel-password", { offset: 80 });
           setSubmitting(false);
           return;
         }

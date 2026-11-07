@@ -465,6 +465,14 @@ export const Owners = ({ initialTab = "owners" }) => {
 
     for (const entry of linesToProcess) {
       const qty = parseInt(entry.quantity, 10) || 1;
+      const ageVal = entry.age_value !== undefined && entry.age_value !== null && !isNaN(entry.age_value)
+        ? Number(entry.age_value)
+        : (parseInt(entry.age_months, 10) || null);
+      const isYear = String(entry.age_unit || entry.age_months || "").toLowerCase().includes("year");
+      const ageUnit = entry.age_unit
+        ? String(entry.age_unit).trim()
+        : (entry.age_months ? (isYear ? (ageVal === 1 ? "Year" : "Years") : (ageVal === 1 ? "Month" : "Months")) : null);
+
       for (let i = 0; i < qty; i++) {
         const seqTag = generateNextTagForSpecies(tempRows, entry.species);
         const newRow = {
@@ -473,6 +481,8 @@ export const Owners = ({ initialTab = "owners" }) => {
           species_id: entry.species_id || null,
           sex: entry.sex,
           age_months: (entry.age_months || "").trim(),
+          age_value: ageVal,
+          age_unit: ageUnit,
           quantity: 1,
           breed: entry.breed || "",
           remarks: entry.remarks || "",

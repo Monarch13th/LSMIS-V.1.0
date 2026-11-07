@@ -11,6 +11,7 @@ import { authService } from "../../services/authService";
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
 import { getCurrentActor } from "../../utils/processHistory";
 import { getRemainingWeighingForOwner } from "../../services/modalLifecycleService";
+import { scrollToFirstError } from "../../utils/formValidation";
 
 // Theme-adaptive species style helper using native design tokens
 const getSpeciesStyle = (species) => {
@@ -681,6 +682,7 @@ export const CarcassWeighing = () => {
     const wVal = parseFloat(editWeight);
     if (isNaN(wVal) || wVal <= 0) {
       showToast("Please enter a valid scale weight (greater than 0kg).", "error");
+      scrollToFirstError("edit-carcass-weight", { offset: 90 });
       return;
     }
     setEditSaving(true);
@@ -781,6 +783,7 @@ export const CarcassWeighing = () => {
         `Cannot save weighing: All ${displayedAnimals.length} carcass${displayedAnimals.length > 1 ? "es" : ""} must have a valid scale weight greater than 0 kg. Missing or invalid (${invalidAnimals.length}): ${invalidTags}`,
         "error"
       );
+      scrollToFirstError(`input-weight-${invalidAnimals[0].tag_number}`, { offset: 110 });
       return;
     }
 
@@ -830,6 +833,7 @@ export const CarcassWeighing = () => {
         `Cannot save weighing: All ${displayedAnimals.length} carcass${displayedAnimals.length > 1 ? "es" : ""} must have a valid scale weight greater than 0 kg. Missing or invalid (${invalidAnimals.length}): ${invalidTags}`,
         "error"
       );
+      scrollToFirstError(`input-weight-${invalidAnimals[0].tag_number}`, { offset: 110 });
       return;
     }
 
@@ -2846,6 +2850,7 @@ export const CarcassWeighing = () => {
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5 }}>
                         <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
                           <input
+                            id={`input-weight-${animal.tag_number}`}
                             type="number"
                             step="0.01"
                             min="0.01"
@@ -3498,6 +3503,7 @@ export const CarcassWeighing = () => {
                 </label>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <input
+                    id="edit-carcass-weight"
                     type="number"
                     step="0.01"
                     min="0.01"

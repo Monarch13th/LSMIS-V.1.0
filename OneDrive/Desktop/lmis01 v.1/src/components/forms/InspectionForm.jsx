@@ -6,6 +6,7 @@ import { useToast } from "../notifications/Toast";
 import { Modal, ConfirmDialog } from "../ui/Modal";
 import { getCurrentActor } from "../../utils/processHistory";
 import { formatSex } from "../../utils/formatters";
+import { scrollToFirstError } from "../../utils/formValidation";
 
 const CheckboxWithIndeterminate = ({ checked, indeterminate, onChange, style, id, disabled, title }) => {
   const ref = useRef(null);
@@ -620,24 +621,17 @@ export const InspectionForm = ({
       showToast(first.message, "warning");
     }
     if (first.fieldId) {
-      setTimeout(() => {
-        const el = document.getElementById(first.fieldId);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-          const focusable = el.matches("input, select, textarea, button")
-            ? el
-            : el.querySelector("input, select, textarea, button");
-          if (focusable && typeof focusable.focus === "function") {
-            focusable.focus();
+      scrollToFirstError(first.fieldId, {
+        offset: 110,
+        delay: 90,
+        onExpand: (targetEl) => {
+          const ownerCard = targetEl.closest("[data-owner-name]");
+          if (ownerCard) {
+            const ownerName = ownerCard.getAttribute("data-owner-name");
+            if (ownerName) setActiveExpandedOwner(ownerName);
           }
-          const prevBoxShadow = el.style.boxShadow;
-          el.style.transition = "box-shadow 0.3s ease";
-          el.style.boxShadow = "0 0 0 4px rgba(239, 68, 68, 0.4)";
-          setTimeout(() => {
-            if (el) el.style.boxShadow = prevBoxShadow || "";
-          }, 2000);
-        }
-      }, 80);
+        },
+      });
     }
   };
 

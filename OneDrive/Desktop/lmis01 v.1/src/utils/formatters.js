@@ -294,4 +294,49 @@ export const generateNextTag = (rows, species) => {
   return `TAG-${String(next).padStart(3, "0")}-${speciesUpper}`;
 };
 
+/**
+ * Formats livestock age string/object into clean representation (e.g. "1 Month", "3 Months", "1 Year", "2 Years").
+ * Preserves the exact user entered unit and number without automatic conversions between months and years.
+ */
+export const formatLivestockAge = (itemOrVal, unitFallback) => {
+  if (itemOrVal === null || itemOrVal === undefined || itemOrVal === "") return "—";
+
+  // If passed object with age_value & age_unit
+  if (typeof itemOrVal === "object" && itemOrVal !== null) {
+    if (itemOrVal.age_value !== undefined && itemOrVal.age_value !== null && itemOrVal.age_value !== "") {
+      const num = parseInt(itemOrVal.age_value, 10);
+      if (!isNaN(num)) {
+        const isYear = String(itemOrVal.age_unit || "").toLowerCase().startsWith("year");
+        return isYear
+          ? (num === 1 ? "1 Year" : `${num} Years`)
+          : (num === 1 ? "1 Month" : `${num} Months`);
+      }
+    }
+    const raw = itemOrVal.age_months ?? itemOrVal.age;
+    return formatLivestockAge(raw, itemOrVal.age_unit);
+  }
+
+  const str = String(itemOrVal).trim();
+  if (!str || str === "—" || str === "-") return "—";
+
+  // If already contains unit text
+  if (/months?|mos|years?|yrs|days?/i.test(str)) {
+    const singularMonth = str.match(/^1\s*months?$/i);
+    if (singularMonth) return "1 Month";
+    const singularYear = str.match(/^1\s*years?$/i);
+    if (singularYear) return "1 Year";
+    return str;
+  }
+
+  // Bare integer
+  const num = parseInt(str, 10);
+  if (isNaN(num)) return str;
+
+  const isYear = String(unitFallback || "").toLowerCase().startsWith("year");
+  if (isYear) {
+    return num === 1 ? "1 Year" : `${num} Years`;
+  }
+  return num === 1 ? "1 Month" : `${num} Months`;
+};
+
 
