@@ -8,19 +8,10 @@ import { TABLES } from "../../utils/constants";
 import { supabase } from "../../services/supabaseClient";
 
 export const SPECIES_CONFIG = [
-  { id: "Hog", label: "Hog", color: "#a855f7", dbId: "spec-hog" },
-  { id: "Cattle", label: "Cattle", color: "#0284c7", dbId: "spec-cattle" },
-  { id: "Carabao", label: "Carabao", color: "#10b981", dbId: "spec-carabao" },
-  { id: "Goat", label: "Goat", color: "#f59e0b", dbId: "spec-goat" },
-];
-
-export const AGE_PRESETS = [
-  { label: "6 mos", value: "6", unit: "Months" },
-  { label: "8 mos", value: "8", unit: "Months" },
-  { label: "1 yr", value: "1", unit: "Years" },
-  { label: "1.5 yrs", value: "1.5", unit: "Years" },
-  { label: "2 yrs", value: "2", unit: "Years" },
-  { label: "3 yrs", value: "3", unit: "Years" },
+  { id: "Hog", label: "Hog", color: "#a855f7", dbId: "spec-hog", image_url: null },
+  { id: "Cattle", label: "Cattle", color: "#0284c7", dbId: "spec-cattle", image_url: null },
+  { id: "Carabao", label: "Carabao", color: "#10b981", dbId: "spec-carabao", image_url: null },
+  { id: "Goat", label: "Goat", color: "#f59e0b", dbId: "spec-goat", image_url: null },
 ];
 
 export const formatAgeString = (value, unit) => {
@@ -33,7 +24,8 @@ export const formatAgeString = (value, unit) => {
   return num === 1 ? "1 Month" : `${num} Months`;
 };
 
-const createInitialEntry = (defaultSpecies = "Hog", defaultSex = "Male") => ({
+// Initial entry starts with no selected sex ("")
+const createInitialEntry = (defaultSpecies = "Hog", defaultSex = "") => ({
   id: "entry_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
   species: defaultSpecies,
   species_id: null,
@@ -146,15 +138,15 @@ export const MultiLivestockForm = ({
     };
   }, [loadSpecies]);
 
-  // Dynamic livestock entries state
+  // Dynamic livestock entries state - initial entry starts with no selected sex
   const [entries, setEntries] = useState([
-    createInitialEntry(speciesList?.[0]?.id || "Hog", "Male"),
+    createInitialEntry(speciesList?.[0]?.id || "Hog", ""),
   ]);
 
   // Reset form when owner changes
   useEffect(() => {
     const defaultSpec = speciesList?.[0]?.id || "Hog";
-    setEntries([createInitialEntry(defaultSpec, "Male")]);
+    setEntries([createInitialEntry(defaultSpec, "")]);
     setErrors({});
     setShowConfirm(false);
     setSubmitting(false);
@@ -168,14 +160,14 @@ export const MultiLivestockForm = ({
     }, 0);
   }, [entries]);
 
-  // Add another livestock entry
+  // Add another livestock entry - starts with NO selected sex ("")
   const handleAddLivestockEntry = () => {
     const lastEntry = entries[entries.length - 1];
     const nextSpecies = lastEntry?.species || speciesList?.[0]?.id || "Hog";
-    const nextSex = lastEntry?.sex === "Male" ? "Female" : "Male";
 
-    const newEntry = createInitialEntry(nextSpecies, nextSex);
-    const matched = speciesList.find((s) => s.id === nextSpecies);
+    // Strictly start with no selected sex (""), independent of previous entries
+    const newEntry = createInitialEntry(nextSpecies, "");
+    const matched = speciesList.find((s) => s.id === nextSpecies || s.label === nextSpecies);
     if (matched) newEntry.species_id = matched.dbId;
 
     setEntries((prev) => [...prev, newEntry]);
@@ -184,6 +176,7 @@ export const MultiLivestockForm = ({
   // Check if entry has entered data
   const hasEnteredData = (entry) => {
     return Boolean(
+      (entry.sex && entry.sex.trim()) ||
       (entry.age_value && entry.age_value.trim()) ||
       (entry.quantity && parseInt(entry.quantity, 10) > 1)
     );
@@ -215,14 +208,19 @@ export const MultiLivestockForm = ({
     });
   };
 
-  // Update specific field on an entry
+  // Update specific field on an entry without affecting any other entry
   const handleUpdateEntry = (entryId, field, value) => {
+    let cleanVal = value;
+    if (field === "age_value" && typeof cleanVal === "string") {
+      cleanVal = cleanVal.replace(/^-+/, "");
+    }
+
     setEntries((prev) =>
       prev.map((item) => {
         if (item.id !== entryId) return item;
-        const updated = { ...item, [field]: value };
+        const updated = { ...item, [field]: cleanVal };
         if (field === "species") {
-          const matched = speciesList.find((s) => s.id === value);
+          const matched = speciesList.find((s) => s.id === cleanVal || s.label === cleanVal);
           updated.species_id = matched?.dbId || null;
         }
         return updated;
@@ -231,29 +229,10 @@ export const MultiLivestockForm = ({
 
     setErrors((prev) => {
       const next = { ...prev };
-      if (field === "species" && value) delete next[`species_${entryId}`];
-      if (field === "sex" && value) delete next[`sex_${entryId}`];
-      if (field === "age_value" && value && parseFloat(value) > 0) delete next[`age_${entryId}`];
-      if (field === "quantity" && parseInt(value, 10) >= 1) delete next[`quantity_${entryId}`];
-      return next;
-    });
-  };
-
-  // Quick preset age setter
-  const handleApplyAgePreset = (entryId, preset) => {
-    setEntries((prev) =>
-      prev.map((item) => {
-        if (item.id !== entryId) return item;
-        return {
-          ...item,
-          age_value: preset.value,
-          age_unit: preset.unit,
-        };
-      })
-    );
-    setErrors((prev) => {
-      const next = { ...prev };
-      delete next[`age_${entryId}`];
+      if (field === "species" && cleanVal) delete next[`species_${entryId}`];
+      if (field === "sex" && cleanVal) delete next[`sex_${entryId}`];
+      if (field === "age_value" && cleanVal && parseFloat(cleanVal) > 0) delete next[`age_${entryId}`];
+      if (field === "quantity" && parseInt(cleanVal, 10) >= 1) delete next[`quantity_${entryId}`];
       return next;
     });
   };
@@ -274,7 +253,7 @@ export const MultiLivestockForm = ({
         newErrors[`species_${item.id}`] = `Entry #${num}: Please select animal species.`;
       }
       if (!item.sex) {
-        newErrors[`sex_${item.id}`] = `Entry #${num}: Please select animal sex.`;
+        newErrors[`sex_${item.id}`] = `Entry #${num}: Please select animal sex (Male or Female).`;
       }
 
       const ageValStr = String(item.age_value || "").trim();
@@ -295,7 +274,7 @@ export const MultiLivestockForm = ({
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      showToast("Please correct the highlighted livestock fields before submitting.", "error");
+      showToast("Please complete all required fields before submitting.", "error");
       return;
     }
 
@@ -331,7 +310,7 @@ export const MultiLivestockForm = ({
       });
 
       setShowConfirm(false);
-      setEntries([createInitialEntry(speciesList?.[0]?.id || "Hog")]);
+      setEntries([createInitialEntry(speciesList?.[0]?.id || "Hog", "")]);
       setErrors({});
     } catch (err) {
       console.error("MultiLivestockForm submission error:", err);
@@ -343,35 +322,28 @@ export const MultiLivestockForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <form
+      noValidate
+      onSubmit={handleSubmit}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        height: "100%",
+      }}
+    >
       <style>{`
-        .livestock-entry-card {
-          background: var(--color-surface);
-          border: 1.5px solid var(--color-border);
-          border-radius: 12px;
-          padding: 16px;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        .livestock-entry-row {
           display: flex;
           flex-direction: column;
-          gap: 14px;
-          transition: border-color 0.15s ease, box-shadow 0.15s ease;
-        }
-        .livestock-entry-card:hover {
-          border-color: #cbd5e1;
-          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
-        }
-        [data-theme="dark"] .livestock-entry-card {
-          background: #1e293b;
-          border-color: #334155;
-        }
-        [data-theme="dark"] .livestock-entry-card:hover {
-          border-color: #475569;
+          gap: 12px;
         }
         .entry-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-bottom: 10px;
+          padding-bottom: 8px;
           border-bottom: 1px solid var(--color-border);
           gap: 8px;
         }
@@ -397,7 +369,7 @@ export const MultiLivestockForm = ({
           gap: 8px;
         }
         .sex-toggle-btn {
-          height: 38px;
+          height: 44px;
           border-radius: 8px;
           border: 1.5px solid var(--color-border);
           background: var(--color-bg);
@@ -419,376 +391,448 @@ export const MultiLivestockForm = ({
           background: rgba(2, 132, 199, 0.12);
           border-color: #0284c7;
           color: #0284c7;
+          box-shadow: 0 0 0 1px #0284c7;
         }
         .sex-toggle-btn.active-female {
           background: rgba(236, 72, 153, 0.12);
           border-color: #ec4899;
           color: #db2777;
+          box-shadow: 0 0 0 1px #ec4899;
         }
-        .age-preset-chip {
-          padding: 3px 8px;
-          border-radius: 6px;
-          border: 1px solid var(--color-border);
+        .species-thumb-box {
+          width: 52px;
+          height: 44px;
+          min-width: 52px;
+          border-radius: 8px;
+          border: 1.5px solid var(--color-border);
           background: var(--color-bg);
-          color: var(--color-text-muted);
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.12s ease;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+          transition: transform 0.15s ease, border-color 0.15s ease;
         }
-        .age-preset-chip:hover {
-          background: var(--color-surface);
-          color: var(--color-primary, #10b981);
-          border-color: var(--color-primary, #10b981);
+        .species-thumb-box:hover {
+          border-color: #94a3b8;
         }
       `}</style>
 
-      {/* SECTION TITLE */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
-        <h4
-          style={{
-            margin: 0,
-            fontSize: 13,
-            fontWeight: 800,
-            textTransform: "uppercase",
-            letterSpacing: "0.06em",
-            color: "var(--color-text)",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <Icon.Cow size={16} style={{ color: "#10b981" }} />
-          <span>Livestock Details</span>
-        </h4>
-      </div>
+      {/* SCROLLABLE ENTRIES BODY CONTAINER (MATCHING ANTE-MORTEM INSPECTION FORM) */}
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+          paddingRight: 6,
+          scrollbarWidth: "thin",
+        }}
+      >
+        {entries.map((entry, index) => {
+          const speciesObj =
+            speciesList.find((s) => s.id === entry.species || s.label === entry.species) ||
+            speciesList[0] ||
+            { label: entry.species, color: "#10b981", image_url: null };
 
-      {/* DYNAMIC LIVESTOCK ENTRIES LIST */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {entries.map((entry, index) => (
-          <div key={entry.id} className="livestock-entry-card">
-            {/* Card Header: Entry Number + Remove Button */}
-            <div className="entry-header">
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 800,
-                  color: "var(--color-text)",
-                }}
-              >
-                Livestock Entry #{index + 1}
-              </span>
-
-              {/* Remove Entry Button */}
-              {entries.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() => handleRequestRemoveEntry(entry)}
+          return (
+            <div
+              key={entry.id}
+              className="livestock-entry-row"
+              style={{
+                borderTop: index > 0 ? "1px solid var(--color-border)" : "none",
+                paddingTop: index > 0 ? 14 : 0,
+              }}
+            >
+              {/* Card Header: Clean Entry Number + Remove Button (No Outer Border) */}
+              <div className="entry-header">
+                <span
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    background: "#fef2f2",
-                    border: "1px solid #fecaca",
-                    color: "#dc2626",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    padding: "4px 10px",
-                    borderRadius: 7,
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                  }}
-                  title={`Remove Entry #${index + 1}`}
-                >
-                  <Icon.Trash size={13} />
-                  <span>Remove Entry</span>
-                </button>
-              )}
-            </div>
-
-            {/* Card Form Grid: 4 Core Fields */}
-            <div className="entry-form-grid">
-              {/* Field 1: Species Selection */}
-              <div>
-                <label
-                  htmlFor={`species-${entry.id}`}
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                    display: "block",
-                    marginBottom: 5,
-                  }}
-                >
-                  Species <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <select
-                  id={`species-${entry.id}`}
-                  className="form-control"
-                  value={entry.species}
-                  onChange={(e) => handleUpdateEntry(entry.id, "species", e.target.value)}
-                  style={{
-                    height: 38,
-                    borderRadius: 8,
                     fontSize: 13,
-                    fontWeight: 700,
-                    background: "var(--color-bg)",
+                    fontWeight: 800,
                     color: "var(--color-text)",
-                    borderColor: errors[`species_${entry.id}`] ? "#ef4444" : "var(--color-border)",
                   }}
                 >
-                  {speciesList.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.label} ({s.code || s.id.substring(0, 3).toUpperCase()})
-                    </option>
-                  ))}
-                </select>
-                {errors[`species_${entry.id}`] && (
-                  <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
-                    <Icon.AlertTriangle size={12} />
-                    <span>{errors[`species_${entry.id}`]}</span>
-                  </div>
-                )}
-              </div>
+                  Livestock Entry #{index + 1}
+                </span>
 
-              {/* Field 2: Sex Selection */}
-              <div>
-                <label
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                    display: "block",
-                    marginBottom: 5,
-                  }}
-                >
-                  Sex <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <div className="sex-toggle-group">
+                {/* Remove Entry Button */}
+                {entries.length > 1 && (
                   <button
                     type="button"
-                    className={`sex-toggle-btn ${entry.sex === "Male" ? "active-male" : ""}`}
-                    onClick={() => handleUpdateEntry(entry.id, "sex", "Male")}
-                  >
-                    <span style={{ fontSize: 14 }}>♂</span>
-                    <span>Male</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`sex-toggle-btn ${entry.sex === "Female" ? "active-female" : ""}`}
-                    onClick={() => handleUpdateEntry(entry.id, "sex", "Female")}
-                  >
-                    <span style={{ fontSize: 14 }}>♀</span>
-                    <span>Female</span>
-                  </button>
-                </div>
-                {errors[`sex_${entry.id}`] && (
-                  <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
-                    <Icon.AlertTriangle size={12} />
-                    <span>{errors[`sex_${entry.id}`]}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Field 3: Age & Unit */}
-              <div>
-                <label
-                  htmlFor={`age-value-${entry.id}`}
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                    display: "block",
-                    marginBottom: 5,
-                  }}
-                >
-                  Age <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <div className="age-input-group">
-                  <input
-                    id={`age-value-${entry.id}`}
-                    type="number"
-                    step="any"
-                    min="0.1"
-                    placeholder="e.g. 6"
-                    className="form-control"
-                    value={entry.age_value}
-                    onChange={(e) => handleUpdateEntry(entry.id, "age_value", e.target.value)}
+                    onClick={() => handleRequestRemoveEntry(entry)}
                     style={{
-                      height: 38,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: "#fef2f2",
+                      border: "1px solid #fecaca",
+                      color: "#dc2626",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 7,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                    title={`Remove Entry #${index + 1}`}
+                  >
+                    <Icon.Trash size={13} />
+                    <span>Remove Entry</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Form Grid: 4 Core Fields */}
+              <div className="entry-form-grid">
+                {/* Field 1: Species Selection with Live Image Display */}
+                <div>
+                  <label
+                    htmlFor={`species-${entry.id}`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "var(--color-text)",
+                      display: "block",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Species <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                    {/* Live Species Image Preview */}
+                    <div className="species-thumb-box" title={entry.species}>
+                      {speciesObj?.image_url ? (
+                        <img
+                          key={speciesObj.image_url}
+                          src={speciesObj.image_url}
+                          alt={entry.species}
+                          referrerPolicy="no-referrer"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                            const ph = e.currentTarget.nextElementSibling;
+                            if (ph) ph.style.display = "flex";
+                          }}
+                        />
+                      ) : null}
+                      <div
+                        style={{
+                          display: speciesObj?.image_url ? "none" : "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          width: "100%",
+                          height: "100%",
+                          color: "var(--color-text-muted)",
+                        }}
+                      >
+                        <Icon.Cow size={22} />
+                      </div>
+                    </div>
+
+                    {/* Species Dropdown */}
+                    <select
+                      id={`species-${entry.id}`}
+                      className="form-control"
+                      value={entry.species}
+                      onChange={(e) => handleUpdateEntry(entry.id, "species", e.target.value)}
+                      style={{
+                        height: 44,
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        background: "var(--color-bg)",
+                        color: "var(--color-text)",
+                        borderColor: errors[`species_${entry.id}`] ? "#ef4444" : "var(--color-border)",
+                        flex: 1,
+                        minWidth: 0,
+                      }}
+                    >
+                      {speciesList.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.label} ({s.code || s.id.substring(0, 3).toUpperCase()})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  {errors[`species_${entry.id}`] && (
+                    <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Icon.AlertTriangle size={12} />
+                      <span>{errors[`species_${entry.id}`]}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Field 2: Sex Selection with Independent State */}
+                <div>
+                  <label
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "var(--color-text)",
+                      display: "block",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Sex <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <div className="sex-toggle-group">
+                    <button
+                      type="button"
+                      className={`sex-toggle-btn ${entry.sex === "Male" ? "active-male" : ""}`}
+                      onClick={() => handleUpdateEntry(entry.id, "sex", "Male")}
+                      style={{
+                        borderColor: errors[`sex_${entry.id}`] && !entry.sex ? "#ef4444" : undefined,
+                      }}
+                    >
+                      <span style={{ fontSize: 14 }}>♂</span>
+                      <span>Male</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`sex-toggle-btn ${entry.sex === "Female" ? "active-female" : ""}`}
+                      onClick={() => handleUpdateEntry(entry.id, "sex", "Female")}
+                      style={{
+                        borderColor: errors[`sex_${entry.id}`] && !entry.sex ? "#ef4444" : undefined,
+                      }}
+                    >
+                      <span style={{ fontSize: 14 }}>♀</span>
+                      <span>Female</span>
+                    </button>
+                  </div>
+                  {errors[`sex_${entry.id}`] && (
+                    <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Icon.AlertTriangle size={12} />
+                      <span>{errors[`sex_${entry.id}`]}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Field 3: Age & Unit */}
+                <div>
+                  <label
+                    htmlFor={`age-value-${entry.id}`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "var(--color-text)",
+                      display: "block",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Age <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <div className="age-input-group">
+                    <input
+                      id={`age-value-${entry.id}`}
+                      type="number"
+                      step="any"
+                      min="0.1"
+                      placeholder="e.g. 6"
+                      className="form-control"
+                      value={entry.age_value}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "e" || e.key === "E" || e.key === "+") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/^-+/, "");
+                        handleUpdateEntry(entry.id, "age_value", val);
+                      }}
+                      style={{
+                        height: 44,
+                        borderRadius: 8,
+                        fontSize: 13,
+                        fontWeight: 700,
+                        background: "var(--color-bg)",
+                        color: "var(--color-text)",
+                        borderColor: errors[`age_${entry.id}`] ? "#ef4444" : "var(--color-border)",
+                      }}
+                    />
+                    {(() => {
+                      const isYear = String(entry.age_unit || "").toLowerCase().startsWith("year");
+                      const rawAge = parseFloat(entry.age_value);
+                      const isSingular = !isNaN(rawAge) && rawAge === 1;
+                      const monthOptionLabel = isSingular ? "Month" : "Months";
+                      const yearOptionLabel = isSingular ? "Year" : "Years";
+
+                      return (
+                        <select
+                          id={`age-unit-${entry.id}`}
+                          className="form-control"
+                          value={isYear ? "Years" : "Months"}
+                          onChange={(e) => handleUpdateEntry(entry.id, "age_unit", e.target.value)}
+                          style={{
+                            height: 44,
+                            borderRadius: 8,
+                            fontSize: 12.5,
+                            fontWeight: 700,
+                            background: "var(--color-bg)",
+                            color: "var(--color-text)",
+                          }}
+                        >
+                          <option value="Months">{monthOptionLabel}</option>
+                          <option value="Years">{yearOptionLabel}</option>
+                        </select>
+                      );
+                    })()}
+                  </div>
+
+                  {errors[`age_${entry.id}`] && (
+                    <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Icon.AlertTriangle size={12} />
+                      <span>{errors[`age_${entry.id}`]}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Field 4: Quantity */}
+                <div>
+                  <label
+                    htmlFor={`quantity-${entry.id}`}
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 700,
+                      color: "var(--color-text)",
+                      display: "block",
+                      marginBottom: 5,
+                    }}
+                  >
+                    Quantity (Heads) <span style={{ color: "#ef4444" }}>*</span>
+                  </label>
+                  <input
+                    id={`quantity-${entry.id}`}
+                    type="number"
+                    min="1"
+                    className="form-control"
+                    value={entry.quantity}
+                    onChange={(e) => handleUpdateEntry(entry.id, "quantity", e.target.value)}
+                    style={{
+                      height: 44,
                       borderRadius: 8,
                       fontSize: 13,
                       fontWeight: 700,
                       background: "var(--color-bg)",
                       color: "var(--color-text)",
-                      borderColor: errors[`age_${entry.id}`] ? "#ef4444" : "var(--color-border)",
+                      borderColor: errors[`quantity_${entry.id}`] ? "#ef4444" : "var(--color-border)",
                     }}
                   />
-                  <select
-                    className="form-control"
-                    value={entry.age_unit}
-                    onChange={(e) => handleUpdateEntry(entry.id, "age_unit", e.target.value)}
-                    style={{
-                      height: 38,
-                      borderRadius: 8,
-                      fontSize: 12.5,
-                      fontWeight: 700,
-                      background: "var(--color-bg)",
-                      color: "var(--color-text)",
-                    }}
-                  >
-                    <option value="Months">Months</option>
-                    <option value="Years">Years</option>
-                  </select>
+                  {errors[`quantity_${entry.id}`] && (
+                    <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
+                      <Icon.AlertTriangle size={12} />
+                      <span>{errors[`quantity_${entry.id}`]}</span>
+                    </div>
+                  )}
                 </div>
-
-                {/* Preset quick-picks */}
-                <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 6, flexWrap: "wrap" }}>
-                  <span style={{ fontSize: 10.5, color: "var(--color-text-muted)", fontWeight: 600 }}>Quick pick:</span>
-                  {AGE_PRESETS.map((p) => (
-                    <button
-                      key={p.label}
-                      type="button"
-                      className="age-preset-chip"
-                      onClick={() => handleApplyAgePreset(entry.id, p)}
-                      title={`Set age to ${p.value} ${p.unit}`}
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-
-                {errors[`age_${entry.id}`] && (
-                  <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
-                    <Icon.AlertTriangle size={12} />
-                    <span>{errors[`age_${entry.id}`]}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Field 4: Quantity */}
-              <div>
-                <label
-                  htmlFor={`quantity-${entry.id}`}
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 700,
-                    color: "var(--color-text)",
-                    display: "block",
-                    marginBottom: 5,
-                  }}
-                >
-                  Quantity (Heads) <span style={{ color: "#ef4444" }}>*</span>
-                </label>
-                <input
-                  id={`quantity-${entry.id}`}
-                  type="number"
-                  min="1"
-                  className="form-control"
-                  value={entry.quantity}
-                  onChange={(e) => handleUpdateEntry(entry.id, "quantity", e.target.value)}
-                  style={{
-                    height: 38,
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    background: "var(--color-bg)",
-                    color: "var(--color-text)",
-                    borderColor: errors[`quantity_${entry.id}`] ? "#ef4444" : "var(--color-border)",
-                  }}
-                />
-                {errors[`quantity_${entry.id}`] && (
-                  <div style={{ marginTop: 4, fontSize: 11.5, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
-                    <Icon.AlertTriangle size={12} />
-                    <span>{errors[`quantity_${entry.id}`]}</span>
-                  </div>
-                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+
+        {/* DYNAMIC "+ ADD ANOTHER LIVESTOCK ENTRY" BUTTON */}
+        <div style={{ marginTop: 4, marginBottom: 8 }}>
+          <button
+            type="button"
+            onClick={handleAddLivestockEntry}
+            style={{
+              width: "100%",
+              padding: "11px 16px",
+              borderRadius: 8,
+              border: "1.5px dashed #10b981",
+              background: "rgba(16, 185, 129, 0.05)",
+              color: "#059669",
+              fontSize: 13,
+              fontWeight: 750,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              transition: "all 0.15s ease",
+              boxSizing: "border-box",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(16, 185, 129, 0.12)";
+              e.currentTarget.style.borderColor = "#059669";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
+              e.currentTarget.style.borderColor = "#10b981";
+            }}
+          >
+            <Icon.Plus size={15} />
+            <span>+ Add Another Livestock Entry</span>
+          </button>
+        </div>
       </div>
 
-      {/* DYNAMIC "+ ADD LIVESTOCK" BUTTON */}
-      <div>
-        <button
-          type="button"
-          onClick={handleAddLivestockEntry}
-          style={{
-            width: "100%",
-            padding: "12px 18px",
-            borderRadius: 10,
-            border: "2px dashed #10b981",
-            background: "rgba(16, 185, 129, 0.05)",
-            color: "#059669",
-            fontSize: 13.5,
-            fontWeight: 800,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            transition: "all 0.15s ease",
-            boxSizing: "border-box",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(16, 185, 129, 0.12)";
-            e.currentTarget.style.borderColor = "#059669";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
-            e.currentTarget.style.borderColor = "#10b981";
-          }}
-        >
-          <Icon.Plus size={16} />
-          <span>+ Add Another Livestock Entry</span>
-        </button>
-      </div>
-
-      {/* ACTIONS FOOTER */}
+      {/* FIXED PINNED ACTIONS FOOTER (MATCHING ANTE-MORTEM INSPECTION MODAL FOOTER) */}
       <div
         style={{
+          marginTop: "auto",
+          marginLeft: "-20px",
+          marginRight: "-20px",
+          marginBottom: 0,
+          padding: "12px 20px",
+          background: "var(--color-surface, #ffffff)",
+          borderTop: "1px solid var(--color-border, #e2e8f0)",
+          boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.04)",
           display: "flex",
-          justifyContent: "space-between",
+          justifyContent: "flex-end",
           alignItems: "center",
-          flexWrap: "wrap",
-          gap: 12,
-          paddingTop: 16,
-          borderTop: "1px solid var(--color-border)",
+          gap: 10,
+          flexShrink: 0,
+          zIndex: 40,
         }}
       >
-        <div style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>
-          Total to register: <strong style={{ color: "#059669" }}>{totalHeadCount} {totalHeadCount === 1 ? "head" : "heads"}</strong> across <strong>{entries.length}</strong> {entries.length === 1 ? "entry" : "entries"}.
-        </div>
-
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Button type="button" variant="outline" onClick={onCancel} disabled={submitting}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onCancel}
+            disabled={submitting}
+            style={{ height: 36, padding: "0 16px", fontSize: 13, borderRadius: 8 }}
+          >
             Cancel
           </Button>
           <Button
             type="submit"
+            size="sm"
             disabled={submitting || totalHeadCount === 0}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "9px 20px",
-              fontSize: 13.5,
+              height: 36,
+              padding: "0 22px",
+              fontSize: 13,
               fontWeight: 700,
-              borderRadius: 9,
+              borderRadius: 8,
               background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
               color: "#ffffff",
               boxShadow: "0 2px 6px rgba(16, 185, 129, 0.28)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              cursor: submitting ? "not-allowed" : "pointer",
             }}
           >
             {submitting ? (
               <>
-                <Icon.RefreshCw size={15} className="animate-spin" />
+                <Icon.RefreshCw size={14} className="animate-spin" />
                 <span>Registering...</span>
               </>
             ) : (
               <>
-                <Icon.CheckCircle size={15} />
+                <Icon.CheckCircle size={14} />
                 <span>Register</span>
               </>
             )}
@@ -803,7 +847,7 @@ export const MultiLivestockForm = ({
         message={
           <div>
             <p style={{ margin: "0 0 10px 0" }}>
-              Are you sure you want to register <strong>{totalHeadCount} {totalHeadCount === 1 ? "head" : "heads"}</strong> of incoming livestock for <strong>{ownerName}</strong>?
+              Are you sure you want to register incoming livestock for <strong>{ownerName}</strong>?
             </p>
             <div
               style={{
@@ -823,7 +867,7 @@ export const MultiLivestockForm = ({
               {entries.map((item, i) => (
                 <div key={item.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <span>
-                    <strong>#{i + 1}</strong>: {item.species} ({item.sex}) · {formatAgeString(item.age_value, item.age_unit)}
+                    <strong>#{i + 1}</strong>: {item.species} ({item.sex || "Unspecified"}) · {formatAgeString(item.age_value, item.age_unit)}
                   </span>
                   <span style={{ fontWeight: 700, color: "#059669" }}>
                     {item.quantity} {parseInt(item.quantity, 10) === 1 ? "head" : "heads"}
