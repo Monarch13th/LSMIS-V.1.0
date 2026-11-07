@@ -95,6 +95,15 @@ export const Sidebar = ({ items, open, onClose }) => {
   const { signOut, session } = useAuth();
   const { role } = useRole();
 
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose?.();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   const brandStyle = session?.cover_gradient ? {
     background: `linear-gradient(135deg, ${session.cover_gradient.from} 0%, ${session.cover_gradient.to} 100%)`
   } : undefined;
@@ -107,10 +116,21 @@ export const Sidebar = ({ items, open, onClose }) => {
           <div className="logo">
             <img src={logoImg} alt="LSMIS Logo" />
           </div>
-          <div>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h1>LSMIS</h1>
             <p>{role ? ROLE_LABELS[role] || "Meat Inspection System" : "Meat Inspection System"}</p>
           </div>
+          {open && (
+            <button
+              type="button"
+              className="sidebar-close-btn"
+              onClick={onClose}
+              aria-label="Close navigation sidebar"
+              title="Close menu"
+            >
+              <Icon.X size={18} />
+            </button>
+          )}
         </div>
         <nav className="app-sidebar-nav">
           {items.map((entry, i) => {

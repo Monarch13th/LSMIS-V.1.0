@@ -83,7 +83,16 @@ export const Modal = ({
           <h3
             id="modal-title"
             className="modal-title"
-            style={{ margin: 0, display: "flex", alignItems: "center", whiteSpace: "nowrap" }}
+            style={{
+              margin: 0,
+              display: "flex",
+              alignItems: "center",
+              flex: 1,
+              minWidth: 0,
+              wordBreak: "break-word",
+              fontSize: "clamp(15px, 3.5vw, 18px)",
+              lineHeight: 1.3,
+            }}
           >
             {title}
           </h3>

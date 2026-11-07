@@ -901,6 +901,54 @@
   .marking-grid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 480px) {
+  .stat-card {
+    padding: 14px;
+    gap: 10px;
+  }
+  .stat-card-value {
+    font-size: 20px;
+  }
+  .stat-card-icon {
+    width: 42px;
+    height: 42px;
+  }
+  .welcome-banner {
+    padding: 16px 14px;
+    gap: 12px;
+  }
+  .welcome-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .welcome-text h2 {
+    font-size: 16px;
+  }
+  .welcome-text p {
+    font-size: 12px;
+  }
+  .page-head {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    gap: 10px;
+  }
+  .page-title {
+    font-size: 18px;
+    gap: 8px;
+  }
+  .page-title-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .page-head-actions {
+    width: 100%;
+  }
+  .page-head-actions .btn {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
 /* ===== Sidebar mobile trigger ===== */
 .sidebar-trigger { display: none; }
 @media (max-width: 1024px) { .sidebar-trigger { display: inline-flex; } }
@@ -1443,6 +1491,26 @@
   .settings-sidebar-nav {
     width: 100% !important;
     position: static !important;
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+    gap: 6px !important;
+    padding: 6px !important;
+    box-sizing: border-box !important;
+    border-radius: 10px !important;
+  }
+  .settings-sidebar-nav::-webkit-scrollbar {
+    display: none !important;
+  }
+  .settings-sidebar-nav .nav-section-title {
+    display: none !important;
+  }
+  .settings-sidebar-nav button {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    padding: 8px 12px !important;
+    font-size: 12.5px !important;
   }
   .settings-content-pane {
     height: auto !important;

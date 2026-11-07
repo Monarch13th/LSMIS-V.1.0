@@ -1126,76 +1126,27 @@ export const SpeciesManagement = () => {
       <Modal
         open={Boolean(viewingSpecies)}
         onClose={() => setViewingSpecies(null)}
-        title="Official Species Profile & Configuration"
-        size="lg"
+        title="Species Details"
+        size="md"
+        dialogStyle={{ maxWidth: "480px" }}
+        bodyStyle={{ padding: "18px 22px" }}
       >
         {viewingSpecies && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Header Box */}
-            <div
-              style={{
-                padding: "18px 20px",
-                background: "var(--color-bg)",
-                borderRadius: 12,
-                border: "1.5px solid var(--color-border)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Republic of the Philippines · City Veterinary Office
-                </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
-                  Livestock Species Profile — {viewingSpecies.name}
-                </div>
-                <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                  Species Tag Code: {viewingSpecies.code || "—"} · Date Added: {formatDate(viewingSpecies.created_at) || "—"}
-                </div>
-              </div>
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "5px",
-                  fontSize: "12px",
-                  fontWeight: 700,
-                  color: viewingSpecies.status === "Active" ? "#166534" : "#dc2626",
-                  background: viewingSpecies.status === "Active" ? "#f0fdf4" : "#fef2f2",
-                  border: `1px solid ${viewingSpecies.status === "Active" ? "#bbf7d0" : "#fecaca"}`,
-                  padding: "4px 10px",
-                  borderRadius: "6px",
-                }}
-              >
-                <span
-                  style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626",
-                  }}
-                />
-                {viewingSpecies.status || "Active"}
-              </span>
-            </div>
-
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* High-res Image Preview */}
             <div
               style={{
                 width: "100%",
-                height: 200,
+                height: 180,
                 borderRadius: 10,
                 overflow: "hidden",
-                background: "var(--color-surface)",
+                background: "#ffffff",
                 border: "1px solid var(--color-border)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
-                padding: 12,
+                padding: 10,
               }}
             >
               {viewingSpecies.image_url ? (
@@ -1213,52 +1164,101 @@ export const SpeciesManagement = () => {
                 />
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, color: "var(--color-text-muted)" }}>
-                  <Icon.Cow size={48} />
-                  <span style={{ fontSize: "0.82rem" }}>No high-resolution species image uploaded</span>
+                  <Icon.Cow size={44} />
+                  <span style={{ fontSize: "0.78rem" }}>No image uploaded</span>
                 </div>
               )}
             </div>
 
-            {/* Species Details Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species Name</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {viewingSpecies.name}
+            {/* Info Grid */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <h3 style={{ fontSize: "1.1rem", fontWeight: 750, color: "var(--color-text)", margin: 0 }}>
+                    {viewingSpecies.name}
+                  </h3>
+                  {viewingSpecies.code && (
+                    <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+                      Tag Code: <strong style={{ color: "var(--color-text)" }}>{viewingSpecies.code}</strong>
+                    </span>
+                  )}
                 </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Tag Code Prefix</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "#0284c7", fontFamily: "monospace", marginTop: 4 }}>
-                  {viewingSpecies.code || "—"}
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Linked Livestock</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#047857", marginTop: 4 }}>
-                  {livestockCounts[viewingSpecies.id] || livestockCounts[viewingSpecies.name] || 0} heads
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Registration Status</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626", marginTop: 4 }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    color: viewingSpecies.status === "Active" ? "#166534" : "#dc2626",
+                    background: viewingSpecies.status === "Active" ? "#f0fdf4" : "#fef2f2",
+                    border: `1px solid ${viewingSpecies.status === "Active" ? "#bbf7d0" : "#fecaca"}`,
+                    padding: "3px 8px",
+                    borderRadius: "6px",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626",
+                    }}
+                  />
                   {viewingSpecies.status || "Active"}
+                </span>
+              </div>
+
+              {/* Description */}
+              <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 4 }}>
+                  Description
+                </div>
+                <div style={{ fontSize: "0.85rem", color: "var(--color-text)" }}>
+                  {viewingSpecies.description || <span style={{ opacity: 0.5, fontStyle: "italic" }}>No description provided.</span>}
                 </div>
               </div>
-            </div>
 
-            {/* Description Section */}
-            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
-                Species Description & Operational Notes
-              </div>
-              <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
-                {viewingSpecies.description || "No official description or operational notes provided for this livestock species."}
+              {/* Metadata details */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 2 }}>
+                    Date Added
+                  </div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
+                    {formatDate(viewingSpecies.created_at) || "—"}
+                  </div>
+                </div>
+
+                <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 2 }}>
+                    Linked Livestock
+                  </div>
+                  <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
+                    {livestockCounts[viewingSpecies.id] || livestockCounts[viewingSpecies.name] || 0} heads
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Modal Actions */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: 8,
+                paddingTop: 12,
+                borderTop: "1px solid var(--color-border)",
+              }}
+            >
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setViewingSpecies(null)}
+                style={{ height: "36px", padding: "0 14px", fontSize: "0.82rem" }}
+              >
+                Close
+              </button>
               <button
                 type="button"
                 className="btn btn-primary"
@@ -1271,14 +1271,6 @@ export const SpeciesManagement = () => {
               >
                 <Icon.Edit size={13} />
                 <span>Edit Species</span>
-              </button>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() => setViewingSpecies(null)}
-                style={{ height: "36px", padding: "0 14px", fontSize: "0.82rem" }}
-              >
-                Close
               </button>
             </div>
           </div>

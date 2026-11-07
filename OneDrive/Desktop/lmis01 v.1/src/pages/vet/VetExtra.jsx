@@ -2939,8 +2939,9 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       <Modal
         open={!!viewRec}
         onClose={() => setViewRec(null)}
-        title="Official Veterinary Condemnation Record"
+        title="Condemnation Record Details"
         size="lg"
+        footer={<Button variant="outline" onClick={() => setViewRec(null)}>Close</Button>}
       >
         {viewRec && (() => {
           const recScope = getCondemnationScope(viewRec);
@@ -2966,66 +2967,38 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
           const condemnationDateTime = formatManilaDateTime(rawTimestamp);
 
           return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              {/* Header Box */}
-              <div
-                style={{
-                  padding: "18px 20px",
-                  background: "var(--color-bg)",
-                  borderRadius: 12,
-                  border: "1.5px solid var(--color-border)",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 11.5, fontWeight: 800, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    Republic of the Philippines · City Veterinary Office
-                  </div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
-                    Official Veterinary Condemnation Certificate
-                  </div>
-                  <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                    Record ID: #{viewRec.id || viewRec.tag_number || "00001"} · Date: {condemnationDateTime}
-                  </div>
-                </div>
-                <Badge status={viewRec.disposition || "Condemned"} />
-              </div>
-
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {type === "Post-Mortem" && (
                 <div
                   style={{
-                    borderRadius: 10,
-                    padding: "12px 16px",
-                    background: isWholeRec ? "rgba(239, 68, 68, 0.12)" : "rgba(245, 158, 11, 0.12)",
+                    borderRadius: 8,
+                    padding: "10px 14px",
+                    background: isWholeRec ? "rgba(239, 68, 68, 0.15)" : "rgba(245, 158, 11, 0.15)",
                     border: isWholeRec ? "1px solid rgba(239, 68, 68, 0.3)" : "1px solid rgba(245, 158, 11, 0.3)",
                     color: isWholeRec ? "var(--color-danger, #ef4444)" : "var(--color-warning, #f59e0b)",
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
+                    gap: 10,
                     fontSize: 13,
                     fontWeight: 700,
                   }}
                 >
                   {isWholeRec ? (
                     <>
-                      <Icon.AlertTriangle size={20} style={{ color: "var(--color-danger, #ef4444)", flexShrink: 0 }} />
+                      <Icon.AlertTriangle size={18} style={{ color: "var(--color-danger, #ef4444)", flexShrink: 0 }} />
                       <div>
                         <div>🚫 Whole Carcass Condemnation</div>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-secondary)" }}>
                           Entire carcass declared unfit for human consumption. Full carcass sent for disposal (0 kg to weighing).
                         </div>
                       </div>
                     </>
                   ) : (
                     <>
-                      <Icon.Layers size={20} style={{ color: "var(--color-warning, #f59e0b)", flexShrink: 0 }} />
+                      <Icon.Layers size={18} style={{ color: "var(--color-warning, #f59e0b)", flexShrink: 0 }} />
                       <div>
                         <div>✂️ Partial Condemnation ({recParts.join(", ")})</div>
-                        <div style={{ fontSize: 12, fontWeight: 500, color: "var(--color-text-secondary)", marginTop: 2 }}>
+                        <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-secondary)" }}>
                           Specific cut/organ excised and condemned. Remainder of carcass passed to weighing.
                         </div>
                       </div>
@@ -3034,91 +3007,58 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 </div>
               )}
 
-              {/* Condemnation Details Grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Animal Tag #</div>
-                  <div style={{ marginTop: 4 }}>
-                    <TagBadge tag={viewRec.tag_number} />
-                  </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px", border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Tag Number</div>
+                  <div><TagBadge tag={viewRec.tag_number} /></div>
                 </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
+                <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px", border: "1px solid var(--color-border)" }}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Species</div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13, color: "var(--color-primary, #10b981)" }}>
                     {viewRec.species || "—"}
                   </div>
                 </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Condemned Part</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "#ef4444", marginTop: 4 }}>
-                    {isWholeRec ? (type === "Ante-Mortem" ? "Live Animal" : "Entire Carcass") : recParts.join(", ")}
+                {[
+                  ["Condemned Part", isWholeRec ? (type === "Ante-Mortem" ? "Live Animal" : "Entire Carcass") : recParts.join(", ")],
+                  ["Location / Area", viewRec.location || "Thoracic Cavity"],
+                  ["Weight / Quantity", recWeight.main + (recWeight.sub ? ` (${recWeight.sub})` : "")],
+                  ["Disposition", viewRec.disposition || "Condemned / Rendered"],
+                  ["Carcass Final Fate", isWholeRec ? "Disposed / Rendered (0 kg to weighing)" : "Passed to Carcass Weighing"],
+                  ["Condemned By", condemnedInspector],
+                  ["Condemnation Date & Time", condemnationDateTime],
+                ].map(([label, value]) => (
+                  <div key={label} style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px", border: "1px solid var(--color-border)" }}>
+                    <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{label}</div>
+                    <div style={{ fontWeight: 700, fontSize: 13.5, color: "var(--color-text)" }}>{value}</div>
                   </div>
-                </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Weight / Quantity</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                    {recWeight.main + (recWeight.sub ? ` (${recWeight.sub})` : "")}
-                  </div>
-                </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Location / Area</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                    {viewRec.location || "Thoracic Cavity"}
-                  </div>
-                </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Disposition</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                    {viewRec.disposition || "Condemned / Rendered"}
-                  </div>
-                </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Carcass Final Fate</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                    {isWholeRec ? "Disposed / Rendered (0 kg to weighing)" : "Passed to Carcass Weighing"}
-                  </div>
-                </div>
-                <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                  <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Condemned By</div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                    {condemnedInspector}
-                  </div>
-                </div>
+                ))}
               </div>
 
-              {/* Reason / Pathology */}
-              <div style={{ background: "var(--color-surface)", border: "1px solid rgba(239, 68, 68, 0.3)", borderRadius: 10, padding: "16px 18px" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#ef4444", textTransform: "uppercase", marginBottom: 6 }}>
-                  Reason / Pathological Findings
-                </div>
-                <div style={{ fontSize: 14, color: "#ef4444", fontWeight: 700, lineHeight: 1.5, background: "rgba(239, 68, 68, 0.08)", padding: "12px 14px", borderRadius: 8 }}>
-                  {recReason}
-                </div>
+              <div style={{ background: "color-mix(in srgb, var(--color-danger) 10%, transparent)", border: "1px solid color-mix(in srgb, var(--color-danger) 30%, transparent)", borderRadius: 8, padding: "12px 14px" }}>
+                <div style={{ fontSize: "0.72rem", color: "var(--color-danger)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>Reason / Pathology</div>
+                <div style={{ fontWeight: 700, color: "var(--color-danger)", fontSize: 14 }}>{recReason}</div>
               </div>
 
-              {/* Inspection Findings */}
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
-                  Veterinary Inspection Findings & Clinical Notes
-                </div>
-                <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
+              <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--color-border)" }}>
+                <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Inspection Findings</div>
+                <div style={{ fontSize: "0.88rem", color: "var(--color-text)", fontWeight: 500 }}>
                   {viewRec.findings || viewRec.notes || "Recorded during veterinary examination."}
                 </div>
               </div>
 
               {/* Attached Evidence Photos */}
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                    <Icon.Camera size={14} style={{ color: "#0284c7" }} /> Attached Evidence Photos ({recPhotos.length})
+              <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--color-border)" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 6 }}>
+                    <Icon.Camera size={13} style={{ color: "#0284c7" }} /> Attached Evidence Photos ({recPhotos.length})
                   </div>
                   {recPhotos.length > 0 && (
-                    <span style={{ fontSize: 11.5, color: "var(--color-text-muted)" }}>Click image to enlarge</span>
+                    <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Click image to enlarge</span>
                   )}
                 </div>
 
                 {recPhotos.length === 0 ? (
-                  <div style={{ fontSize: 13, color: "var(--color-text-muted)", fontStyle: "italic", padding: "8px 0" }}>
+                  <div style={{ fontSize: 12, color: "var(--color-text-muted)", fontStyle: "italic", padding: "6px 0" }}>
                     No evidence photos attached to this condemnation record.
                   </div>
                 ) : (
@@ -3223,13 +3163,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   livestock={(livestock || []).find((l) => (l.id && l.id === viewRec.livestock_id) || (l.tag_number && l.tag_number === viewRec.tag_number)) || viewRec}
                   title="Livestock & Condemnation Process History"
                 />
-              </div>
-
-              {/* Modal Actions */}
-              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
-                <Button onClick={() => setViewRec(null)}>
-                  Close
-                </Button>
               </div>
             </div>
           );
@@ -3514,100 +3447,35 @@ export const DisposalRecords = ({ type }) => {
       </Modal>
 
       {/* View Modal */}
-      <Modal
-        open={!!viewRec}
-        onClose={() => setViewRec(null)}
-        title="Official Condemned Meat Disposal Certificate"
-        size="lg"
-      >
+      <Modal open={!!viewRec} onClose={() => setViewRec(null)} title="Disposal Record Details"
+        footer={<Button variant="outline" onClick={() => setViewRec(null)}>Close</Button>}>
         {viewRec && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Header Box */}
-            <div
-              style={{
-                padding: "18px 20px",
-                background: "var(--color-bg)",
-                borderRadius: 12,
-                border: "1.5px solid var(--color-border)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              <div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#d97706", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Republic of the Philippines · City Veterinary Office
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              {[
+                ["Tag Number", viewRec.tag_number],
+                ["Disposal Method", viewRec.method],
+                ["Quantity", viewRec.quantity || "—"],
+                ["Disposed By", viewRec.disposed_by || "—"],
+                ["Witness", viewRec.witness || "—"],
+                ["Date", formatDate(viewRec.date)],
+              ].map(([label, value]) => (
+                <div key={label} style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px" }}>
+                  <div style={{ fontSize: "0.72rem", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{label}</div>
+                  <div style={{ fontWeight: 600 }}>{value}</div>
                 </div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
-                  Official Condemned Meat Disposal Record
-                </div>
-                <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                  Tag #{viewRec.tag_number || "—"} · Date: {formatDate(viewRec.date)}
-                </div>
-              </div>
-              <Badge status={viewRec.status || "Completed"} />
+              ))}
             </div>
-
-            {/* Details Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Animal Tag #</div>
-                <div style={{ marginTop: 4 }}>
-                  <TagBadge tag={viewRec.tag_number} />
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Disposal Method</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {viewRec.method || "Rendering / Incineration"}
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Quantity / Weight</div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#ef4444", marginTop: 4 }}>
-                  {viewRec.quantity || "—"}
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Disposed By</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {viewRec.disposed_by || "—"}
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Authorized Witness</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {viewRec.witness || "Dr. Dave"}
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Execution Date</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {formatDate(viewRec.date)}
-                </div>
-              </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "var(--color-surface)", borderRadius: 8 }}>
+              <span style={{ fontSize: "0.72rem", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Status:</span>
+              <span className={`badge ${viewRec.status === "Completed" ? "badge-approved" : "badge-pending"}`}>{viewRec.status}</span>
             </div>
-
-            {/* Notes Section */}
             {viewRec.notes && (
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
-                  Operational Notes & Witness Remarks
-                </div>
-                <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
-                  {viewRec.notes}
-                </div>
+              <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px" }}>
+                <div style={{ fontSize: "0.72rem", color: "var(--color-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Notes</div>
+                <div style={{ fontSize: "0.9rem" }}>{viewRec.notes}</div>
               </div>
             )}
-
-            {/* Modal Actions */}
-            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
-              <Button onClick={() => setViewRec(null)}>
-                Close
-              </Button>
-            </div>
           </div>
         )}
       </Modal>

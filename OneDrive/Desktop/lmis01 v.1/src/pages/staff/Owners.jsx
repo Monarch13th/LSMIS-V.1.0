@@ -1081,30 +1081,29 @@ export const Owners = ({ initialTab = "owners" }) => {
       <Modal
         open={!!detailModalOwner}
         onClose={() => setDetailModalOwner(null)}
-        title="Livestock Owner Dossier & Verification"
-        size="lg"
+        title="Owner Details"
       >
         {detailModalOwner && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Header Box */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {/* Top Identity Header Card */}
             <div
               style={{
-                padding: "18px 20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                padding: "14px 16px",
                 background: "var(--color-bg)",
                 borderRadius: 12,
-                border: "1.5px solid var(--color-border)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                border: "1px solid var(--color-border)",
                 flexWrap: "wrap",
                 gap: 12,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 {(() => {
                   const modalAvatar = detailModalOwner.avatar_url || resolveOwnerAvatar(detailModalOwner);
                   return (
-                    <div style={{ position: "relative", width: 46, height: 46, flexShrink: 0 }}>
+                    <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
                       {modalAvatar ? (
                         <img
                           src={modalAvatar}
@@ -1117,27 +1116,29 @@ export const Owners = ({ initialTab = "owners" }) => {
                             }
                           }}
                           style={{
-                            width: 46,
-                            height: 46,
+                            width: 44,
+                            height: 44,
                             borderRadius: "50%",
                             objectFit: "cover",
-                            border: "2px solid #10b981",
+                            flexShrink: 0,
+                            border: "1px solid var(--color-border)",
                             boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
                           }}
                         />
                       ) : null}
                       <div
                         style={{
-                          width: 46,
-                          height: 46,
+                          width: 44,
+                          height: 44,
                           borderRadius: "50%",
-                          background: "#10b981",
+                          background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
                           color: "#ffffff",
                           display: modalAvatar ? "none" : "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           fontWeight: 800,
                           fontSize: 15,
+                          boxShadow: "0 2px 6px rgba(16, 185, 129, 0.3)",
                         }}
                       >
                         {initials(detailModalOwner.name || "Owner")}
@@ -1146,14 +1147,26 @@ export const Owners = ({ initialTab = "owners" }) => {
                   );
                 })()}
                 <div>
-                  <div style={{ fontSize: 11.5, fontWeight: 800, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                    Republic of the Philippines · City Veterinary Office
-                  </div>
-                  <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
-                    Livestock Owner Dossier — {detailModalOwner.name}
-                  </div>
-                  <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                    Owner ID: {formatOwnerId(detailModalOwner)} · Registered: {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "—"}
+                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--color-text)" }}>
+                    {detailModalOwner.name}
+                  </h3>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                    <span
+                      style={{
+                        fontSize: 11.5,
+                        fontFamily: "monospace",
+                        color: "#0ea5e9",
+                        background: "rgba(14, 165, 233, 0.12)",
+                        padding: "1px 6px",
+                        borderRadius: 4,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {formatOwnerId(detailModalOwner)}
+                    </span>
+                    <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                      System ID: {detailModalOwner.id}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -1198,54 +1211,86 @@ export const Owners = ({ initialTab = "owners" }) => {
               </span>
             </div>
 
-            {/* Owner Details Grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Owner ID</div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#0ea5e9", fontFamily: "monospace", marginTop: 4 }}>
-                  {formatOwnerId(detailModalOwner)}
+            {/* 4-Stat Particulars Card */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, 1fr)",
+                gap: 10,
+              }}
+            >
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Icon.Phone size={12} style={{ color: "#0ea5e9" }} /> Contact Number
                 </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Full Name</div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {detailModalOwner.name}
-                </div>
-              </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Contact Number</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", fontFamily: "monospace", marginTop: 4 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 4, fontFamily: "monospace" }}>
                   {detailModalOwner.contact || "—"}
                 </div>
               </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Account Email</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }} className="truncate" title={detailModalOwner.email}>
+
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Icon.Mail size={12} style={{ color: "#a855f7" }} /> Account Email
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }} className="truncate" title={detailModalOwner.email}>
                   {detailModalOwner.email || "—"}
                 </div>
               </div>
-              <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
-                <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Registration Date</div>
-                <div style={{ fontSize: 14, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }}>
+
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Icon.MapPin size={12} style={{ color: "#f59e0b" }} /> Address
+                </div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }} className="truncate" title={detailModalOwner.address}>
+                  {detailModalOwner.address || "—"}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-surface)",
+                }}
+              >
+                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Icon.Calendar size={12} style={{ color: "#10b981" }} /> Registration Date
+                </div>
+                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }}>
                   {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "—"}
                 </div>
               </div>
             </div>
 
-            {/* Address Particulars */}
-            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
-                Residential / Farm Address
-              </div>
-              <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5, background: "var(--color-bg)", padding: "12px 14px", borderRadius: 8 }}>
-                {detailModalOwner.address || "No complete street or barangay address provided."}
-              </div>
-            </div>
-
             {/* Livestock Table Section */}
-            <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 10 }}>
-                Tracked Livestock in Abattoir ({getOwnerAnimals(detailModalOwner).length} Heads)
+            <div>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, padding: "0 2px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "var(--color-text)" }}>
+                  <Icon.Cow size={15} style={{ color: "#10b981" }} />
+                  <span>Tracked Livestock in Abattoir ({getOwnerAnimals(detailModalOwner).length} Heads)</span>
+                </div>
               </div>
 
               {getOwnerAnimals(detailModalOwner).length === 0 ? (
@@ -1254,7 +1299,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     padding: "24px 16px",
                     textAlign: "center",
                     border: "1px dashed var(--color-border)",
-                    borderRadius: 8,
+                    borderRadius: 10,
                     background: "var(--color-bg)",
                   }}
                 >
@@ -1265,7 +1310,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                   </p>
                 </div>
               ) : (
-                <div style={{ maxHeight: 240, overflowY: "auto", border: "1px solid var(--color-border)", borderRadius: 8 }}>
+                <div style={{ maxHeight: 240, overflowY: "auto", border: "1px solid var(--color-border)", borderRadius: 10 }}>
                   <table className="table" style={{ width: "100%", fontSize: 12 }}>
                     <thead>
                       <tr style={{ background: "var(--color-bg)" }}>
@@ -1319,7 +1364,7 @@ export const Owners = ({ initialTab = "owners" }) => {
             </div>
 
             {/* Modal Actions Footer */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6, paddingTop: 12, borderTop: "1px solid var(--color-border)" }}>
               <Button
                 onClick={() => {
                   const targetOwner = detailModalOwner;
