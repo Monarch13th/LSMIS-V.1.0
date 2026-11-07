@@ -16,7 +16,7 @@ export const SPECIES_CONFIG = [
 
 export const formatAgeString = (value, unit) => {
   if (!value || isNaN(Number(value))) return "";
-  const num = parseFloat(value);
+  const num = parseInt(value, 10);
   const cleanUnit = (unit || "Months").trim().toLowerCase();
   if (cleanUnit.startsWith("year")) {
     return num === 1 ? "1 Year" : `${num} Years`;
@@ -155,8 +155,10 @@ export const MultiLivestockForm = ({
   // Total head count across all entries
   const totalHeadCount = useMemo(() => {
     return entries.reduce((sum, item) => {
-      const qty = parseInt(item.quantity, 10);
-      return sum + (isNaN(qty) || qty < 1 ? 1 : qty);
+      const rawQty = String(item.quantity || "").trim();
+      if (rawQty.includes(".") || !/^\d+$/.test(rawQty)) return sum;
+      const qty = parseInt(rawQty, 10);
+      return sum + (isNaN(qty) || qty < 1 ? 0 : qty);
     }, 0);
   }, [entries]);
 
@@ -177,7 +179,7 @@ export const MultiLivestockForm = ({
   const hasEnteredData = (entry) => {
     return Boolean(
       (entry.sex && entry.sex.trim()) ||
-      (entry.age_value && entry.age_value.trim()) ||
+      (entry.age_value && String(entry.age_value).trim()) ||
       (entry.quantity && parseInt(entry.quantity, 10) > 1)
     );
   };
@@ -210,17 +212,12 @@ export const MultiLivestockForm = ({
 
   // Update specific field on an entry without affecting any other entry
   const handleUpdateEntry = (entryId, field, value) => {
-    let cleanVal = value;
-    if (field === "age_value" && typeof cleanVal === "string") {
-      cleanVal = cleanVal.replace(/^-+/, "");
-    }
-
     setEntries((prev) =>
       prev.map((item) => {
         if (item.id !== entryId) return item;
-        const updated = { ...item, [field]: cleanVal };
+        const updated = { ...item, [field]: value };
         if (field === "species") {
-          const matched = speciesList.find((s) => s.id === cleanVal || s.label === cleanVal);
+          const matched = speciesList.find((s) => s.id === value || s.label === value);
           updated.species_id = matched?.dbId || null;
         }
         return updated;
@@ -229,10 +226,33 @@ export const MultiLivestockForm = ({
 
     setErrors((prev) => {
       const next = { ...prev };
-      if (field === "species" && cleanVal) delete next[`species_${entryId}`];
-      if (field === "sex" && cleanVal) delete next[`sex_${entryId}`];
-      if (field === "age_value" && cleanVal && parseFloat(cleanVal) > 0) delete next[`age_${entryId}`];
-      if (field === "quantity" && parseInt(cleanVal, 10) >= 1) delete next[`quantity_${entryId}`];
+      if (field === "species" && value) delete next[`species_${entryId}`];
+      if (field === "sex" && value) delete next[`sex_${entryId}`];
+
+      // Instant integer validation for age while typing
+      if (field === "age_value") {
+        const strVal = String(value || "").trim();
+        if (strVal.includes(".") || (strVal && !/^\d+$/.test(strVal))) {
+          next[`age_${entryId}`] = "Age must be a positive whole number (no decimals allowed).";
+        } else if (strVal && parseInt(strVal, 10) <= 0) {
+          next[`age_${entryId}`] = "Please enter a valid age greater than 0.";
+        } else if (strVal && parseInt(strVal, 10) > 0) {
+          delete next[`age_${entryId}`];
+        }
+      }
+
+      // Instant integer validation for quantity while typing
+      if (field === "quantity") {
+        const strVal = String(value || "").trim();
+        if (strVal.includes(".") || (strVal && !/^\d+$/.test(strVal))) {
+          next[`quantity_${entryId}`] = "Quantity must be a positive whole number (no decimals allowed).";
+        } else if (strVal && parseInt(strVal, 10) < 1) {
+          next[`quantity_${entryId}`] = "Quantity must be at least 1.";
+        } else if (strVal && parseInt(strVal, 10) >= 1) {
+          delete next[`quantity_${entryId}`];
+        }
+      }
+
       return next;
     });
   };
@@ -256,25 +276,39 @@ export const MultiLivestockForm = ({
         newErrors[`sex_${item.id}`] = `Entry #${num}: Please select animal sex (Male or Female).`;
       }
 
+      const isYear = String(item.age_unit || "").toLowerCase().startsWith("year");
       const ageValStr = String(item.age_value || "").trim();
-      const ageNum = parseFloat(ageValStr);
-      if (!ageValStr || isNaN(ageNum) || ageNum <= 0) {
-        newErrors[`age_${item.id}`] = `Entry #${num}: Please enter a valid age greater than 0.`;
-      } else if (item.age_unit === "Months" && ageNum > 240) {
-        newErrors[`age_${item.id}`] = `Entry #${num}: Age in months cannot exceed 240 (20 years).`;
-      } else if (item.age_unit === "Years" && ageNum > 30) {
-        newErrors[`age_${item.id}`] = `Entry #${num}: Age in years cannot exceed 30.`;
+      if (!ageValStr) {
+        newErrors[`age_${item.id}`] = `Entry #${num}: Please enter animal age.`;
+      } else if (ageValStr.includes(".") || !/^\d+$/.test(ageValStr)) {
+        newErrors[`age_${item.id}`] = `Entry #${num}: Age must be a positive whole number (no decimals allowed).`;
+      } else {
+        const ageNum = parseInt(ageValStr, 10);
+        if (isNaN(ageNum) || ageNum <= 0) {
+          newErrors[`age_${item.id}`] = `Entry #${num}: Please enter a valid age greater than 0.`;
+        } else if (!isYear && ageNum > 240) {
+          newErrors[`age_${item.id}`] = `Entry #${num}: Age in months cannot exceed 240 (20 years).`;
+        } else if (isYear && ageNum > 30) {
+          newErrors[`age_${item.id}`] = `Entry #${num}: Age in years cannot exceed 30.`;
+        }
       }
 
-      const qty = parseInt(item.quantity, 10);
-      if (isNaN(qty) || qty < 1) {
-        newErrors[`quantity_${item.id}`] = `Entry #${num}: Quantity must be at least 1.`;
+      const qtyStr = String(item.quantity || "").trim();
+      if (!qtyStr) {
+        newErrors[`quantity_${item.id}`] = `Entry #${num}: Please enter quantity.`;
+      } else if (qtyStr.includes(".") || !/^\d+$/.test(qtyStr)) {
+        newErrors[`quantity_${item.id}`] = `Entry #${num}: Quantity must be a positive whole number (no decimals allowed).`;
+      } else {
+        const qty = parseInt(qtyStr, 10);
+        if (isNaN(qty) || qty < 1) {
+          newErrors[`quantity_${item.id}`] = `Entry #${num}: Quantity must be at least 1.`;
+        }
       }
     });
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      showToast("Please complete all required fields before submitting.", "error");
+      showToast("Please complete all required fields with whole numbers before submitting.", "error");
       return;
     }
 
@@ -298,7 +332,7 @@ export const MultiLivestockForm = ({
           species_id: item.species_id || matchedSpecies?.dbId || null,
           sex: item.sex,
           age_months: formattedAge,
-          age_value: item.age_value,
+          age_value: parseInt(item.age_value, 10),
           age_unit: item.age_unit,
           quantity: parseInt(item.quantity, 10) || 1,
         };
@@ -635,19 +669,20 @@ export const MultiLivestockForm = ({
                     <input
                       id={`age-value-${entry.id}`}
                       type="number"
-                      step="any"
-                      min="0.1"
+                      step="1"
+                      min="1"
+                      inputMode="numeric"
                       placeholder="e.g. 6"
                       className="form-control"
                       value={entry.age_value}
                       onKeyDown={(e) => {
-                        if (e.key === "-" || e.key === "e" || e.key === "E" || e.key === "+") {
+                        // Disallow decimal point, comma, signs, and exponent notation
+                        if (e.key === "." || e.key === "," || e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E") {
                           e.preventDefault();
                         }
                       }}
                       onChange={(e) => {
-                        const val = e.target.value.replace(/^-+/, "");
-                        handleUpdateEntry(entry.id, "age_value", val);
+                        handleUpdateEntry(entry.id, "age_value", e.target.value);
                       }}
                       style={{
                         height: 44,
@@ -661,8 +696,10 @@ export const MultiLivestockForm = ({
                     />
                     {(() => {
                       const isYear = String(entry.age_unit || "").toLowerCase().startsWith("year");
-                      const rawAge = parseFloat(entry.age_value);
-                      const isSingular = !isNaN(rawAge) && rawAge === 1;
+                      const rawAgeStr = String(entry.age_value || "").trim();
+                      const isInt = /^\d+$/.test(rawAgeStr);
+                      const ageInt = isInt ? parseInt(rawAgeStr, 10) : NaN;
+                      const isSingular = !isNaN(ageInt) && ageInt === 1;
                       const monthOptionLabel = isSingular ? "Month" : "Months";
                       const yearOptionLabel = isSingular ? "Year" : "Years";
 
@@ -713,9 +750,18 @@ export const MultiLivestockForm = ({
                   <input
                     id={`quantity-${entry.id}`}
                     type="number"
+                    step="1"
                     min="1"
+                    inputMode="numeric"
+                    placeholder="e.g. 1"
                     className="form-control"
                     value={entry.quantity}
+                    onKeyDown={(e) => {
+                      // Disallow decimal point, comma, signs, and exponent notation
+                      if (e.key === "." || e.key === "," || e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E") {
+                        e.preventDefault();
+                      }
+                    }}
                     onChange={(e) => handleUpdateEntry(entry.id, "quantity", e.target.value)}
                     style={{
                       height: 44,
