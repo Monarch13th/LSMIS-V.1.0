@@ -284,14 +284,14 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
 
   // Comprehensive, multi-source owner name resolver with deep fallbacks
   const resolveOwnerName = (insp) => {
-    if (!insp) return "Ã¢â‚¬â€";
+    if (!insp) return "—";
 
     const isValid = (name) => {
       if (!name || typeof name !== "string") return false;
       const clean = name.trim();
       return (
         clean !== "" &&
-        clean !== "Ã¢â‚¬â€" &&
+        clean !== "—" &&
         clean !== "-" &&
         clean.toLowerCase() !== "unknown" &&
         clean.toLowerCase() !== "unknown owner" &&
@@ -416,7 +416,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       return Array.from(otherResolvedOwners)[0];
     }
 
-    return "Ã¢â‚¬â€";
+    return "—";
   };
 
   const resolveOwnerId = (insp) => {
@@ -434,7 +434,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     if (l?.owner_id) return String(l.owner_id).trim();
 
     const ownerName = resolveOwnerName(insp);
-    if (ownerName && ownerName !== "Ã¢â‚¬â€") {
+    if (ownerName && ownerName !== "—") {
       const found = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === ownerName.trim().toLowerCase()
       );
@@ -472,7 +472,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       ...baseAnimal,
       tag_number: insp.tag_number || baseAnimal.tag_number,
       species: insp.species || baseAnimal.species || "Unknown",
-      owner_name: resolvedOwner !== "Ã¢â‚¬â€" ? resolvedOwner : (baseAnimal.owner_name || "Ã¢â‚¬â€"),
+      owner_name: resolvedOwner !== "—" ? resolvedOwner : (baseAnimal.owner_name || "—"),
     };
   };
 
@@ -632,7 +632,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       const grp = groups.get(key);
       grp.items.push(item);
       const species = (item.species || resolveAnimal(item)?.species || "Unknown Species").trim();
-      if (species && species !== "Ã¢â‚¬â€" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
       const rawTime = item.action_timestamp || item.inspected_at || item.created_at || item.date;
@@ -735,7 +735,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || item.livestock_id || "",
             species: animal?.species || item.species || "Unknown",
-            owner_name: resolvedOwner !== "Ã¢â‚¬â€" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
+            owner_name: resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
             animal,
           };
         });
@@ -796,7 +796,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || "",
             species: animal?.species || "Unknown",
-            owner_name: resolvedOwner !== "Ã¢â‚¬â€" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
+            owner_name: resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
             animal,
           };
         });
@@ -884,12 +884,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     const headers = "Inspection ID,Tag #,Species,Sex,Owner,Inspection Date,Inspector,Decision,Findings,Remarks";
     const rows = data.map((i) => {
       const animal = resolveAnimal(i);
-      const id = i.id || "Ã¢â‚¬â€";
-      const tag = i.tag_number || "Ã¢â‚¬â€";
-      const species = i.species || animal?.species || "Ã¢â‚¬â€";
+      const id = i.id || "—";
+      const tag = i.tag_number || "—";
+      const species = i.species || animal?.species || "—";
       const sex = formatSex(i.sex || animal?.sex);
       const owner = resolveOwnerName(i).replace(/"/g, '""');
-      const date = i.date ? formatDate(i.date) : "Ã¢â‚¬â€";
+      const date = i.date ? formatDate(i.date) : "—";
       const inspector = (i.inspector_name || "Dr. Dave").replace(/"/g, '""');
       const decision = i.decision || "Approved";
       const findings = (i.findings || "").replace(/"/g, '""');
@@ -1709,8 +1709,8 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "inspected"
-            ? `Ante-Mortem Inspection Records Ã¢â‚¬â€ ${selectedOwnerView?.owner_name || ""}`
-            : `Awaiting Ante-Mortem Inspection Ã¢â‚¬â€ ${selectedOwnerView?.owner_name || ""}`
+            ? `Ante-Mortem Inspection Records — ${selectedOwnerView?.owner_name || ""}`
+            : `Awaiting Ante-Mortem Inspection — ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         footer={
@@ -1795,7 +1795,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {i.species || animal?.species || "Ã¢â‚¬â€"}
+                            {i.species || animal?.species || "—"}
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontWeight: 600, fontSize: 12.5, color: "var(--color-text)" }}>
                             {formatSex(i.sex || animal?.sex)}
@@ -1869,7 +1869,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                     {(selectedOwnerView.items || []).map((item) => {
                       const rawAge = item.age_months ?? item.age;
                       const formattedAge = !rawAge && rawAge !== 0
-                        ? "Ã¢â‚¬â€"
+                        ? "—"
                         : /months?|mos|years?|yrs|days?/i.test(String(rawAge))
                         ? String(rawAge)
                         : `${rawAge} mos`;
@@ -1900,7 +1900,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {item.species || "Ã¢â‚¬â€"}
+                            {item.species || "—"}
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontWeight: 600, fontSize: 12.5, color: "var(--color-text)" }}>
                             {formatSex(item.sex)}
@@ -1909,7 +1909,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             {formattedAge}
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
-                            {item.created_at || item.received_date || item.date ? formatPhDateTime(item.created_at || item.received_date || item.date) : "Ã¢â‚¬â€"}
+                            {item.created_at || item.received_date || item.date ? formatPhDateTime(item.created_at || item.received_date || item.date) : "—"}
                           </td>
                           <td style={{ padding: "12px 14px" }}>
                             <Badge status={item.status || "Pending"} />
@@ -1992,7 +1992,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species & Sex</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {selectedInspection.species || selectedInspection.animal?.species || resolveAnimal(selectedInspection)?.species || "Ã¢â‚¬â€"} · {formatSex(selectedInspection.sex || selectedInspection.animal?.sex || resolveAnimal(selectedInspection)?.sex)}
+                  {selectedInspection.species || selectedInspection.animal?.species || resolveAnimal(selectedInspection)?.species || "—"} · {formatSex(selectedInspection.sex || selectedInspection.animal?.sex || resolveAnimal(selectedInspection)?.sex)}
                 </div>
               </div>
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>

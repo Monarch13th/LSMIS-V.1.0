@@ -369,7 +369,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                 overflow: "hidden",
                 border: "1px solid #cbd5e1",
                 background: "#0f172a",
-                height: 90,
+                height: 96,
                 display: "flex",
                 flexDirection: "column",
                 cursor: "pointer",
@@ -380,7 +380,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
               <img
                 src={photo.preview || photo.url}
                 alt={photo.name}
-                style={{ width: "100%", height: 64, objectFit: "cover" }}
+                style={{ width: "100%", height: 72, objectFit: "cover" }}
               />
               <div
                 style={{
@@ -482,8 +482,8 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                 <Icon.X size={18} />
               </button>
             </div>
-            <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "center", minHeight: 280, maxHeight: "60vh", background: "#020617", padding: 12 }}>
-              <img src={previewPhoto.preview || previewPhoto.url} alt={previewPhoto.name} style={{ maxWidth: "100%", maxHeight: "55vh", objectFit: "contain" }} />
+            <div style={{ position: "relative", display: "flex", justifyContent: "center", alignItems: "center", height: 380, maxHeight: "55vh", background: "#020617", padding: 12 }}>
+              <img src={previewPhoto.preview || previewPhoto.url} alt={previewPhoto.name} style={{ width: "100%", height: "100%", maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
             </div>
 
             {/* Thumbnail selector gallery if multiple photos */}
@@ -497,7 +497,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                       onClick={() => setPreviewPhoto(p)}
                       style={{
                         width: 64,
-                        height: 50,
+                        height: 52,
                         borderRadius: 6,
                         overflow: "hidden",
                         border: isSelected ? "2.5px solid #38bdf8" : "1px solid #334155",
