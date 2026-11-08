@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/icons";
-import { useTheme } from "../hooks/useTheme";
 import { useAuth } from "../hooks/useAuth";
 import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
@@ -167,7 +166,6 @@ export const LandingPage = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const mobileMenuRef = useRef(null);
 
-  const { theme, toggleTheme } = useTheme();
   const { role, isAuthenticated, loading: authLoading, isInitialized: authInitialized } = useAuth();
   const navigate = useNavigate();
 
@@ -316,19 +314,14 @@ export const LandingPage = () => {
               })}
             </nav>
 
-            {/* Nav Actions: Theme Toggle, Login, Mobile Toggle */}
+            {/* Nav Actions: Register, Login, Mobile Toggle */}
             <div className="nav-actions">
-              <button
-                type="button"
-                className="nav-theme-toggle"
-                onClick={toggleTheme}
-                aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-                title={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
-              >
-                {theme === "dark" ? <Icon.Sun size={17} /> : <Icon.Moon size={17} />}
-              </button>
+              <Link to="/register" className="nav-btn-register" aria-label="Register Owner Account">
+                <Icon.UserPlus size={15} />
+                <span>Register</span>
+              </Link>
 
-              <Link to="/login" className="nav-btn-login">
+              <Link to="/login" className="nav-btn-login" aria-label="Login to System">
                 <Icon.LogIn size={15} />
                 <span>Login</span>
               </Link>
@@ -468,7 +461,7 @@ export const LandingPage = () => {
 
             {/* Main Headline */}
             <h1 className="hero-main-title">
-              Modernizing Livestock <br className="hero-title-br" />Slaughter and <span>Meat Inspection</span>
+              Modernizing Livestock <br className="hero-title-br" />Slaughter and Meat Inspection
             </h1>
 
             {/* Description */}
@@ -494,7 +487,7 @@ export const LandingPage = () => {
             {/* Institutional Trust Badges */}
             <div className="hero-trust-chips">
               <div className="hero-chip-item">
-                <Icon.ShieldCheck size={16} />
+                <Icon.CheckCircle size={16} />
                 <span>Verified Inspection Protocols</span>
               </div>
               <div className="hero-chip-item">
@@ -511,63 +504,55 @@ export const LandingPage = () => {
       </section>
 
       {/* =========================================================
-          3. ABOUT SECTION
+          3. ABOUT SECTION (Single-Frame Responsive Fit)
           ========================================================= */}
       <section className="landing-about landing-section" id="about" aria-label="About the System">
         <div className="landing-container">
           <div className="about-grid-layout">
             {/* Text Column */}
             <div className="about-text-content">
-              <div>
+              <div className="about-header-wrap">
                 <span className="section-header-badge">System Overview</span>
                 <h2 className="section-header-title">About the System</h2>
               </div>
 
               <p className="about-lead-paragraph">
-                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is a digital
-                platform designed to manage livestock intake, inspections, slaughter operations, and
-                meat permitting in Tinaan, City of Naga, Cebu.
-              </p>
-
-              <p className="about-body-paragraph">
-                LSMIS replaces manual logbooks with secure digital recordkeeping. The system tracks
-                each animal from registration through ante-mortem and post-mortem inspections, carcass
-                weighing, and permit issuance, ensuring accurate operational records.
+                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is the City of Naga&apos;s digital platform replacing manual logbooks with secure tracking from animal intake through veterinary inspections, humane slaughter, carcass weighing, and certified permit issuance.
               </p>
 
               <div className="about-highlights-list">
                 <div className="about-highlight-card">
                   <div className="about-highlight-icon-box">
-                    <Icon.ShieldCheck size={20} />
+                    <Icon.ShieldCheck size={18} />
                   </div>
-                  <div>
+                  <div className="about-highlight-body">
                     <h3 className="about-highlight-title">Inspection Management</h3>
                     <p className="about-highlight-desc">
-                      Record ante-mortem clinical evaluations and post-mortem pathological findings in real time.
+                      Real-time ante-mortem health screenings and post-mortem pathological evaluations.
                     </p>
                   </div>
                 </div>
 
                 <div className="about-highlight-card">
                   <div className="about-highlight-icon-box">
-                    <Icon.Tag size={20} />
+                    <Icon.Tag size={18} />
                   </div>
-                  <div>
+                  <div className="about-highlight-body">
                     <h3 className="about-highlight-title">Livestock Tracking</h3>
                     <p className="about-highlight-desc">
-                      Monitor animal registration, official ear tag assignments, and pen allocations.
+                      Intake registration, official ear tag assignments, and pen allocations.
                     </p>
                   </div>
                 </div>
 
                 <div className="about-highlight-card">
                   <div className="about-highlight-icon-box">
-                    <Icon.FileText size={20} />
+                    <Icon.FileText size={18} />
                   </div>
-                  <div>
-                    <h3 className="about-highlight-title">Permits &amp; Records</h3>
+                  <div className="about-highlight-body">
+                    <h3 className="about-highlight-title">Permits &amp; Weights</h3>
                     <p className="about-highlight-desc">
-                      Generate certified carcass weights and official meat inspection permits upon clearance.
+                      Certified carcass weight records and official meat inspection certificates.
                     </p>
                   </div>
                 </div>
@@ -588,7 +573,6 @@ export const LandingPage = () => {
                 <span className="about-caption-text">
                   Ante-Mortem Clinical Evaluation
                 </span>
-                <span className="about-caption-tag">Tinaan, City of Naga, Cebu</span>
               </div>
             </div>
           </div>
@@ -807,82 +791,176 @@ export const LandingPage = () => {
       </section>
 
       {/* =========================================================
-          7. FOOTER (Compact Municipal Abattoir Layout)
+          7. PROFESSIONAL LSMIS MUNICIPAL FOOTER
           ========================================================= */}
       <footer className="landing-footer" role="contentinfo">
+        <h2 className="footer-sr-only">Footer Information and System Directory</h2>
         <div className="landing-container">
-          <div className="footer-compact-main">
-            {/* Brand & Institutional Seals */}
-            <div className="footer-compact-brand">
-              <div className="footer-seals-row">
-                <div className="footer-seal-item" title="City of Naga Official Seal">
-                  <img src="/naga_city_seal.png" alt="City of Naga Seal" width="36" height="36" />
-                </div>
-                <div className="footer-seal-item" title="LSMIS Official Seal">
-                  <img src={logoImg} alt="LSMIS Official Seal" width="36" height="36" />
-                </div>
-                <div className="footer-seal-item" title="Bagong Pilipinas Official Seal">
-                  <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas Seal" width="36" height="36" />
-                </div>
-              </div>
-              <div className="footer-brand-info">
-                <h4 className="footer-brand-heading">LSMIS · City of Naga</h4>
-                <div className="footer-brand-subheading">
-                  Office of the City Veterinarian - Tinaan, Naga City, Cebu
+          <div className="footer-grid">
+            {/* Column 1: LSMIS Municipal Identity */}
+            <div className="footer-col footer-col-brand">
+              <div className="footer-brand-header">
+                <img
+                  src={logoImg}
+                  alt="City of Naga LSMIS Official Seal"
+                  width="48"
+                  height="48"
+                  className="footer-brand-logo"
+                />
+                <div className="footer-brand-titles">
+                  <h3 className="footer-brand-name">LSMIS · City of Naga</h3>
+                  <span className="footer-brand-dept">Office of the City Veterinarian</span>
                 </div>
               </div>
+              <p className="footer-brand-location">
+                <Icon.MapPin size={15} aria-hidden="true" />
+                <span>Tinaan, City of Naga</span>
+              </p>
+              <p className="footer-brand-desc">
+                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is the City of Naga&apos;s digital platform for animal receiving, ante-mortem and post-mortem inspections, humane slaughter operations, carcass weighing, and meat permit issuance.
+              </p>
             </div>
 
-            {/* Compact Essential Navigation & Contacts */}
-            <div className="footer-compact-links-wrap">
-              <div className="footer-links-group">
-                <span className="footer-group-label">Quick Links</span>
-                <nav className="footer-nav-row" aria-label="Footer Navigation">
-                  {NAV_ITEMS.map((item) => (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      onClick={(e) => scrollToSection(e, item.href)}
-                      className="footer-nav-link"
-                    >
-                      {item.label}
-                    </a>
-                  ))}
-                </nav>
+            {/* Column 2: LSMIS Abattoir Modules */}
+            <div className="footer-col footer-col-modules">
+              <h4 className="footer-col-heading">System Modules</h4>
+              <ul className="footer-links-list">
+                <li>
+                  <a href="#features" onClick={(e) => scrollToSection(e, "#features")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Livestock Registration &amp; Receiving</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#features" onClick={(e) => scrollToSection(e, "#features")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Official Animal Marking &amp; Tagging</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#features" onClick={(e) => scrollToSection(e, "#features")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Ante-Mortem Veterinary Inspection</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#workflow" onClick={(e) => scrollToSection(e, "#workflow")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Humane Slaughter Processing</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#features" onClick={(e) => scrollToSection(e, "#features")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Post-Mortem Carcass Inspection</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#features" onClick={(e) => scrollToSection(e, "#features")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Carcass Weighing &amp; Records</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="#workflow" onClick={(e) => scrollToSection(e, "#workflow")} className="footer-link-item">
+                    <Icon.ChevronRight size={13} aria-hidden="true" />
+                    <span>Meat Inspection Certificate (MIC)</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 3: Legal Mandates & Regulations */}
+            <div className="footer-col footer-col-legal">
+              <h4 className="footer-col-heading">Legal Mandates</h4>
+              <ul className="footer-links-list">
+                <li>
+                  <a
+                    href="https://www.officialgazette.gov.ph/2004/05/12/republic-act-no-9296/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-link-item"
+                    title="Republic Act No. 9296 on Official Gazette (opens in a new tab)"
+                  >
+                    <span>Republic Act No. 9296</span>
+                    <span className="footer-link-sub">Meat Inspection Code of the Philippines</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.officialgazette.gov.ph/2013/05/15/republic-act-no-10536/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-link-item"
+                    title="Republic Act No. 10536 on Official Gazette (opens in a new tab)"
+                  >
+                    <span>Republic Act No. 10536</span>
+                    <span className="footer-link-sub">Strengthening Meat Inspection (Amending RA 9296)</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://www.officialgazette.gov.ph/2013/08/23/republic-act-no-10611/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-link-item"
+                    title="Republic Act No. 10611 on Official Gazette (opens in a new tab)"
+                  >
+                    <span>Republic Act No. 10611</span>
+                    <span className="footer-link-sub">Food Safety Act of 2013</span>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://nmis.gov.ph"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="footer-link-item"
+                    title="Department of Agriculture Circular No. 01, Series of 2014 on NMIS (opens in a new tab)"
+                  >
+                    <span>DA Department Circular No. 01, s. 2014</span>
+                    <span className="footer-link-sub">Revised IRR of RA 9296, as amended</span>
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Column 4: Facility & Operations Contact */}
+            <div className="footer-col footer-col-contact">
+              <h4 className="footer-col-heading">Facility Operations</h4>
+              <div className="footer-contact-block">
+                <div className="footer-schedule-item">
+                  <span className="footer-sched-label">Livestock Receiving:</span>
+                  <span className="footer-sched-val">24/7 Receiving Operations</span>
+                </div>
+                <div className="footer-schedule-item">
+                  <span className="footer-sched-label">Veterinary Inspection:</span>
+                  <span className="footer-sched-val">4:00 AM – 6:00 PM Daily</span>
+                </div>
               </div>
 
-              <div className="footer-links-group">
-                <span className="footer-group-label">Mandates & Contact</span>
-                <div className="footer-meta-row">
-                  <span>RA 9296</span>
-                  <span className="footer-bullet">•</span>
-                  <span>RA 10536</span>
-                  <span className="footer-bullet">•</span>
-                  <span>NMIS Class AA</span>
-                  <span className="footer-bullet">•</span>
-                  <a href="tel:0322726655">(032) 272-6655</a>
-                  <span className="footer-bullet">•</span>
-                  <a href="mailto:cityvet@nagacitycebu.gov.ph">cityvet@nagacitycebu.gov.ph</a>
-                </div>
+              <div className="footer-contact-links">
+                <a href="tel:0322726655" className="footer-contact-item" title="Call City Veterinarian Office">
+                  <Icon.Phone size={14} aria-hidden="true" />
+                  <span>(032) 272-6655</span>
+                </a>
+                <a href="mailto:cityvet@nagacitycebu.gov.ph" className="footer-contact-item" title="Email City Veterinarian Office">
+                  <Icon.Mail size={14} aria-hidden="true" />
+                  <span>cityvet@nagacitycebu.gov.ph</span>
+                </a>
               </div>
             </div>
           </div>
 
-          {/* Bottom Bar: Copyright & Back to Top */}
+          {/* Bottom Bar: Divider & Dynamic Year Copyright */}
           <div className="footer-bottom-bar">
-            <div className="footer-copyright-text">
-              &copy; {new Date().getFullYear()} City Government of Naga, Cebu · Office of the City Veterinarian. All rights reserved.
+            <p className="footer-copyright">
+              &copy; {new Date().getFullYear()} LSMIS &ndash; Livestock Slaughter and Meat Inspection Management System · City Government of Naga, Cebu. All rights reserved.
+            </p>
+            <div className="footer-bottom-meta">
+              <Icon.MapPin size={13} aria-hidden="true" />
+              <span>Tinaan, City of Naga</span>
             </div>
-
-            <button
-              type="button"
-              className="footer-back-to-top"
-              onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              aria-label="Back to top of page"
-            >
-              <span>Back to Top</span>
-              <Icon.ChevronUp size={13} />
-            </button>
           </div>
         </div>
       </footer>
