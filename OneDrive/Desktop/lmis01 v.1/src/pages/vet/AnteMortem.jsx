@@ -284,15 +284,15 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
 
   // Comprehensive, multi-source owner name resolver with deep fallbacks
   const resolveOwnerName = (insp) => {
-    if (!insp) return "—";
+    if (!insp) return "-";
 
     const isValid = (name) => {
       if (!name || typeof name !== "string") return false;
       const clean = name.trim();
       return (
         clean !== "" &&
-        clean !== "—" &&
         clean !== "-" &&
+        clean !== "—" &&
         clean.toLowerCase() !== "unknown" &&
         clean.toLowerCase() !== "unknown owner" &&
         clean.toLowerCase() !== "n/a"
@@ -416,7 +416,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       return Array.from(otherResolvedOwners)[0];
     }
 
-    return "—";
+    return "-";
   };
 
   const resolveOwnerId = (insp) => {
@@ -434,7 +434,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     if (l?.owner_id) return String(l.owner_id).trim();
 
     const ownerName = resolveOwnerName(insp);
-    if (ownerName && ownerName !== "—") {
+    if (ownerName && ownerName !== "-" && ownerName !== "—") {
       const found = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === ownerName.trim().toLowerCase()
       );
@@ -472,7 +472,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       ...baseAnimal,
       tag_number: insp.tag_number || baseAnimal.tag_number,
       species: insp.species || baseAnimal.species || "Unknown",
-      owner_name: resolvedOwner !== "—" ? resolvedOwner : (baseAnimal.owner_name || "—"),
+      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (baseAnimal.owner_name || "-"),
     };
   };
 
@@ -632,7 +632,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       const grp = groups.get(key);
       grp.items.push(item);
       const species = (item.species || resolveAnimal(item)?.species || "Unknown Species").trim();
-      if (species && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "-" && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
       const rawTime = item.action_timestamp || item.inspected_at || item.created_at || item.date;
@@ -735,7 +735,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || item.livestock_id || "",
             species: animal?.species || item.species || "Unknown",
-            owner_name: resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
             animal,
           };
         });
@@ -796,7 +796,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || "",
             species: animal?.species || "Unknown",
-            owner_name: resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
             animal,
           };
         });
@@ -884,12 +884,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     const headers = "Inspection ID,Tag #,Species,Sex,Owner,Inspection Date,Inspector,Decision,Findings,Remarks";
     const rows = data.map((i) => {
       const animal = resolveAnimal(i);
-      const id = i.id || "—";
-      const tag = i.tag_number || "—";
-      const species = i.species || animal?.species || "—";
+      const id = i.id || "-";
+      const tag = i.tag_number || "-";
+      const species = i.species || animal?.species || "-";
       const sex = formatSex(i.sex || animal?.sex);
       const owner = resolveOwnerName(i).replace(/"/g, '""');
-      const date = i.date ? formatDate(i.date) : "—";
+      const date = i.date ? formatDate(i.date) : "-";
       const inspector = (i.inspector_name || "Dr. Dave").replace(/"/g, '""');
       const decision = i.decision || "Approved";
       const findings = (i.findings || "").replace(/"/g, '""');
@@ -1709,8 +1709,8 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "inspected"
-            ? `Ante-Mortem Inspection Records — ${selectedOwnerView?.owner_name || ""}`
-            : `Awaiting Ante-Mortem Inspection — ${selectedOwnerView?.owner_name || ""}`
+            ? `Ante-Mortem Inspection Records - ${selectedOwnerView?.owner_name || ""}`
+            : `Awaiting Ante-Mortem Inspection - ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -1766,18 +1766,18 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         {selectedOwnerView && (
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {activeTab === "inspected" ? (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Inspected</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Clinical Findings</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Inspector</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Decision</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Actions</th>
+                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Inspected</th>
+                      <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Clinical Findings</th>
+                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Inspector</th>
+                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Decision</th>
+                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1867,17 +1867,17 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 </table>
               </div>
             ) : (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Received</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Intake Status</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                      <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
+                      <th style={{ width: "19%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Received</th>
+                      <th style={{ width: "19%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Intake Status</th>
+                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1919,12 +1919,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             {formattedAge}
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)", whiteSpace: "nowrap" }}>
-                            {item.created_at || item.received_date || item.date ? formatPhDateTime(item.created_at || item.received_date || item.date) : "—"}
+                            {item.created_at || item.received_date || item.date ? formatPhDateTime(item.created_at || item.received_date || item.date) : "-"}
                           </td>
                           <td style={{ padding: "12px 14px" }}>
                             <Badge status={item.status || "Pending"} />
                           </td>
-                          <td style={{ padding: "12px 14px", textAlign: "right" }}>
+                          <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
                             <Button
                               size="sm"
                               onClick={() => {
@@ -1938,6 +1938,10 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                                 fontWeight: 700,
                                 background: "linear-gradient(135deg, #0284c7, #0369a1)",
                                 color: "#ffffff",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 5,
+                                whiteSpace: "nowrap",
                               }}
                             >
                               <Icon.Stethoscope size={13} /> Inspect Now
@@ -1979,13 +1983,13 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             >
               <div>
                 <div style={{ fontSize: 11.5, fontWeight: 800, color: "#0284c7", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                  Republic of the Philippines · City Veterinary Office
+                  Republic of the Philippines - City Veterinary Office
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
                   Ante-Mortem Inspection Certificate
                 </div>
                 <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                  Record ID: #{selectedInspection.id || "00001"} · Date: {formatPhDateTime(selectedInspection.inspected_at || selectedInspection.created_at || selectedInspection.date)}
+                  Record ID: #{selectedInspection.id || "00001"} | Date: {formatPhDateTime(selectedInspection.inspected_at || selectedInspection.created_at || selectedInspection.date)}
                 </div>
               </div>
               <Badge status={selectedInspection.decision || "Approved"} />
@@ -2002,7 +2006,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Species & Sex</div>
                 <div style={{ fontSize: 15, fontWeight: 700, color: "var(--color-text)", marginTop: 4 }}>
-                  {selectedInspection.species || selectedInspection.animal?.species || resolveAnimal(selectedInspection)?.species || "—"} · {formatSex(selectedInspection.sex || selectedInspection.animal?.sex || resolveAnimal(selectedInspection)?.sex)}
+                  {selectedInspection.species || selectedInspection.animal?.species || resolveAnimal(selectedInspection)?.species || "-"} / {formatSex(selectedInspection.sex || selectedInspection.animal?.sex || resolveAnimal(selectedInspection)?.sex)}
                 </div>
               </div>
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>

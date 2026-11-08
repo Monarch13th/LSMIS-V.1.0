@@ -2843,6 +2843,9 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                       border: "1px solid var(--color-border)",
                       background: "#0f172a",
                       aspectRatio: "1/1",
+                      height: 96,
+                      minHeight: 96,
+                      maxHeight: 96,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -2852,7 +2855,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                       src={photo.preview || photo.url}
                       alt={photo.name || `Photo ${idx + 1}`}
                       onClick={() => setLightboxPhoto(photo.preview || photo.url)}
-                      style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer", display: "block" }}
                       title="Click to view full image"
                     />
                     <button
@@ -5279,6 +5282,21 @@ export const EvidenceUpload = ({
           )
         }
         size="xl"
+        dialogStyle={{
+          minHeight: "560px",
+          maxHeight: "88vh",
+          width: "100%",
+          maxWidth: "1120px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          flex: 1,
+          minHeight: "420px",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 24px",
+        }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
@@ -5300,13 +5318,15 @@ export const EvidenceUpload = ({
         }
       >
         {selectedOwnerView && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
             {/* All Condemnation Cards for this Owner */}
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
                 gap: "14px",
+                flex: 1,
+                minHeight: "380px",
                 maxHeight: "65vh",
                 overflowY: "auto",
                 scrollbarWidth: "thin",

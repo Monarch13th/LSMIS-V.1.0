@@ -371,6 +371,8 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                 border: "1px solid #cbd5e1",
                 background: "#0f172a",
                 height: 96,
+                minHeight: 96,
+                maxHeight: 96,
                 display: "flex",
                 flexDirection: "column",
                 cursor: "pointer",
@@ -381,7 +383,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
               <img
                 src={photo.preview || photo.url}
                 alt={photo.name}
-                style={{ width: "100%", height: 72, objectFit: "cover" }}
+                style={{ width: "100%", height: 72, minHeight: 72, maxHeight: 72, objectFit: "cover", flexShrink: 0, display: "block" }}
               />
               <div
                 style={{
