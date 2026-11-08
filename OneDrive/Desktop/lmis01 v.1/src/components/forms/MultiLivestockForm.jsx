@@ -165,6 +165,31 @@ export const MultiLivestockForm = ({
     }, 0);
   }, [entries]);
 
+  // Aggregate identical (category + age) entries for clean confirmation modal summary matching Image 3
+  const aggregatedEntries = useMemo(() => {
+    const map = new Map();
+    for (const item of entries) {
+      const species = item.species || "Unspecified";
+      const sex = item.sex && item.sex !== "Unspecified" ? ` (${item.sex})` : "";
+      const category = `${species}${sex}`;
+      const ageStr = item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "—");
+      const key = `${category}|||${ageStr}`;
+      const qty = parseInt(item.quantity, 10) || 0;
+      if (map.has(key)) {
+        map.get(key).quantity += qty;
+      } else {
+        map.set(key, {
+          category,
+          species: item.species,
+          sex: item.sex,
+          age: ageStr,
+          quantity: qty,
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [entries]);
+
   // Escape key handling for confirmation modal
   useEffect(() => {
     if (!showConfirm) return;
@@ -1028,54 +1053,46 @@ export const MultiLivestockForm = ({
                     <tr style={{ borderBottom: "1px solid var(--color-border, #e2e8f0)" }}>
                       <th
                         style={{
-                          padding: "9px 12px",
+                          padding: "10px 14px",
                           fontWeight: 700,
-                          color: "var(--color-text-secondary, #475569)",
-                          fontSize: 12,
+                          color: "var(--color-text, #1e293b)",
+                          fontSize: 12.5,
+                          textAlign: "left",
                         }}
                       >
-                        Species
+                        Category
                       </th>
                       <th
                         style={{
-                          padding: "9px 12px",
+                          padding: "10px 14px",
                           fontWeight: 700,
-                          color: "var(--color-text-secondary, #475569)",
-                          fontSize: 12,
+                          color: "var(--color-text, #1e293b)",
+                          fontSize: 12.5,
+                          textAlign: "left",
                         }}
                       >
-                        Sex
+                        Age/Gender
                       </th>
                       <th
                         style={{
-                          padding: "9px 12px",
+                          padding: "10px 14px",
                           fontWeight: 700,
-                          color: "var(--color-text-secondary, #475569)",
-                          fontSize: 12,
-                        }}
-                      >
-                        Age
-                      </th>
-                      <th
-                        style={{
-                          padding: "9px 12px",
-                          fontWeight: 700,
-                          color: "var(--color-text-secondary, #475569)",
-                          fontSize: 12,
+                          color: "var(--color-text, #1e293b)",
+                          fontSize: 12.5,
                           textAlign: "right",
                         }}
                       >
-                        Quantity
+                        Total Quantity
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    {entries.map((item, i) => (
+                    {aggregatedEntries.map((item, i) => (
                       <tr
-                        key={item.id || i}
+                        key={item.category + item.age + i}
                         style={{
                           borderBottom:
-                            i < entries.length - 1
+                            i < aggregatedEntries.length - 1
                               ? "1px solid var(--color-border, #f1f5f9)"
                               : "none",
                           background:
@@ -1086,38 +1103,30 @@ export const MultiLivestockForm = ({
                       >
                         <td
                           style={{
-                            padding: "9px 12px",
-                            fontWeight: 600,
+                            padding: "10px 14px",
+                            fontWeight: 500,
                             color: "var(--color-text, #0f172a)",
                           }}
                         >
-                          {item.species}
+                          {item.category}
                         </td>
                         <td
                           style={{
-                            padding: "9px 12px",
+                            padding: "10px 14px",
                             color: "var(--color-text-secondary, #334155)",
                           }}
                         >
-                          {item.sex || "Unspecified"}
+                          {item.age}
                         </td>
                         <td
                           style={{
-                            padding: "9px 12px",
-                            color: "var(--color-text-secondary, #334155)",
-                          }}
-                        >
-                          {item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "—")}
-                        </td>
-                        <td
-                          style={{
-                            padding: "9px 12px",
-                            fontWeight: 600,
+                            padding: "10px 14px",
+                            fontWeight: 500,
                             color: "var(--color-text, #0f172a)",
                             textAlign: "right",
                           }}
                         >
-                          {item.quantity} {parseInt(item.quantity, 10) === 1 ? "head" : "heads"}
+                          {item.quantity} {item.quantity === 1 ? "head" : "heads"}
                         </td>
                       </tr>
                     ))}
