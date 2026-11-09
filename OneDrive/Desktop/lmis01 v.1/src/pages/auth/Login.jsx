@@ -2214,7 +2214,7 @@ export const Login = ({ embedded = false, initialView }) => {
   };
 
   return (
-    <div className={`login-page${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""}${view === "signin" ? " is-view-signin" : ""}`}>
+    <div className={`login-page lsmis-login${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""}${view === "signin" ? " is-view-signin" : ""}`}>
       {/* Professional Opening Animation for Installed Mobile App */}
       {showLaunchSplash && (
         <div className={`lsmis-launch-splash ${splashFadingOut ? "fade-out" : ""}`} role="status" aria-live="polite">
