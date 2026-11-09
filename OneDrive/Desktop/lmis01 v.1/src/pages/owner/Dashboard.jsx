@@ -937,11 +937,188 @@ export const OwnerDashboard = () => {
               const isCondemned = prog.statusCategory === "condemned" || prog.statusCategory === "rejected";
               const isCleared = prog.statusCategory === "cleared";
               const isProcessing = prog.statusCategory === "processing";
+              const isPartial = prog.isPartialCondemned || /partial/i.test(`${prog.statusLabel || ""} ${a.status || ""}`);
+              const isActuallyCondemned = !isPartial && (isCondemned || /condemn|reject/i.test(`${prog.statusLabel || ""} ${a.status || ""}`));
+
+              const regTimeFormatted = formatPhDateTime(a.registered_at || a.created_at || a.received_date);
+
+              // 2. SIMPLIFIED CONDEMNED CARD (Mobile Dashboard)
+              if (isActuallyCondemned) {
+                return (
+                  <div
+                    key={a.id || a.tag_number}
+                    className="owner-animal-card owner-condemned-card"
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      border: "1.5px solid #fecaca",
+                      background: "#ffffff",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                          {a.tag_number || "NO TAG"}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                          {a.species}
+                        </span>
+                      </div>
+                      <span
+                        className="owner-status-pill rejected"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: "#dc2626",
+                          background: "#fef2f2",
+                          border: "1px solid #fecaca",
+                          padding: "3px 9px",
+                          borderRadius: 999,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#dc2626" }} />
+                        Condemned
+                      </span>
+                    </div>
+
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
+                      <Icon.Clock size={12} style={{ color: "#dc2626" }} />
+                      <span>{regTimeFormatted}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="owner-condemnation-view-btn"
+                      onClick={(e) => handleOpenCondemnation(a.tag_number, e)}
+                      style={{
+                        marginTop: 2,
+                        width: "100%",
+                        padding: "8px 12px",
+                        borderRadius: 10,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: "#fef2f2",
+                        color: "#dc2626",
+                        border: "1.5px solid #fecaca",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye size={14} />
+                      <span>View Evidence</span>
+                    </button>
+                  </div>
+                );
+              }
+
+              // 3. SIMPLIFIED PARTIALLY CONDEMNED CARD (Mobile Dashboard)
+              if (isPartial) {
+                const tag = a.tag_number;
+                const tagUpper = String(tag || "").trim().toUpperCase();
+                const condRec = milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
+                const postRec = milestones.post?.[tag] || milestones.post?.[tagUpper];
+                const rejectedPartsStr =
+                  Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
+                    ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity ? ` (${p.weight || p.quantity} kg)` : ""}`).join(", ")
+                    : Array.isArray(condRec) && condRec.length > 0
+                    ? condRec.map((c) => `${c.part || "Cut"}${c.weight ? ` (${c.weight} kg)` : ""}`).join(", ")
+                    : condRec?.part
+                    ? `${condRec.part}${condRec.weight ? ` (${condRec.weight} kg)` : ""}`
+                    : "Specific carcass cuts";
+
+                return (
+                  <div
+                    key={a.id || a.tag_number}
+                    className="owner-animal-card owner-partial-condemned-card"
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      border: "1.5px solid #fde68a",
+                      background: "#ffffff",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                          {a.tag_number || "NO TAG"}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                          {a.species}
+                        </span>
+                      </div>
+                      <span
+                        className="owner-status-pill"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: "#b45309",
+                          background: "#fffbeb",
+                          border: "1px solid #fde68a",
+                          padding: "3px 9px",
+                          borderRadius: 999,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#b45309" }} />
+                        Partially Condemned
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", padding: "6px 10px", borderRadius: 8, border: "1px solid #fef3c7" }}>
+                      <strong style={{ color: "#78350f" }}>Rejected parts:</strong> {rejectedPartsStr}
+                    </div>
+
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
+                      <Icon.Clock size={12} style={{ color: "#b45309" }} />
+                      <span>{regTimeFormatted}</span>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="owner-condemnation-view-btn"
+                      onClick={(e) => handleOpenCondemnation(a.tag_number, e)}
+                      style={{
+                        marginTop: 2,
+                        width: "100%",
+                        padding: "8px 12px",
+                        borderRadius: 10,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: "#fffbeb",
+                        color: "#b45309",
+                        border: "1.5px solid #fde68a",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye size={14} />
+                      <span>View Evidence</span>
+                    </button>
+                  </div>
+                );
+              }
 
               const badgeColor = isCondemned ? "#ef4444" : isCleared ? "#10b981" : isProcessing ? "#0284c7" : "#f59e0b";
               const badgeBg = isCondemned ? "rgba(239, 68, 68, 0.1)" : isCleared ? "rgba(16, 185, 129, 0.1)" : isProcessing ? "rgba(2, 132, 199, 0.1)" : "rgba(245, 158, 11, 0.1)";
-
-              const regTimeFormatted = formatPhDateTime(a.registered_at || a.created_at || a.received_date);
               const carcassWeight = milestones.carcass?.[a.tag_number]?.total_weight || milestones.carcass?.[a.tag_number]?.cold_weight;
 
               return (

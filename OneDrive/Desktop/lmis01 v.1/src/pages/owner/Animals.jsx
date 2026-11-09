@@ -1550,6 +1550,184 @@ export const OwnerAnimals = () => {
               const isCleared = progress.statusCategory === "cleared";
               const isProcessing = progress.statusCategory === "processing";
               const isCondemnedOrRejected = progress.statusCategory === "condemned" || progress.statusCategory === "rejected";
+              const isPartial = progress.isPartialCondemned || /partial/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`);
+              const isCondemned = !isPartial && (isCondemnedOrRejected || /condemn|reject/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`));
+
+              // 2. SIMPLIFIED CONDEMNED CARD (Mobile Owner UI)
+              if (isCondemned) {
+                return (
+                  <div
+                    key={animal.id || animal.tag_number}
+                    className="owner-animal-card owner-condemned-card"
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      border: "1.5px solid #fecaca",
+                      background: "#ffffff",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                    }}
+                  >
+                    {/* Livestock ID + Species & Condemned Status Badge */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                          {animal.tag_number}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                          {animal.species}
+                        </span>
+                      </div>
+                      <span
+                        className="owner-status-pill rejected"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: "#dc2626",
+                          background: "#fef2f2",
+                          border: "1px solid #fecaca",
+                          padding: "3px 9px",
+                          borderRadius: 999,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#dc2626" }} />
+                        Condemned
+                      </span>
+                    </div>
+
+                    {/* Date and time */}
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
+                      <Icon.Clock size={12} style={{ color: "#dc2626" }} />
+                      <span>{formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}</span>
+                    </div>
+
+                    {/* View Evidence button */}
+                    <button
+                      type="button"
+                      className="owner-condemnation-view-btn"
+                      onClick={(e) => handleOpenCondemnationDetails(animal, e)}
+                      style={{
+                        marginTop: 2,
+                        width: "100%",
+                        padding: "8px 12px",
+                        borderRadius: 10,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: "#fef2f2",
+                        color: "#dc2626",
+                        border: "1.5px solid #fecaca",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye size={14} />
+                      <span>View Evidence</span>
+                    </button>
+                  </div>
+                );
+              }
+
+              // 3. SIMPLIFIED PARTIALLY CONDEMNED CARD (Mobile Owner UI)
+              if (isPartial) {
+                const rejectedPartsStr =
+                  Array.isArray(animal.condemnationDetails?.condemnedParts) && animal.condemnationDetails.condemnedParts.length > 0
+                    ? animal.condemnationDetails.condemnedParts.map(p => `${p.part}${p.quantityWeight ? ` (${p.quantityWeight})` : ''}`).join(", ")
+                    : Array.isArray(milestones.post?.[animal.tag_number]?.condemned_parts) && milestones.post[animal.tag_number].condemned_parts.length > 0
+                    ? milestones.post[animal.tag_number].condemned_parts.map(p => `${p.part || "Cut"}${p.weight || p.quantity ? ` (${p.weight || p.quantity} kg)` : ''}`).join(", ")
+                    : "Specific carcass cuts";
+
+                return (
+                  <div
+                    key={animal.id || animal.tag_number}
+                    className="owner-animal-card owner-partial-condemned-card"
+                    style={{
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      border: "1.5px solid #fde68a",
+                      background: "#ffffff",
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 8,
+                    }}
+                  >
+                    {/* Livestock ID + Species & Partially Condemned Status Badge */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                          {animal.tag_number}
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                          {animal.species}
+                        </span>
+                      </div>
+                      <span
+                        className="owner-status-pill"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: "#b45309",
+                          background: "#fffbeb",
+                          border: "1px solid #fde68a",
+                          padding: "3px 9px",
+                          borderRadius: 999,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#b45309" }} />
+                        Partially Condemned
+                      </span>
+                    </div>
+
+                    {/* Rejected carcass parts */}
+                    <div style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", padding: "6px 10px", borderRadius: 8, border: "1px solid #fef3c7" }}>
+                      <strong style={{ color: "#78350f" }}>Rejected parts:</strong> {rejectedPartsStr}
+                    </div>
+
+                    {/* Date and time */}
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
+                      <Icon.Clock size={12} style={{ color: "#b45309" }} />
+                      <span>{formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}</span>
+                    </div>
+
+                    {/* View Evidence button */}
+                    <button
+                      type="button"
+                      className="owner-condemnation-view-btn"
+                      onClick={(e) => handleOpenCondemnationDetails(animal, e)}
+                      style={{
+                        marginTop: 2,
+                        width: "100%",
+                        padding: "8px 12px",
+                        borderRadius: 10,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: "#fffbeb",
+                        color: "#b45309",
+                        border: "1.5px solid #fde68a",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye size={14} />
+                      <span>View Evidence</span>
+                    </button>
+                  </div>
+                );
+              }
 
               return (
                 <div

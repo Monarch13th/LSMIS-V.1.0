@@ -3316,3 +3316,33 @@
     grid-column: span 2 !important;
   }
 }
+
+/* Condemned & Partially Condemned Simplified Cards */
+.owner-condemned-card {
+  border-left: 4px solid #dc2626 !important;
+  background-color: #ffffff !important;
+}
+
+.owner-partial-condemned-card {
+  border-left: 4px solid #f59e0b !important;
+  background-color: #ffffff !important;
+}
+
+[data-theme="dark"] .owner-condemned-card {
+  background-color: #1e293b !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
+}
+
+[data-theme="dark"] .owner-partial-condemned-card {
+  background-color: #1e293b !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.owner-condemnation-view-btn {
+  transition: transform 0.12s ease, opacity 0.12s ease !important;
+}
+
+.owner-condemnation-view-btn:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
