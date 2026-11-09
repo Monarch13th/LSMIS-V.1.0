@@ -14,6 +14,7 @@ import {
   validatePhilippineMobileNumber,
   sanitizePhilippineMobileInput,
 } from "../../utils/phoneValidation";
+import { AuthSecuritySessions } from "../../components/settings/AuthSecuritySessions";
 
 export const OwnerProfile = () => {
   const { session, signOut, ownerId } = useAuth();
@@ -1221,6 +1222,16 @@ export const OwnerProfile = () => {
       </Modal>
       </>
       )}
+
+      {/* ============================================================ */}
+      {/* SECTION E: AUTHENTICATION & ACTIVE SESSIONS (2FA & DEVICES) */}
+      {/* ============================================================ */}
+      <AuthSecuritySessions
+        userEmail={registeredEmail}
+        userRole="owner"
+        userName={displayName}
+        onSignOut={handleLogout}
+      />
 
       {/* ============================================================ */}
       {/* SECTION G: SIGN OUT                                          */}

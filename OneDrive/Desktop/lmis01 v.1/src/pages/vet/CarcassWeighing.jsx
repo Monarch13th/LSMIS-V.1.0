@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Button, Modal, AlertDialog, PageHeader, StatCard, EmptyState, Badge, Pagination } from "../../components/ui";
+import { Card, Button, Modal, ConfirmDialog, AlertDialog, PageHeader, StatCard, EmptyState, Badge, Pagination } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
@@ -455,11 +455,11 @@ export const CarcassWeighing = () => {
       const isWholeCondemned =
         !isPartial &&
         (latestPm.decision === "Condemned" ||
-         latestPm.decision === "Rejected" ||
-         latestPm.decision === "Whole Carcass Condemned" ||
-         latestPm.status === "Condemned" ||
-         latestPm.status === "Rejected" ||
-         (latestPm.decision && (latestPm.decision.toLowerCase().includes("condemn") || latestPm.decision.toLowerCase().includes("reject"))));
+          latestPm.decision === "Rejected" ||
+          latestPm.decision === "Whole Carcass Condemned" ||
+          latestPm.status === "Condemned" ||
+          latestPm.status === "Rejected" ||
+          (latestPm.decision && (latestPm.decision.toLowerCase().includes("condemn") || latestPm.decision.toLowerCase().includes("reject"))));
 
       if (isWholeCondemned) return;
 
@@ -978,7 +978,7 @@ export const CarcassWeighing = () => {
       Promise.allSettled([
         typeof refresh === "function" ? refresh() : Promise.resolve(),
         typeof refreshLivestock === "function" ? refreshLivestock() : Promise.resolve(),
-      ]).catch(() => {});
+      ]).catch(() => { });
     }
   };
 
@@ -1277,8 +1277,8 @@ export const CarcassWeighing = () => {
     activeTab === "awaiting"
       ? groupedAwaiting.length
       : weighedViewMode === "grouped"
-      ? groupedWeighed.length
-      : filteredCarcasses.length;
+        ? groupedWeighed.length
+        : filteredCarcasses.length;
   const totalPages = Math.ceil(currentDatasetLength / pageSize) || 1;
   const currentPage = Math.min(page, totalPages);
 
@@ -1552,8 +1552,8 @@ export const CarcassWeighing = () => {
                   search || filterSpecies !== "all" || dateFilter !== "all"
                     ? "No records match the active search and filter criteria."
                     : eligibleToWeigh.length > 0
-                    ? "Click 'Record Weight' above to weigh eligible carcasses waiting in queue."
-                    : "No carcass records found."
+                      ? "Click 'Record Weight' above to weigh eligible carcasses waiting in queue."
+                      : "No carcass records found."
                 }
                 icon={<Icon.Scale size={36} />}
               />
@@ -1589,8 +1589,8 @@ export const CarcassWeighing = () => {
                       <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>
                         Status
                       </th>
-                      <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>
-                        Action
+                      <th className="table-action-th">
+                        ACTIONS
                       </th>
                     </tr>
                   </thead>
@@ -1599,11 +1599,7 @@ export const CarcassWeighing = () => {
                       <tr
                         key={grp.key}
                         onClick={() => {
-                          if (grp.items?.length === 1) {
-                            setSelectedCarcass(grp.items[0]);
-                          } else {
-                            setSelectedOwnerKey(grp.key);
-                          }
+                          setSelectedOwnerKey(grp.key);
                         }}
                         style={{
                           transition: "background 140ms ease",
@@ -1712,33 +1708,20 @@ export const CarcassWeighing = () => {
                         </td>
 
                         {/* Action: View Records */}
-                        <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              if (grp.items?.length === 1) {
-                                setSelectedCarcass(grp.items[0]);
-                              } else {
+                        <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                          <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-outline"
+                              onClick={() => {
                                 setSelectedOwnerKey(grp.key);
-                              }
-                            }}
-                            style={{
-                              height: 32,
-                              padding: "6px 14px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: "var(--color-surface)",
-                              border: "1px solid var(--color-border)",
-                              color: "var(--color-text)",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
-                            title={grp.items?.length === 1 ? "View Carcass Scale Dossier & Certificate" : "View Owner Carcass Records"}
-                          >
-                            <Icon.Eye size={13} /> View
-                          </Button>
+                              }}
+                              title="View Owner Carcass Records"
+                            >
+                              <Icon.Eye size={13} />
+                              <span>View</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -1765,7 +1748,7 @@ export const CarcassWeighing = () => {
                       <th style={{ width: "13%", padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "center", background: "var(--color-bg)" }}>Scale Weight</th>
                       <th style={{ width: "16%", padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Post-Mortem</th>
                       <th style={{ width: "15%", padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Date &amp; Time Weighed</th>
-                      <th style={{ width: 112, padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>Actions</th>
+                      <th className="table-action-th" style={{ width: 112 }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2022,40 +2005,18 @@ export const CarcassWeighing = () => {
                           </td>
 
                           {/* 7. Actions */}
-                          <td style={{ textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedCarcass(c)}
-                              className="assign-team-fixed-btn"
-                              style={{
-                                width: 92,
-                                minWidth: 92,
-                                maxWidth: 92,
-                                height: 32,
-                                minHeight: 32,
-                                maxHeight: 32,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 5,
-                                padding: "0 10px",
-                                fontSize: 12,
-                                fontWeight: 600,
-                                borderRadius: 7,
-                                color: "var(--color-primary, #0284c7)",
-                                borderColor: "rgba(2, 132, 199, 0.3)",
-                                background: "rgba(2, 132, 199, 0.06)",
-                                boxSizing: "border-box",
-                                whiteSpace: "nowrap",
-                                flexShrink: 0,
-                                transform: "none",
-                              }}
-                              title="View Carcass Scale Dossier & Certificate"
-                            >
-                              <Icon.Eye size={13} style={{ flexShrink: 0 }} />
-                              <span>View</span>
-                            </Button>
+                          <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={() => setSelectedCarcass(c)}
+                                title="View Carcass Scale Dossier & Certificate"
+                              >
+                                <Icon.Eye size={13} />
+                                <span>View</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -2112,7 +2073,7 @@ export const CarcassWeighing = () => {
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Species</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "center", background: "var(--color-bg)" }}>Total Carcasses</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Status</th>
-                    <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>Action</th>
+                    <th className="table-action-th">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2183,49 +2144,20 @@ export const CarcassWeighing = () => {
                         </span>
                       </td>
 
-                      <td style={{ padding: "14px 18px", textAlign: "right" }}>
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedOwnerKey(grp.key);
-                            }}
-                            style={{
-                              height: 32,
-                              padding: "6px 14px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: "var(--color-surface)",
-                              border: "1px solid var(--color-border)",
-                              color: "var(--color-text)",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
-                          >
-                            <Icon.Eye size={13} /> View
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="btn-primary"
+                      <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                        <div className="table-action-group">
+                          <button
+                            type="button"
+                            className="action-btn action-btn-brand-green"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleOpenOwnerBatch(grp);
                             }}
-                            style={{
-                              height: 32,
-                              padding: "6px 14px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
+                            title="Weigh all carcasses in batch"
                           >
-                            <Icon.Scale size={13} /> Weigh Batch
-                          </Button>
+                            <Icon.Scale size={13} />
+                            <span>Carcass Weighing</span>
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -2363,7 +2295,7 @@ export const CarcassWeighing = () => {
         )}
       </div>
 
-            {/* Standardized Dedicated Owner Records Modal */}
+      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -2372,7 +2304,22 @@ export const CarcassWeighing = () => {
             ? `Weighed Carcass Records — ${selectedOwnerView?.owner_name || ""}`
             : `Awaiting Carcass Weighing — ${selectedOwnerView?.owner_name || ""}`
         }
-        size={activeTab === "weighed" ? "lg" : "xl"}
+        size="xl"
+        dialogStyle={{
+          minHeight: "560px",
+          maxHeight: "88vh",
+          width: "100%",
+          maxWidth: "1120px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          flex: 1,
+          minHeight: "420px",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 24px",
+        }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
@@ -2399,7 +2346,7 @@ export const CarcassWeighing = () => {
                     gap: 6,
                   }}
                 >
-                  <Icon.Scale size={14} /> Weigh All Carcasses ({selectedOwnerView.items.length})
+                  <Icon.Scale size={14} /> Carcass Weighing ({selectedOwnerView.items.length})
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={() => setSelectedOwnerKey(null)} style={{ height: 32, minWidth: 80, fontWeight: 700 }}>
@@ -2410,17 +2357,17 @@ export const CarcassWeighing = () => {
         }
       >
         {selectedOwnerView && (
-          <div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             {activeTab === "weighed" ? (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ width: "26%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ width: "18%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                      <th style={{ width: "22%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                      <th style={{ width: "16%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
                       <th style={{ width: "16%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ width: "24%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Weighed Time</th>
-                      <th style={{ width: "16%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Cold Weight</th>
+                      <th style={{ width: "26%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Weighed Time</th>
+                      <th style={{ width: "20%", padding: "12px 16px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Cold Weight</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2475,17 +2422,17 @@ export const CarcassWeighing = () => {
                 </table>
               </div>
             ) : (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Operator</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Completed Time</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Processing Status</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                      <th style={{ width: "8%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Operator</th>
+                      <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Completed Time</th>
+                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Processing Status</th>
+                      <th className="table-action-th" style={{ width: "18%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2535,25 +2482,18 @@ export const CarcassWeighing = () => {
                             Ready for Weighing
                           </span>
                         </td>
-                        <td style={{ padding: "12px 14px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                          <Button
-                            size="sm"
-                            onClick={() => handleOpenSingle(item)}
-                            style={{
-                              height: 32,
-                              padding: "5px 12px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: "linear-gradient(135deg, #10b981, #059669)",
-                              color: "#ffffff",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                            }}
-                            title={`Record Carcass Weight for ${item.tag_number}`}
-                          >
-                            <Icon.Scale size={13} /> Record Weight
-                          </Button>
+                        <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                          <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-brand-green"
+                              onClick={() => handleOpenSingle(item)}
+                              title={`Record Carcass Weight for ${item.tag_number}`}
+                            >
+                              <Icon.Scale size={13} />
+                              <span>Weigh Carcass</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2565,7 +2505,7 @@ export const CarcassWeighing = () => {
         )}
       </Modal>
 
-{/* Record Weight Modal */}
+      {/* Record Weight Modal */}
       <Modal
         open={modalOpen}
         onClose={() => {
@@ -2577,10 +2517,10 @@ export const CarcassWeighing = () => {
         }}
         title={
           singleAnimal
-            ? `Record Carcass Weight (${singleAnimal.tag_number})`
+            ? `Carcass Weighing (${singleAnimal.tag_number})`
             : isGroupMode
-            ? `Record Carcass Weights (Group — ${ownerAnimals.length} Heads)`
-            : "Record Carcass Weights"
+              ? `Carcass Weighing (${selectedOwner || "Owner"} — ${ownerAnimals.length} Heads)`
+              : "Carcass Weighing"
         }
         size="lg"
         alert={modalSuccessAlert}
@@ -2608,12 +2548,12 @@ export const CarcassWeighing = () => {
                 opacity: saving ? 0.7 : 1,
                 cursor: saving ? "not-allowed" : "pointer"
               }}
-              title={saving ? "Saving carcass records to database..." : "Save Carcass Weights & Branding"}
+              title={saving ? "Saving carcass records to database..." : "Save Carcass Weighing"}
             >
               {saving ? (
                 <><span className="spinner" style={{ width: 14, height: 14 }} /> Saving Records...</>
               ) : (
-                <><Icon.Check size={16} /> Save Carcass Weights &amp; Branding</>
+                <><Icon.Check size={16} /> Save Carcass Weighing</>
               )}
             </Button>
           </div>
@@ -2885,91 +2825,22 @@ export const CarcassWeighing = () => {
         </form>
       </Modal>
 
-      {/* Batch Weighing Confirmation Modal */}
-      <Modal
+      {/* Batch Weighing Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
+      <ConfirmDialog
         open={confirmBatchModalOpen}
-        onClose={() => {
+        onCancel={() => {
           if (!saving) {
             setConfirmBatchModalOpen(false);
           }
         }}
+        onConfirm={executeBatchSave}
         title="Confirm Carcass Weighing"
-        size="md"
+        message={`Are you sure you want to record the weights for ${batchToConfirm?.count || 0} selected carcass${(batchToConfirm?.count || 0) === 1 ? "" : "es"}?`}
+        confirmText="Confirm"
+        confirmVariant="success"
+        loading={saving}
         backdropStyle={{ zIndex: 1250 }}
-        footer={
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", width: "100%", alignItems: "center" }}>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={saving}
-              onClick={() => setConfirmBatchModalOpen(false)}
-              style={{ minWidth: 96, height: 38, fontWeight: 650 }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="btn-primary"
-              disabled={saving}
-              onClick={executeBatchSave}
-              style={{
-                minWidth: 120,
-                height: 38,
-                fontWeight: 650,
-                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                color: "#ffffff",
-                border: "none",
-                boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-              }}
-            >
-              {saving ? (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                  <span className="spinner" style={{ width: 14, height: 14 }} /> Processing...
-                </span>
-              ) : (
-                "Confirm"
-              )}
-            </Button>
-          </div>
-        }
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: "50%",
-                background: "rgba(16, 185, 129, 0.12)",
-                color: "#059669",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-                marginTop: 2,
-              }}
-            >
-              <Icon.Scale size={20} />
-            </div>
-            <div>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 14.5,
-                  fontWeight: 700,
-                  color: "var(--color-text)",
-                  lineHeight: 1.45,
-                }}
-              >
-                Are you sure you want to record the weights for the selected carcasses?
-              </p>
-              <p style={{ margin: "5px 0 0", fontSize: 12.5, color: "var(--color-text-muted)" }}>
-                Total Selected: <strong>{batchToConfirm?.count || 0} carcass{(batchToConfirm?.count || 0) === 1 ? "" : "es"}</strong>
-              </p>
-            </div>
-          </div>
-        </div>
-      </Modal>
+      />
 
       {/* Scale Dossier View Details Modal */}
       <Modal

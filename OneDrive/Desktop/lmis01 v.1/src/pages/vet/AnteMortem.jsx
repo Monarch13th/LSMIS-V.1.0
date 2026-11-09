@@ -326,7 +326,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     const cleanTag = rawTag.toLowerCase();
     const livestockId = String(insp.livestock_id || insp.id || "").trim();
     const baseTag = cleanTag.replace(/[-_][0-9a-z]$/i, "");
-    
+
     // Tag digits (e.g. "010" from "TAG-010-HOG")
     const numMatch = cleanTag.match(/\b\d{2,4}\b/) || cleanTag.match(/tag-(\d+)/i) || cleanTag.match(/(\d{2,})/);
     const tagNum = numMatch ? numMatch[1] : null;
@@ -719,8 +719,8 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       const records = Array.isArray(payload)
         ? payload
         : payload?.records && Array.isArray(payload.records)
-        ? payload.records
-        : null;
+          ? payload.records
+          : null;
 
       const succeededTags = [];
       const failedTags = [];
@@ -1154,7 +1154,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Species</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "center", background: "var(--color-bg)" }}>Total Heads</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Result / Decision</th>
-                    <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>Action</th>
+                    <th className="table-action-th">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1284,26 +1284,18 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                       </td>
 
                       {/* Action */}
-                      <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedOwnerKey(grp.key)}
-                          style={{
-                            height: 32,
-                            padding: "6px 12px",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            background: "var(--color-surface)",
-                            border: "1px solid var(--color-border)",
-                            color: "var(--color-text)",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                          }}
-                        >
-                          <Icon.Eye size={13} /> View
-                        </Button>
+                      <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                        <div className="table-action-group">
+                          <button
+                            type="button"
+                            className="action-btn action-btn-outline"
+                            onClick={() => setSelectedOwnerKey(grp.key)}
+                            title="View Owner Records"
+                          >
+                            <Icon.Eye size={13} />
+                            <span>View</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1333,7 +1325,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Species</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "center", background: "var(--color-bg)" }}>Total Heads</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Status</th>
-                    <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>Action</th>
+                    <th className="table-action-th">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1428,44 +1420,26 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         </td>
 
                         {/* Action */}
-                        <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-                            <Button
-                              size="sm"
-                              variant="outline"
+                        <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                          <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-outline"
                               onClick={() => setSelectedOwnerKey(grp.key)}
-                              style={{
-                                height: 32,
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "var(--color-surface)",
-                                border: "1px solid var(--color-border)",
-                                color: "var(--color-text)",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                              }}
+                              title="View Owner Records"
                             >
-                              <Icon.Eye size={13} /> View
-                            </Button>
-                            <Button
-                              size="sm"
+                              <Icon.Eye size={13} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="action-btn action-btn-primary"
                               onClick={() => handleOpenModal(allTags)}
-                              style={{
-                                height: 32,
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "linear-gradient(135deg, #0284c7, #0369a1)",
-                                color: "#ffffff",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                              }}
+                              title="Inspect all livestock in this batch"
                             >
-                              <Icon.Stethoscope size={13} /> Inspect Batch
-                            </Button>
+                              <Icon.Stethoscope size={13} />
+                              <span>Inspect Batch</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1476,7 +1450,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             </div>
           )
         )}
-        
+
         {/* Pagination Footer */}
         {false && currentDataset.length > 0 && (
           <div
@@ -1699,6 +1673,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
           livestock={awaitingLivestock}
           initialTag={targetTagForModal}
           onSubmit={save}
+          onSuccess={() => { setModalOpen(false); setTargetTagForModal(""); }}
           onCancel={() => { setModalOpen(false); setTargetTagForModal(""); }}
         />
       </Modal>
@@ -1772,12 +1747,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
                       <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
                       <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Inspected</th>
+                      <th style={{ width: "8%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Inspected</th>
                       <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Clinical Findings</th>
-                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Inspector</th>
-                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Decision</th>
-                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Actions</th>
+                      <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Inspector</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Decision</th>
+                      <th className="table-action-th" style={{ width: "14%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1836,27 +1811,27 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           <td style={{ padding: "12px 14px" }}>
                             <Badge status={i.decision || "Approved"} />
                           </td>
-                          <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <div className="actions" style={{ justifyContent: "flex-end", gap: 6, flexWrap: "nowrap" }}>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
                               <button
                                 type="button"
-                                className="icon-btn"
+                                className="action-btn action-btn-outline"
                                 onClick={() => setSelectedInspection({ ...i, animal, owner_name: resolvedOwner })}
                                 title="View Details"
                                 aria-label="View Details"
-                                style={{ width: 32, height: 32, borderRadius: 7, border: "1px solid var(--color-border)", background: "var(--color-surface)", color: "#0284c7", cursor: "pointer" }}
                               >
-                                <Icon.Eye size={14} />
+                                <Icon.Eye size={13} />
+                                <span>View</span>
                               </button>
                               <button
                                 type="button"
-                                className="icon-btn danger"
+                                className="action-btn action-btn-danger"
                                 onClick={() => setConfirmDel(i)}
                                 title="Delete record"
                                 aria-label="Delete"
-                                style={{ width: 32, height: 32, borderRadius: 7, cursor: "pointer" }}
                               >
                                 <Icon.Trash size={13} />
+                                <span>Delete</span>
                               </button>
                             </div>
                           </td>
@@ -1877,7 +1852,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                       <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
                       <th style={{ width: "19%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Received</th>
                       <th style={{ width: "19%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Intake Status</th>
-                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th className="table-action-th" style={{ width: "14%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1924,28 +1899,21 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           <td style={{ padding: "12px 14px" }}>
                             <Badge status={item.status || "Pending"} />
                           </td>
-                          <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setSelectedOwnerKey(null);
-                                handleOpenModal(item.tag_number);
-                              }}
-                              style={{
-                                height: 32,
-                                padding: "5px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "linear-gradient(135deg, #0284c7, #0369a1)",
-                                color: "#ffffff",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Icon.Stethoscope size={13} /> Inspect Now
-                            </Button>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-primary"
+                                onClick={() => {
+                                  setSelectedOwnerKey(null);
+                                  handleOpenModal(item.tag_number);
+                                }}
+                                title={`Inspect ${item.tag_number}`}
+                              >
+                                <Icon.Stethoscope size={13} />
+                                <span>Inspect</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );

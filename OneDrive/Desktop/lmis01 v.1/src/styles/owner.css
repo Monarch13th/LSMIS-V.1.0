@@ -476,11 +476,11 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Mobile Scrollable Body Content Container (Provides clean, generous breathing room below sticky header & navigation tabs) */
+/* Mobile Scrollable Body Content Container (Provides clean, generous breathing room with fixed bottom navigation bar) */
 .owner-mobile-main {
   flex: 1;
   width: 100%;
-  padding: 16px 16px 20px 16px;
+  padding: 16px 16px calc(76px + env(safe-area-inset-bottom, 0px)) 16px;
   overflow-y: auto;
   box-sizing: border-box;
   scroll-behavior: smooth;
@@ -1288,24 +1288,29 @@
 }
 
 /* ============================================================
-   5. NAVIGATION BAR (Top Navigation Tabs like Facebook)
+   5. FIXED BOTTOM NAVIGATION BAR
    ============================================================ */
 .owner-bottom-bar {
-  position: relative;
-  z-index: 30;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-top: none;
-  border-bottom: 1px solid #e2e8f0;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid #e2e8f0;
+  border-bottom: none;
+  box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.08);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow-x: hidden;
 }
 
 [data-theme="dark"] .owner-bottom-bar {
   background: rgba(15, 23, 42, 0.98);
-  border-bottom-color: rgba(255, 255, 255, 0.08);
-  border-top: none;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  border-top-color: rgba(51, 65, 85, 0.7);
+  border-bottom: none;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .owner-bottom-grid {
@@ -1314,8 +1319,9 @@
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  align-items: center;
-  padding: 4px 2px 0 2px;
+  align-items: stretch;
+  height: 58px;
+  padding: 0 4px;
 }
 
 .owner-nav-item {
@@ -1323,33 +1329,42 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 1px 7px 1px;
+  padding: 6px 2px 5px 2px;
   color: #64748b;
   text-decoration: none;
   transition: all 0.15s ease;
   min-width: 0;
   position: relative;
-  border-bottom: 2.5px solid transparent;
-  margin-bottom: -1px;
+  border-top: 2.5px solid transparent;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 [data-theme="dark"] .owner-nav-item {
   color: #94a3b8;
 }
 
+.owner-nav-item:hover {
+  color: #0284c7;
+}
+
+[data-theme="dark"] .owner-nav-item:hover {
+  color: #38bdf8;
+}
+
 .owner-nav-item:active {
-  transform: scale(0.94);
+  transform: scale(0.92);
 }
 
 .owner-nav-item.active {
   color: #0284c7;
-  font-weight: 800;
-  border-bottom-color: #0284c7;
+  font-weight: 750;
+  border-top-color: #0284c7;
 }
 
 [data-theme="dark"] .owner-nav-item.active {
   color: #38bdf8;
-  border-bottom-color: #38bdf8;
+  border-top-color: #38bdf8;
 }
 
 .owner-nav-icon-wrap {
@@ -1358,6 +1373,7 @@
   align-items: center;
   justify-content: center;
   height: 24px;
+  width: 24px;
 }
 
 .owner-nav-dot {
@@ -1374,7 +1390,7 @@
 }
 
 .owner-nav-text {
-  font-size: clamp(9.5px, 2.5vw, 10.5px);
+  font-size: clamp(9px, 2.3vw, 10.5px);
   margin-top: 3px;
   letter-spacing: -0.025em;
   white-space: nowrap;
@@ -1382,6 +1398,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+  font-weight: 500;
+  transition: font-weight 0.15s ease;
+}
+
+.owner-nav-item.active .owner-nav-text {
+  font-weight: 750;
 }
 
 /* Floating Action Button (Register) */

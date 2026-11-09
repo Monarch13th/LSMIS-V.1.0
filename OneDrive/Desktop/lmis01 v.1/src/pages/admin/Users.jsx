@@ -808,11 +808,11 @@ export const Users = () => {
                     </td>
 
                     {/* Column 5: Actions */}
-                    <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "center", whiteSpace: "nowrap" }}>
-                      <div onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex", gap: "6px", justifyContent: "center", alignItems: "center", flexWrap: "nowrap" }}>
+                    <td className="table-action-td">
+                      <div onClick={(e) => e.stopPropagation()} className="table-action-group">
                         <button
                           type="button"
-                          className="btn btn-outline btn-sm"
+                          className="action-btn action-btn-outline"
                           onClick={() => { setEditing(u); setModalOpen(true); }}
                           title="Edit personnel profile"
                         >
@@ -823,21 +823,21 @@ export const Users = () => {
                           isDeactivated ? (
                             <button
                               type="button"
-                              className="btn btn-success btn-sm"
+                              className="action-btn action-btn-soft-success"
                               onClick={() => handleToggleDeactivate(u)}
                               title="Activate personnel account"
                             >
-                              <Icon.CheckCircle size={13} />
+                              <Icon.CheckCircle size={14} style={{ color: "#16a34a" }} />
                               <span>Activate</span>
                             </button>
                           ) : (
                             <button
                               type="button"
-                              className="btn btn-danger btn-sm"
+                              className="action-btn action-btn-soft-danger"
                               onClick={() => handleToggleDeactivate(u)}
                               title="Deactivate personnel account"
                             >
-                              <Icon.XCircle size={13} />
+                              <Icon.XCircle size={14} style={{ color: "#dc2626" }} />
                               <span>Deactivate</span>
                             </button>
                           )

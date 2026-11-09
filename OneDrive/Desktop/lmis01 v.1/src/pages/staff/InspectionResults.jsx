@@ -4,7 +4,7 @@ import { Button, Badge, Modal, EmptyState, TagBadge, Pagination } from "../../co
 import { Icon } from "../../components/icons";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
-import { formatPhDateTime, formatDate, formatSex, formatLivestockAge } from "../../utils/formatters";
+import { formatPhDateTime, formatDate, formatSex } from "../../utils/formatters";
 import { initials, today } from "../../utils/helpers";
 import {
   isAnteCondemnedDecision,
@@ -13,6 +13,7 @@ import {
   isAnteCondemnedStatus,
   getCondemnationStage,
 } from "../vet/condemnationStage";
+import { getCondemnationRecordParts } from "../vet/condemnationEvidenceIndex";
 
 /**
  * Inspection Results module under Staff Personnel.
@@ -286,485 +287,323 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
   };
 
   // ---------------------------------------------------------------------------
-  // Build Mutually Exclusive Sets of Condemned & Partially Condemned Animals
+  // Ante-Mortem Final Classifications (Mutually Exclusive per tag)
+  // - Fit for Slaughter: strictly passed/approved, never condemned
+  // - Condemned: strictly condemned/rejected, never fit for slaughter
   // ---------------------------------------------------------------------------
-  const { allWholeCondemnedTags, allPartialCondemnedTags } = useMemo(() => {
-    const wholeSet = new Set();
-    const partialSet = new Set();
-
-    // 1. Ante-Mortem inspections marked Condemned or Rejected
+  const { anteMortemPassedRecords, anteCondemnedRecords } = useMemo(() => {
+    // Collect latest ante inspection per clean tag
+    const latestAnteByTag = new Map();
     (anteInspections || []).forEach((i) => {
-      const d = String(i.decision || "").trim().toLowerCase();
-      if (isAnteCondemnedDecision(d) || d.includes("reject") || d.includes("condemn")) {
-        if (i.tag_number) wholeSet.add(String(i.tag_number).trim().toLowerCase());
+      const tag = String(i.tag_number || "").trim();
+      const normTag = tag.toLowerCase();
+      if (!normTag) return;
+      const time = new Date(i.inspected_at || i.created_at || i.date || 0).getTime();
+      const existing = latestAnteByTag.get(normTag);
+      if (!existing || time >= existing.time) {
+        latestAnteByTag.set(normTag, { item: i, time, tag });
       }
     });
 
-    // 2. Post-Mortem inspections marked Whole Carcass Condemned
-    (postInspections || []).forEach((p) => {
-      const d = String(p.decision || "").trim().toLowerCase();
-      if (isPostWholeDecision(d)) {
-        if (p.tag_number) wholeSet.add(String(p.tag_number).trim().toLowerCase());
-      } else if (isPostPartialInspection(p) || (Array.isArray(p.condemned_parts) && p.condemned_parts.length > 0)) {
-        if (p.tag_number) partialSet.add(String(p.tag_number).trim().toLowerCase());
-      }
-    });
-
-    // 3. Post-Mortem Condemned Cuts table
-    (condemnedCuts || []).forEach((c) => {
-      const part = String(c.part || "").trim().toLowerCase();
-      const tag = String(c.tag_number || "").trim().toLowerCase();
-      if (!tag) return;
-      if (part.includes("whole") || part.includes("entire")) {
-        wholeSet.add(tag);
-      } else {
-        partialSet.add(tag);
-      }
-    });
-
-    // 4. Condemnation Records table
+    // Collect tags with explicit Ante-Mortem condemnation records
+    const anteCondemnationTags = new Set();
     (condemnationRecords || []).forEach((c) => {
       const tag = String(c.tag_number || "").trim().toLowerCase();
       if (!tag) return;
-      const stage = getCondemnationStage(c);
-      const part = String(c.part || "").trim().toLowerCase();
-
-      if (stage === "Ante-Mortem" || part === "live animal" || part.includes("whole") || part.includes("entire")) {
-        wholeSet.add(tag);
-      } else {
-        partialSet.add(tag);
+      if (getCondemnationStage(c) === "Ante-Mortem") {
+        anteCondemnationTags.add(tag);
       }
     });
 
-    // 5. Livestock table status check
+    // Also collect tags marked condemned in livestock table at intake/ante-mortem
     (livestock || []).forEach((l) => {
       const tag = String(l.tag_number || "").trim().toLowerCase();
       if (!tag) return;
       if (isAnteCondemnedStatus(l.status)) {
-        wholeSet.add(tag);
+        anteCondemnationTags.add(tag);
       }
     });
 
-    // Whole condemnation takes strict precedence over partial condemnation
-    wholeSet.forEach((t) => partialSet.delete(t));
+    const passedList = [];
+    const condemnedMap = new Map();
 
-    return { allWholeCondemnedTags: wholeSet, allPartialCondemnedTags: partialSet };
-  }, [anteInspections, postInspections, condemnedCuts, condemnationRecords, livestock]);
+    // Evaluate all known ante tags
+    const allAnteTags = new Set([...latestAnteByTag.keys(), ...anteCondemnationTags]);
 
-  // ---------------------------------------------------------------------------
-  // Category 1: Ante-Mortem Passed Records
-  // - Completed ante-mortem inspection records.
-  // - Passed ante-mortem inspection.
-  // - Strictly excludes condemned and partially condemned livestock.
-  // ---------------------------------------------------------------------------
-  const anteMortemPassedRecords = useMemo(() => {
-    return (anteInspections || [])
-      .filter((i) => {
-        const tag = String(i.tag_number || "").trim().toLowerCase();
-        if (!tag) return false;
+    allAnteTags.forEach((normTag) => {
+      const entry = latestAnteByTag.get(normTag);
+      const i = entry?.item;
+      const tag = entry?.tag || (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag)?.tag_number || normTag;
+      const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
+      const owner = resolveOwner(i || animal, animal);
 
-        // Exclude any tag that was condemned or partially condemned
-        if (allWholeCondemnedTags.has(tag) || allPartialCondemnedTags.has(tag)) return false;
+      const d = String(i?.decision || "").trim().toLowerCase();
+      const isCond = anteCondemnationTags.has(normTag) || isAnteCondemnedDecision(d) || (animal && isAnteCondemnedStatus(animal.status));
 
-        // Decision must be passed / approved
-        const d = String(i.decision || "").trim().toLowerCase();
-        if (isAnteCondemnedDecision(d) || d.includes("reject") || d.includes("condemn")) return false;
-
-        // Check animal status if present
-        const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === tag);
-        if (animal && isAnteCondemnedStatus(animal.status)) return false;
-
-        return true;
-      })
-      .map((i) => {
-        const tag = String(i.tag_number || "").trim();
-        const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === tag.toLowerCase());
-        const owner = resolveOwner(i, animal);
+      if (isCond) {
+        // Condemned at Ante-Mortem -> goes exclusively to Condemned
         const photos = extractPhotos({ ...i, tag_number: tag });
-
-        return {
+        condemnedMap.set(normTag, {
+          id: i?.id || `ante-cond-${normTag}`,
+          tag_number: tag,
+          species: i?.species || animal?.species || "Livestock",
+          breed: animal?.breed || "—",
+          sex: animal?.sex || "—",
+          age: animal?.age || "—",
+          owner,
+          date: i?.inspected_at || i?.date || animal?.created_at || today(),
+          stage: "Ante-Mortem (Live Animal)",
+          reason: i?.remarks || i?.findings || "Live animal unfit for slaughter",
+          findings: i?.findings || "Severe clinical abnormalities detected during intake inspection",
+          disposition: "Condemned / Disposed",
+          inspector: i?.inspector_name || "Dr. Dave",
+          category: "condemned",
+          statusBadge: "Condemned",
+          photos,
+          raw: i,
+        });
+      } else if (i && (d === "approved" || d === "passed" || !d)) {
+        // Passed Ante-Mortem -> goes exclusively to Fit for Slaughter
+        const photos = extractPhotos({ ...i, tag_number: tag });
+        passedList.push({
           id: i.id || `ante-${tag}`,
           tag_number: tag,
           species: i.species || animal?.species || "Livestock",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: formatLivestockAge(animal),
+          age: animal?.age || "—",
           owner,
           date: i.inspected_at || i.date || animal?.created_at || today(),
           findings: i.findings || "Normal clinical appearance, fit for slaughter",
           remarks: i.remarks || "—",
-          decision: i.decision || "Passed",
+          decision: "Passed",
           inspector: i.inspector_name || "Dr. Dave",
           category: "antemortem",
           statusBadge: "Passed Ante-Mortem",
           photos,
           condemnedParts: [],
           raw: i,
-        };
+        });
+      }
+    });
+
+    return {
+      anteMortemPassedRecords: passedList,
+      anteCondemnedRecords: Array.from(condemnedMap.values()),
+    };
+  }, [anteInspections, condemnationRecords, livestock, owners, evidenceRecords]);
+
+  // ---------------------------------------------------------------------------
+  // Post-Mortem Final Classifications (Mutually Exclusive per carcass/tag)
+  // - Passed: strictly sound carcass, no partial cuts, no whole condemnation
+  // - Partially Condemned: specific cuts/organs condemned, carcass passed
+  // - Fully Condemned: whole carcass condemned
+  // ---------------------------------------------------------------------------
+  const { postMortemPassedRecords, partiallyCondemnedRecords, postWholeCondemnedRecords } = useMemo(() => {
+    // 1. Collect latest post inspection per clean tag
+    const latestPostByTag = new Map();
+    (postInspections || []).forEach((p) => {
+      const tag = String(p.tag_number || "").trim();
+      const normTag = tag.toLowerCase();
+      if (!normTag) return;
+      const time = new Date(p.inspected_at || p.created_at || p.date || 0).getTime();
+      const existing = latestPostByTag.get(normTag);
+      if (!existing || time >= existing.time) {
+        latestPostByTag.set(normTag, { item: p, time, tag });
+      }
+    });
+
+    // 2. Identify whole carcass condemnations at Post-Mortem
+    const postWholeTags = new Set();
+    (postInspections || []).forEach((p) => {
+      const normTag = String(p.tag_number || "").trim().toLowerCase();
+      if (normTag && isPostWholeDecision(p.decision)) {
+        postWholeTags.add(normTag);
+      }
+    });
+    (condemnationRecords || []).forEach((c) => {
+      const normTag = String(c.tag_number || "").trim().toLowerCase();
+      if (!normTag) return;
+      const stage = getCondemnationStage(c);
+      const part = String(c.part || "").trim().toLowerCase();
+      if (stage === "Post-Mortem" && (part.includes("whole") || part.includes("entire"))) {
+        postWholeTags.add(normTag);
+      }
+    });
+    (livestock || []).forEach((l) => {
+      const normTag = String(l.tag_number || "").trim().toLowerCase();
+      if (normTag && String(l.status || "").toLowerCase().includes("post-mortem whole carcass condemned")) {
+        postWholeTags.add(normTag);
+      }
+    });
+
+    // 3. Identify partial condemnation cuts/parts
+    const partialCutsByTag = new Map();
+    (condemnedCuts || []).forEach((c) => {
+      const normTag = String(c.tag_number || "").trim().toLowerCase();
+      if (!normTag || postWholeTags.has(normTag)) return;
+      const partName = String(c.part || "").trim();
+      if (partName.toLowerCase().includes("whole")) return;
+      if (!partialCutsByTag.has(normTag)) partialCutsByTag.set(normTag, []);
+      partialCutsByTag.get(normTag).push({
+        part: partName || "Carcass Part",
+        weight_kg: Number(c.weight_kg || 0),
+        reason: c.reason || c.findings || "Unfit cut",
+        disposition: c.disposition || "Condemned / Rendered",
+        photo_url: c.photo_url || null,
       });
-  }, [anteInspections, livestock, allWholeCondemnedTags, allPartialCondemnedTags, owners, condemnedCuts, condemnationRecords, evidenceRecords]);
+    });
 
-  // ---------------------------------------------------------------------------
-  // Category 2: Post-Mortem Passed Records
-  // - Completed post-mortem inspection records.
-  // - Passed post-mortem inspection.
-  // - Strictly excludes condemned and partially condemned livestock.
-  // ---------------------------------------------------------------------------
-  const postMortemPassedRecords = useMemo(() => {
-    return (postInspections || [])
-      .filter((p) => {
-        const tag = String(p.tag_number || "").trim().toLowerCase();
-        if (!tag) return false;
+    (condemnationRecords || []).forEach((c) => {
+      const normTag = String(c.tag_number || "").trim().toLowerCase();
+      if (!normTag || postWholeTags.has(normTag)) return;
+      if (getCondemnationStage(c) !== "Post-Mortem") return;
+      const partName = String(c.part || "").trim();
+      if (partName.toLowerCase().includes("whole") || partName.toLowerCase().includes("entire")) return;
+      if (!partialCutsByTag.has(normTag)) partialCutsByTag.set(normTag, []);
+      partialCutsByTag.get(normTag).push({
+        part: partName || "Carcass Part",
+        weight_kg: Number(c.weight_kg || 0),
+        reason: c.reason || c.notes || "Condemned cut",
+        disposition: c.disposition || "Condemned / Rendered",
+        photo_url: c.photo_url || c.file_url || null,
+      });
+    });
 
-        // Exclude any tag that was condemned or partially condemned
-        if (allWholeCondemnedTags.has(tag) || allPartialCondemnedTags.has(tag)) return false;
+    const passedList = [];
+    const partialList = [];
+    const wholeList = [];
 
-        // Decision must be passed cleanly without partial cuts or whole condemnation
-        const d = String(p.decision || "").trim().toLowerCase();
-        if (isPostWholeDecision(d) || isPostPartialInspection(p)) return false;
-        if (Array.isArray(p.condemned_parts) && p.condemned_parts.length > 0) return false;
+    // All known post-mortem tags
+    const allPostTags = new Set([
+      ...latestPostByTag.keys(),
+      ...postWholeTags,
+      ...partialCutsByTag.keys(),
+    ]);
 
-        return true;
-      })
-      .map((p) => {
-        const tag = String(p.tag_number || "").trim();
-        const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === tag.toLowerCase());
-        const owner = resolveOwner(p, animal);
+    allPostTags.forEach((normTag) => {
+      const entry = latestPostByTag.get(normTag);
+      const p = entry?.item;
+      const tag = entry?.tag || (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag)?.tag_number || normTag;
+      const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
+      const owner = resolveOwner(p || animal, animal);
+      const d = String(p?.decision || "").trim().toLowerCase();
+
+      // Priority 1: Whole Carcass Condemnation
+      if (postWholeTags.has(normTag) || isPostWholeDecision(d)) {
         const photos = extractPhotos({ ...p, tag_number: tag });
+        wholeList.push({
+          id: p?.id || `whole-post-${normTag}`,
+          tag_number: tag,
+          species: p?.species || animal?.species || "Carcass",
+          breed: animal?.breed || "—",
+          sex: animal?.sex || "—",
+          age: animal?.age || "—",
+          owner,
+          date: p?.inspected_at || p?.date || today(),
+          stage: "Post-Mortem (Whole Carcass)",
+          reason: p?.remarks || p?.findings || "Whole carcass condemned for human consumption",
+          findings: p?.findings || "Systemic lesions / disease observed across entire carcass",
+          disposition: "Condemned & Rendered",
+          inspector: p?.inspector_name || "Dr. Dave",
+          category: "condemned",
+          statusBadge: "Condemned",
+          photos,
+          raw: p,
+        });
+        return;
+      }
 
-        return {
+      // Priority 2: Partial Condemnation
+      const explicitCuts = partialCutsByTag.get(normTag) || [];
+      const inspectionHasCuts = Array.isArray(p?.condemned_parts) && p.condemned_parts.length > 0;
+      const isPartial = isPostPartialInspection(p) || explicitCuts.length > 0 || inspectionHasCuts || String(animal?.status || "").toLowerCase().includes("partially condemned");
+
+      if (isPartial) {
+        const combinedParts = [...explicitCuts];
+        if (inspectionHasCuts) {
+          p.condemned_parts.forEach((cp) => {
+            if (cp && cp.part && !String(cp.part).toLowerCase().includes("whole")) {
+              const already = combinedParts.some((exist) => exist.part.toLowerCase() === String(cp.part).toLowerCase());
+              if (!already) {
+                combinedParts.push({
+                  part: cp.part,
+                  weight_kg: Number(cp.weight_kg || cp.weight || 0),
+                  reason: cp.reason || cp.cause || p.findings || "Pathological condition",
+                  disposition: cp.disposition || "Condemned / Rendered",
+                  photo_url: cp.photo_url || null,
+                });
+              }
+            }
+          });
+        }
+        const photos = extractPhotos({ ...p, tag_number: tag });
+        const partsTotalKg = combinedParts.reduce((sum, part) => sum + (Number(part.weight_kg) || 0), 0);
+
+        partialList.push({
+          id: p?.id || `partial-${normTag}`,
+          tag_number: tag,
+          species: p?.species || animal?.species || "Carcass",
+          breed: animal?.breed || "—",
+          sex: animal?.sex || "—",
+          age: animal?.age || "—",
+          owner,
+          date: p?.inspected_at || p?.date || today(),
+          findings: p?.findings || "Localized pathology identified on specific carcass parts",
+          remarks: p?.remarks || "—",
+          decision: "Partially Condemned",
+          inspector: p?.inspector_name || "Dr. Dave",
+          category: "partially_condemned",
+          statusBadge: "Partially Condemned",
+          condemnedParts: combinedParts,
+          partsTotalKg,
+          photos,
+          raw: p,
+        });
+        return;
+      }
+
+      // Priority 3: Passed (Fit for Consumption)
+      if (p && (d === "approved" || d === "passed" || d === "fit for consumption" || !d)) {
+        const photos = extractPhotos({ ...p, tag_number: tag });
+        passedList.push({
           id: p.id || `post-${tag}`,
           tag_number: tag,
           species: p.species || animal?.species || "Carcass",
           breed: animal?.breed || "—",
           sex: animal?.sex || "—",
-          age: formatLivestockAge(animal),
+          age: animal?.age || "—",
           owner,
           date: p.inspected_at || p.date || today(),
           findings: p.findings || "Carcass and viscera free of pathology, approved for food",
           remarks: p.remarks || "—",
-          decision: p.decision || "Passed",
+          decision: "Passed",
           inspector: p.inspector_name || "Dr. Dave",
           category: "postmortem",
           statusBadge: "Passed Post-Mortem",
           photos,
           condemnedParts: [],
           raw: p,
-        };
-      });
-  }, [postInspections, livestock, allWholeCondemnedTags, allPartialCondemnedTags, owners, condemnedCuts, condemnationRecords, evidenceRecords]);
-
-  // ---------------------------------------------------------------------------
-  // Category 3: Partially Condemned Records
-  // - All livestock with partially condemned inspection results.
-  // - Shows condemned carcass parts, inspection details, and evidence photos.
-  // ---------------------------------------------------------------------------
-  const partiallyCondemnedRecords = useMemo(() => {
-    const map = new Map();
-
-    // A. Post-mortem inspections with partial condemnation
-    (postInspections || []).forEach((p) => {
-      const tag = String(p.tag_number || "").trim();
-      const normTag = tag.toLowerCase();
-      if (!normTag || allWholeCondemnedTags.has(normTag)) return;
-
-      const isPartial = isPostPartialInspection(p) ||
-        (Array.isArray(p.condemned_parts) && p.condemned_parts.length > 0);
-
-      if (isPartial) {
-        const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
-        const owner = resolveOwner(p, animal);
-
-        const partsList = [];
-        if (Array.isArray(p.condemned_parts)) {
-          p.condemned_parts.forEach((cp) => {
-            if (cp && cp.part && !String(cp.part).toLowerCase().includes("whole")) {
-              partsList.push({
-                part: cp.part,
-                weight_kg: Number(cp.weight_kg || cp.weight || 0),
-                reason: cp.reason || cp.cause || p.findings || "Pathological condition",
-                disposition: cp.disposition || "Condemned / Rendered",
-                photo_url: cp.photo_url || null,
-              });
-            }
-          });
-        }
-
-        map.set(normTag, {
-          id: p.id || `partial-${normTag}`,
-          tag_number: tag,
-          species: p.species || animal?.species || "Carcass",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: formatLivestockAge(animal),
-          owner,
-          date: p.inspected_at || p.date || today(),
-          findings: p.findings || "Localized pathology identified on specific carcass parts",
-          remarks: p.remarks || "—",
-          decision: "Partially Condemned",
-          inspector: p.inspector_name || "Dr. Dave",
-          category: "partially_condemned",
-          statusBadge: "Partially Condemned",
-          condemnedParts: partsList,
-          photos: [],
-          raw: p,
         });
       }
     });
 
-    // B. Post-Mortem Condemned Cuts table
-    (condemnedCuts || []).forEach((c) => {
-      const tag = String(c.tag_number || "").trim();
-      const normTag = tag.toLowerCase();
-      if (!normTag || allWholeCondemnedTags.has(normTag)) return;
-      const partName = String(c.part || "").trim();
-      if (partName.toLowerCase().includes("whole")) return;
-
-      let existing = map.get(normTag);
-      if (!existing) {
-        const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
-        const owner = resolveOwner(c, animal);
-        existing = {
-          id: c.id || `cut-${normTag}`,
-          tag_number: tag,
-          species: c.species || animal?.species || "Carcass",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: formatLivestockAge(animal),
-          owner,
-          date: c.date || c.created_at || today(),
-          findings: c.findings || c.reason || "Part condemned during post-mortem",
-          remarks: c.notes || "—",
-          decision: "Partially Condemned",
-          inspector: c.inspector || "Dr. Dave",
-          category: "partially_condemned",
-          statusBadge: "Partially Condemned",
-          condemnedParts: [],
-          photos: [],
-          raw: c,
-        };
-        map.set(normTag, existing);
-      }
-
-      const alreadyAdded = existing.condemnedParts.some(
-        (p) => p.part.toLowerCase() === partName.toLowerCase() && p.reason === (c.reason || "")
-      );
-      if (!alreadyAdded) {
-        existing.condemnedParts.push({
-          part: partName || "Carcass Part",
-          weight_kg: Number(c.weight_kg || 0),
-          reason: c.reason || c.findings || "Unfit cut",
-          disposition: c.disposition || "Condemned / Rendered",
-          photo_url: c.photo_url || null,
-        });
-      }
-    });
-
-    // C. Condemnation records with post-mortem cuts
-    (condemnationRecords || []).forEach((c) => {
-      const tag = String(c.tag_number || "").trim();
-      const normTag = tag.toLowerCase();
-      if (!normTag || allWholeCondemnedTags.has(normTag)) return;
-      if (getCondemnationStage(c) !== "Post-Mortem") return;
-      const partName = String(c.part || "").trim();
-      if (partName.toLowerCase().includes("whole") || partName.toLowerCase().includes("entire")) return;
-
-      let existing = map.get(normTag);
-      if (!existing) {
-        const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
-        const owner = resolveOwner(c, animal);
-        existing = {
-          id: c.id || `cond-${normTag}`,
-          tag_number: tag,
-          species: c.species || animal?.species || "Carcass",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: formatLivestockAge(animal),
-          owner,
-          date: c.date || today(),
-          findings: c.findings || c.reason || "Localized condemnation recorded",
-          remarks: c.notes || "—",
-          decision: "Partially Condemned",
-          inspector: c.inspector || "Dr. Dave",
-          category: "partially_condemned",
-          statusBadge: "Partially Condemned",
-          condemnedParts: [],
-          photos: [],
-          raw: c,
-        };
-        map.set(normTag, existing);
-      }
-
-      const alreadyAdded = existing.condemnedParts.some((p) => p.part.toLowerCase() === partName.toLowerCase());
-      if (!alreadyAdded) {
-        existing.condemnedParts.push({
-          part: partName || "Carcass Part",
-          weight_kg: Number(c.weight_kg || 0),
-          reason: c.reason || c.notes || "Condemned cut",
-          disposition: c.disposition || "Condemned / Rendered",
-          photo_url: c.photo_url || c.file_url || null,
-        });
-      }
-    });
-
-    // Attach all photos to each partially condemned animal
-    const result = Array.from(map.values()).map((item) => {
-      const photos = extractPhotos(item);
-      const partsTotalKg = item.condemnedParts.reduce((sum, p) => sum + (Number(p.weight_kg) || 0), 0);
-      return {
-        ...item,
-        photos,
-        partsTotalKg,
-      };
-    });
-
-    return result;
-  }, [postInspections, condemnedCuts, condemnationRecords, livestock, allWholeCondemnedTags, owners, evidenceRecords]);
+    return {
+      postMortemPassedRecords: passedList,
+      partiallyCondemnedRecords: partialList,
+      postWholeCondemnedRecords: wholeList,
+    };
+  }, [postInspections, condemnedCuts, condemnationRecords, livestock, owners, evidenceRecords]);
 
   // ---------------------------------------------------------------------------
   // Category 4: Fully Condemned Records
   // - All livestock with fully condemned inspection results (whole animal / carcass).
-  // - Shows condemnation reasons, inspection details, and evidence photos.
+  // - Shows Ante-Mortem rejected live animals + Post-Mortem whole carcass condemned.
+  // - STRICTLY EXCLUDES any Passed or Partially Condemned records!
   // ---------------------------------------------------------------------------
   const fullyCondemnedRecords = useMemo(() => {
-    const map = new Map();
-
-    // A. Ante-Mortem fully condemned
-    (anteInspections || []).forEach((i) => {
-      const d = String(i.decision || "").trim().toLowerCase();
-      const isCond = isAnteCondemnedDecision(d) || d.includes("reject") || d.includes("condemn");
-      if (!isCond || !i.tag_number) return;
-      const tag = String(i.tag_number).trim();
-      const normTag = tag.toLowerCase();
-
-      const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
-      const owner = resolveOwner(i, animal);
-
-      map.set(normTag, {
-        id: i.id || `whole-ante-${normTag}`,
-        tag_number: tag,
-        species: i.species || animal?.species || "Livestock",
-        breed: animal?.breed || "—",
-        sex: animal?.sex || "—",
-        age: animal?.age || "—",
-        owner,
-        date: i.inspected_at || i.date || animal?.created_at || today(),
-        stage: "Ante-Mortem (Live Animal)",
-        reason: i.remarks || i.findings || "Live animal unfit for slaughter",
-        findings: i.findings || "Severe clinical abnormalities detected during intake inspection",
-        disposition: "Condemned / Disposed",
-        inspector: i.inspector_name || "Dr. Dave",
-        category: "condemned",
-        statusBadge: "Condemned",
-        photos: [],
-        raw: i,
-      });
-    });
-
-    // B. Post-Mortem fully condemned (whole carcass)
-    (postInspections || []).forEach((p) => {
-      const d = String(p.decision || "").trim().toLowerCase();
-      if (!isPostWholeDecision(d) || !p.tag_number) return;
-      const tag = String(p.tag_number).trim();
-      const normTag = tag.toLowerCase();
-
-      const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
-      const owner = resolveOwner(p, animal);
-
-      map.set(normTag, {
-        id: p.id || `whole-post-${normTag}`,
-        tag_number: tag,
-        species: p.species || animal?.species || "Carcass",
-        breed: animal?.breed || "—",
-        sex: animal?.sex || "—",
-        age: animal?.age || "—",
-        owner,
-        date: p.inspected_at || p.date || today(),
-        stage: "Post-Mortem (Whole Carcass)",
-        reason: p.remarks || p.findings || "Whole carcass condemned for human consumption",
-        findings: p.findings || "Systemic lesions / disease observed across entire carcass",
-        disposition: "Condemned & Rendered",
-        inspector: p.inspector_name || "Dr. Dave",
-        category: "condemned",
-        statusBadge: "Condemned",
-        photos: [],
-        raw: p,
-      });
-    });
-
-    // C. Condemnation records table with whole condemnation
-    (condemnationRecords || []).forEach((c) => {
-      const tag = String(c.tag_number || "").trim();
-      const normTag = tag.toLowerCase();
-      if (!normTag) return;
-      const stage = getCondemnationStage(c);
-      const part = String(c.part || "").trim().toLowerCase();
-
-      const isWhole = stage === "Ante-Mortem" || part === "live animal" || part.includes("whole") || part.includes("entire");
-      if (!isWhole) return;
-
-      const animal = (livestock || []).find((l) => String(l.tag_number || "").trim().toLowerCase() === normTag);
-      const owner = resolveOwner(c, animal);
-
-      const existing = map.get(normTag);
-      map.set(normTag, {
-        id: c.id || existing?.id || `cond-${normTag}`,
-        tag_number: tag,
-        species: c.species || animal?.species || existing?.species || "Livestock",
-        breed: animal?.breed || existing?.breed || "—",
-        sex: animal?.sex || existing?.sex || "—",
-        age: formatLivestockAge(animal) !== "—" ? formatLivestockAge(animal) : (existing?.age || "—"),
-        owner: owner.name !== "—" ? owner : (existing?.owner || owner),
-        date: c.date || existing?.date || today(),
-        stage: stage === "Ante-Mortem" ? "Ante-Mortem (Live Animal)" : "Post-Mortem (Whole Carcass)",
-        reason: c.reason || existing?.reason || "Total condemnation ordered by veterinary inspector",
-        findings: c.findings || c.notes || existing?.findings || "Not recorded",
-        disposition: c.disposition || existing?.disposition || "Condemned / Rendered",
-        inspector: c.inspector || existing?.inspector || "Dr. Dave",
-        category: "condemned",
-        statusBadge: "Condemned",
-        photos: [],
-        raw: c,
-      });
-    });
-
-    // D. Livestock marked condemned at intake/antemortem
-    (livestock || []).forEach((l) => {
-      const tag = String(l.tag_number || "").trim();
-      const normTag = tag.toLowerCase();
-      if (!normTag) return;
-      if (!isAnteCondemnedStatus(l.status) || map.has(normTag)) return;
-
-      const owner = resolveOwner(l, l);
-      map.set(normTag, {
-        id: l.id || `live-${normTag}`,
-        tag_number: tag,
-        species: l.species || "Livestock",
-        breed: l.breed || "—",
-        sex: l.sex || "—",
-        age: formatLivestockAge(l),
-        owner,
-        date: l.received_date || l.created_at || today(),
-        stage: "Ante-Mortem (Live Animal)",
-        reason: l.remarks || l.rejection_reason || "Marked as Condemned at Intake",
-        findings: l.remarks || "Unfit for slaughter during live animal evaluation",
-        disposition: "Condemned / Disposed",
-        inspector: "Dr. Dave",
-        category: "condemned",
-        statusBadge: "Condemned",
-        photos: [],
-        raw: l,
-      });
-    });
-
-    return Array.from(map.values()).map((item) => {
-      const photos = extractPhotos(item);
-      return {
-        ...item,
-        photos,
-      };
-    });
-  }, [anteInspections, postInspections, condemnationRecords, livestock, owners, condemnedCuts, evidenceRecords]);
+    return [...anteCondemnedRecords, ...postWholeCondemnedRecords];
+  }, [anteCondemnedRecords, postWholeCondemnedRecords]);
 
   // Current category records mapped to the active tab
   const currentCategoryRecords = useMemo(() => {
@@ -1319,7 +1158,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             setSelectedOwnerKey(grp.key);
                           }}
                           style={{
-                            height: 32,
                             padding: "6px 14px",
                             fontSize: 12,
                             fontWeight: 700,
@@ -1667,25 +1505,47 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         const tagPhotos = viewingDetails.photos || [];
         const currentPhotoIndex = Math.min(activePhotoIndex, Math.max(0, tagPhotos.length - 1));
         const currentPhotoUrl = tagPhotos[currentPhotoIndex] || null;
-        const isAnte = viewingDetails.category === "condemned" && viewingDetails.stage?.includes("Ante");
-        const isWhole = viewingDetails.category === "condemned";
+        const isAnte = viewingDetails.category === "condemned" && (viewingDetails.stage?.includes("Ante") || viewingDetails.stage === "Ante-Mortem");
         const ownerDisplay = viewingDetails.owner?.name && viewingDetails.owner.name !== "—" ? viewingDetails.owner.name : "Not recorded";
-        const condemnationTypeDisplay =
-          viewingDetails.category === "condemned"
-            ? (isAnte ? "Ante-Mortem · Whole Animal Condemnation" : "Post-Mortem · Whole Carcass Condemnation")
-            : "Post-Mortem · Partial Condemnation";
+
+        // Authoritative parts & scope extraction from Supabase
+        const condPartsInfo = getCondemnationRecordParts({
+          record: viewingDetails.raw || viewingDetails,
+          stage: viewingDetails.stage || (viewingDetails.category === "condemned" ? (isAnte ? "Ante-Mortem" : "Post-Mortem") : "Post-Mortem"),
+          ante: anteInspections,
+          post: postInspections,
+          livestock,
+          condemned: condemnationRecords,
+          postCuts: condemnedCuts,
+        });
+        const isWhole = condPartsInfo.isWhole;
+        const condemnationTypeDisplay = condPartsInfo.scopeLabel;
         const findingsDisplay = viewingDetails.findings || viewingDetails.reason || "Not recorded";
-        const currentPhotoPart = viewingDetails.condemnedParts?.[currentPhotoIndex]?.part || viewingDetails.condemnedParts?.[0]?.part || null;
+        const currentPhotoPart = condPartsInfo.parts[currentPhotoIndex]?.part || condPartsInfo.parts[0]?.part || null;
 
         return (
           <Modal
             open={Boolean(viewingDetails)}
             onClose={() => setViewingDetails(null)}
             title="Condemnation Evidence Viewer"
-            size="xl"
+            size="lg"
+            dialogStyle={{
+              maxWidth: "860px",
+              maxHeight: "85vh",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            bodyStyle={{
+              padding: "16px 20px",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              flex: 1,
+              minHeight: 0,
+            }}
             closeOnBackdropClick
           >
-            <div className="vet-evidence-viewer-root">
+            <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               <div className="vet-evidence-viewer-grid">
                 {/* ── LEFT: PRIMARY PHOTO & FILE VIEWER ── */}
                 <div className="vet-evidence-viewer-media-col">
@@ -1731,20 +1591,20 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
 
                     {/* Zoom & Action Controls */}
                     {tagPhotos.length > 0 && currentPhotoUrl && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <button
                           type="button"
                           onClick={() => setZoomLevel((z) => Math.max(1, +(z - 0.5).toFixed(1)))}
                           disabled={zoomLevel <= 1}
                           title="Zoom out"
                           style={{
-                            height: 26,
-                            padding: "0 8px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: zoomLevel <= 1 ? "#0f172a" : "#334155",
                             color: zoomLevel <= 1 ? "#475569" : "#f8fafc",
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel <= 1 ? "not-allowed" : "pointer",
                           }}
@@ -1756,16 +1616,16 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           onClick={() => setZoomLevel(1)}
                           title="Reset zoom to 100%"
                           style={{
-                            height: 26,
-                            padding: "0 8px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 6px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: "#0f172a",
                             color: "#e2e8f0",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
-                            minWidth: 46,
+                            minWidth: 40,
                           }}
                         >
                           {Math.round(zoomLevel * 100)}%
@@ -1776,13 +1636,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           disabled={zoomLevel >= 2.5}
                           title="Zoom in"
                           style={{
-                            height: 26,
-                            padding: "0 8px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: zoomLevel >= 2.5 ? "#0f172a" : "#334155",
                             color: zoomLevel >= 2.5 ? "#475569" : "#f8fafc",
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel >= 2.5 ? "not-allowed" : "pointer",
                           }}
@@ -1794,91 +1654,91 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           onClick={() => setIsEnlarged(true)}
                           title="Enlarge image to full screen"
                           style={{
-                            height: 26,
-                            padding: "0 9px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #0284c7",
                             background: "#0284c7",
                             color: "#ffffff",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 4,
+                            gap: 3,
                           }}
                         >
-                          <Icon.Eye size={12} /> Enlarge
+                          <Icon.Eye size={11} /> Enlarge
                         </button>
                         <button
                           type="button"
                           onClick={() => window.open(currentPhotoUrl, "_blank", "noopener,noreferrer")}
                           title="Open original file in a new tab"
                           style={{
-                            height: 26,
-                            padding: "0 9px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: "#334155",
                             color: "#f8fafc",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 600,
                             cursor: "pointer",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 4,
+                            gap: 3,
                           }}
                         >
-                          <Icon.ExternalLink size={12} /> Open
+                          <Icon.ExternalLink size={11} /> Open
                         </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Primary Media Stage */}
+                  {/* Primary Media Stage - Compact */}
                   <div
                     style={{
                       position: "relative",
                       flex: 1,
-                      minHeight: 360,
-                      maxHeight: "min(62vh, 520px)",
+                      minHeight: 200,
+                      maxHeight: "270px",
                       background: "#0f172a",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: zoomLevel > 1 ? "auto" : "hidden",
-                      padding: 12,
+                      padding: 10,
                     }}
                   >
                     {tagPhotos.length === 0 ? (
                       <div
                         style={{
-                          padding: "36px 24px",
+                          padding: "24px 16px",
                           textAlign: "center",
                           color: "#cbd5e1",
-                          maxWidth: 380,
+                          maxWidth: 320,
                         }}
                       >
                         <div
                           style={{
-                            width: 52,
-                            height: 52,
+                            width: 44,
+                            height: 44,
                             borderRadius: "50%",
                             background: "rgba(148, 163, 184, 0.12)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            margin: "0 auto 12px",
+                            margin: "0 auto 10px",
                             color: "#94a3b8",
                           }}
                         >
-                          <Icon.FileText size={26} />
+                          <Icon.FileText size={22} />
                         </div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
-                          No evidence file exists for this record
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#f8fafc" }}>
+                          No evidence file attached
                         </div>
-                        <div style={{ fontSize: 12.5, color: "#94a3b8", marginTop: 6, lineHeight: 1.5 }}>
-                          No photo or document file is attached to this condemnation record.
+                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                          No photo or document file is recorded for this condemnation.
                         </div>
                       </div>
                     ) : (
@@ -1891,7 +1751,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           width: zoomLevel > 1 ? `${zoomLevel * 100}%` : "100%",
                           height: zoomLevel > 1 ? "auto" : "100%",
                           maxWidth: zoomLevel > 1 ? "none" : "100%",
-                          maxHeight: zoomLevel > 1 ? "none" : "min(56vh, 480px)",
+                          maxHeight: zoomLevel > 1 ? "none" : "250px",
                           objectFit: "contain",
                           borderRadius: 6,
                           cursor: "zoom-in",
@@ -1910,24 +1770,24 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           title="Previous photo (Left arrow)"
                           style={{
                             position: "absolute",
-                            left: 12,
+                            left: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
                             background: "rgba(15, 23, 42, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
-                            width: 38,
-                            height: 38,
+                            width: 32,
+                            height: 32,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
-                            boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
                             zIndex: 4,
                           }}
                         >
-                          <Icon.ChevronLeft size={20} />
+                          <Icon.ChevronLeft size={16} />
                         </button>
                         <button
                           type="button"
@@ -1936,24 +1796,24 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           title="Next photo (Right arrow)"
                           style={{
                             position: "absolute",
-                            right: 12,
+                            right: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
                             background: "rgba(15, 23, 42, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
-                            width: 38,
-                            height: 38,
+                            width: 32,
+                            height: 32,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
-                            boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
                             zIndex: 4,
                           }}
                         >
-                          <Icon.ChevronRight size={20} />
+                          <Icon.ChevronRight size={16} />
                         </button>
                       </>
                     )}
@@ -1965,8 +1825,8 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
-                        padding: "8px 12px",
+                        gap: 6,
+                        padding: "6px 10px",
                         background: "#1e293b",
                         borderTop: "1px solid #334155",
                         overflowX: "auto",
@@ -1980,10 +1840,10 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             type="button"
                             onClick={() => setActivePhotoIndex(idx)}
                             style={{
-                              width: 58,
-                              height: 42,
+                              width: 48,
+                              height: 36,
                               padding: 0,
-                              borderRadius: 6,
+                              borderRadius: 4,
                               overflow: "hidden",
                               border: isSelected ? "2px solid #38bdf8" : "1px solid #475569",
                               background: "#0f172a",
@@ -2005,21 +1865,38 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                   )}
                 </div>
 
-                {/* ── RIGHT: COMPACT LABELED DETAILS LIST ── */}
+                {/* ── RIGHT: COMPACT TWO-LINE LABELED DETAILS LIST ── */}
                 <div className="vet-evidence-viewer-details-col">
                   <div
+                    className="vet-evidence-viewer-details-header"
                     style={{
-                      padding: "10px 14px",
+                      padding: "9px 12px",
                       borderBottom: "1px solid var(--color-border)",
                       background: "var(--color-bg)",
-                      fontSize: 11.5,
+                      fontSize: 11,
                       fontWeight: 800,
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                       color: "var(--color-text-muted)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    Condemnation Record Details
+                    <span>Condemnation Details</span>
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: isWhole ? "#dc2626" : "#d97706",
+                        background: isWhole ? "rgba(220, 38, 38, 0.08)" : "rgba(217, 119, 6, 0.08)",
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                      }}
+                    >
+                      {isWhole ? "Whole Condemnation" : `${condPartsInfo.totalParts} Parts Rejected`}
+                    </span>
                   </div>
 
                   <dl className="vet-evidence-viewer-dl">
@@ -2043,56 +1920,106 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       <dd>{viewingDetails.species || "Not recorded"}</dd>
                     </div>
 
-                    {/* 4. Condemnation Type */}
+                    {/* 4. Condemnation Classification */}
                     <div className="vet-evidence-viewer-row">
-                      <dt>Condemnation Type</dt>
-                      <dd
-                        style={{
-                          fontWeight: 700,
-                          color: isWhole ? "var(--color-danger, #dc2626)" : "var(--color-warning, #d97706)",
-                        }}
-                      >
-                        {condemnationTypeDisplay}
+                      <dt>Condemnation Classification</dt>
+                      <dd>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            fontWeight: 750,
+                            fontSize: 12.5,
+                            color: isWhole ? "var(--color-danger, #dc2626)" : "var(--color-warning, #d97706)",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: isWhole ? "#dc2626" : "#d97706",
+                            }}
+                          />
+                          {condemnationTypeDisplay}
+                        </span>
                       </dd>
                     </div>
 
-                    {/* 5. Condemned Part / Affected Area */}
+                    {/* 5. Condemned Parts & Quantities */}
                     <div className="vet-evidence-viewer-row">
-                      <dt>Condemned Part / Affected Area</dt>
-                      <dd>
-                        {isWhole ? (
-                          <div>
-                            <span style={{ fontWeight: 700 }}>
-                              {isAnte ? "Live Animal (Whole)" : "Whole Carcass"}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <dt>Condemned Parts & Quantities</dt>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            color: isWhole ? "#dc2626" : "#b45309",
+                          }}
+                        >
+                          Total: {condPartsInfo.totalParts} {condPartsInfo.totalParts === 1 ? "Part" : "Parts"}
+                        </span>
+                      </div>
+                      <dd style={{ marginTop: 4 }}>
+                        {condPartsInfo.parts.length === 0 ? (
+                          <span style={{ color: "var(--color-text-muted)" }}>Not recorded</span>
+                        ) : isWhole ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "6px 10px",
+                              borderRadius: 6,
+                              background: "rgba(220, 38, 38, 0.06)",
+                              border: "1px solid rgba(220, 38, 38, 0.2)",
+                              fontSize: 12.5,
+                            }}
+                          >
+                            <span style={{ fontWeight: 700, color: "#dc2626" }}>
+                              {condPartsInfo.parts[0]?.part || (isAnte ? "Whole Live Animal" : "Whole Carcass")}
                             </span>
-                            {viewingDetails.reason ? (
-                              <span style={{ color: "var(--color-text-muted)" }}> · {viewingDetails.reason}</span>
-                            ) : null}
+                            <span style={{ fontWeight: 700, color: "#dc2626" }}>
+                              Quantity: {condPartsInfo.parts[0]?.quantity || 1} {condPartsInfo.parts[0]?.weightDisplay ? `(${condPartsInfo.parts[0].weightDisplay})` : ""}
+                            </span>
                           </div>
-                        ) : viewingDetails.condemnedParts && viewingDetails.condemnedParts.length > 0 ? (
-                          viewingDetails.condemnedParts.length === 1 ? (
-                            <div>
-                              <span style={{ fontWeight: 700 }}>{viewingDetails.condemnedParts[0].part}</span>
-                              {viewingDetails.condemnedParts[0].reason ? (
-                                <span style={{ color: "var(--color-text-muted)" }}> · {viewingDetails.condemnedParts[0].reason}</span>
-                              ) : null}
-                              {viewingDetails.condemnedParts[0].weight_kg > 0 ? (
-                                <span style={{ color: "#b45309", fontWeight: 600 }}> ({viewingDetails.condemnedParts[0].weight_kg} kg)</span>
-                              ) : null}
-                            </div>
-                          ) : (
-                            <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
-                              {viewingDetails.condemnedParts.map((rp, i) => (
-                                <li key={i} style={{ fontSize: 12.5 }}>
-                                  <span style={{ fontWeight: 700 }}>{rp.part}</span>
-                                  {rp.reason ? <span style={{ color: "var(--color-text-muted)" }}> · {rp.reason}</span> : null}
-                                  {rp.weight_kg > 0 ? <span style={{ color: "#b45309", fontWeight: 600 }}> ({rp.weight_kg} kg)</span> : null}
-                                </li>
-                              ))}
-                            </ul>
-                          )
                         ) : (
-                          "Not recorded"
+                          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                            {condPartsInfo.parts.map((p, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  padding: "6px 10px",
+                                  borderRadius: 6,
+                                  background: "var(--color-bg)",
+                                  border: "1px solid var(--color-border)",
+                                  fontSize: 12,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 2,
+                                }}
+                              >
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                                  <span style={{ fontWeight: 750, color: "var(--color-text)" }}>
+                                    {p.part}
+                                    {p.area ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> · {p.area}</span> : null}
+                                  </span>
+                                  <span style={{ fontWeight: 700, color: "#b45309", fontSize: 11.5 }}>
+                                    Qty: {p.quantity || 1}
+                                    {p.weightDisplay ? ` · ${p.weightDisplay}` : ""}
+                                  </span>
+                                </div>
+                                {(p.reason || p.disposition) && (
+                                  <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                                    {p.reason ? <span>Reason: <strong style={{ color: "var(--color-text)" }}>{p.reason}</strong></span> : null}
+                                    {p.reason && p.disposition ? " · " : ""}
+                                    {p.disposition ? <span>{p.disposition}</span> : null}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
                         )}
                       </dd>
                     </div>
@@ -2122,13 +2049,14 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
               <div
                 className="form-actions"
                 style={{
-                  marginTop: 16,
+                  marginTop: 14,
                   paddingTop: 12,
                   borderTop: "1px solid var(--color-border)",
                   display: "flex",
                   justifyContent: "flex-end",
                   alignItems: "center",
                   gap: 10,
+                  flexShrink: 0,
                 }}
               >
                 <Button variant="outline" onClick={() => setViewingDetails(null)}>
@@ -2215,13 +2143,16 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       <style>{`
         .vet-evidence-viewer-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.95fr);
-          gap: 16px;
+          grid-template-columns: minmax(0, 1.15fr) minmax(290px, 0.95fr);
+          gap: 14px;
           align-items: start;
+          flex: 1;
+          min-height: 0;
         }
         @media (max-width: 820px) {
           .vet-evidence-viewer-grid {
             grid-template-columns: 1fr;
+            overflow-y: auto;
           }
           .vet-ev-kbd-hint {
             display: none;
@@ -2231,28 +2162,55 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           display: flex;
           flex-direction: column;
           border: 1px solid var(--color-border);
-          border-radius: 10px;
+          border-radius: 8px;
           overflow: hidden;
           background: #0f172a;
+          flex-shrink: 0;
         }
         .vet-evidence-viewer-details-col {
+          display: flex;
+          flex-direction: column;
           border: 1px solid var(--color-border);
-          border-radius: 10px;
+          border-radius: 8px;
           background: var(--color-surface);
           overflow: hidden;
+          max-height: min(400px, calc(85vh - 175px));
+          min-height: 0;
+        }
+        @media (max-width: 820px) {
+          .vet-evidence-viewer-details-col {
+            max-height: 280px;
+          }
         }
         .vet-evidence-viewer-dl {
           margin: 0;
           padding: 0;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+          scrollbar-width: thin;
+          overscroll-behavior: contain;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar {
+          width: 6px;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.4);
+          border-radius: 4px;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.7);
         }
         .vet-evidence-viewer-row {
-          display: grid;
-          grid-template-columns: 135px minmax(0, 1fr);
-          gap: 10px;
-          padding: 10px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          padding: 8px 12px;
           border-bottom: 1px solid var(--color-border);
           font-size: 12.5px;
-          align-items: baseline;
         }
         .vet-evidence-viewer-row dt {
           margin: 0;

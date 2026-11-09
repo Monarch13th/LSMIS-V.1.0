@@ -1,0 +1,534 @@
+// =========================================================================
+// LSMIS Physical Database ERD - Database Markup Language (DBML)
+// Importable into dbdiagram.io / dbdocs.io for interactive editing
+// =========================================================================
+
+Project LSMIS {
+  database_type: 'PostgreSQL'
+  Note: 'Livestock Slaughter and Meat Inspection Management System (LSMIS) - Supabase Schema'
+}
+
+Table ante_mortem_inspections {
+  id TEXT [pk, not null]
+  livestock_id TEXT
+  tag_number TEXT [not null]
+  species TEXT
+  inspector_name TEXT
+  date DATE [not null, default: `CURRENT_DATE`]
+  findings TEXT
+  decision TEXT [not null]
+  remarks TEXT
+  inspected_at TIMESTAMPTZ [default: `now()`]
+  inspector_id TEXT
+  created_by_user_id TEXT
+}
+
+Table audit_logs {
+  id TEXT [pk, not null]
+  user TEXT
+  role TEXT
+  action TEXT
+  module TEXT
+  timestamp TEXT
+  ip TEXT
+  tag_number TEXT
+  old_value TEXT
+  new_value TEXT
+  field_changed TEXT
+  security_event TEXT
+  severity TEXT [default: `'info'::text`]
+  user_id TEXT
+  created_at TIMESTAMPTZ [default: `timezone('utc'::text, now())`]
+}
+
+Table carcass_branding_records {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  carcass_id UUID [unique, not null]
+  livestock_id TEXT
+  tag_number TEXT [not null]
+  branding_code TEXT [unique, not null]
+  branding_type TEXT [unique, not null]
+  branding_status TEXT [not null, default: `'PENDING'::text`]
+  branded_at TIMESTAMPTZ [default: `now()`]
+  branded_by UUID
+  cancellation_reason TEXT
+  notes TEXT
+  created_at TIMESTAMPTZ [not null, default: `now()`]
+  updated_at TIMESTAMPTZ [not null, default: `now()`]
+}
+
+Table carcass_records {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  tag_number TEXT [not null]
+  slaughter_id TEXT
+  quantity INTEGER [not null, default: `1`]
+  total_weight NUMERIC [not null]
+  hot_weight NUMERIC
+  cold_weight NUMERIC
+  organ_weight NUMERIC
+  grade TEXT [default: `'A'::text`]
+  operator TEXT
+  date DATE [not null, default: `CURRENT_DATE`]
+  status TEXT [default: `'Weighed'::text`]
+  weighed_at TIMESTAMPTZ [default: `now()`]
+  created_at TIMESTAMPTZ [default: `now()`]
+  weighed_by TEXT
+  weighed_by_user_id TEXT
+  brand_code TEXT
+  branding_status TEXT [default: `'Branded'::text`]
+  brand_method TEXT [default: `'Official Meat Inspection Stamp (Food-Grade Ink)'::text`]
+  weighed_by_role TEXT [default: `'vet'::text`]
+}
+
+Table condemnation_records {
+  id TEXT [pk, not null]
+  livestock_id TEXT
+  date DATE [not null, default: `CURRENT_DATE`]
+  tag_number TEXT [not null]
+  species TEXT [not null]
+  reason TEXT [not null]
+  part TEXT [not null]
+  quantity TEXT [not null]
+  inspector TEXT [not null]
+  notes TEXT
+  weight_kg NUMERIC [default: `0.00`]
+  location TEXT
+  disposition TEXT [default: `'Condemned / Rendered'::text`]
+  findings TEXT
+  photo_url TEXT
+  file_url TEXT
+  inspector_id TEXT
+  created_by_user_id TEXT
+}
+
+Table dispatch {
+  id TEXT [pk, not null]
+  owner_id TEXT
+  owner_name TEXT
+  carcass_weight NUMERIC
+  organ_weight NUMERIC
+  driver TEXT
+  vehicle TEXT
+  released_date TEXT
+  status TEXT [default: `'Released'::text`]
+  destination TEXT
+  permit_config_id TEXT
+  tags JSONB [default: `'[]'::jsonb`]
+  released_at TIMESTAMPTZ [default: `now()`]
+  dispatched_at TIMESTAMPTZ [default: `clock_timestamp()`]
+  created_at TIMESTAMPTZ [default: `clock_timestamp()`]
+  dispatched_by TEXT
+  dispatched_by_user_id TEXT
+}
+
+Table evidence_records {
+  id TEXT [pk, not null]
+  created_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  date DATE [not null, default: `CURRENT_DATE`]
+  tag_number TEXT [not null]
+  type TEXT [not null, default: `'Photo'::text`]
+  file_name TEXT [not null]
+  file_path TEXT
+  file_url TEXT
+  file_size BIGINT
+  mime_type TEXT
+  uploaded_by UUID
+  inspection_type TEXT
+  status TEXT [not null, default: `'Active'::text`]
+  notes TEXT
+  file_preview TEXT
+  photos JSONB [default: `'[]'::jsonb`]
+  file_urls JSONB [default: `'[]'::jsonb`]
+}
+
+Table fees {
+  id TEXT [pk, not null]
+  fee_name TEXT [not null]
+  animal_type TEXT [not null]
+  method TEXT [not null]
+  rate NUMERIC [not null, default: `0.00`]
+  effective_date DATE [not null]
+  status TEXT [not null, default: `'Active'::text`]
+  updated_at TIMESTAMPTZ [default: `now()`]
+}
+
+Table livestock {
+  id TEXT [pk, not null]
+  tag_number TEXT [unique, not null]
+  species TEXT [not null]
+  sex TEXT
+  age_months TEXT
+  weight NUMERIC
+  owner_id TEXT
+  owner_name TEXT
+  received_date DATE [not null, default: `CURRENT_DATE`]
+  status TEXT [default: `'Pending'::text`]
+  quantity INTEGER [default: `1`]
+  marked BOOLEAN [not null, default: `false`]
+  mark_type TEXT
+  mark_date DATE
+  permit_issued_at TIMESTAMPTZ
+  registered_at TIMESTAMPTZ [default: `now()`]
+  dispatched_at TIMESTAMPTZ
+  released_at TIMESTAMPTZ
+  marked_at TIMESTAMPTZ
+  fallback_at TIMESTAMPTZ
+  fallback_reason TEXT
+  marking_history JSONB [default: `'[]'::jsonb`]
+  created_by TEXT
+  created_by_user_id TEXT
+  registered_by TEXT
+  registered_by_user_id TEXT
+  received_by TEXT
+  received_by_user_id TEXT
+  received_at TIMESTAMPTZ
+  marked_by TEXT
+  marked_by_user_id TEXT
+  ante_inspected_by TEXT
+  ante_inspected_by_user_id TEXT
+  ante_inspected_at TIMESTAMPTZ
+  slaughtered_by TEXT
+  slaughtered_by_user_id TEXT
+  slaughtered_at TIMESTAMPTZ
+  weighed_by TEXT
+  weighed_by_user_id TEXT
+  weighed_at TIMESTAMPTZ
+  post_inspected_by TEXT
+  post_inspected_by_user_id TEXT
+  post_inspected_at TIMESTAMPTZ
+  paid_by_staff TEXT
+  paid_by_user_id TEXT
+  paid_at TIMESTAMPTZ
+  permit_issued_by TEXT
+  permit_issued_by_user_id TEXT
+  dispatched_by TEXT
+  dispatched_by_user_id TEXT
+  process_history JSONB [default: `'[]'::jsonb`]
+  created_at TIMESTAMPTZ [default: `now()`]
+  reassigned_at TIMESTAMPTZ
+  previous_operator TEXT
+  species_id TEXT
+}
+
+Table login_security {
+  email TEXT [pk, not null]
+  failed_attempts INTEGER [not null, default: `0`]
+  locked_until TIMESTAMPTZ
+  last_failed_at TIMESTAMPTZ
+  active_session_id TEXT
+  active_session_updated_at TIMESTAMPTZ
+  created_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  updated_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+}
+
+Table notifications {
+  id TEXT [pk, not null]
+  title TEXT
+  message TEXT
+  date TEXT
+  read BOOLEAN [default: `false`]
+  type TEXT [default: `'info'::text`]
+  owner_id TEXT
+  role TEXT
+}
+
+Table otp_rate_limits {
+  email TEXT [pk, not null]
+  request_count INTEGER [default: `1`]
+  last_request TIMESTAMPTZ [default: `now()`]
+  blocked_until TIMESTAMPTZ
+}
+
+Table owners {
+  id TEXT [pk, not null]
+  name TEXT [not null]
+  contact TEXT [default: `''::text`]
+  address TEXT
+  registered_date DATE [not null, default: `CURRENT_DATE`]
+  total_animals INTEGER [not null, default: `0`]
+  email TEXT
+  username TEXT
+  status TEXT [not null, default: `'Approved'::text`]
+  email_verified BOOLEAN [not null, default: `false`]
+  email_verified_at TIMESTAMPTZ
+  agreement_status BOOLEAN [not null, default: `false`]
+  agreement_version TEXT [default: `'v1.0-2026'::text`]
+  agreement_accepted_at TIMESTAMPTZ
+  approved_by TEXT
+  approved_at TIMESTAMPTZ
+  rejection_reason TEXT
+  suspension_reason TEXT
+  history JSONB [default: `'[]'::jsonb`]
+  created_by TEXT
+  created_by_user_id TEXT
+  created_at TIMESTAMPTZ [default: `now()`]
+  google_id TEXT
+  auth_user_id UUID
+  avatar_url TEXT
+  auth_provider TEXT [default: `'email'::text`]
+}
+
+Table payments {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  date DATE [not null, default: `CURRENT_DATE`]
+  receipt_no TEXT [not null]
+  owner_name TEXT [not null]
+  tag_number TEXT [not null]
+  animal_type TEXT [not null]
+  quantity INTEGER [not null, default: `1`]
+  weight NUMERIC [not null, default: `0.00`]
+  method TEXT [not null]
+  rate NUMERIC [not null, default: `0.00`]
+  amount NUMERIC [not null, default: `0.00`]
+  status TEXT [not null, default: `'Paid'::text`]
+  staff_name TEXT [not null, default: `'Staff'::text`]
+  livestock_id TEXT
+  fee_id TEXT
+  species TEXT
+  fee_name TEXT
+  paid_at TIMESTAMPTZ [default: `clock_timestamp()`]
+  created_at TIMESTAMPTZ [default: `clock_timestamp()`]
+  staff_id TEXT
+  processed_by_user_id TEXT
+}
+
+Table permit_config {
+  id TEXT [pk, not null, default: `'default'::text`]
+  permit_prefix TEXT [not null, default: `'permit-'::text`]
+  origin TEXT [not null, default: `'TAPON TINAAN'::text`]
+  destination TEXT [not null, default: `'NEW PEOPLES MARKET'::text`]
+  address TEXT [not null, default: `'EAST POBLACION'::text`]
+  time_issued TEXT [default: `''::text`]
+  conveyance TEXT [not null, default: `'MEAT VAN'::text`]
+  plate_no TEXT [default: `''::text`]
+  inspector TEXT [not null, default: `'NERISSA U. VELOSO'::text`]
+  city_vet TEXT [not null, default: `'DR. RAYMUNDO VALENTINE P. PAMIREZ'::text`]
+  updated_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+}
+
+Table permit_config_history {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  permit_prefix TEXT
+  origin TEXT
+  destination TEXT
+  address TEXT
+  time_issued TEXT
+  conveyance TEXT
+  plate_no TEXT
+  inspector TEXT
+  city_vet TEXT
+  updated_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  changed_by UUID
+}
+
+Table permits {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  permit_no TEXT [unique, not null]
+  livestock_id TEXT
+  tag_number TEXT [not null]
+  carcass_id UUID
+  owner_name TEXT [not null]
+  species TEXT [not null]
+  carcass_weight NUMERIC [not null]
+  origin TEXT [not null, default: `'TAPON TINAAN'::text`]
+  destination TEXT [not null, default: `'NEW PEOPLES MARKET'::text`]
+  address TEXT [default: `'EAST POBLACION'::text`]
+  time_issued TEXT [default: `'3:30 AM'::text`]
+  conveyance TEXT [not null, default: `'MEAT VAN'::text`]
+  plate_no TEXT [not null, default: `'TBA-1234'::text`]
+  inspector TEXT [not null, default: `'NERISSA U. VELOSO'::text`]
+  city_vet TEXT [not null, default: `'DR. RAYMUNDO VALENTINE P. PAMIREZ'::text`]
+  status TEXT [not null, default: `'Active'::text`]
+  issued_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  created_at TIMESTAMPTZ [default: `clock_timestamp()`]
+  issued_by TEXT
+  issued_by_user_id TEXT
+  config_snapshot JSONB
+}
+
+Table post_mortem_condemned_cuts {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  created_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  date DATE [not null, default: `CURRENT_DATE`]
+  inspection_id TEXT
+  livestock_id TEXT
+  tag_number TEXT [not null]
+  species TEXT [not null, default: `'Hog'::text`]
+  part TEXT [not null]
+  custom_part TEXT
+  location TEXT
+  weight_kg NUMERIC [not null]
+  reason TEXT [not null]
+  custom_reason TEXT
+  findings TEXT
+  disposition TEXT [not null, default: `'Condemned / Rendered'::text`]
+  photo_url TEXT
+  photo_name TEXT
+  inspector TEXT [not null, default: `'Dr. Dave'::text`]
+  notes TEXT
+}
+
+Table post_mortem_inspections {
+  id TEXT [pk, not null]
+  livestock_id TEXT
+  tag_number TEXT [not null]
+  species TEXT
+  inspector_name TEXT
+  date DATE [not null, default: `CURRENT_DATE`]
+  findings TEXT
+  decision TEXT [not null]
+  remarks TEXT
+  raw_decision TEXT [default: `'Approved'::text`]
+  condemned_parts JSONB [default: `'[]'::jsonb`]
+  inspected_at TIMESTAMPTZ [default: `now()`]
+  inspector_id TEXT
+  created_by_user_id TEXT
+}
+
+Table slaughter_processing {
+  id TEXT [pk, not null]
+  tag_number TEXT [not null]
+  species TEXT
+  owner_name TEXT
+  operator TEXT [default: `'Unassigned'::text`]
+  date DATE [not null, default: `CURRENT_DATE`]
+  steps JSONB [not null]
+  status TEXT [not null, default: `'In Progress'::text`]
+  notes TEXT
+  operator_id TEXT
+  processed_by TEXT
+  processed_by_user_id TEXT
+  processed_at TIMESTAMPTZ
+  fallback_at TIMESTAMPTZ
+  fallback_reason TEXT
+  reassigned_at TIMESTAMPTZ
+  previous_operator TEXT
+}
+
+Table slaughter_records {
+  id TEXT [pk, not null]
+  tag_number TEXT [not null]
+  species TEXT
+  owner_name TEXT
+  scheduled_date DATE [not null]
+  slaughter_date DATE
+  status TEXT [not null, default: `'Scheduled'::text`]
+  operator TEXT
+  livestock_id TEXT
+  operator_id TEXT
+  processed_by TEXT
+  processed_by_user_id TEXT
+  processed_at TIMESTAMPTZ
+  fallback_at TIMESTAMPTZ
+  fallback_reason TEXT
+  reassigned_at TIMESTAMPTZ
+  previous_operator TEXT
+}
+
+Table species {
+  id TEXT [pk, not null]
+  name TEXT [unique, not null]
+  code TEXT
+  description TEXT
+  color TEXT [default: `'#0284c7'::text`]
+  icon TEXT [default: `'Cow'::text`]
+  status TEXT [not null, default: `'Active'::text`]
+  sort_order INTEGER [default: `0`]
+  created_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  updated_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  image_url TEXT
+  image_path TEXT
+}
+
+Table system_settings {
+  id TEXT [pk, not null]
+  system_name TEXT
+  organization TEXT
+  email TEXT
+  timezone TEXT
+  language TEXT
+  date_format TEXT
+  session_timeout INTEGER
+  enable_notifications BOOLEAN [default: `true`]
+  enable_email_alerts BOOLEAN [default: `true`]
+  enable_audit_log BOOLEAN [default: `true`]
+}
+
+Table user_preferences {
+  id UUID [pk, not null, default: `gen_random_uuid()`]
+  user_id UUID [unique]
+  email TEXT [unique]
+  notification_preferences JSONB [default: `'{"approval_updates": true, "inspection_updates": true, "registration_updates": true, "system_announcements": true, "account_notifications": true, "livestock_process_updates": true}'::jsonb`]
+  created_at TIMESTAMPTZ [default: `timezone('utc'::text, now())`]
+  updated_at TIMESTAMPTZ [default: `timezone('utc'::text, now())`]
+}
+
+Table users {
+  id UUID [pk, not null]
+  created_at TIMESTAMPTZ [not null, default: `timezone('utc'::text, now())`]
+  full_name TEXT [not null]
+  email TEXT [unique, not null]
+  username TEXT
+  role TEXT [default: `'staff'::text`]
+  status TEXT [default: `'Active'::text`]
+  last_login TEXT [default: `'Never'::text`]
+  owner_id TEXT
+  terminated_at TIMESTAMPTZ
+  terminated_until TIMESTAMPTZ
+  termination_reason TEXT
+  active_session_id TEXT
+  active_session_updated_at TIMESTAMPTZ
+  google_id TEXT
+  avatar_url TEXT
+  auth_provider TEXT
+  failed_login_attempts INTEGER [not null, default: `0`]
+  locked_until TIMESTAMPTZ
+  last_failed_login TIMESTAMPTZ
+  phone TEXT
+  contact TEXT
+  address TEXT
+  license TEXT
+  specialization TEXT
+}
+
+Table view_post_mortem_partial_summary {
+  tag_number TEXT
+  species TEXT
+  date DATE
+  total_condemned_cuts BIGINT
+  total_condemned_weight_kg NUMERIC
+  condemned_parts_list TEXT
+  condemnation_reasons TEXT
+  inspector_name TEXT
+  Note: 'SQL Analytical View aggregating post_mortem_condemned_cuts'
+}
+
+// Verified PostgreSQL Foreign Key Relationships (Engine Enforced)
+Ref: owners.id < livestock.owner_id [delete: set null]
+Ref: owners.id < users.owner_id [delete: set null]
+Ref: owners.id < dispatch.owner_id [delete: set null]
+Ref: owners.id < notifications.owner_id [delete: cascade]
+Ref: livestock.id < ante_mortem_inspections.livestock_id [delete: cascade]
+Ref: livestock.id - slaughter_records.livestock_id [delete: set null]
+Ref: livestock.id < post_mortem_inspections.livestock_id [delete: cascade]
+Ref: post_mortem_inspections.id < post_mortem_condemned_cuts.inspection_id [delete: cascade]
+Ref: livestock.id < post_mortem_condemned_cuts.livestock_id [delete: set null]
+Ref: carcass_records.id < carcass_branding_records.carcass_id [delete: cascade]
+Ref: livestock.id < carcass_branding_records.livestock_id [delete: set null]
+Ref: users.id < carcass_branding_records.branded_by [delete: set null]
+Ref: livestock.id < condemnation_records.livestock_id [delete: cascade]
+Ref: fees.id < payments.fee_id [delete: set null]
+Ref: livestock.id < payments.livestock_id [delete: set null]
+Ref: users.id < evidence_records.uploaded_by [delete: set null]
+
+// Application-Level Relationships (Software-Level Joins)
+Ref: livestock.id - slaughter_processing.livestock_id
+Ref: livestock.id - carcass_records.livestock_id
+Ref: livestock.id - permits.livestock_id
+Ref: carcass_records.id - permits.carcass_id
+Ref: species.name < livestock.species
+Ref: species.name < fees.species
+Ref: permit_config.id < dispatch.permit_config_id
+Ref: permit_config.id < permit_config_history.id
+Ref: users.id - user_preferences.user_id
+Ref: users.id < audit_logs.user_id

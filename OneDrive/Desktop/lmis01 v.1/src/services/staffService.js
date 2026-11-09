@@ -100,6 +100,7 @@ export const safeUpdateLivestockWithHistory = async (id, tag, patch, processEven
     if (error && /column|schema cache/i.test(`${error.message || ""} ${error.details || ""}`)) {
       const fallbackPatch = { ...patch };
       delete fallbackPatch.process_history;
+      delete fallbackPatch.workflow_status;
       const fbQuery = animal?.id
         ? supabase.from(TABLES.LIVESTOCK).update(fallbackPatch).eq("id", animal.id)
         : (cleanTag
@@ -113,6 +114,12 @@ export const safeUpdateLivestockWithHistory = async (id, tag, patch, processEven
         if (patch.marked !== undefined) safeMin.marked = patch.marked;
         if (patch.mark_type) safeMin.mark_type = patch.mark_type;
         if (patch.mark_date) safeMin.mark_date = patch.mark_date;
+        if (patch.permit_issued_at) safeMin.permit_issued_at = patch.permit_issued_at;
+        if (patch.permit_issued_by) safeMin.permit_issued_by = patch.permit_issued_by;
+        if (patch.permit_no) safeMin.permit_no = patch.permit_no;
+        if (patch.weighed_at) safeMin.weighed_at = patch.weighed_at;
+        if (patch.weighed_by) safeMin.weighed_by = patch.weighed_by;
+        if (patch.weight !== undefined) safeMin.weight = patch.weight;
         let minRes;
         if (animal?.id) minRes = await supabase.from(TABLES.LIVESTOCK).update(safeMin).eq("id", animal.id);
         else if (cleanTag) minRes = await supabase.from(TABLES.LIVESTOCK).update(safeMin).ilike("tag_number", cleanTag);
@@ -745,6 +752,16 @@ export const staffService = {
           .map((p) => String(p.tag_number || "").trim().toUpperCase())
       );
 
+      // Fetch permit tags to strictly prevent reverting permitted livestock
+      const { data: activePermits } = await supabase
+        .from(TABLES.PERMITS)
+        .select("tag_number, status");
+      const permittedTagSet = new Set(
+        (activePermits || [])
+          .filter((p) => String(p.status || "").toLowerCase() !== "revoked")
+          .map((p) => String(p.tag_number || "").trim().toUpperCase())
+      );
+
       // Fetch existing timeout notifications to prevent duplicate alerts
       const { data: existingNotifs } = await supabase
         .from(TABLES.NOTIFICATIONS)
@@ -757,16 +774,21 @@ export const staffService = {
         const cleanTag = String(animal.tag_number || "").trim().toUpperCase();
         if (!cleanTag) continue;
 
+        // Skip animals with issued permits or in permit records
+        if (permittedTagSet.has(cleanTag)) continue;
+
         // Skip animals already with genuine slaughter progress or completed slaughter
         if (inProcTags.has(cleanTag)) continue;
 
-        // Skip downstream, post-mortem, dispatch, condemned, or finalized animals
+        // Skip downstream, post-mortem, carcass weighing, permit, dispatch, condemned, or finalized animals
         const st = String(animal.status || "").toLowerCase();
         if (
           st === "slaughtering" || st === "completed" ||
           st === "weighed" || st === "paid" || st === "released" || st === "dispatched" ||
-          st.includes("dispatch") || st.includes("post-mortem") || st.includes("post mortem") ||
-          st.includes("condemn") || st.includes("reject")
+          st === "permit issued" || st === "ready for dispatch" ||
+          st.includes("permit") || st.includes("dispatch") || st.includes("post-mortem") || st.includes("post mortem") ||
+          st.includes("condemn") || st.includes("reject") ||
+          Boolean(animal.permit_issued_at) || Boolean(animal.weighed_at)
         ) {
           continue;
         }

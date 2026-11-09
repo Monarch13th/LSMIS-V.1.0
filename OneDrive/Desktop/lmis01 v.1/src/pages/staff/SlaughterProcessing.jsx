@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Button, Modal, AlertDialog, EmptyState, Badge, TagBadge } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, AlertDialog, EmptyState, Badge, TagBadge } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
@@ -1378,6 +1378,27 @@ export const SlaughterProcessing = () => {
     setExpandedModalOwnerKey((prev) => (prev === groupKey ? null : groupKey));
   };
 
+  const allModalTags = useMemo(() => {
+    const tags = [];
+    (filteredModalOwnerGroups || []).forEach((grp) => {
+      (grp.items || []).forEach((item) => {
+        if (item.tag_number) tags.push(item.tag_number);
+      });
+    });
+    return tags;
+  }, [filteredModalOwnerGroups]);
+
+  const isAllModalSelected = allModalTags.length > 0 && allModalTags.every((t) => modalSelectedTags.has(t));
+  const isSomeModalSelected = allModalTags.some((t) => modalSelectedTags.has(t)) && !isAllModalSelected;
+
+  const toggleAllModalSelect = () => {
+    if (isAllModalSelected) {
+      setModalSelectedTags(new Set());
+    } else {
+      setModalSelectedTags(new Set(allModalTags));
+    }
+  };
+
   const toggleReadyOwnerExpanded = (groupKey) => {
     setExpandedReadyOwnerKey((prev) => (prev === groupKey ? null : groupKey));
   };
@@ -2261,7 +2282,7 @@ export const SlaughterProcessing = () => {
                 title="Filter by species"
               >
                 <option value="all">All Species</option>
-                <option value="HOG">Hog / Swine</option>
+                <option value="HOG">Hog</option>
                 <option value="CATTLE">Cattle</option>
                 <option value="CARABAO">Carabao</option>
                 <option value="GOAT">Goat</option>
@@ -2429,7 +2450,9 @@ export const SlaughterProcessing = () => {
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "center" }}>Total Carcasses</th>
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                      <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th className="table-action-th">
+                        ACTIONS
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2511,55 +2534,32 @@ export const SlaughterProcessing = () => {
                             <Icon.Activity size={13} /> Ready for Slaughter ({grp.count})
                           </span>
                         </td>
-                        <td style={{ padding: "14px 18px", textAlign: "right" }}>
-                          <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            <Button
-                              size="sm"
-                              variant="outline"
+                        <td className="table-action-td">
+                          <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-outline"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedOwnerKey(grp.key);
                               }}
-                              style={{
-                                padding: "6px 14px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "var(--color-surface)",
-                                border: "1px solid var(--color-border)",
-                                color: "var(--color-text)",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 6,
-                              }}
+                              title="View Slaughter Group"
                             >
-                              <Icon.Eye size={13} /> View
-                            </Button>
-                            <Button
-                              size="sm"
+                              <Icon.Eye size={13} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="action-btn action-btn-success"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setGroupToMarkSlaughtered(grp);
                               }}
-                              style={{
-                                height: 32,
-                                padding: "0 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                color: "#ffffff",
-                                borderRadius: 7,
-                                border: "none",
-                                whiteSpace: "nowrap",
-                                boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                              }}
                               title={`Mark all ${grp.items.length} livestock for ${grp.owner_name} as done`}
                             >
                               <Icon.CheckCircle size={13} />
-                              <span>Mark All as Done</span>
-                            </Button>
+                              <span>Mark Done</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -2659,7 +2659,9 @@ export const SlaughterProcessing = () => {
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "center" }}>Total Heads</th>
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                      <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th className="table-action-th">
+                        ACTIONS
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2758,53 +2760,32 @@ export const SlaughterProcessing = () => {
                               </span>
                             )}
                           </td>
-                          <td style={{ padding: "14px 18px", textAlign: "right" }}>
-                            <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                              <Button
-                                size="sm"
-                                variant="outline"
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   setSelectedOwnerKey(grp.key);
                                 }}
-                                style={{
-                                  padding: "6px 14px",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  background: "var(--color-surface)",
-                                  border: "1px solid var(--color-border)",
-                                  color: "var(--color-text)",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 6,
-                                }}
+                                title="View Owner Records"
                               >
-                                <Icon.Eye size={13} /> View
-                              </Button>
-                              <Button
-                                size="sm"
+                                <Icon.Eye size={13} />
+                                <span>View</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="action-btn action-btn-warning"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleOpenOwnerAssign(grp);
                                 }}
-                                style={{
-                                  height: 32,
-                                  padding: "0 12px",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 5,
-                                  background: "linear-gradient(135deg, #d97706, #b45309)",
-                                  color: "#ffffff",
-                                  borderRadius: 7,
-                                  border: "none",
-                                  whiteSpace: "nowrap",
-                                }}
+                                title={grp.hasFallback ? "Re-Assign team" : "Assign slaughter team"}
                               >
                                 <Icon.Users size={13} />
                                 <span>Assign</span>
-                              </Button>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -2829,6 +2810,21 @@ export const SlaughterProcessing = () => {
             : `Ready for Slaughter — ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
+        dialogStyle={{
+          minHeight: "560px",
+          maxHeight: "88vh",
+          width: "100%",
+          maxWidth: "1120px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          flex: 1,
+          minHeight: "420px",
+          display: "flex",
+          flexDirection: "column",
+          padding: "16px 24px",
+        }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
@@ -2899,19 +2895,19 @@ export const SlaughterProcessing = () => {
         }
       >
         {selectedOwnerView && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
             {(activeTab === "active" || activeTab === "in-progress") && (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", maxHeight: "60vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                  <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "60vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                  <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                     <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                       <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Started</th>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                        <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                        <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                        <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                        <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                        <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
+                        <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Started</th>
+                        <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
+                        <th className="table-action-th" style={{ width: "14%" }}>ACTIONS</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2985,45 +2981,34 @@ export const SlaughterProcessing = () => {
                               <Icon.Check size={11} /> Ready for Slaughter
                             </span>
                           </td>
-                          <td style={{ padding: "12px 14px", textAlign: "right" }}>
-                            <Button
-                              size="sm"
-                              disabled={Boolean(submittingSingleId) || submittingGroupSlaughter}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSingleToMarkDone(rec);
-                              }}
-                              style={{
-                                height: 30,
-                                padding: "0 12px",
-                                fontSize: 11.5,
-                                fontWeight: 700,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                                color: "#ffffff",
-                                borderRadius: 6,
-                                border: "none",
-                                whiteSpace: "nowrap",
-                                boxShadow: "0 2px 5px rgba(16, 185, 129, 0.25)",
-                                cursor: Boolean(submittingSingleId) || submittingGroupSlaughter ? "not-allowed" : "pointer",
-                                opacity: submittingSingleId === (rec.livestock_id || rec.id || rec.tag_number) ? 0.7 : 1,
-                              }}
-                              title={`Mark ${rec.tag_number || "livestock"} as done`}
-                            >
-                              {submittingSingleId === (rec.livestock_id || rec.id || rec.tag_number) ? (
-                                <>
-                                  <span className="spinner" style={{ width: 12, height: 12 }} />
-                                  <span>Saving...</span>
-                                </>
-                              ) : (
-                                <>
-                                  <Icon.CheckCircle size={13} />
-                                  <span>Mark as Done</span>
-                                </>
-                              )}
-                            </Button>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-success"
+                                disabled={Boolean(submittingSingleId) || submittingGroupSlaughter}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSingleToMarkDone(rec);
+                                }}
+                                style={{
+                                  opacity: submittingSingleId === (rec.livestock_id || rec.id || rec.tag_number) ? 0.7 : 1,
+                                }}
+                                title={`Mark ${rec.tag_number || "livestock"} as done`}
+                              >
+                                {submittingSingleId === (rec.livestock_id || rec.id || rec.tag_number) ? (
+                                  <>
+                                    <span className="spinner" style={{ width: 12, height: 12 }} />
+                                    <span>Saving...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Icon.CheckCircle size={13} />
+                                    <span>Done</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -3033,18 +3018,18 @@ export const SlaughterProcessing = () => {
             )}
 
             {activeTab === "awaiting" && (
-              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
+              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Marked</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                      <th style={{ width: "8%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
+                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Marked</th>
+                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
+                      <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
+                      <th className="table-action-th" style={{ width: "17%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3164,33 +3149,21 @@ export const SlaughterProcessing = () => {
                               </span>
                             )}
                           </td>
-                          <td style={{ padding: "12px 14px", textAlign: "right" }}>
-                            <Button
-                              size="sm"
-                              className="btn-primary"
-                              onClick={() => {
-                                setSelectedOwnerKey(null);
-                                handleOpenSingleAssign(s.tag_number);
-                              }}
-                              style={{
-                                height: 30,
-                                padding: "0 10px",
-                                fontSize: 11.5,
-                                fontWeight: 600,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                ...(isFallback
-                                  ? {
-                                      background: "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)",
-                                      borderColor: "#d97706",
-                                    }
-                                  : {}),
-                              }}
-                            >
-                              <Icon.User size={12} />
-                              <span>{isFallback ? "Reassign" : "Assign"}</span>
-                            </Button>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className={isFallback ? "action-btn action-btn-warning" : "action-btn action-btn-primary"}
+                                onClick={() => {
+                                  setSelectedOwnerKey(null);
+                                  handleOpenSingleAssign(s.tag_number);
+                                }}
+                                title={isFallback ? "Reassign slaughter operator" : "Assign slaughter operator"}
+                              >
+                                <Icon.User size={13} />
+                                <span>{isFallback ? "Reassign" : "Assign"}</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -3203,7 +3176,7 @@ export const SlaughterProcessing = () => {
         )}
       </Modal>
 
-      {/* Assign Team Operator Modal (Grouped by Owner with Summary Cards) */}
+      {/* Assign Team Operator Modal (Matching Ante-Mortem Inspection Modal Layout) */}
       <Modal
         open={startOpen}
         onClose={() => {
@@ -3215,964 +3188,790 @@ export const SlaughterProcessing = () => {
         }}
         size="lg"
         title="Assign Team Operator"
-        hideCloseButton
+        headerRight={
+          modalSelectedTags.size > 0 ? (
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                padding: "3px 10px",
+                borderRadius: 999,
+                background: "#ecfdf5",
+                color: "#065f46",
+                border: "1px solid #a7f3d0",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                lineHeight: 1.2,
+              }}
+            >
+              <Icon.Users size={12} style={{ color: "#059669" }} />
+              {modalSelectedTags.size} Head{modalSelectedTags.size === 1 ? "" : "s"} Selected
+            </span>
+          ) : null
+        }
+        dialogStyle={{
+          maxWidth: 820,
+          width: "95vw",
+          height: "82vh",
+          maxHeight: 700,
+          minHeight: 520,
+          display: "flex",
+          flexDirection: "column",
+        }}
+        headerStyle={{ padding: "14px 20px", flexWrap: "nowrap", gap: 12, flexShrink: 0 }}
+        bodyStyle={{
+          padding: "18px 20px 0 20px",
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
+          overflow: "hidden",
+        }}
+        hideCloseButton={true}
       >
-        <form onSubmit={handleAssignOperator} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Search filter within modal */}
-          {modalOwnerGroups.length > 2 && (
-            <div style={{ position: "relative" }}>
-              <input
-                type="text"
-                placeholder="Search owner name or tag number..."
-                value={modalSearch}
-                onChange={(e) => setModalSearch(e.target.value)}
-                style={{
-                  width: "100%",
-                  height: 36,
-                  padding: "6px 12px 6px 32px",
-                  borderRadius: 8,
-                  border: "1px solid var(--color-border)",
-                  fontSize: 12.5,
-                  background: "var(--color-surface)",
-                  color: "var(--color-text)",
-                }}
-              />
-              <Icon.Search
-                size={14}
-                style={{
-                  position: "absolute",
-                  left: 10,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--color-text-muted)",
-                }}
-              />
-              {modalSearch && (
-                <button
-                  type="button"
-                  onClick={() => setModalSearch("")}
-                  style={{
-                    position: "absolute",
-                    right: 10,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    background: "none",
-                    border: "none",
-                    color: "var(--color-text-muted)",
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
-                  <Icon.X size={14} />
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Owner-Based Summary Cards */}
+        <form
+          noValidate
+          onSubmit={handleAssignOperator}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            flex: 1,
+            minHeight: 0,
+            height: "100%",
+          }}
+        >
+          {/* Scrollable Form Body Container (Matching Ante-Mortem Inspection Modal) */}
           <div
             style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
               display: "flex",
               flexDirection: "column",
-              gap: 10,
-              maxHeight: 380,
-              overflowY: "auto",
+              gap: 12,
               paddingRight: 4,
+              scrollbarWidth: "thin",
             }}
           >
-            {filteredModalOwnerGroups.length === 0 ? (
-              <div
-                style={{
-                  padding: "32px 16px",
-                  textAlign: "center",
-                  color: "var(--color-text-muted)",
-                  fontSize: 13,
-                  background: "var(--color-bg)",
-                  borderRadius: 8,
-                  border: "1px dashed var(--color-border)",
-                }}
-              >
-                {modalSearch
-                  ? "No matching owners or livestock found."
-                  : "No unassigned livestock currently eligible for operator assignment."}
-              </div>
-            ) : (
-              filteredModalOwnerGroups.map((grp) => {
-                const grpTags = grp.items.map((i) => i.tag_number);
-                const selectedInGrp = grpTags.filter((t) => modalSelectedTags.has(t));
-                const allSelected = grpTags.length > 0 && selectedInGrp.length === grpTags.length;
-                const someSelected = selectedInGrp.length > 0 && !allSelected;
-                const isExpanded = expandedModalOwnerKey === grp.key;
-
-                return (
-                  <div
-                    key={grp.key}
+            {/* Search filter within modal */}
+            {modalOwnerGroups.length > 2 && (
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  placeholder="Search owner name or tag number..."
+                  value={modalSearch}
+                  onChange={(e) => setModalSearch(e.target.value)}
+                  style={{
+                    width: "100%",
+                    height: 36,
+                    padding: "6px 12px 6px 32px",
+                    borderRadius: 8,
+                    border: "1px solid var(--color-border)",
+                    fontSize: 12.5,
+                    background: "var(--color-surface)",
+                    color: "var(--color-text)",
+                  }}
+                />
+                <Icon.Search
+                  size={14}
+                  style={{
+                    position: "absolute",
+                    left: 10,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "var(--color-text-muted)",
+                  }}
+                />
+                {modalSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setModalSearch("")}
                     style={{
-                      border: selectedInGrp.length > 0 ? "1.5px solid var(--color-primary, #059669)" : "1px solid var(--color-border)",
-                      borderRadius: 10,
-                      background: "var(--color-surface)",
-                      overflow: "hidden",
-                      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
-                      boxShadow: selectedInGrp.length > 0 ? "0 2px 8px rgba(5, 150, 105, 0.08)" : "none",
+                      position: "absolute",
+                      right: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "none",
+                      border: "none",
+                      color: "var(--color-text-muted)",
+                      cursor: "pointer",
+                      padding: 0,
                     }}
                   >
-                    {/* Owner Card Header */}
+                    <Icon.X size={14} />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Batch Tag Selection Header Bar (Matching Ante-Mortem lines 2156-2229) */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                flexWrap: "wrap",
+                gap: 8,
+                paddingBottom: 2,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                <label style={{ fontSize: 12.5, fontWeight: 700, color: "#334155", margin: 0 }}>
+                  Select Animal Tags <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 700,
+                    padding: "2px 7px",
+                    borderRadius: 999,
+                    background: modalSelectedTags.size > 0 ? "#e0f2fe" : "#f1f5f9",
+                    color: modalSelectedTags.size > 0 ? "#0369a1" : "#64748b",
+                  }}
+                >
+                  {modalSelectedTags.size} of {allModalTags.length} Selected
+                </span>
+              </div>
+
+              {allModalTags.length > 0 && (
+                <label
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    cursor: "pointer",
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    color: "#059669",
+                    userSelect: "none",
+                  }}
+                  title={isAllModalSelected ? "Deselect all" : "Select all eligible"}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isAllModalSelected}
+                    ref={(el) => {
+                      if (el) el.indeterminate = isSomeModalSelected;
+                    }}
+                    onChange={toggleAllModalSelect}
+                    style={{
+                      width: 14,
+                      height: 14,
+                      cursor: "pointer",
+                      accentColor: "#059669",
+                    }}
+                  />
+                  <span>Select All</span>
+                </label>
+              )}
+            </div>
+
+            {/* Owner-Based Summary Cards (Matching Ante-Mortem Inspection Modal lines 2258-2580) */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                maxHeight: 450,
+                overflowY: "auto",
+                paddingRight: 4,
+              }}
+            >
+              {filteredModalOwnerGroups.length === 0 ? (
+                <div
+                  style={{
+                    padding: "32px 16px",
+                    textAlign: "center",
+                    color: "var(--color-text-muted)",
+                    fontSize: 13,
+                    background: "var(--color-bg)",
+                    borderRadius: 8,
+                    border: "1px dashed var(--color-border)",
+                  }}
+                >
+                  {modalSearch
+                    ? "No matching owners or livestock found."
+                    : "No unassigned livestock currently eligible for operator assignment."}
+                </div>
+              ) : (
+                filteredModalOwnerGroups.map((grp) => {
+                  const grpTags = grp.items.map((i) => i.tag_number);
+                  const selectedInGrp = grpTags.filter((t) => modalSelectedTags.has(t));
+                  const allSelected = grpTags.length > 0 && selectedInGrp.length === grpTags.length;
+                  const someSelected = selectedInGrp.length > 0 && !allSelected;
+                  const isExpanded = expandedModalOwnerKey === grp.key;
+
+                  return (
                     <div
+                      key={grp.key}
                       style={{
-                        padding: "12px 16px",
-                        background: selectedInGrp.length > 0 ? "var(--color-primary-light, rgba(5, 150, 105, 0.08))" : "var(--color-surface)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        flexWrap: "wrap",
-                        gap: 12,
-                        cursor: "pointer",
+                        border: selectedInGrp.length > 0 ? "1.5px solid #059669" : "1px solid #e2e8f0",
+                        borderRadius: 10,
+                        background: "#ffffff",
+                        overflow: "hidden",
+                        transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+                        boxShadow: selectedInGrp.length > 0 ? "0 2px 8px rgba(5, 150, 105, 0.08)" : "none",
                       }}
-                      onClick={() => toggleOwnerExpanded(grp.key)}
                     >
-                      {/* Left: Checkbox + Owner Name */}
+                      {/* Owner Card Header */}
                       <div
-                        style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 200, flex: "1 1 auto" }}
-                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          padding: "10px 14px",
+                          background: selectedInGrp.length > 0 ? "rgba(5, 150, 105, 0.04)" : "#ffffff",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          flexWrap: "nowrap",
+                          gap: 12,
+                          cursor: "pointer",
+                        }}
+                        onClick={() => toggleOwnerExpanded(grp.key)}
                       >
-                        <CheckboxWithIndeterminate
-                          checked={allSelected}
-                          indeterminate={someSelected}
-                          id={`modal-owner-check-${grp.key}`}
-                          onChange={() => toggleOwnerSelection(grp)}
-                          title={`Select/Deselect all livestock for ${grp.owner_name}`}
-                        />
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span
+                        {/* Left: Checkbox + Owner Name */}
+                        <div
+                          style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <CheckboxWithIndeterminate
+                            checked={allSelected}
+                            indeterminate={someSelected}
+                            id={`modal-owner-check-${grp.key}`}
+                            onChange={() => toggleOwnerSelection(grp)}
+                            title={allSelected ? `Deselect all records for ${grp.owner_name}` : `Select all records for ${grp.owner_name}`}
                             style={{
-                              fontSize: 14.5,
-                              fontWeight: 700,
-                              color: "var(--color-text)",
-                              letterSpacing: "-0.01em",
+                              width: 16,
+                              height: 16,
+                              accentColor: "#059669",
+                              flexShrink: 0,
                             }}
-                          >
-                            {grp.owner_name}
-                          </span>
+                          />
+                          <div style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <span
+                              style={{
+                                fontSize: 13.5,
+                                fontWeight: 700,
+                                color: "#0f172a",
+                                letterSpacing: "-0.01em",
+                              }}
+                            >
+                              {grp.owner_name}
+                            </span>
+                          </div>
                           {grp.hasFallback && (
                             <span
                               style={{
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: 700,
-                                color: "var(--color-warning, #d97706)",
+                                color: "#d97706",
+                                background: "#fef3c7",
+                                border: "1px solid #fde68a",
+                                padding: "1px 6px",
+                                borderRadius: 4,
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 3,
+                                flexShrink: 0,
                               }}
                             >
-                              <Icon.AlertTriangle size={11} /> 24h Fallback Reassignment
+                              <Icon.AlertTriangle size={10} /> 24h Fallback
                             </span>
                           )}
                         </div>
-                      </div>
 
-                      {/* Right: Summary Badges + Expand Toggle */}
-                      <div
-                        style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {/* Total Count Badge */}
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            padding: "3px 8px",
-                            borderRadius: 6,
-                            background: "var(--color-bg)",
-                            color: "var(--color-text-muted)",
-                            border: "1px solid var(--color-border)",
-                          }}
-                          title="Total eligible livestock for this owner"
+                        {/* Right: Summary Badges + Expand Toggle (Exact match with Ante-Mortem modal) */}
+                        <div
+                          style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          Total: <strong>{grp.total}</strong>
-                        </span>
-
-                        {/* Male Count Badge */}
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            padding: "3px 8px",
-                            borderRadius: 6,
-                            background: "#eff6ff",
-                            color: "#1d4ed8",
-                            border: "1px solid #bfdbfe",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 3,
-                          }}
-                          title="Count of male livestock"
-                        >
-                          <span style={{ fontSize: 13 }}>♂</span> Male: <strong>{grp.maleCount}</strong>
-                        </span>
-
-                        {/* Female Count Badge */}
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            padding: "3px 8px",
-                            borderRadius: 6,
-                            background: "#fdf2f8",
-                            color: "#be185d",
-                            border: "1px solid #fbcfe8",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 3,
-                          }}
-                          title="Count of female livestock"
-                        >
-                          <span style={{ fontSize: 13 }}>♀</span> Female: <strong>{grp.femaleCount}</strong>
-                        </span>
-
-                        {/* Unspecified Sex (if any) */}
-                        {grp.unspecifiedCount > 0 && (
+                          {/* Total Count Badge */}
                           <span
                             style={{
-                              fontSize: 11.5,
-                              fontWeight: 600,
-                              padding: "3px 8px",
-                              borderRadius: 6,
-                              background: "#f8fafc",
-                              color: "#64748b",
-                              border: "1px solid #cbd5e1",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                              background: "#f1f5f9",
+                              color: "#334155",
+                              border: "1px solid #e2e8f0",
                             }}
-                            title="Livestock with unspecified or unknown sex"
+                            title="Total eligible records for this owner"
                           >
-                            Unspecified: <strong>{grp.unspecifiedCount}</strong>
+                            Total: <strong>{grp.total}</strong>
                           </span>
-                        )}
 
-                        {/* Expand/Collapse Button */}
-                        <button
-                          type="button"
-                          onClick={() => toggleOwnerExpanded(grp.key)}
-                          style={{
-                            background: "transparent",
-                            border: "1px solid #cbd5e1",
-                            borderRadius: 6,
-                            padding: "3px 8px",
-                            fontSize: 11.5,
-                            fontWeight: 600,
-                            color: "#475569",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 4,
-                            cursor: "pointer",
-                            marginLeft: 4,
-                          }}
-                        >
-                          {isExpanded ? (
-                            <>
-                              Hide Tags <Icon.ChevronUp size={13} />
-                            </>
-                          ) : (
-                            <>
-                              View Tags <Icon.ChevronDown size={13} />
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Expanded Livestock List Under This Owner */}
-                    {isExpanded && (
-                      <div
-                        style={{
-                          borderTop: "1px solid #e2e8f0",
-                          background: "#f8fafc",
-                          padding: "10px 16px 12px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: 8,
-                          }}
-                        >
-                          <span style={{ fontSize: 11.5, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-                            Livestock Records ({selectedInGrp.length} of {grp.items.length} selected)
+                          {/* Male Count Badge */}
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                              background: "#eff6ff",
+                              color: "#1d4ed8",
+                              border: "1px solid #bfdbfe",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2,
+                            }}
+                            title="Count of male records"
+                          >
+                            <span style={{ fontSize: 12 }}>♂</span> Male: <strong>{grp.maleCount}</strong>
                           </span>
-                          <div style={{ display: "flex", gap: 6 }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setModalSelectedTags((prev) => {
-                                  const next = new Set(prev);
-                                  grpTags.forEach((t) => next.add(t));
-                                  return next;
-                                });
-                              }}
+
+                          {/* Female Count Badge */}
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              padding: "2px 6px",
+                              borderRadius: 4,
+                              background: "#fdf2f8",
+                              color: "#be185d",
+                              border: "1px solid #fbcfe8",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 2,
+                            }}
+                            title="Count of female records"
+                          >
+                            <span style={{ fontSize: 12 }}>♀</span> Female: <strong>{grp.femaleCount}</strong>
+                          </span>
+
+                          {grp.unspecifiedCount > 0 && (
+                            <span
                               style={{
-                                background: "#ffffff",
-                                border: "1px solid #cbd5e1",
-                                borderRadius: 4,
-                                padding: "2px 8px",
-                                fontSize: 11,
+                                fontSize: 10.5,
                                 fontWeight: 600,
-                                color: "#0369a1",
-                                cursor: "pointer",
-                              }}
-                            >
-                              Select All
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setModalSelectedTags((prev) => {
-                                  const next = new Set(prev);
-                                  grpTags.forEach((t) => next.delete(t));
-                                  return next;
-                                });
-                              }}
-                              style={{
-                                background: "#ffffff",
-                                border: "1px solid #cbd5e1",
+                                padding: "2px 6px",
                                 borderRadius: 4,
-                                padding: "2px 8px",
-                                fontSize: 11,
-                                fontWeight: 600,
+                                background: "#f8fafc",
                                 color: "#64748b",
-                                cursor: "pointer",
+                                border: "1px solid #cbd5e1",
                               }}
+                              title="Records with unspecified or unknown sex"
                             >
-                              Deselect All
-                            </button>
-                          </div>
-                        </div>
+                              Unspecified: <strong>{grp.unspecifiedCount}</strong>
+                            </span>
+                          )}
 
-                        {/* List of Animals (Scrollable) */}
+                          {/* Expand/Collapse Chevron (matching Ante-Mortem modal) */}
+                          <span
+                            onClick={() => toggleOwnerExpanded(grp.key)}
+                            style={{
+                              color: "#64748b",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              padding: 3,
+                              cursor: "pointer",
+                              marginLeft: 2,
+                            }}
+                            title={isExpanded ? "Collapse tags" : "Expand tags"}
+                          >
+                            {isExpanded ? <Icon.ChevronUp size={15} /> : <Icon.ChevronDown size={15} />}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Expanded Livestock List Under This Owner (Matching Ante-Mortem lines 2440-2580) */}
+                      {isExpanded && (
                         <div
                           style={{
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-                            gap: 8,
-                            maxHeight: 180,
-                            overflowY: "auto",
-                            paddingRight: 4,
-                            paddingBottom: 2,
-                            scrollbarWidth: "thin",
+                            borderTop: "1px solid #e2e8f0",
+                            background: "#f8fafc",
+                            padding: "8px 10px",
                           }}
                         >
-                          {grp.items.map((item) => {
-                            const isSelected = modalSelectedTags.has(item.tag_number);
-                            const nSex = getNormalizedSex(item);
-                            const displaySex = nSex === "male" ? "Male" : nSex === "female" ? "Female" : (resolveAnimalSex(item) || "Not specified");
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))",
+                              gap: 6,
+                              maxHeight: 180,
+                              overflowY: "auto",
+                              paddingRight: 4,
+                              paddingBottom: 2,
+                              scrollbarWidth: "thin",
+                            }}
+                          >
+                            {grp.items.map((item) => {
+                              const isSelected = modalSelectedTags.has(item.tag_number);
+                              const nSex = getNormalizedSex(item);
+                              const isMale = nSex === "male";
+                              const isFemale = nSex === "female";
 
-                            return (
-                              <div
-                                key={item.id || item.tag_number}
-                                onClick={() => toggleTagSelection(item.tag_number)}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "space-between",
-                                  padding: "6px 10px",
-                                  borderRadius: 6,
-                                  background: "#ffffff",
-                                  border: isSelected ? "1.5px solid #0284c7" : "1px solid #cbd5e1",
-                                  boxShadow: isSelected ? "0 1px 3px rgba(2, 132, 199, 0.12)" : "none",
-                                  cursor: "pointer",
-                                  transition: "all 0.12s ease",
-                                }}
-                              >
-                                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-                                  <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onChange={(e) => {
-                                      e.stopPropagation();
-                                      toggleTagSelection(item.tag_number);
-                                    }}
-                                    style={{
-                                      width: 15,
-                                      height: 15,
-                                      accentColor: "#0284c7",
-                                      cursor: "pointer",
-                                    }}
-                                  />
-                                  <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                                    <span style={{ fontFamily: "monospace", fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>
-                                      {item.tag_number}
-                                    </span>
-                                    <span style={{ fontSize: 11, color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                                      {item.species || "Livestock"}{item.breed ? ` • ${item.breed}` : ""}
-                                    </span>
+                              return (
+                                <div
+                                  key={item.id || item.tag_number}
+                                  onClick={() => toggleTagSelection(item.tag_number)}
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "5px 8px",
+                                    borderRadius: 6,
+                                    background: isSelected ? "rgba(5, 150, 105, 0.04)" : "#ffffff",
+                                    border: isSelected ? "1.5px solid #059669" : "1px solid #cbd5e1",
+                                    boxShadow: isSelected ? "0 1px 3px rgba(5, 150, 105, 0.1)" : "none",
+                                    cursor: "pointer",
+                                    transition: "all 0.12s ease",
+                                    gap: 6,
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: 7, minWidth: 0, flex: 1 }}>
+                                    <input
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={(e) => {
+                                        e.stopPropagation();
+                                        toggleTagSelection(item.tag_number);
+                                      }}
+                                      style={{
+                                        width: 14,
+                                        height: 14,
+                                        accentColor: "#059669",
+                                        cursor: "pointer",
+                                        flexShrink: 0,
+                                      }}
+                                    />
+                                    <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                                      <span style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>
+                                        {item.tag_number}
+                                      </span>
+                                      <span style={{ fontSize: 10.5, color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
+                                        {item.species || "Livestock"}{item.breed ? ` • ${item.breed}` : ""}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                                    {isMale ? (
+                                      <span
+                                        style={{
+                                          fontSize: 10,
+                                          fontWeight: 700,
+                                          padding: "1px 5px",
+                                          borderRadius: 4,
+                                          background: "#eff6ff",
+                                          color: "#1d4ed8",
+                                          border: "1px solid #bfdbfe",
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
+                                        ♂ Male
+                                      </span>
+                                    ) : isFemale ? (
+                                      <span
+                                        style={{
+                                          fontSize: 10,
+                                          fontWeight: 700,
+                                          padding: "1px 5px",
+                                          borderRadius: 4,
+                                          background: "#fdf2f8",
+                                          color: "#be185d",
+                                          border: "1px solid #fbcfe8",
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
+                                        ♀ Female
+                                      </span>
+                                    ) : (
+                                      <span
+                                        style={{
+                                          fontSize: 10,
+                                          fontWeight: 500,
+                                          padding: "1px 5px",
+                                          borderRadius: 4,
+                                          background: "#f1f5f9",
+                                          color: "#64748b",
+                                          lineHeight: 1.2,
+                                        }}
+                                      >
+                                        {resolveAnimalSex(item) || "Unspecified"}
+                                      </span>
+                                    )}
+
+                                    {item.is_fallback && (
+                                      <span
+                                        style={{
+                                          fontSize: 9.5,
+                                          fontWeight: 700,
+                                          padding: "1px 4px",
+                                          borderRadius: 4,
+                                          background: "#fef3c7",
+                                          color: "#92400e",
+                                          border: "1px solid #fde68a",
+                                          lineHeight: 1.2,
+                                        }}
+                                        title="24h timeout reassignment required"
+                                      >
+                                        Fallback
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
-
-                                <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-                                  {nSex === "male" ? (
-                                    <span
-                                      style={{
-                                        fontSize: 10.5,
-                                        fontWeight: 700,
-                                        padding: "1px 6px",
-                                        borderRadius: 4,
-                                        background: "#eff6ff",
-                                        color: "#1d4ed8",
-                                        border: "1px solid #bfdbfe",
-                                      }}
-                                    >
-                                      ♂ Male
-                                    </span>
-                                  ) : nSex === "female" ? (
-                                    <span
-                                      style={{
-                                        fontSize: 10.5,
-                                        fontWeight: 700,
-                                        padding: "1px 6px",
-                                        borderRadius: 4,
-                                        background: "#fdf2f8",
-                                        color: "#be185d",
-                                        border: "1px solid #fbcfe8",
-                                      }}
-                                    >
-                                      ♀ Female
-                                    </span>
-                                  ) : (
-                                    <span
-                                      style={{
-                                        fontSize: 10.5,
-                                        fontWeight: 500,
-                                        padding: "1px 6px",
-                                        borderRadius: 4,
-                                        background: "#f1f5f9",
-                                        color: "#64748b",
-                                      }}
-                                    >
-                                      {displaySex}
-                                    </span>
-                                  )}
-
-                                  {item.is_fallback && (
-                                    <span
-                                      style={{
-                                        fontSize: 10,
-                                        fontWeight: 700,
-                                        padding: "1px 5px",
-                                        borderRadius: 4,
-                                        background: "#fef3c7",
-                                        color: "#92400e",
-                                        border: "1px solid #fde68a",
-                                      }}
-                                      title="24h timeout reassignment required"
-                                    >
-                                      Fallback
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Any selected fallback warnings */}
-          {Array.from(modalSelectedTags).some((tag) => {
-            const an = unassignedAnimals.find((a) => a.tag_number === tag);
-            return Boolean(an?.is_fallback);
-          }) && (
-            <div
-              style={{
-                background: "rgba(254, 243, 199, 0.55)",
-                border: "1.5px solid #fde68a",
-                borderRadius: 10,
-                padding: "10px 14px",
-                display: "flex",
-                gap: 10,
-                alignItems: "center",
-              }}
-            >
-              <Icon.AlertTriangle size={18} style={{ color: "#d97706", flexShrink: 0 }} />
-              <div style={{ fontSize: 12.5, color: "#92400e", lineHeight: 1.4 }}>
-                <strong>Notice:</strong> One or more selected livestock are 24-hour fallback cases requiring line reassignment. Assigning a team will clear their fallback state and restart their slaughter processing window.
-              </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
-          )}
 
-          {/* Operator Selection */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontWeight: 700, marginBottom: 6, display: "flex", alignItems: "center", gap: 6 }}>
-              <Icon.UserCheck size={15} style={{ color: "var(--color-primary, #0284c7)" }} />
-              Assign Line Operator Team <span className="req">*</span>
-            </label>
-            <select
-              className="form-control"
-              required
-              value={startForm.operator}
-              onChange={(e) => setStartForm({ ...startForm, operator: e.target.value })}
-              style={{
-                height: 44,
-                background: "#ffffff",
-                borderRadius: 8,
-                fontSize: 13.5,
-                fontWeight: 600,
-                cursor: "pointer",
-              }}
-            >
-              <option value="">-- Select Operator Team (Team A to C) --</option>
-              {OPERATOR_TEAMS.map((team) => (
-                <option key={team} value={team}>
-                  {team}
-                </option>
-              ))}
-              {startForm.operator && !OPERATOR_TEAMS.includes(startForm.operator) && (
-                <option value={startForm.operator}>{startForm.operator}</option>
-              )}
-            </select>
+            {/* Any selected fallback warnings */}
+            {Array.from(modalSelectedTags).some((tag) => {
+              const an = unassignedAnimals.find((a) => a.tag_number === tag);
+              return Boolean(an?.is_fallback);
+            }) && (
+              <div
+                style={{
+                  background: "rgba(254, 243, 199, 0.55)",
+                  border: "1.5px solid #fde68a",
+                  borderRadius: 8,
+                  padding: "8px 12px",
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                }}
+              >
+                <Icon.AlertTriangle size={16} style={{ color: "#d97706", flexShrink: 0 }} />
+                <div style={{ fontSize: 12, color: "#92400e", lineHeight: 1.35 }}>
+                  <strong>Notice:</strong> One or more selected livestock are 24-hour fallback cases requiring line reassignment. Assigning a team will clear their fallback state and restart their slaughter processing window.
+                </div>
+              </div>
+            )}
+
           </div>
 
-          {/* Modal Action Buttons */}
-          <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4, paddingTop: 14, borderTop: "1px solid #e2e8f0" }}>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => {
-                setStartOpen(false);
-                setTargetTagsForModal([]);
-                setModalSelectedTags(new Set());
-                setExpandedModalOwnerKey(null);
-                setModalSearch("");
-              }}
-              className="assign-team-fixed-btn"
-              style={{
-                width: 96,
-                minWidth: 96,
-                maxWidth: 96,
-                height: 40,
-                minHeight: 40,
-                maxHeight: 40,
-                padding: "0 16px",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxSizing: "border-box",
-                flexShrink: 0,
-                transform: "none",
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={submittingStart || modalSelectedTags.size === 0 || !startForm.operator}
-              className="btn-primary assign-team-fixed-btn"
-              style={{
-                minWidth: 175,
-                height: 40,
-                minHeight: 40,
-                maxHeight: 40,
-                padding: "0 18px",
-                fontSize: 13,
-                fontWeight: 600,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                boxSizing: "border-box",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                transform: "none",
-              }}
-            >
-              {submittingStart ? (
-                <><span className="spinner" style={{ width: 14, height: 14 }} /> Assigning Team...</>
-              ) : modalSelectedTags.size > 0 ? (
-                "Assign Team"
-              ) : (
-                "Select Livestock to Assign"
-              )}
-            </Button>
+          {/* Fixed Actions Footer Pinned at Modal Bottom (Matching Ante-Mortem Modal) */}
+          <div
+            className="inspection-form-fixed-actions"
+            style={{
+              marginTop: "auto",
+              marginLeft: "-20px",
+              marginRight: "-20px",
+              marginBottom: 0,
+              padding: "12px 20px",
+              background: "var(--color-surface, #ffffff)",
+              borderTop: "1px solid var(--color-border, #e2e8f0)",
+              boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.04)",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexShrink: 0,
+              zIndex: 40,
+              flexWrap: "wrap",
+            }}
+          >
+            {/* Operator Selection on the LEFT side */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <label
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: "#334155",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  margin: 0,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <Icon.UserCheck size={15} style={{ color: "#059669" }} />
+                Assign Team <span style={{ color: "#ef4444" }}>*</span>
+              </label>
+              <select
+                className="form-control"
+                required
+                value={startForm.operator}
+                onChange={(e) => setStartForm({ ...startForm, operator: e.target.value })}
+                style={{
+                  height: 36,
+                  minWidth: 160,
+                  background: "#ffffff",
+                  borderRadius: 8,
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: "1px solid #cbd5e1",
+                  padding: "0 10px",
+                  color: "#0f172a",
+                }}
+              >
+                <option value="">Select Team...</option>
+                {OPERATOR_TEAMS.map((team) => (
+                  <option key={team} value={team}>
+                    {team}
+                  </option>
+                ))}
+                {startForm.operator && !OPERATOR_TEAMS.includes(startForm.operator) && (
+                  <option value={startForm.operator}>{startForm.operator}</option>
+                )}
+              </select>
+            </div>
+
+            {/* Action Buttons on the RIGHT side */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setStartOpen(false);
+                  setTargetTagsForModal([]);
+                  setModalSelectedTags(new Set());
+                  setExpandedModalOwnerKey(null);
+                  setModalSearch("");
+                }}
+                disabled={submittingStart}
+                style={{ height: 36, padding: "0 16px", fontSize: 13, borderRadius: 8 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={submittingStart || modalSelectedTags.size === 0 || !startForm.operator}
+                style={{
+                  height: 36,
+                  background:
+                    modalSelectedTags.size === 0 || !startForm.operator
+                      ? "#94a3b8"
+                      : "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+                  color: "#ffffff",
+                  fontWeight: 700,
+                  padding: "0 18px",
+                  fontSize: 13,
+                  borderRadius: 8,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  boxShadow:
+                    modalSelectedTags.size === 0 || !startForm.operator
+                      ? "none"
+                      : "0 2px 6px rgba(16, 185, 129, 0.28)",
+                  cursor:
+                    modalSelectedTags.size === 0 || !startForm.operator
+                      ? "not-allowed"
+                      : "pointer",
+                }}
+              >
+                {submittingStart ? (
+                  <>
+                    <Icon.RefreshCw size={14} className="animate-spin" />
+                    <span>Assigning Team...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon.Users size={16} />
+                    <span>Assign Team</span>
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </form>
       </Modal>
 
-      {/* Assign Team Operator Confirmation Modal */}
-      <Modal
+      {/* Assign Team Operator Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
+      <ConfirmDialog
         open={Boolean(assignConfirmData)}
-        onClose={handleCancelAssignmentConfirmation}
-        size="sm"
+        onCancel={handleCancelAssignmentConfirmation}
+        onConfirm={handleConfirmAssignOperator}
         title="Assign Slaughter Team Operator"
-        hideCloseButton
+        message={
+          assignConfirmData
+            ? assignConfirmData.tags.length === 1
+              ? "Do you want to assign this livestock to the selected team operator?"
+              : `Do you want to assign these ${assignConfirmData.tags.length} selected livestock records to the selected team operator?`
+            : ""
+        }
+        confirmText="Confirm"
+        confirmVariant="success"
+        loading={submittingStart}
         backdropStyle={{ zIndex: 1100 }}
-      >
-        {assignConfirmData && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13.5,
-                color: "var(--color-text)",
-                lineHeight: 1.5,
-              }}
-            >
-              {assignConfirmData.tags.length === 1
-                ? "Do you want to assign this livestock to the selected team operator?"
-                : `Do you want to assign these ${assignConfirmData.tags.length} selected livestock records to the selected team operator?`}
-            </p>
+      />
 
-            {/* Modal Actions (strictly Cancel and Confirm only) */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                marginTop: 4,
-                paddingTop: 14,
-                borderTop: "1px solid var(--color-border)",
-              }}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancelAssignmentConfirmation}
-                disabled={submittingStart}
-                style={{
-                  minWidth: 96,
-                  height: 38,
-                  fontWeight: 650,
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="btn-primary"
-                onClick={handleConfirmAssignOperator}
-                disabled={submittingStart}
-                style={{
-                  minWidth: 120,
-                  height: 38,
-                  fontWeight: 650,
-                  background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                  color: "#ffffff",
-                  border: "none",
-                  boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                }}
-              >
-                {submittingStart ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <span className="spinner" style={{ width: 14, height: 14 }} /> Assigning...
-                  </span>
-                ) : (
-                  "Confirm"
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
-
-      {/* Ready for Slaughter Success Notification Dialog */}
-      <Modal
+      {/* Ready for Slaughter Success Notification Dialog (Standardized to AlertDialog) */}
+      <AlertDialog
         open={Boolean(assignSuccessData)}
         onClose={() => setAssignSuccessData(null)}
-        size="sm"
         title="Ready for Slaughter"
-        hideCloseButton
-        backdropStyle={{ zIndex: 1200 }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 13.5,
-              color: "var(--color-text)",
-              lineHeight: 1.5,
-            }}
-          >
-            Livestock is ready for slaughter.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: 4,
-              paddingTop: 14,
-              borderTop: "1px solid var(--color-border)",
-            }}
-          >
-            <Button
-              type="button"
-              className="btn-primary"
-              onClick={() => setAssignSuccessData(null)}
-              style={{
-                minWidth: 96,
-                height: 38,
-                fontWeight: 650,
-                background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                color: "#ffffff",
-                border: "none",
-                boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-              }}
-            >
-              OK
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        message="Livestock is ready for slaughter."
+        buttonText="OK"
+        variant="success"
+      />
 
-      {/* Mark Single Livestock as Done Confirmation Dialog */}
-      <Modal
+      {/* Mark Single Livestock as Done Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
+      <ConfirmDialog
         open={Boolean(singleToMarkDone)}
-        onClose={() => {
+        onCancel={() => {
           if (!submittingSingleId) setSingleToMarkDone(null);
         }}
-        size="sm"
+        onConfirm={handleConfirmSingleSlaughter}
         title="Mark Livestock as Done"
-        hideCloseButton
+        message={
+          singleToMarkDone ? (
+            <span>
+              Are you sure you want to mark livestock <strong>{singleToMarkDone.tag_number}</strong>
+              {singleToMarkDone.species ? ` (${singleToMarkDone.species}${singleToMarkDone.sex ? `, ${formatSex(singleToMarkDone.sex)}` : ""})` : ""}
+              {" "}belonging to <strong>{singleToMarkDone.owner_name}</strong> as done?
+            </span>
+          ) : ""
+        }
+        confirmText="Confirm"
+        confirmVariant="success"
+        loading={Boolean(submittingSingleId)}
         backdropStyle={{ zIndex: 1100 }}
-      >
-        {singleToMarkDone && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13.5,
-                color: "var(--color-text)",
-                lineHeight: 1.5,
-              }}
-            >
-              Are you sure you want to mark livestock <b>{singleToMarkDone.tag_number}</b>{singleToMarkDone.species ? ` (${singleToMarkDone.species}${singleToMarkDone.sex ? `, ${formatSex(singleToMarkDone.sex)}` : ""})` : ""} belonging to <b>{singleToMarkDone.owner_name}</b> as done?
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                marginTop: 4,
-                paddingTop: 14,
-                borderTop: "1px solid var(--color-border)",
-              }}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setSingleToMarkDone(null)}
-                disabled={Boolean(submittingSingleId)}
-                style={{
-                  minWidth: 96,
-                  height: 38,
-                  fontWeight: 650,
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="btn-primary"
-                onClick={handleConfirmSingleSlaughter}
-                disabled={Boolean(submittingSingleId)}
-                style={{
-                  minWidth: 120,
-                  height: 38,
-                  fontWeight: 650,
-                  background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                  color: "#ffffff",
-                  border: "none",
-                  boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                }}
-              >
-                {submittingSingleId ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <span className="spinner" style={{ width: 14, height: 14 }} /> Processing...
-                  </span>
-                ) : (
-                  "Confirm"
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+      />
 
       {/* Mark Livestock as Done Success Notification Dialog */}
-      <Modal
+      <AlertDialog
         open={Boolean(singleSuccessData)}
         onClose={() => setSingleSuccessData(null)}
-        size="sm"
         title="Ready for Slaughter"
-        hideCloseButton
-        backdropStyle={{ zIndex: 1200 }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 13.5,
-              color: "var(--color-text)",
-              lineHeight: 1.5,
-            }}
-          >
-            Livestock successfully marked as done.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: 4,
-              paddingTop: 14,
-              borderTop: "1px solid var(--color-border)",
-            }}
-          >
-            <Button
-              type="button"
-              className="btn-primary"
-              onClick={() => setSingleSuccessData(null)}
-              style={{
-                minWidth: 96,
-                height: 38,
-                fontWeight: 650,
-                background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                color: "#ffffff",
-                border: "none",
-                boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-              }}
-            >
-              OK
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        message="Livestock successfully marked as done."
+        buttonText="OK"
+        variant="success"
+      />
 
       {/* Mark All as Done Success Notification Dialog */}
-      <Modal
+      <AlertDialog
         open={Boolean(groupSuccessData)}
         onClose={() => setGroupSuccessData(false)}
-        size="sm"
         title="Ready for Slaughter"
-        hideCloseButton
-        backdropStyle={{ zIndex: 1200 }}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <p
-            style={{
-              margin: 0,
-              fontSize: 13.5,
-              color: "var(--color-text)",
-              lineHeight: 1.5,
-            }}
-          >
-            All eligible livestock have been successfully marked as done.
-          </p>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "flex-end",
-              marginTop: 4,
-              paddingTop: 14,
-              borderTop: "1px solid var(--color-border)",
-            }}
-          >
-            <Button
-              type="button"
-              className="btn-primary"
-              onClick={() => setGroupSuccessData(false)}
-              style={{
-                minWidth: 96,
-                height: 38,
-                fontWeight: 650,
-                background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                color: "#ffffff",
-                border: "none",
-                boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-              }}
-            >
-              OK
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        message="All eligible livestock have been successfully marked as done."
+        buttonText="OK"
+        variant="success"
+      />
 
-      {/* Mark All as Done Confirmation Dialog */}
-      <Modal
+      {/* Mark All as Done Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
+      <ConfirmDialog
         open={Boolean(groupToMarkSlaughtered)}
-        onClose={() => {
+        onCancel={() => {
           if (!submittingGroupSlaughter) setGroupToMarkSlaughtered(null);
         }}
-        size="sm"
-        title="Ready for Slaughter"
-        hideCloseButton
-        backdropStyle={{ zIndex: 1100 }}
-      >
-        {groupToMarkSlaughtered && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13.5,
-                color: "var(--color-text)",
-                lineHeight: 1.5,
-              }}
-            >
+        onConfirm={handleConfirmGroupSlaughter}
+        title="Mark All as Done"
+        message={
+          groupToMarkSlaughtered ? (
+            <span>
               {groupToMarkSlaughtered.items.length === 1
                 ? `Are you sure you want to mark livestock ${groupToMarkSlaughtered.items[0]?.tag_number ? `(${groupToMarkSlaughtered.items[0].tag_number}) ` : ""}belonging to ${groupToMarkSlaughtered.owner_name} as done?`
                 : `Are you sure you want to mark all ${groupToMarkSlaughtered.items.length} eligible livestock records belonging to ${groupToMarkSlaughtered.owner_name} as done?`}
-            </p>
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                gap: 10,
-                marginTop: 4,
-                paddingTop: 14,
-                borderTop: "1px solid var(--color-border)",
-              }}
-            >
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setGroupToMarkSlaughtered(null)}
-                disabled={submittingGroupSlaughter}
-                style={{
-                  minWidth: 96,
-                  height: 38,
-                  fontWeight: 650,
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="btn-primary"
-                onClick={handleConfirmGroupSlaughter}
-                disabled={submittingGroupSlaughter}
-                style={{
-                  minWidth: 120,
-                  height: 38,
-                  fontWeight: 650,
-                  background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                  color: "#ffffff",
-                  border: "none",
-                  boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                }}
-              >
-                {submittingGroupSlaughter ? (
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <span className="spinner" style={{ width: 14, height: 14 }} /> Processing...
-                  </span>
-                ) : (
-                  "Confirm"
-                )}
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+            </span>
+          ) : ""
+        }
+        confirmText="Confirm"
+        confirmVariant="success"
+        loading={submittingGroupSlaughter}
+        backdropStyle={{ zIndex: 1100 }}
+      />
 
       {/* Sequential Interactive Checklist Modal */}
       <Modal

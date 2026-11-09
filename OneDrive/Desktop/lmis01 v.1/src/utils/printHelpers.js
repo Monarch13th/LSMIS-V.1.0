@@ -81,6 +81,144 @@ export const printHtmlViaPopup = (title, bodyHtml) => {
 };
 
 /**
+ * Direct In-Page Print Launcher using an isolated hidden iframe.
+ * Automatically loads content, waits for image assets (logos), and invokes native print()
+ * directly without opening extra tabs, popups, or redirecting the user.
+ * Falls back to popup if iframe printing is restricted.
+ */
+export const printHtmlDirect = (title, bodyHtml) => {
+  try {
+    let iframe = document.getElementById("lsmis-direct-print-frame");
+    if (iframe) {
+      try {
+        iframe.remove();
+      } catch (e) {}
+    }
+
+    iframe = document.createElement("iframe");
+    iframe.id = "lsmis-direct-print-frame";
+    iframe.setAttribute("style", "position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;border:none;visibility:hidden;");
+    document.body.appendChild(iframe);
+
+    const fullHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>${title || "Meat Permit"}</title>
+        <style>
+          @page {
+            size: letter portrait;
+            margin: 10mm 12mm;
+          }
+          * {
+            box-sizing: border-box !important;
+          }
+          html, body {
+            background: #ffffff !important;
+            color: #000000 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 10pt;
+            line-height: 1.4;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+          }
+          thead {
+            display: table-header-group !important;
+          }
+          tbody {
+            display: table-row-group !important;
+          }
+          tr {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          .avoid-break {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          .no-print, button {
+            display: none !important;
+          }
+        </style>
+      </head>
+      <body>
+        ${bodyHtml}
+      </body>
+      </html>
+    `;
+
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (!doc) {
+      printHtmlViaPopup(title, bodyHtml);
+      return;
+    }
+
+    doc.open();
+    doc.write(fullHtml);
+    doc.close();
+
+    const executePrint = () => {
+      try {
+        const frameWin = iframe.contentWindow;
+        if (frameWin) {
+          frameWin.focus();
+          frameWin.print();
+          return;
+        }
+      } catch (err) {
+        console.warn("Iframe print threw error, falling back to popup", err);
+      }
+      printHtmlViaPopup(title, bodyHtml);
+    };
+
+    // Ensure images (seals, logos) are loaded before invoking print
+    const imgs = doc.images;
+    if (imgs && imgs.length > 0) {
+      let loadedCount = 0;
+      let printTriggered = false;
+      const onDone = () => {
+        loadedCount++;
+        if (loadedCount >= imgs.length && !printTriggered) {
+          printTriggered = true;
+          setTimeout(executePrint, 150);
+        }
+      };
+      for (let i = 0; i < imgs.length; i++) {
+        if (imgs[i].complete) {
+          loadedCount++;
+        } else {
+          imgs[i].onload = onDone;
+          imgs[i].onerror = onDone;
+        }
+      }
+      if (loadedCount >= imgs.length && !printTriggered) {
+        printTriggered = true;
+        setTimeout(executePrint, 150);
+      } else {
+        setTimeout(() => {
+          if (!printTriggered) {
+            printTriggered = true;
+            executePrint();
+          }
+        }, 600);
+      }
+    } else {
+      setTimeout(executePrint, 150);
+    }
+  } catch (e) {
+    console.warn("Direct iframe setup failed, using popup fallback", e);
+    printHtmlViaPopup(title, bodyHtml);
+  }
+};
+
+/**
  * Print Handler 1: Permit Fee Record (Fee Collection Report & Official Receipt)
  * Renders the complete, detailed Fee Collection Report and Official Receipt Owner Copy.
  */
@@ -269,7 +407,7 @@ export const printMeatPermit = (permit) => {
   const rawOwner = permit.owner_name || permit.ownerName || "Authorized Owner";
   const owner = rawOwner.includes(" — ") ? rawOwner.split(" — ")[0] : (rawOwner.includes(" - ") ? rawOwner.split(" - ")[0] : rawOwner);
   const rawIssueDate = permit.permit_issued_at || permit.issued_at || permit.date || permit.slaughter_date_time;
-  const dateFormatted = rawIssueDate ? formatDate(rawIssueDate) : formatDate(new Date());
+  const dateFormatted = permit.dateFormatted || (rawIssueDate ? formatDate(rawIssueDate) : formatDate(new Date()));
   const permitNo = permit.permit_no || permit.permitNo || (permit.receipt_no
     ? "MIC-06-" + String(permit.receipt_no).replace(/\D/g, "").padStart(6, "0").slice(-6)
     : "MIC-06-016246");
@@ -475,7 +613,7 @@ export const printMeatPermit = (permit) => {
     </div>
   `;
 
-  printHtmlViaPopup("Official Meat Inspection Certificate & Permit", bodyHtml);
+  printHtmlDirect("Official Meat Inspection Certificate & Permit", bodyHtml);
 };
 
 /**

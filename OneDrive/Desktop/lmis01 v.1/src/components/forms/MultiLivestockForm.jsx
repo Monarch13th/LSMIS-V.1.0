@@ -664,7 +664,7 @@ export const MultiLivestockForm = ({
                     >
                       {speciesList.map((s) => (
                         <option key={s.id} value={s.id}>
-                          {s.label} ({s.code || s.id.substring(0, 3).toUpperCase()})
+                          {s.label || s.id}
                         </option>
                       ))}
                     </select>

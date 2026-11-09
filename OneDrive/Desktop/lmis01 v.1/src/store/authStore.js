@@ -370,6 +370,19 @@ export const initializeAuth = async () => {
 
     const sbSession = data?.session;
     if (sbSession?.user) {
+      // Enforce Supabase Auth MFA Assurance Level (AAL2)
+      try {
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+          // User has enabled 2FA but current session is only AAL1 (unverified)!
+          removeSessionStorageItem(STORAGE_KEYS.SESSION);
+          authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: true });
+          return;
+        }
+      } catch (aalErr) {
+        console.warn("MFA assurance check error:", aalErr);
+      }
+
       const cached = getInitialSession();
       // If cached session exists and is valid, use it immediately to avoid unnecessary reinitialization
       if (
@@ -442,6 +455,14 @@ export const initializeAuth = async () => {
       }
 
       if (sbSession?.user) {
+        try {
+          const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+          if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+            authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: true });
+            return;
+          }
+        } catch (_) {}
+
         // If an active session is already loaded in authStore with a session_id and matches the user, don't overwrite it
         const currentStoreSession = authStore.get()?.session;
         const userEmail = (sbSession.user.email || "").toLowerCase().trim();

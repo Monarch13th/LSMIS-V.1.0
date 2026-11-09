@@ -1,0 +1,540 @@
+@startuml LSMIS_Database_ERD
+!theme plain
+skinparam linetype ortho
+skinparam roundcorner 5
+skinparam class {
+  BackgroundColor #ffffff
+  BorderColor #cbd5e1
+  ArrowColor #2563eb
+  HeaderBackgroundColor #4b729f
+  FontColor #0f172a
+  FontSize 11
+}
+
+title LIVESTOCK SLAUGHTER AND MEAT INSPECTION MANAGEMENT SYSTEM (LSMIS) - DATABASE ERD
+
+entity "ante_mortem_inspections" as ante_mortem_inspections << TABLE >> {
+  * id : TEXT [PK]
+  + livestock_id : TEXT [FK]
+  - tag_number : TEXT
+  - species : TEXT
+  - inspector_name : TEXT
+  - date : DATE
+  - findings : TEXT
+  - decision : TEXT
+  - remarks : TEXT
+  - inspected_at : TIMESTAMPTZ
+  - inspector_id : TEXT
+  - created_by_user_id : TEXT
+}
+
+entity "audit_logs" as audit_logs << TABLE >> {
+  * id : TEXT [PK]
+  - user : TEXT
+  - role : TEXT
+  - action : TEXT
+  - module : TEXT
+  - timestamp : TEXT
+  - ip : TEXT
+  - tag_number : TEXT
+  - old_value : TEXT
+  - new_value : TEXT
+  - field_changed : TEXT
+  - security_event : TEXT
+  - severity : TEXT
+  - user_id : TEXT
+  - created_at : TIMESTAMPTZ
+}
+
+entity "carcass_branding_records" as carcass_branding_records << TABLE >> {
+  * id : UUID [PK]
+  + carcass_id : UUID [FK]
+  + livestock_id : TEXT [FK]
+  - tag_number : TEXT
+  - branding_code : TEXT
+  - branding_type : TEXT
+  - branding_status : TEXT
+  - branded_at : TIMESTAMPTZ
+  + branded_by : UUID [FK]
+  - cancellation_reason : TEXT
+  - notes : TEXT
+  - created_at : TIMESTAMPTZ
+  - updated_at : TIMESTAMPTZ
+}
+
+entity "carcass_records" as carcass_records << TABLE >> {
+  * id : UUID [PK]
+  - tag_number : TEXT
+  - slaughter_id : TEXT
+  - quantity : INTEGER
+  - total_weight : NUMERIC
+  - hot_weight : NUMERIC
+  - cold_weight : NUMERIC
+  - organ_weight : NUMERIC
+  - grade : TEXT
+  - operator : TEXT
+  - date : DATE
+  - status : TEXT
+  - weighed_at : TIMESTAMPTZ
+  - created_at : TIMESTAMPTZ
+  - weighed_by : TEXT
+  - weighed_by_user_id : TEXT
+  - brand_code : TEXT
+  - branding_status : TEXT
+  - brand_method : TEXT
+  - weighed_by_role : TEXT
+}
+
+entity "condemnation_records" as condemnation_records << TABLE >> {
+  * id : TEXT [PK]
+  + livestock_id : TEXT [FK]
+  - date : DATE
+  - tag_number : TEXT
+  - species : TEXT
+  - reason : TEXT
+  - part : TEXT
+  - quantity : TEXT
+  - inspector : TEXT
+  - notes : TEXT
+  - weight_kg : NUMERIC
+  - location : TEXT
+  - disposition : TEXT
+  - findings : TEXT
+  - photo_url : TEXT
+  - file_url : TEXT
+  - inspector_id : TEXT
+  - created_by_user_id : TEXT
+}
+
+entity "dispatch" as dispatch << TABLE >> {
+  * id : TEXT [PK]
+  + owner_id : TEXT [FK]
+  - owner_name : TEXT
+  - carcass_weight : NUMERIC
+  - organ_weight : NUMERIC
+  - driver : TEXT
+  - vehicle : TEXT
+  - released_date : TEXT
+  - status : TEXT
+  - destination : TEXT
+  - permit_config_id : TEXT
+  - tags : JSONB
+  - released_at : TIMESTAMPTZ
+  - dispatched_at : TIMESTAMPTZ
+  - created_at : TIMESTAMPTZ
+  - dispatched_by : TEXT
+  - dispatched_by_user_id : TEXT
+}
+
+entity "evidence_records" as evidence_records << TABLE >> {
+  * id : TEXT [PK]
+  - created_at : TIMESTAMPTZ
+  - date : DATE
+  - tag_number : TEXT
+  - type : TEXT
+  - file_name : TEXT
+  - file_path : TEXT
+  - file_url : TEXT
+  - file_size : BIGINT
+  - mime_type : TEXT
+  + uploaded_by : UUID [FK]
+  - inspection_type : TEXT
+  - status : TEXT
+  - notes : TEXT
+  - file_preview : TEXT
+  - photos : JSONB
+  - file_urls : JSONB
+}
+
+entity "fees" as fees << TABLE >> {
+  * id : TEXT [PK]
+  - fee_name : TEXT
+  - animal_type : TEXT
+  - method : TEXT
+  - rate : NUMERIC
+  - effective_date : DATE
+  - status : TEXT
+  - updated_at : TIMESTAMPTZ
+}
+
+entity "livestock" as livestock << TABLE >> {
+  * id : TEXT [PK]
+  - tag_number : TEXT
+  - species : TEXT
+  - sex : TEXT
+  - age_months : TEXT
+  - weight : NUMERIC
+  + owner_id : TEXT [FK]
+  - owner_name : TEXT
+  - received_date : DATE
+  - status : TEXT
+  - quantity : INTEGER
+  - marked : BOOLEAN
+  - mark_type : TEXT
+  - mark_date : DATE
+  - permit_issued_at : TIMESTAMPTZ
+  - registered_at : TIMESTAMPTZ
+  - dispatched_at : TIMESTAMPTZ
+  - released_at : TIMESTAMPTZ
+  - marked_at : TIMESTAMPTZ
+  - fallback_at : TIMESTAMPTZ
+  - fallback_reason : TEXT
+  - marking_history : JSONB
+  - created_by : TEXT
+  - created_by_user_id : TEXT
+  - registered_by : TEXT
+  - registered_by_user_id : TEXT
+  - received_by : TEXT
+  - received_by_user_id : TEXT
+  - received_at : TIMESTAMPTZ
+  - marked_by : TEXT
+  - marked_by_user_id : TEXT
+  - ante_inspected_by : TEXT
+  - ante_inspected_by_user_id : TEXT
+  - ante_inspected_at : TIMESTAMPTZ
+  - slaughtered_by : TEXT
+  - slaughtered_by_user_id : TEXT
+  - slaughtered_at : TIMESTAMPTZ
+  - weighed_by : TEXT
+  - weighed_by_user_id : TEXT
+  - weighed_at : TIMESTAMPTZ
+  - post_inspected_by : TEXT
+  - post_inspected_by_user_id : TEXT
+  - post_inspected_at : TIMESTAMPTZ
+  - paid_by_staff : TEXT
+  - paid_by_user_id : TEXT
+  - paid_at : TIMESTAMPTZ
+  - permit_issued_by : TEXT
+  - permit_issued_by_user_id : TEXT
+  - dispatched_by : TEXT
+  - dispatched_by_user_id : TEXT
+  - process_history : JSONB
+  - created_at : TIMESTAMPTZ
+  - reassigned_at : TIMESTAMPTZ
+  - previous_operator : TEXT
+  - species_id : TEXT
+}
+
+entity "login_security" as login_security << TABLE >> {
+  * email : TEXT [PK]
+  - failed_attempts : INTEGER
+  - locked_until : TIMESTAMPTZ
+  - last_failed_at : TIMESTAMPTZ
+  - active_session_id : TEXT
+  - active_session_updated_at : TIMESTAMPTZ
+  - created_at : TIMESTAMPTZ
+  - updated_at : TIMESTAMPTZ
+}
+
+entity "notifications" as notifications << TABLE >> {
+  * id : TEXT [PK]
+  - title : TEXT
+  - message : TEXT
+  - date : TEXT
+  - read : BOOLEAN
+  - type : TEXT
+  + owner_id : TEXT [FK]
+  - role : TEXT
+}
+
+entity "otp_rate_limits" as otp_rate_limits << TABLE >> {
+  * email : TEXT [PK]
+  - request_count : INTEGER
+  - last_request : TIMESTAMPTZ
+  - blocked_until : TIMESTAMPTZ
+}
+
+entity "owners" as owners << TABLE >> {
+  * id : TEXT [PK]
+  - name : TEXT
+  - contact : TEXT
+  - address : TEXT
+  - registered_date : DATE
+  - total_animals : INTEGER
+  - email : TEXT
+  - username : TEXT
+  - status : TEXT
+  - email_verified : BOOLEAN
+  - email_verified_at : TIMESTAMPTZ
+  - agreement_status : BOOLEAN
+  - agreement_version : TEXT
+  - agreement_accepted_at : TIMESTAMPTZ
+  - approved_by : TEXT
+  - approved_at : TIMESTAMPTZ
+  - rejection_reason : TEXT
+  - suspension_reason : TEXT
+  - history : JSONB
+  - created_by : TEXT
+  - created_by_user_id : TEXT
+  - created_at : TIMESTAMPTZ
+  - google_id : TEXT
+  - auth_user_id : UUID
+  - avatar_url : TEXT
+  - auth_provider : TEXT
+}
+
+entity "payments" as payments << TABLE >> {
+  * id : UUID [PK]
+  - date : DATE
+  - receipt_no : TEXT
+  - owner_name : TEXT
+  - tag_number : TEXT
+  - animal_type : TEXT
+  - quantity : INTEGER
+  - weight : NUMERIC
+  - method : TEXT
+  - rate : NUMERIC
+  - amount : NUMERIC
+  - status : TEXT
+  - staff_name : TEXT
+  + livestock_id : TEXT [FK]
+  + fee_id : TEXT [FK]
+  - species : TEXT
+  - fee_name : TEXT
+  - paid_at : TIMESTAMPTZ
+  - created_at : TIMESTAMPTZ
+  - staff_id : TEXT
+  - processed_by_user_id : TEXT
+}
+
+entity "permit_config" as permit_config << TABLE >> {
+  * id : TEXT [PK]
+  - permit_prefix : TEXT
+  - origin : TEXT
+  - destination : TEXT
+  - address : TEXT
+  - time_issued : TEXT
+  - conveyance : TEXT
+  - plate_no : TEXT
+  - inspector : TEXT
+  - city_vet : TEXT
+  - updated_at : TIMESTAMPTZ
+}
+
+entity "permit_config_history" as permit_config_history << TABLE >> {
+  * id : UUID [PK]
+  - permit_prefix : TEXT
+  - origin : TEXT
+  - destination : TEXT
+  - address : TEXT
+  - time_issued : TEXT
+  - conveyance : TEXT
+  - plate_no : TEXT
+  - inspector : TEXT
+  - city_vet : TEXT
+  - updated_at : TIMESTAMPTZ
+  - changed_by : UUID
+}
+
+entity "permits" as permits << TABLE >> {
+  * id : UUID [PK]
+  - permit_no : TEXT
+  - livestock_id : TEXT
+  - tag_number : TEXT
+  - carcass_id : UUID
+  - owner_name : TEXT
+  - species : TEXT
+  - carcass_weight : NUMERIC
+  - origin : TEXT
+  - destination : TEXT
+  - address : TEXT
+  - time_issued : TEXT
+  - conveyance : TEXT
+  - plate_no : TEXT
+  - inspector : TEXT
+  - city_vet : TEXT
+  - status : TEXT
+  - issued_at : TIMESTAMPTZ
+  - created_at : TIMESTAMPTZ
+  - issued_by : TEXT
+  - issued_by_user_id : TEXT
+  - config_snapshot : JSONB
+}
+
+entity "post_mortem_condemned_cuts" as post_mortem_condemned_cuts << TABLE >> {
+  * id : UUID [PK]
+  - created_at : TIMESTAMPTZ
+  - date : DATE
+  + inspection_id : TEXT [FK]
+  + livestock_id : TEXT [FK]
+  - tag_number : TEXT
+  - species : TEXT
+  - part : TEXT
+  - custom_part : TEXT
+  - location : TEXT
+  - weight_kg : NUMERIC
+  - reason : TEXT
+  - custom_reason : TEXT
+  - findings : TEXT
+  - disposition : TEXT
+  - photo_url : TEXT
+  - photo_name : TEXT
+  - inspector : TEXT
+  - notes : TEXT
+}
+
+entity "post_mortem_inspections" as post_mortem_inspections << TABLE >> {
+  * id : TEXT [PK]
+  + livestock_id : TEXT [FK]
+  - tag_number : TEXT
+  - species : TEXT
+  - inspector_name : TEXT
+  - date : DATE
+  - findings : TEXT
+  - decision : TEXT
+  - remarks : TEXT
+  - raw_decision : TEXT
+  - condemned_parts : JSONB
+  - inspected_at : TIMESTAMPTZ
+  - inspector_id : TEXT
+  - created_by_user_id : TEXT
+}
+
+entity "slaughter_processing" as slaughter_processing << TABLE >> {
+  * id : TEXT [PK]
+  - tag_number : TEXT
+  - species : TEXT
+  - owner_name : TEXT
+  - operator : TEXT
+  - date : DATE
+  - steps : JSONB
+  - status : TEXT
+  - notes : TEXT
+  - operator_id : TEXT
+  - processed_by : TEXT
+  - processed_by_user_id : TEXT
+  - processed_at : TIMESTAMPTZ
+  - fallback_at : TIMESTAMPTZ
+  - fallback_reason : TEXT
+  - reassigned_at : TIMESTAMPTZ
+  - previous_operator : TEXT
+}
+
+entity "slaughter_records" as slaughter_records << TABLE >> {
+  * id : TEXT [PK]
+  - tag_number : TEXT
+  - species : TEXT
+  - owner_name : TEXT
+  - scheduled_date : DATE
+  - slaughter_date : DATE
+  - status : TEXT
+  - operator : TEXT
+  + livestock_id : TEXT [FK]
+  - operator_id : TEXT
+  - processed_by : TEXT
+  - processed_by_user_id : TEXT
+  - processed_at : TIMESTAMPTZ
+  - fallback_at : TIMESTAMPTZ
+  - fallback_reason : TEXT
+  - reassigned_at : TIMESTAMPTZ
+  - previous_operator : TEXT
+}
+
+entity "species" as species << TABLE >> {
+  * id : TEXT [PK]
+  - name : TEXT
+  - code : TEXT
+  - description : TEXT
+  - color : TEXT
+  - icon : TEXT
+  - status : TEXT
+  - sort_order : INTEGER
+  - created_at : TIMESTAMPTZ
+  - updated_at : TIMESTAMPTZ
+  - image_url : TEXT
+  - image_path : TEXT
+}
+
+entity "system_settings" as system_settings << TABLE >> {
+  * id : TEXT [PK]
+  - system_name : TEXT
+  - organization : TEXT
+  - email : TEXT
+  - timezone : TEXT
+  - language : TEXT
+  - date_format : TEXT
+  - session_timeout : INTEGER
+  - enable_notifications : BOOLEAN
+  - enable_email_alerts : BOOLEAN
+  - enable_audit_log : BOOLEAN
+}
+
+entity "user_preferences" as user_preferences << TABLE >> {
+  * id : UUID [PK]
+  - user_id : UUID
+  - email : TEXT
+  - notification_preferences : JSONB
+  - created_at : TIMESTAMPTZ
+  - updated_at : TIMESTAMPTZ
+}
+
+entity "users" as users << TABLE >> {
+  * id : UUID [FK]
+  - created_at : TIMESTAMPTZ
+  - full_name : TEXT
+  - email : TEXT
+  - username : TEXT
+  - role : TEXT
+  - status : TEXT
+  - last_login : TEXT
+  + owner_id : TEXT [FK]
+  - terminated_at : TIMESTAMPTZ
+  - terminated_until : TIMESTAMPTZ
+  - termination_reason : TEXT
+  - active_session_id : TEXT
+  - active_session_updated_at : TIMESTAMPTZ
+  - google_id : TEXT
+  - avatar_url : TEXT
+  - auth_provider : TEXT
+  - failed_login_attempts : INTEGER
+  - locked_until : TIMESTAMPTZ
+  - last_failed_login : TIMESTAMPTZ
+  - phone : TEXT
+  - contact : TEXT
+  - address : TEXT
+  - license : TEXT
+  - specialization : TEXT
+}
+
+entity "view_post_mortem_partial_summary" as view_post_mortem_partial_summary << VIEW >> {
+  - tag_number : TEXT
+  - species : TEXT
+  - date : DATE
+  - total_condemned_cuts : BIGINT
+  - total_condemned_weight_kg : NUMERIC
+  - condemned_parts_list : TEXT
+  - condemnation_reasons : TEXT
+  - inspector_name : TEXT
+}
+
+' --- Verified PostgreSQL Foreign Keys (Engine Enforced) ---
+owners ||--o{ livestock : "owner_id"
+owners ||--o| users : "owner_id"
+owners ||--o{ dispatch : "owner_id"
+owners ||--o{ notifications : "owner_id"
+livestock ||--o{ ante_mortem_inspections : "livestock_id"
+livestock ||--o| slaughter_records : "livestock_id"
+livestock ||--o{ post_mortem_inspections : "livestock_id"
+post_mortem_inspections ||--o{ post_mortem_condemned_cuts : "inspection_id"
+livestock ||--o{ post_mortem_condemned_cuts : "livestock_id"
+carcass_records ||--o{ carcass_branding_records : "carcass_id"
+livestock ||--o{ carcass_branding_records : "livestock_id"
+users ||--o{ carcass_branding_records : "branded_by"
+livestock ||--o{ condemnation_records : "livestock_id"
+fees ||--o{ payments : "fee_id"
+livestock ||--o{ payments : "livestock_id"
+users ||--o{ evidence_records : "uploaded_by"
+
+' --- Critical Application-Level Joins (Software Enforced) ---
+livestock ||..o| slaughter_processing : "livestock_id (App)"
+livestock ||..o| carcass_records : "livestock_id (App)"
+livestock ||..o| permits : "livestock_id (App)"
+carcass_records ||..o| permits : "carcass_id (App)"
+species ||..o{ livestock : "species (App)"
+species ||..o{ fees : "species (App)"
+permit_config ||..o{ dispatch : "permit_config_id (App)"
+permit_config ||..o{ permit_config_history : "config_id (App)"
+users ||..o| user_preferences : "user_id (App)"
+users ||..o{ audit_logs : "user_id (App)"
+post_mortem_condemned_cuts ||..o| view_post_mortem_partial_summary : "aggregates (View)"
+@enduml

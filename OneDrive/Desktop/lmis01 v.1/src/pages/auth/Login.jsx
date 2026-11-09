@@ -15,6 +15,7 @@ import { ownerAuthService } from "../../services/ownerAuthService";
 import { supabase, initialOAuthCallback } from "../../services/supabaseClient";
 import { adminService } from "../../services/adminService";
 import { authSecurityService } from "../../services/authSecurityService";
+import { mfaService } from "../../services/mfaService";
 import { useAuth } from "../../hooks/useAuth";
 import { scrollToFirstError } from "../../utils/formValidation";
 import logoImg from "../../assets/logo.jpg";
@@ -181,6 +182,7 @@ export const Login = ({ embedded = false, initialView }) => {
   const [twoFaLoading, setTwoFaLoading] = useState(false);
   const [twoFaError, setTwoFaError] = useState("");
   const [twoFaCooldown, setTwoFaCooldown] = useState(0);
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
   const twoFaInputRef = useRef(null);
 
   const { showToast } = useToast();
@@ -617,6 +619,53 @@ export const Login = ({ embedded = false, initialView }) => {
           ...(sbSession || {}),
         };
 
+        // Check if Two-Factor Authentication (2FA) is enabled for this account via Supabase Auth MFA
+        let mfaRequired = false;
+        let targetFactor = null;
+        let challengeId = null;
+
+        try {
+          const { verifiedFactor, factors } = await mfaService.listFactors();
+          const aal = await mfaService.getAssuranceLevel();
+          const isLocal2faEnabled = localStorage.getItem("lmis_2fa_enabled_" + cleanEmail) === "true";
+          const isMetadata2faEnabled = Boolean(sbSession?.user?.user_metadata?.two_factor_enabled);
+
+          const activeFactor =
+            verifiedFactor ||
+            factors?.find((f) => f.status === "verified") ||
+            ((isLocal2faEnabled || isMetadata2faEnabled) ? factors?.[0] : null);
+
+          if (activeFactor || aal?.nextLevel === "aal2" || isLocal2faEnabled || isMetadata2faEnabled) {
+            mfaRequired = true;
+            targetFactor = activeFactor;
+            if (targetFactor?.id) {
+              const { data: chData } = await mfaService.createChallenge({ factorId: targetFactor.id });
+              if (chData?.id) challengeId = chData.id;
+            }
+          }
+        } catch (mfaChkErr) {
+          console.warn("Google login MFA check notice:", mfaChkErr);
+        }
+
+        if (mfaRequired && targetFactor) {
+          setPending2FA({
+            session,
+            role,
+            name,
+            cleanEmail,
+            userId,
+            factorId: targetFactor.id,
+            challengeId,
+          });
+
+          setTwoFaCode("");
+          setTwoFaError("");
+          setGoogleLoginLoading(false);
+          setView("verify-otp");
+          showToast(`Authenticator security code required for ${cleanEmail}`, "info");
+          return;
+        }
+
         sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
         authStore.set({ session, loading: false, isInitialized: true });
         setGoogleLoginLoading(false);
@@ -780,6 +829,76 @@ export const Login = ({ embedded = false, initialView }) => {
     } else if (hasConcurrentFlag || isConcurrentQuery) {
       sessionStorage.removeItem("lsmis_concurrent_logout_notice");
       setConcurrentNoticeOpen(true);
+    }
+  }, []);
+
+  // Handle MFA redirect from route guards (?mfa=required)
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const isMfaRequiredQuery = searchParams.get("mfa") === "required";
+    const storeMfaRequired = authStore.get()?.mfaRequired;
+
+    if (isMfaRequiredQuery || storeMfaRequired) {
+      (async () => {
+        try {
+          const { data } = await supabase.auth.getSession();
+          const user = data?.session?.user;
+          if (user) {
+            const cleanEmail = (user.email || "").trim().toLowerCase();
+            const { verifiedFactor, factors } = await mfaService.listFactors();
+            const targetFactor = verifiedFactor || factors?.[0];
+
+            let challengeId = null;
+            if (targetFactor?.id) {
+              const { data: chData } = await mfaService.createChallenge({ factorId: targetFactor.id });
+              if (chData?.id) challengeId = chData.id;
+            }
+
+            let role = user.user_metadata?.role || "staff";
+            let name = user.user_metadata?.full_name || user.user_metadata?.name || cleanEmail;
+            let userId = user.id;
+
+            try {
+              const { data: dbUser } = await supabase
+                .from(TABLES.USERS)
+                .select("*")
+                .ilike("email", cleanEmail)
+                .maybeSingle();
+              if (dbUser) {
+                role = dbUser.role || role;
+                name = dbUser.full_name || name;
+                userId = dbUser.id || userId;
+              }
+            } catch (_) {}
+
+            const activeSessionId = authSecurityService.getClientSessionId() || uuid();
+            const session = {
+              id: userId,
+              user_id: userId,
+              role,
+              name,
+              email: cleanEmail,
+              session_id: activeSessionId,
+              ts: Date.now(),
+              login_time: new Date().toISOString(),
+              ...(data?.session || {}),
+            };
+
+            setPending2FA({
+              session,
+              role,
+              name,
+              cleanEmail,
+              userId,
+              factorId: targetFactor?.id,
+              challengeId,
+            });
+            setView("verify-otp");
+          }
+        } catch (err) {
+          console.warn("MFA redirect recovery failed:", err);
+        }
+      })();
     }
   }, []);
 
@@ -1508,43 +1627,53 @@ export const Login = ({ embedded = false, initialView }) => {
         ...(authData?.session || {})
       };
 
-      // Check if Two-Factor Authentication (2FA) is enabled for this account
-      let is2FaEnabled = false;
+      // Check if Two-Factor Authentication (2FA) is enabled for this account via Supabase Auth MFA
+      let mfaRequired = false;
+      let targetFactor = null;
+      let challengeId = null;
+
       try {
-        const storedProfile = JSON.parse(localStorage.getItem("lmis_profile_" + cleanEmail) || "{}");
-        if (
-          storedProfile.two_factor_enabled === true ||
-          localStorage.getItem("lmis_2fa_enabled_" + cleanEmail) === "true" ||
-          authData?.user?.user_metadata?.two_factor_enabled === true
-        ) {
-          is2FaEnabled = true;
+        const { verifiedFactor, factors } = await mfaService.listFactors();
+        const aal = await mfaService.getAssuranceLevel();
+        const isLocal2faEnabled = localStorage.getItem("lmis_2fa_enabled_" + cleanEmail) === "true";
+        const isMetadata2faEnabled = Boolean(authData?.user?.user_metadata?.two_factor_enabled);
+
+        const activeFactor =
+          verifiedFactor ||
+          factors?.find((f) => f.status === "verified") ||
+          ((isLocal2faEnabled || isMetadata2faEnabled) ? factors?.[0] : null);
+
+        if (activeFactor || aal?.nextLevel === "aal2" || isLocal2faEnabled || isMetadata2faEnabled) {
+          mfaRequired = true;
+          targetFactor = activeFactor;
+
+          if (targetFactor?.id) {
+            const { data: chData, error: chErr } = await mfaService.createChallenge({ factorId: targetFactor.id });
+            if (!chErr && chData?.id) {
+              challengeId = chData.id;
+            }
+          }
         }
-      } catch (e) { }
+      } catch (mfaChkErr) {
+        console.warn("Supabase MFA status check notice:", mfaChkErr);
+      }
 
-      if (is2FaEnabled) {
-        const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
-        const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
-
+      if (mfaRequired && targetFactor) {
         setPending2FA({
           session,
           role,
-          name,
+          name: effectiveName,
           cleanEmail,
           userId,
-          otp: generatedOtp,
-          expiresAt
+          factorId: targetFactor.id,
+          challengeId,
         });
 
-        try {
-          await supabase.auth.signInWithOtp({ email: cleanEmail });
-        } catch (_) { }
-
-        setTwoFaCooldown(60);
         setTwoFaCode("");
         setTwoFaError("");
         setLoading(false);
         setView("verify-otp");
-        showToast(`Two-factor code generated for ${cleanEmail}!`, "info");
+        showToast(`Authenticator security code required for ${cleanEmail}`, "info");
         return;
       }
 
@@ -1596,7 +1725,7 @@ export const Login = ({ embedded = false, initialView }) => {
     const cleanCode = twoFaCode.trim();
 
     if (!cleanCode) {
-      setTwoFaError("Please enter the 6-digit verification code.");
+      setTwoFaError("Please enter the 6-digit verification code from your authenticator app.");
       twoFaInputRef.current?.focus();
       return;
     }
@@ -1607,56 +1736,69 @@ export const Login = ({ embedded = false, initialView }) => {
       return;
     }
 
-    if (Date.now() > pending2FA.expiresAt) {
-      setTwoFaError("Verification code has expired. Please request a new code.");
-      return;
-    }
-
     setTwoFaLoading(true);
 
     try {
-      // Validate OTP code (matches generated code or developer standard test code)
-      const isMatch = cleanCode === pending2FA.otp || cleanCode === "123456";
-
-      if (!isMatch) {
-        let supabaseMatch = false;
-        try {
-          const { data, error: vErr } = await supabase.auth.verifyOtp({
-            email: pending2FA.cleanEmail,
-            token: cleanCode,
-            type: "email"
-          });
-          if (!vErr && data?.session) supabaseMatch = true;
-        } catch (_) { }
-
-        if (!supabaseMatch) {
-          setTwoFaError("Invalid verification code. Please check and try again.");
-          setTwoFaLoading(false);
-          return;
-        }
+      let factorId = pending2FA.factorId;
+      if (!factorId) {
+        const { verifiedFactor, factors } = await mfaService.listFactors();
+        factorId = verifiedFactor?.id || factors?.[0]?.id;
       }
 
-      // Code is valid — finalize login session!
+      if (!factorId) {
+        setTwoFaError("No active authenticator factor found for this account. Please sign in again.");
+        setTwoFaLoading(false);
+        return;
+      }
+
+      let verifyRes;
+      if (pending2FA.challengeId) {
+        verifyRes = await mfaService.verifyChallenge({
+          factorId,
+          challengeId: pending2FA.challengeId,
+          code: cleanCode,
+        });
+      } else {
+        verifyRes = await mfaService.challengeAndVerify({
+          factorId,
+          code: cleanCode,
+        });
+      }
+
+      if (verifyRes?.error) {
+        const errMsg = verifyRes.error.message || "";
+        setTwoFaError(
+          errMsg.toLowerCase().includes("expired")
+            ? "Verification challenge has expired. Click 'Refresh Security Challenge' below to generate a new code challenge."
+            : "Invalid authenticator code. Please check your authenticator app (Google Authenticator, Microsoft Authenticator) and try again."
+        );
+        setTwoFaLoading(false);
+        twoFaInputRef.current?.focus();
+        return;
+      }
+
+      // MFA successfully verified: session has satisfied AAL2!
       const { session, role, name, cleanEmail } = pending2FA;
       sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
-      authStore.set({ session });
+      authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
 
       try {
         supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
         registerLoginSession({ name, email: cleanEmail, role, module: "Dashboard", loginTime: session.login_time });
         logActivity({
-          action: `User verified 2FA & logged in (${name} - ${role})`,
+          action: `User verified Supabase MFA & logged in (${name} - ${role})`,
           module: "Auth",
           user: name,
           role: role,
-          old_value: "2FA Pending",
-          new_value: "Active Session",
+          old_value: "MFA Pending",
+          new_value: "Active Session (AAL2)",
           field_changed: "session_state",
         }).then();
       } catch (e) {
         console.error("2FA login logging error:", e);
       }
 
+      showToast(`Welcome back, ${name}! Two-Factor Authentication verified.`, "success");
       const prevPath = location.state?.from?.pathname;
       if (prevPath && prevPath.startsWith(`/${role}`)) {
         navigate(prevPath, { replace: true });
@@ -1672,22 +1814,150 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   };
 
-  const handleResend2FA = async () => {
-    if (!pending2FA || twoFaCooldown > 0) return;
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setPending2FA((prev) => ({
-      ...prev,
-      otp: newOtp,
-      expiresAt: Date.now() + 10 * 60 * 1000
-    }));
-    setTwoFaCooldown(60);
+  const handleRefreshChallenge = async () => {
+    let factorId = pending2FA?.factorId;
+    if (!factorId) {
+      const { verifiedFactor, factors } = await mfaService.listFactors();
+      factorId = verifiedFactor?.id || factors?.[0]?.id;
+    }
+    if (!factorId) {
+      setTwoFaError("Unable to locate active authenticator factor. Please return to sign in.");
+      return;
+    }
+
+    setTwoFaLoading(true);
     setTwoFaError("");
-
     try {
-      await supabase.auth.signInWithOtp({ email: pending2FA.cleanEmail });
-    } catch (_) { }
+      const { data: chData, error: chErr } = await mfaService.createChallenge({ factorId });
+      if (chErr) throw chErr;
+      setPending2FA((prev) => ({ ...prev, factorId, challengeId: chData.id }));
+      setTwoFaCooldown(15);
+      showToast("Security challenge refreshed. Please enter the current code from your authenticator app.", "info");
+    } catch (err) {
+      setTwoFaError("Could not refresh security challenge. Please cancel and sign in again.");
+    } finally {
+      setTwoFaLoading(false);
+    }
+  };
 
-    showToast(`New 2FA code sent to ${pending2FA.cleanEmail}! (Code: ${newOtp})`, "info");
+  const handleCancel2FA = async () => {
+    try {
+      await supabase.auth.signOut({ scope: "local" });
+    } catch (_) {}
+    sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+    authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: false });
+    setPending2FA(null);
+    setTwoFaCode("");
+    setTwoFaError("");
+    setShowRecoveryModal(false);
+    switchToSignin();
+  };
+
+  // ---- Two-Factor Recovery Backup Code Handlers ----
+  const [recoveryCodeInput, setRecoveryCodeInput] = useState("");
+  const [recoveryError, setRecoveryError] = useState("");
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [showAdminAssistance, setShowAdminAssistance] = useState(false);
+
+  const handleVerifyRecoveryCode = async (e) => {
+    if (e) e.preventDefault();
+    if (!pending2FA) return;
+
+    setRecoveryError("");
+    const cleanCode = recoveryCodeInput.trim().toUpperCase();
+    if (!cleanCode) {
+      setRecoveryError("Please enter your emergency recovery code.");
+      return;
+    }
+
+    setRecoveryLoading(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const user = userData?.user;
+      const storedHashes = user?.user_metadata?.recovery_code_hashes || [];
+
+      if (!storedHashes.length) {
+        setRecoveryError(
+          "No recovery backup codes registered for this account. Please use the Administrator-Assisted 2FA Reset procedure below."
+        );
+        setShowAdminAssistance(true);
+        setRecoveryLoading(false);
+        return;
+      }
+
+      const inputHash = await mfaService.hashRecoveryCode(cleanCode);
+      const matchIndex = storedHashes.indexOf(inputHash);
+
+      if (matchIndex === -1) {
+        setRecoveryError("Invalid recovery code. Please check and try again, or contact your Administrator.");
+        setRecoveryLoading(false);
+        return;
+      }
+
+      // Valid recovery code used: remove it from stored hashes
+      const updatedHashes = storedHashes.filter((_, idx) => idx !== matchIndex);
+
+      // Unenroll the lost factor to reset 2FA
+      if (pending2FA.factorId) {
+        try {
+          await supabase.auth.mfa.unenroll({ factorId: pending2FA.factorId });
+        } catch (_) {}
+      }
+
+      // Update user metadata
+      try {
+        await supabase.auth.updateUser({
+          data: {
+            two_factor_enabled: false,
+            recovery_code_hashes: updatedHashes,
+          },
+        });
+      } catch (_) {}
+
+      // Clean local storage flag
+      const cleanEmail = pending2FA.cleanEmail;
+      if (cleanEmail) {
+        localStorage.removeItem("lmis_2fa_enabled_" + cleanEmail);
+      }
+
+      // Complete login
+      const { session, role, name } = pending2FA;
+      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
+
+      try {
+        supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
+        registerLoginSession({ name, email: cleanEmail, role, module: "Dashboard", loginTime: session.login_time });
+        logActivity({
+          action: `User accessed account via single-use Recovery Code (${name} - ${role})`,
+          module: "Auth",
+          user: name,
+          role: role,
+          old_value: "2FA Active",
+          new_value: "2FA Reset via Recovery Code",
+          field_changed: "mfa_recovery",
+        }).then();
+      } catch (_) {}
+
+      setShowRecoveryModal(false);
+      setRecoveryCodeInput("");
+      showToast(
+        `Welcome back, ${name}! Your recovery code was accepted. Please re-enable 2FA in Account Settings.`,
+        "success"
+      );
+
+      const prevPath = location.state?.from?.pathname;
+      if (prevPath && prevPath.startsWith(`/${role}`)) {
+        navigate(prevPath, { replace: true });
+      } else {
+        navigate(`/${role}`, { replace: true });
+      }
+    } catch (err) {
+      console.error("Recovery verification error:", err);
+      setRecoveryError(err.message || "Failed to verify recovery code.");
+    } finally {
+      setRecoveryLoading(false);
+    }
   };
 
   // ---- Forgot Password Handlers ----
@@ -2047,71 +2317,46 @@ export const Login = ({ embedded = false, initialView }) => {
                     width: 60,
                     height: 60,
                     borderRadius: "50%",
-                    background: "rgba(14, 165, 233, 0.12)",
-                    border: "2px solid #0284c7",
-                    color: "#0284c7",
+                    background: "rgba(16, 185, 129, 0.12)",
+                    border: "2px solid #10b981",
+                    color: "#10b981",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     margin: "0 auto 14px",
-                    boxShadow: "0 8px 20px rgba(2, 132, 199, 0.18)"
+                    boxShadow: "0 8px 20px rgba(16, 185, 129, 0.18)"
                   }}>
                     <Icon.ShieldCheck size={32} />
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-primary, #0284c7)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-primary, #059669)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
                     Two-Factor Authentication
                   </div>
-                  <h1 style={{ fontSize: 23, fontWeight: 800 }}>Enter Verification Code</h1>
-                  <p className="subtitle" style={{ maxWidth: 440, margin: "0 auto", fontSize: 13.5 }}>
-                    A 6-digit OTP verification code was dispatched to <strong>{pending2FA?.cleanEmail}</strong>.
+                  <h1 style={{ fontSize: 23, fontWeight: 800 }}>Enter Authenticator Code</h1>
+                  <p className="subtitle" style={{ maxWidth: 440, margin: "0 auto", fontSize: 13.5, lineHeight: 1.5 }}>
+                    Open your authenticator app (Google Authenticator, Microsoft Authenticator, or 2FAS) and enter the 6-digit code for <strong>{pending2FA?.cleanEmail}</strong>.
                   </p>
                 </div>
 
-                {/* Verification code helper pill with demo code preview and quick-paste */}
+                {/* Helpful TOTP Info Card */}
                 <div style={{
                   margin: "16px 0 18px",
-                  padding: "11px 15px",
+                  padding: "12px 16px",
                   borderRadius: 12,
-                  background: "var(--color-bg)",
-                  border: "1px solid var(--color-border)",
+                  background: "rgba(14, 165, 233, 0.06)",
+                  border: "1px solid rgba(14, 165, 233, 0.2)",
                   display: "flex",
                   alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 10
+                  gap: 12
                 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Icon.Lock size={15} style={{ color: "var(--color-primary)" }} />
-                    <span style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>
-                      Security OTP: <strong style={{ color: "var(--color-text)", fontFamily: "monospace", letterSpacing: "0.08em" }}>{pending2FA?.otp}</strong>
-                    </span>
+                  <Icon.Smartphone size={20} style={{ color: "var(--color-primary, #0284c7)", flexShrink: 0 }} />
+                  <div style={{ fontSize: 12.5, color: "var(--color-text-muted, #64748b)", lineHeight: 1.4 }}>
+                    <strong style={{ color: "var(--color-text, #0f172a)" }}>Time-Based Code:</strong> Codes refresh every 30 seconds. Enter the current code displayed on your device.
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (pending2FA?.otp) {
-                        setTwoFaCode(pending2FA.otp);
-                        twoFaInputRef.current?.focus();
-                      }
-                    }}
-                    style={{
-                      background: "var(--color-primary-light)",
-                      border: "none",
-                      borderRadius: 8,
-                      color: "var(--color-primary)",
-                      padding: "4px 10px",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer"
-                    }}
-                  >
-                    Auto-Fill Code
-                  </button>
                 </div>
 
                 <form onSubmit={handleVerify2FA} className="login-form-body" noValidate>
                   <div className="form-group">
-                    <label className="form-label" htmlFor="twofa-code" style={{ textAlign: "center", display: "block", marginBottom: 6 }}>
+                    <label className="form-label" htmlFor="twofa-code" style={{ textAlign: "center", display: "block", marginBottom: 8, fontSize: 13, fontWeight: 700 }}>
                       6-Digit Security Code
                     </label>
                     <div className={`login-pwd-wrap ${twoFaError ? "has-error" : ""}`}>
@@ -2132,13 +2377,14 @@ export const Login = ({ embedded = false, initialView }) => {
                         placeholder="••••••"
                         style={{
                           textAlign: "center",
-                          fontSize: 24,
+                          fontSize: 26,
                           letterSpacing: "0.35em",
                           fontWeight: 800,
                           fontFamily: "ui-monospace, monospace"
                         }}
                         required
                         disabled={twoFaLoading}
+                        autoFocus
                       />
                     </div>
                   </div>
@@ -2171,23 +2417,47 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Resend button */}
+                  {/* Refresh challenge button */}
                   <div style={{ textAlign: "center", marginTop: 14 }}>
                     <button
                       type="button"
-                      onClick={handleResend2FA}
-                      disabled={twoFaCooldown > 0}
+                      onClick={handleRefreshChallenge}
+                      disabled={twoFaLoading || twoFaCooldown > 0}
                       style={{
                         background: "none",
                         border: "none",
-                        color: twoFaCooldown > 0 ? "var(--color-text-subtle)" : "var(--color-primary)",
+                        color: twoFaCooldown > 0 ? "var(--color-text-subtle)" : "var(--color-primary, #059669)",
                         fontSize: 13,
                         fontWeight: 600,
                         cursor: twoFaCooldown > 0 ? "default" : "pointer",
                         textDecoration: twoFaCooldown > 0 ? "none" : "underline"
                       }}
                     >
-                      {twoFaCooldown > 0 ? `Resend code in ${twoFaCooldown}s` : "Resend Security Code"}
+                      {twoFaCooldown > 0 ? `Refresh challenge in ${twoFaCooldown}s` : "Code not working? Refresh Challenge"}
+                    </button>
+                  </div>
+
+                  {/* Recovery Code Option */}
+                  <div style={{ textAlign: "center", marginTop: 12 }}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRecoveryError("");
+                        setRecoveryCodeInput("");
+                        setShowAdminAssistance(false);
+                        setShowRecoveryModal(true);
+                      }}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--color-text-muted, #64748b)",
+                        fontSize: 12.5,
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      Lost access to your authenticator? Use Recovery Code
                     </button>
                   </div>
 
@@ -2195,18 +2465,187 @@ export const Login = ({ embedded = false, initialView }) => {
                   <button
                     type="button"
                     className="btn-back-to-landing"
-                    onClick={() => {
-                      setPending2FA(null);
-                      setTwoFaCode("");
-                      setTwoFaError("");
-                      switchToSignin();
-                    }}
+                    onClick={handleCancel2FA}
                     style={{ marginTop: 12 }}
                   >
                     <Icon.ArrowLeft size={16} />
                     <span>Cancel &amp; Return to Sign In</span>
                   </button>
                 </form>
+
+                {/* Emergency Recovery Modal */}
+                <Modal
+                  open={showRecoveryModal}
+                  onClose={() => !recoveryLoading && setShowRecoveryModal(false)}
+                  title="Two-Factor Account Recovery"
+                  size="md"
+                >
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    <div
+                      style={{
+                        padding: "12px 14px",
+                        borderRadius: 10,
+                        background: "rgba(2, 132, 199, 0.08)",
+                        border: "1px solid rgba(2, 132, 199, 0.2)",
+                        color: "#0369a1",
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      <strong>Emergency Access:</strong> Enter one of your single-use 12-character recovery codes generated when you activated 2FA.
+                    </div>
+
+                    {!showAdminAssistance ? (
+                      <form onSubmit={handleVerifyRecoveryCode} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        <div>
+                          <label
+                            htmlFor="recovery-code-input"
+                            style={{
+                              display: "block",
+                              fontSize: 12.5,
+                              fontWeight: 700,
+                              color: "var(--color-text, #0f172a)",
+                              marginBottom: 6,
+                            }}
+                          >
+                            Emergency Recovery Code <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <input
+                            id="recovery-code-input"
+                            type="text"
+                            placeholder="XXXX-XXXX-XXXX"
+                            value={recoveryCodeInput}
+                            onChange={(e) => {
+                              setRecoveryCodeInput(e.target.value.toUpperCase());
+                              if (recoveryError) setRecoveryError("");
+                            }}
+                            maxLength={14}
+                            style={{
+                              width: "100%",
+                              height: 44,
+                              fontSize: 18,
+                              letterSpacing: "0.15em",
+                              fontWeight: 800,
+                              textAlign: "center",
+                              borderRadius: 8,
+                              border: recoveryError ? "1.5px solid #ef4444" : "1px solid var(--color-border, #cbd5e1)",
+                              background: "var(--color-bg, #ffffff)",
+                              color: "var(--color-text, #0f172a)",
+                              fontFamily: "ui-monospace, monospace",
+                            }}
+                            autoFocus
+                            disabled={recoveryLoading}
+                          />
+                          {recoveryError && (
+                            <div style={{ marginTop: 6, fontSize: 12, fontWeight: 600, color: "#ef4444", display: "flex", alignItems: "center", gap: 4 }}>
+                              <Icon.AlertTriangle size={13} />
+                              <span>{recoveryError}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowRecoveryModal(false)}
+                            disabled={recoveryLoading}
+                            style={{ flex: 1, height: 40, borderRadius: 8 }}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            type="submit"
+                            disabled={recoveryLoading || !recoveryCodeInput.trim()}
+                            style={{
+                              flex: 1,
+                              height: 40,
+                              borderRadius: 8,
+                              background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+                              color: "#ffffff",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {recoveryLoading ? (
+                              <>
+                                <Icon.RefreshCw size={14} className="animate-spin" />
+                                <span>Verifying...</span>
+                              </>
+                            ) : (
+                              "Verify & Access Account"
+                            )}
+                          </Button>
+                        </div>
+
+                        <div style={{ textAlign: "center", marginTop: 4 }}>
+                          <button
+                            type="button"
+                            onClick={() => setShowAdminAssistance(true)}
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: "var(--color-text-muted, #64748b)",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                            }}
+                          >
+                            Don&apos;t have recovery codes? Request Administrator Assistance
+                          </button>
+                        </div>
+                      </form>
+                    ) : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                        <div
+                          style={{
+                            padding: "14px",
+                            borderRadius: 10,
+                            background: "var(--color-bg, #f8fafc)",
+                            border: "1px solid var(--color-border, #cbd5e1)",
+                            fontSize: 13,
+                            color: "var(--color-text, #0f172a)",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <h4 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 800 }}>
+                            Administrator-Assisted 2FA Reset Procedure
+                          </h4>
+                          <p style={{ margin: "0 0 8px", color: "var(--color-text-muted, #64748b)" }}>
+                            If you lost both your authenticator device and your recovery backup codes, you must verify your identity with the City Abattoir System Administration to authorize a security reset:
+                          </p>
+                          <ul style={{ margin: "0 0 10px 18px", padding: 0 }}>
+                            <li>Present official City Government Employee ID or Meat Establishment Certificate.</li>
+                            <li>Contact: <strong>Naga City Abattoir Admin Office</strong></li>
+                            <li>Email: <strong>admin1@gmail.com / pardillojustin7@gmail.com</strong></li>
+                          </ul>
+                          <div style={{ fontSize: 12, color: "#64748b" }}>
+                            Once your identity is confirmed in person, the System Administrator will reset your 2FA factor in Admin Personnel Management.
+                          </div>
+                        </div>
+
+                        <div style={{ display: "flex", gap: 10 }}>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setShowAdminAssistance(false)}
+                            style={{ flex: 1, height: 40, borderRadius: 8 }}
+                          >
+                            Back to Code Input
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="primary"
+                            onClick={() => setShowRecoveryModal(false)}
+                            style={{ flex: 1, height: 40, borderRadius: 8 }}
+                          >
+                            Understood
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Modal>
               </>
             ) : view === "signin" ? (
               <>

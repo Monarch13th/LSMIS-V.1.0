@@ -164,6 +164,12 @@ export const ConfirmDialog = ({
   confirmVariant = "danger",
   loading = false,
   closeOnBackdropClick = false,
+  cancelText = "Cancel",
+  size = "sm",
+  backdropStyle,
+  hideCloseButton = false,
+  icon,
+  children,
 }) => {
   useEffect(() => {
     if (!open) return;
@@ -183,12 +189,12 @@ export const ConfirmDialog = ({
 
   const isDanger = confirmVariant === "danger";
   const isWarning = confirmVariant === "warning";
-  const isSuccess = confirmVariant === "success";
+  const isSuccess = confirmVariant === "success" || confirmVariant === "primary";
 
   return (
     <div
       className="modal-backdrop confirm-modal-backdrop"
-      style={{ zIndex: 1100 }}
+      style={{ zIndex: 1100, ...(backdropStyle || {}) }}
       onClick={(e) => {
         if (closeOnBackdropClick && e.target === e.currentTarget && !loading) {
           onCancel?.();
@@ -197,25 +203,29 @@ export const ConfirmDialog = ({
       role="presentation"
     >
       <div
-        className="modal modal-sm confirm-modal-card"
+        className={`modal modal-${size} confirm-modal-card`}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="confirm-title"
         aria-describedby="confirm-desc"
       >
-        <button
-          type="button"
-          className="modal-close confirm-card-close"
-          onClick={onCancel}
-          disabled={loading}
-          aria-label="Close dialog"
-        >
-          <Icon.X size={15} />
-        </button>
+        {!hideCloseButton && (
+          <button
+            type="button"
+            className="modal-close confirm-card-close"
+            onClick={onCancel}
+            disabled={loading}
+            aria-label="Close dialog"
+          >
+            <Icon.X size={15} />
+          </button>
+        )}
 
         <div className="confirm-modal-body">
-          <div className={`confirm-icon-badge confirm-icon-${confirmVariant}`}>
-            {isDanger ? (
+          <div className={`confirm-icon-badge confirm-icon-${isSuccess ? "success" : confirmVariant}`}>
+            {icon ? (
+              icon
+            ) : isDanger ? (
               <Icon.AlertTriangle size={26} strokeWidth={2.2} />
             ) : isWarning ? (
               <Icon.AlertTriangle size={26} strokeWidth={2.2} />
@@ -226,7 +236,30 @@ export const ConfirmDialog = ({
             )}
           </div>
           <h3 id="confirm-title" className="confirm-title">{title}</h3>
-          <p id="confirm-desc" className="confirm-message">{message}</p>
+          {message && (
+            typeof message === "string" ? (
+              <p
+                id="confirm-desc"
+                className="confirm-message"
+                style={{ textAlign: "center", textAlignLast: "center" }}
+              >
+                {message}
+              </p>
+            ) : (
+              <div
+                id="confirm-desc"
+                className="confirm-message-custom"
+                style={{ width: "100%", marginTop: 4, textAlign: "center", textAlignLast: "center" }}
+              >
+                {message}
+              </div>
+            )
+          )}
+          {children && (
+            <div className="confirm-modal-children" style={{ width: "100%", marginTop: message ? 12 : 6 }}>
+              {children}
+            </div>
+          )}
         </div>
 
         <div className="confirm-modal-footer">
@@ -237,7 +270,7 @@ export const ConfirmDialog = ({
             disabled={loading}
             className="confirm-btn confirm-btn-cancel"
           >
-            Cancel
+            {cancelText}
           </Button>
           <Button
             type="button"
@@ -350,7 +383,7 @@ export const AlertDialog = ({
           <h3 id="alert-dialog-title" className="confirm-title" style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
             {title}
           </h3>
-          <p id="alert-dialog-desc" className="confirm-message" style={{ fontSize: "0.92rem", color: "#475569", lineHeight: 1.55, margin: 0 }}>
+          <p id="alert-dialog-desc" className="confirm-message" style={{ fontSize: "0.92rem", color: "#475569", lineHeight: 1.55, margin: 0, textAlign: "center", textAlignLast: "center" }}>
             {message}
           </p>
         </div>

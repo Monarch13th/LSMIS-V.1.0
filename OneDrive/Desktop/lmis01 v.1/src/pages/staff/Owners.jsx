@@ -36,6 +36,36 @@ const generateNextTagForSpecies = (rows, species) => {
   return `TAG-${String(next).padStart(3, "0")}-${targetSpecies}`;
 };
 
+export const getLivestockStatusStyle = (status) => {
+  const s = String(status || "").toLowerCase();
+  if (s.includes("condemn") || s.includes("reject") || s.includes("discard")) {
+    return {
+      background: "rgba(239, 68, 68, 0.12)",
+      color: "#dc2626",
+      border: "1px solid rgba(239, 68, 68, 0.3)",
+    };
+  }
+  if (s.includes("weighed") || s.includes("permit issued") || s.includes("completed") || s.includes("dispatch") || s.includes("passed")) {
+    return {
+      background: "rgba(16, 185, 129, 0.12)",
+      color: "#16a34a",
+      border: "1px solid rgba(16, 185, 129, 0.3)",
+    };
+  }
+  if (s.includes("inspection") || s.includes("processing") || s.includes("ante-mortem") || s.includes("post-mortem") || s.includes("slaughter")) {
+    return {
+      background: "rgba(59, 130, 246, 0.12)",
+      color: "#2563eb",
+      border: "1px solid rgba(59, 130, 246, 0.3)",
+    };
+  }
+  return {
+    background: "rgba(245, 158, 11, 0.12)",
+    color: "#d97706",
+    border: "1px solid rgba(245, 158, 11, 0.3)",
+  };
+};
+
 export const Owners = ({ initialTab = "owners" }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -822,8 +852,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                   <th style={{ padding: "14px 18px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "center" }}>
                     Active Livestock
                   </th>
-                  <th style={{ padding: "14px 18px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>
-                    Intake Actions
+                  <th className="table-action-th">
+                    ACTIONS
                   </th>
                 </tr>
               </thead>
@@ -1029,52 +1059,29 @@ export const Owners = ({ initialTab = "owners" }) => {
                       </td>
 
                       {/* 6. Intake Actions */}
-                      <td style={{ padding: "14px 18px", textAlign: "right" }}>
-                        <div style={{ display: "inline-flex", gap: 8, justifyContent: "flex-end", alignItems: "center" }}>
-                          {/* Primary Action: Register Livestock */}
-                          <Button
-                            size="sm"
-                            onClick={() => handleRegisterLivestock(o)}
-                            disabled={!isApproved}
-                            title={isApproved ? "Register incoming livestock for this owner" : `Cannot register: Owner account is ${status}`}
-                            style={{
-                              padding: "6px 12px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              borderRadius: 8,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                              background: isApproved ? "linear-gradient(135deg, #10b981 0%, #047857 100%)" : "var(--color-border)",
-                              color: isApproved ? "#ffffff" : "var(--color-text-muted)",
-                              border: "none",
-                              cursor: isApproved ? "pointer" : "not-allowed",
-                              boxShadow: isApproved ? "0 2px 6px rgba(16, 185, 129, 0.25)" : "none",
-                            }}
-                          >
-                            <Icon.Plus size={14} /> Register Livestock
-                          </Button>
-
+                      <td className="table-action-td">
+                        <div className="table-action-group">
                           {/* Secondary Action: View Details Modal */}
                           <button
                             type="button"
+                            className="action-btn action-btn-outline"
                             onClick={() => setDetailModalOwner(o)}
                             title="View complete raiser credentials & active livestock"
-                            style={{
-                              width: 32,
-                              height: 32,
-                              borderRadius: 8,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              color: "#0284c7",
-                              background: "rgba(14, 165, 233, 0.12)",
-                              border: "1px solid rgba(14, 165, 233, 0.25)",
-                              cursor: "pointer",
-                              transition: "all 140ms ease",
-                            }}
                           >
-                            <Icon.Eye size={15} />
+                            <Icon.Eye size={13} />
+                            <span>View</span>
+                          </button>
+
+                          {/* Primary Action: Register Livestock */}
+                          <button
+                            type="button"
+                            className="action-btn action-btn-success"
+                            onClick={() => handleRegisterLivestock(o)}
+                            disabled={!isApproved}
+                            title={isApproved ? "Register incoming livestock for this owner" : `Cannot register: Owner account is ${status}`}
+                          >
+                            <Icon.Plus size={13} style={{ strokeWidth: 2.5 }} />
+                            <span>Register Livestock</span>
                           </button>
                         </div>
                       </td>
@@ -1092,6 +1099,21 @@ export const Owners = ({ initialTab = "owners" }) => {
         open={!!detailModalOwner}
         onClose={() => setDetailModalOwner(null)}
         title="Owner Details"
+        dialogStyle={{
+          maxWidth: 680,
+          width: "95vw",
+          borderRadius: 14,
+          overflow: "hidden",
+        }}
+        headerStyle={{
+          padding: "16px 22px",
+          borderBottom: "1px solid var(--color-border)",
+        }}
+        bodyStyle={{
+          padding: "20px 22px",
+          maxHeight: "82vh",
+          overflowY: "auto",
+        }}
       >
         {detailModalOwner && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1101,19 +1123,19 @@ export const Owners = ({ initialTab = "owners" }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "14px 16px",
+                padding: "16px 18px",
                 background: "var(--color-bg)",
                 borderRadius: 12,
                 border: "1px solid var(--color-border)",
                 flexWrap: "wrap",
-                gap: 12,
+                gap: 14,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                 {(() => {
                   const modalAvatar = detailModalOwner.avatar_url || resolveOwnerAvatar(detailModalOwner);
                   return (
-                    <div style={{ position: "relative", width: 44, height: 44, flexShrink: 0 }}>
+                    <div style={{ position: "relative", width: 48, height: 48, flexShrink: 0 }}>
                       {modalAvatar ? (
                         <img
                           src={modalAvatar}
@@ -1126,8 +1148,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                             }
                           }}
                           style={{
-                            width: 44,
-                            height: 44,
+                            width: 48,
+                            height: 48,
                             borderRadius: "50%",
                             objectFit: "cover",
                             flexShrink: 0,
@@ -1138,8 +1160,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                       ) : null}
                       <div
                         style={{
-                          width: 44,
-                          height: 44,
+                          width: 48,
+                          height: 48,
                           borderRadius: "50%",
                           background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
                           color: "#ffffff",
@@ -1147,8 +1169,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                           alignItems: "center",
                           justifyContent: "center",
                           fontWeight: 800,
-                          fontSize: 15,
-                          boxShadow: "0 2px 6px rgba(16, 185, 129, 0.3)",
+                          fontSize: 16,
+                          boxShadow: "0 2px 8px rgba(16, 185, 129, 0.28)",
                         }}
                       >
                         {initials(detailModalOwner.name || "Owner")}
@@ -1157,26 +1179,32 @@ export const Owners = ({ initialTab = "owners" }) => {
                   );
                 })()}
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--color-text)" }}>
+                  <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.01em" }}>
                     {detailModalOwner.name}
                   </h3>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
                     <span
                       style={{
                         fontSize: 11.5,
                         fontFamily: "monospace",
-                        color: "#0ea5e9",
+                        color: "#0284c7",
                         background: "rgba(14, 165, 233, 0.12)",
-                        padding: "1px 6px",
-                        borderRadius: 4,
+                        border: "1px solid rgba(14, 165, 233, 0.25)",
+                        padding: "2px 7px",
+                        borderRadius: 5,
                         fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
                       }}
                     >
-                      {formatOwnerId(detailModalOwner)}
+                      <span>{formatOwnerId(detailModalOwner)}</span>
                     </span>
-                    <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                      System ID: {detailModalOwner.id}
-                    </span>
+                    {detailModalOwner.id && detailModalOwner.id !== formatOwnerId(detailModalOwner) && (
+                      <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                        System ID: {detailModalOwner.id}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1186,34 +1214,42 @@ export const Owners = ({ initialTab = "owners" }) => {
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
-                  gap: 5,
-                  padding: "4px 10px",
-                  borderRadius: 6,
+                  gap: 6,
+                  padding: "5px 12px",
+                  borderRadius: 20,
                   fontSize: 12,
                   fontWeight: 700,
                   background:
                     detailModalOwner.status === "Approved" || !detailModalOwner.status
                       ? "rgba(16, 185, 129, 0.12)"
+                      : detailModalOwner.status === "Rejected"
+                      ? "rgba(239, 68, 68, 0.12)"
                       : "rgba(245, 158, 11, 0.12)",
                   color:
                     detailModalOwner.status === "Approved" || !detailModalOwner.status
-                      ? "#10b981"
-                      : "#f59e0b",
+                      ? "#059669"
+                      : detailModalOwner.status === "Rejected"
+                      ? "#dc2626"
+                      : "#d97706",
                   border: `1px solid ${
                     detailModalOwner.status === "Approved" || !detailModalOwner.status
-                      ? "rgba(16, 185, 129, 0.25)"
-                      : "rgba(245, 158, 11, 0.25)"
+                      ? "rgba(16, 185, 129, 0.3)"
+                      : detailModalOwner.status === "Rejected"
+                      ? "rgba(239, 68, 68, 0.3)"
+                      : "rgba(245, 158, 11, 0.3)"
                   }`,
                 }}
               >
                 <span
                   style={{
-                    width: 6,
-                    height: 6,
+                    width: 7,
+                    height: 7,
                     borderRadius: "50%",
                     background:
                       detailModalOwner.status === "Approved" || !detailModalOwner.status
                         ? "#10b981"
+                        : detailModalOwner.status === "Rejected"
+                        ? "#ef4444"
                         : "#f59e0b",
                   }}
                 />
@@ -1225,82 +1261,198 @@ export const Owners = ({ initialTab = "owners" }) => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
-                gap: 10,
+                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                gap: 12,
               }}
             >
+              {/* Contact Number */}
               <div
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: 8,
+                  padding: "12px 14px",
+                  borderRadius: 10,
                   border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
+                  background: "var(--color-surface, #ffffff)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <Icon.Phone size={12} style={{ color: "#0ea5e9" }} /> Contact Number
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: "rgba(14, 165, 233, 0.12)",
+                    color: "#0284c7",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon.Phone size={16} />
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 4, fontFamily: "monospace" }}>
-                  {detailModalOwner.contact || "—"}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    Contact Number
+                  </div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text)", marginTop: 3, fontFamily: "monospace" }}>
+                    {detailModalOwner.contact ? (
+                      <a
+                        href={`tel:${detailModalOwner.contact}`}
+                        style={{ color: "var(--color-text)", textDecoration: "none" }}
+                        title="Click to dial"
+                      >
+                        {detailModalOwner.contact}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* Account Email */}
               <div
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: 8,
+                  padding: "12px 14px",
+                  borderRadius: 10,
                   border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
+                  background: "var(--color-surface, #ffffff)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <Icon.Mail size={12} style={{ color: "#a855f7" }} /> Account Email
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: "rgba(139, 92, 246, 0.12)",
+                    color: "#7c3aed",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon.Mail size={16} />
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }} className="truncate" title={detailModalOwner.email}>
-                  {detailModalOwner.email || "—"}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    Account Email
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3 }} className="truncate" title={detailModalOwner.email}>
+                    {detailModalOwner.email ? (
+                      <a
+                        href={`mailto:${detailModalOwner.email}`}
+                        style={{ color: "var(--color-text)", textDecoration: "none" }}
+                        title="Click to send email"
+                      >
+                        {detailModalOwner.email}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* Address */}
               <div
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: 8,
+                  padding: "12px 14px",
+                  borderRadius: 10,
                   border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
+                  background: "var(--color-surface, #ffffff)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <Icon.MapPin size={12} style={{ color: "#f59e0b" }} /> Address
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: "rgba(245, 158, 11, 0.12)",
+                    color: "#d97706",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon.MapPin size={16} />
                 </div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }} className="truncate" title={detailModalOwner.address}>
-                  {detailModalOwner.address || "—"}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    Address
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3, lineHeight: 1.35 }} title={detailModalOwner.address}>
+                    {detailModalOwner.address || "—"}
+                  </div>
                 </div>
               </div>
 
+              {/* Registration Date */}
               <div
                 style={{
-                  padding: "10px 12px",
-                  borderRadius: 8,
+                  padding: "12px 14px",
+                  borderRadius: 10,
                   border: "1px solid var(--color-border)",
-                  background: "var(--color-surface)",
+                  background: "var(--color-surface, #ffffff)",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
                 }}
               >
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 5 }}>
-                  <Icon.Calendar size={12} style={{ color: "#10b981" }} /> Registration Date
+                <div
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 8,
+                    background: "rgba(16, 185, 129, 0.12)",
+                    color: "#059669",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Icon.Calendar size={16} />
                 </div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }}>
-                  {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "—"}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                    Registration Date
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3 }}>
+                    {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "—"}
+                  </div>
                 </div>
               </div>
             </div>
 
             {/* Livestock Table Section */}
-            <div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, padding: "0 2px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "var(--color-text)" }}>
-                  <Icon.Cow size={15} style={{ color: "#10b981" }} />
-                  <span>Tracked Livestock in Abattoir ({getOwnerAnimals(detailModalOwner).length} Heads)</span>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13.5, fontWeight: 800, color: "var(--color-text)" }}>
+                  <Icon.Cow size={16} style={{ color: "#10b981" }} />
+                  <span>Tracked Livestock in Abattoir</span>
                 </div>
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    background: "rgba(16, 185, 129, 0.12)",
+                    color: "#059669",
+                  }}
+                >
+                  {getOwnerAnimals(detailModalOwner).length} {getOwnerAnimals(detailModalOwner).length === 1 ? "Head" : "Heads"}
+                </span>
               </div>
 
               {getOwnerAnimals(detailModalOwner).length === 0 ? (
@@ -1320,80 +1472,94 @@ export const Owners = ({ initialTab = "owners" }) => {
                   </p>
                 </div>
               ) : (
-                <div style={{ maxHeight: 240, overflowY: "auto", border: "1px solid var(--color-border)", borderRadius: 10 }}>
-                  <table className="table" style={{ width: "100%", fontSize: 12 }}>
-                    <thead>
-                      <tr style={{ background: "var(--color-bg)" }}>
-                        <th style={{ padding: "8px 12px", fontSize: 11 }}>Tag Number</th>
-                        <th style={{ padding: "8px 12px", fontSize: 11 }}>Species</th>
-                        <th style={{ padding: "8px 12px", fontSize: 11 }}>Sex</th>
-                        <th style={{ padding: "8px 12px", fontSize: 11 }}>Breed</th>
-                        <th style={{ padding: "8px 12px", fontSize: 11, textAlign: "center" }}>Weight</th>
-                        <th style={{ padding: "8px 12px", fontSize: 11, textAlign: "right" }}>Status</th>
+                <div style={{ maxHeight: 250, overflowY: "auto", border: "1px solid var(--color-border)", borderRadius: 10, scrollbarWidth: "thin" }}>
+                  <table className="table" style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
+                    <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "var(--color-surface-subtle, #f8fafc)" }}>
+                      <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
+                        <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "left", textTransform: "uppercase" }}>Tag Number</th>
+                        <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "left", textTransform: "uppercase" }}>Species</th>
+                        <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "left", textTransform: "uppercase" }}>Sex</th>
+                        <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "left", textTransform: "uppercase" }}>Breed</th>
+                        <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "center", textTransform: "uppercase" }}>Weight</th>
+                        <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "right", textTransform: "uppercase" }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {getOwnerAnimals(detailModalOwner).map((a) => (
-                        <tr key={a.id || a.tag_number}>
-                          <td style={{ padding: "8px 12px", fontWeight: 700, fontFamily: "monospace" }}>
-                            {a.tag_number || a.id}
-                          </td>
-                          <td style={{ padding: "8px 12px" }}>
-                            <span>{a.species || "—"}</span>
-                          </td>
-                          <td style={{ padding: "8px 12px", fontWeight: 600 }}>
-                            {formatSex(a.sex)}
-                          </td>
-                          <td style={{ padding: "8px 12px", color: "var(--color-text-muted)" }}>
-                            {a.breed || "Standard"}
-                          </td>
-                          <td style={{ padding: "8px 12px", textAlign: "center" }}>
-                            {a.weight ? `${a.weight} kg` : "Pending scale"}
-                          </td>
-                          <td style={{ padding: "8px 12px", textAlign: "right" }}>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                padding: "2px 8px",
-                                borderRadius: 6,
-                                fontSize: 11,
-                                fontWeight: 700,
-                                background: "rgba(16, 185, 129, 0.12)",
-                                color: "#10b981",
-                              }}
-                            >
-                              {a.status || a.health_status || "Registered"}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
+                      {getOwnerAnimals(detailModalOwner).map((a, idx) => {
+                        const stStyle = getLivestockStatusStyle(a.status || a.health_status);
+                        return (
+                          <tr
+                            key={a.id || a.tag_number || idx}
+                            style={{
+                              borderBottom: "1px solid var(--color-border, #f1f5f9)",
+                              background: idx % 2 === 0 ? "transparent" : "var(--color-surface-subtle, #fcfcfc)",
+                            }}
+                          >
+                            <td style={{ padding: "9px 12px", fontWeight: 700, fontFamily: "monospace", color: "var(--color-text)" }}>
+                              {a.tag_number || a.id}
+                            </td>
+                            <td style={{ padding: "9px 12px", color: "var(--color-text)" }}>
+                              {a.species || "—"}
+                            </td>
+                            <td style={{ padding: "9px 12px", fontWeight: 600, color: "var(--color-text)" }}>
+                              {formatSex(a.sex)}
+                            </td>
+                            <td style={{ padding: "9px 12px", color: "var(--color-text-muted)" }}>
+                              {a.breed || "Standard"}
+                            </td>
+                            <td style={{ padding: "9px 12px", textAlign: "center", fontWeight: a.weight ? 700 : 500, color: a.weight ? "var(--color-text)" : "var(--color-text-muted)" }}>
+                              {a.weight ? `${a.weight} kg` : "Pending scale"}
+                            </td>
+                            <td style={{ padding: "9px 12px", textAlign: "right" }}>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "3px 8px",
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  lineHeight: 1.25,
+                                  maxWidth: 180,
+                                  whiteSpace: "normal",
+                                  wordBreak: "break-word",
+                                  ...stStyle,
+                                }}
+                              >
+                                {a.status || a.health_status || "Registered"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               )}
             </div>
 
-            {/* Modal Actions Footer */}
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6, paddingTop: 12, borderTop: "1px solid var(--color-border)" }}>
+            {/* Modal Actions Footer: Read-only inspection, clean Close button */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                marginTop: 6,
+                paddingTop: 14,
+                borderTop: "1px solid var(--color-border)",
+              }}
+            >
               <Button
-                onClick={() => {
-                  const targetOwner = detailModalOwner;
-                  setDetailModalOwner(null);
-                  handleRegisterLivestock(targetOwner);
-                }}
-                disabled={detailModalOwner?.status === "Rejected"}
+                onClick={() => setDetailModalOwner(null)}
+                variant="outline"
+                size="sm"
                 style={{
-                  background: detailModalOwner?.status === "Rejected" ? "var(--color-border)" : "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                  color: detailModalOwner?.status === "Rejected" ? "var(--color-text-muted)" : "#ffffff",
+                  minWidth: 100,
+                  height: 38,
                   fontWeight: 700,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
+                  borderRadius: 8,
+                  fontSize: 13,
                 }}
               >
-                <Icon.Plus size={15} /> Register Incoming Livestock
-              </Button>
-              <Button onClick={() => setDetailModalOwner(null)} variant="outline" size="sm">
                 Close
               </Button>
             </div>

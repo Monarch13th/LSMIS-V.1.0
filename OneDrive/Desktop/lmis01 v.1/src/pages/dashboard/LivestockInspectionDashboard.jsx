@@ -1079,7 +1079,7 @@ export const LivestockInspectionDashboard = () => {
                       <th>Arrival Time</th>
                       <th>Health Status</th>
                       <th>Operational Stage</th>
-                      <th style={{ textAlign: "right" }}>Actions</th>
+                      <th className="table-action-th">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1129,17 +1129,21 @@ export const LivestockInspectionDashboard = () => {
                               {animal.workflow_stage}
                             </span>
                           </td>
-                          <td style={{ textAlign: "right" }}>
-                            <button
-                              className="lid-action-btn"
-                              style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenDetail(animal, "Livestock Record");
-                              }}
-                            >
-                              Details →
-                            </button>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDetail(animal, "Livestock Record");
+                                }}
+                                title="View Livestock Record"
+                              >
+                                <Icon.Eye size={13} />
+                                <span>Details</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -1219,7 +1223,7 @@ export const LivestockInspectionDashboard = () => {
                           <th>Temp</th>
                           <th>Clinical Findings</th>
                           <th>Decision</th>
-                          <th style={{ textAlign: "right" }}>Actions</th>
+                          <th className="table-action-th">ACTIONS</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1265,17 +1269,21 @@ export const LivestockInspectionDashboard = () => {
                                 </span>
                               </td>
                               <td>{renderStatusBadge(item.decision)}</td>
-                              <td style={{ textAlign: "right" }}>
-                                <button
-                                  className="lid-action-btn"
-                                  style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenDetail(item, "Ante-Mortem Inspection Certificate");
-                                  }}
-                                >
-                                  View Cert →
-                                </button>
+                              <td className="table-action-td">
+                                <div className="table-action-group">
+                                  <button
+                                    type="button"
+                                    className="action-btn action-btn-outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDetail(item, "Ante-Mortem Inspection Certificate");
+                                    }}
+                                    title="View Ante-Mortem Certificate"
+                                  >
+                                    <Icon.Eye size={13} />
+                                    <span>Details</span>
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
@@ -1315,7 +1323,7 @@ export const LivestockInspectionDashboard = () => {
                           <th>Meat Inspector</th>
                           <th>Viscera & Pathology</th>
                           <th>Disposition</th>
-                          <th style={{ textAlign: "right" }}>Actions</th>
+                          <th className="table-action-th">ACTIONS</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1350,17 +1358,21 @@ export const LivestockInspectionDashboard = () => {
                                 </span>
                               </td>
                               <td>{renderStatusBadge(item.decision)}</td>
-                              <td style={{ textAlign: "right" }}>
-                                <button
-                                  className="lid-action-btn"
-                                  style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleOpenDetail(item, "Post-Mortem Carcass Certificate");
-                                  }}
-                                >
-                                  View Cert →
-                                </button>
+                              <td className="table-action-td">
+                                <div className="table-action-group">
+                                  <button
+                                    type="button"
+                                    className="action-btn action-btn-outline"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDetail(item, "Post-Mortem Carcass Certificate");
+                                    }}
+                                    title="View Post-Mortem Certificate"
+                                  >
+                                    <Icon.Eye size={13} />
+                                    <span>View Cert</span>
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))
@@ -1402,7 +1414,7 @@ export const LivestockInspectionDashboard = () => {
                       <th>Destination</th>
                       <th>Carrier Plate</th>
                       <th>Validity Status</th>
-                      <th style={{ textAlign: "right" }}>Actions</th>
+                      <th className="table-action-th">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1441,17 +1453,21 @@ export const LivestockInspectionDashboard = () => {
                             {permit.carrier_plate}
                           </td>
                           <td>{renderStatusBadge(permit.validity)}</td>
-                          <td style={{ textAlign: "right" }}>
-                            <button
-                              className="lid-action-btn"
-                              style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenDetail(permit, "Regulatory Permit");
-                              }}
-                            >
-                              Verify →
-                            </button>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDetail(permit, "Regulatory Permit");
+                                }}
+                                title="Verify Regulatory Permit"
+                              >
+                                <Icon.CheckCircle size={13} />
+                                <span>Verify</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -1491,7 +1507,7 @@ export const LivestockInspectionDashboard = () => {
                       <th>Date / Time</th>
                       <th>Cashier Staff</th>
                       <th>Payment Status</th>
-                      <th style={{ textAlign: "right" }}>Actions</th>
+                      <th className="table-action-th">ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1532,17 +1548,21 @@ export const LivestockInspectionDashboard = () => {
                           </td>
                           <td>{p.cashier}</td>
                           <td>{renderStatusBadge(p.status)}</td>
-                          <td style={{ textAlign: "right" }}>
-                            <button
-                              className="lid-action-btn"
-                              style={{ padding: "0.3rem 0.65rem", fontSize: "0.75rem" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleOpenDetail(p, "Permit Fee Record");
-                              }}
-                            >
-                              Receipt →
-                            </button>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenDetail(p, "Permit Fee Record");
+                                }}
+                                title="View Official Receipt"
+                              >
+                                <Icon.FileText size={13} />
+                                <span>Receipt</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))

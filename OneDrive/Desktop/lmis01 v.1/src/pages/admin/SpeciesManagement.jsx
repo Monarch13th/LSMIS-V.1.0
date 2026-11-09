@@ -590,8 +590,8 @@ export const SpeciesManagement = () => {
                 <th style={{ padding: "12px 16px", textAlign: "left", fontSize: "0.8rem", textTransform: "uppercase", color: "var(--color-text-muted)", width: "130px" }}>
                   Date Added
                 </th>
-                <th style={{ padding: "12px 16px", textAlign: "center", fontSize: "0.8rem", textTransform: "uppercase", color: "var(--color-text-muted)", width: "230px" }}>
-                  Actions
+                <th className="table-action-th" style={{ width: "220px" }}>
+                  ACTIONS
                 </th>
               </tr>
             </thead>
@@ -724,15 +724,15 @@ export const SpeciesManagement = () => {
                     </td>
 
                     {/* Actions: View, Edit, Activate/Deactivate */}
-                    <td style={{ padding: "12px 16px", textAlign: "center" }}>
+                    <td className="table-action-td">
                       <div
                         onClick={(e) => e.stopPropagation()}
-                        style={{ display: "inline-flex", justifyContent: "center", alignItems: "center", gap: 6 }}
+                        className="table-action-group"
                       >
                         {/* Edit Button */}
                         <button
                           type="button"
-                          className="btn btn-outline btn-sm"
+                          className="action-btn action-btn-outline"
                           onClick={() => handleOpenEditModal(spec)}
                           title="Edit species"
                         >
@@ -744,21 +744,21 @@ export const SpeciesManagement = () => {
                         {isActive ? (
                           <button
                             type="button"
-                            className="btn btn-danger btn-sm"
+                            className="action-btn action-btn-soft-danger"
                             onClick={() => setConfirmStatusToggle(spec)}
                             title="Deactivate species (hide from new intake)"
                           >
-                            <Icon.XCircle size={13} />
+                            <Icon.XCircle size={14} style={{ color: "#dc2626" }} />
                             <span>Deactivate</span>
                           </button>
                         ) : (
                           <button
                             type="button"
-                            className="btn btn-success btn-sm"
+                            className="action-btn action-btn-soft-success"
                             onClick={() => setConfirmStatusToggle(spec)}
                             title="Activate species"
                           >
-                            <Icon.CheckCircle size={13} />
+                            <Icon.CheckCircle size={14} style={{ color: "#16a34a" }} />
                             <span>Activate</span>
                           </button>
                         )}

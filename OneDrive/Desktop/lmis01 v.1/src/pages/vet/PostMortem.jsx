@@ -431,7 +431,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     const cleanTag = rawTag.toLowerCase();
     const livestockId = String(insp.livestock_id || insp.id || "").trim();
     const baseTag = cleanTag.replace(/[-_][0-9a-z]$/i, "");
-    
+
     // Tag digits (e.g. "010" from "TAG-010-HOG")
     const numMatch = cleanTag.match(/\b\d{2,4}\b/) || cleanTag.match(/tag-(\d+)/i) || cleanTag.match(/(\d{2,})/);
     const tagNum = numMatch ? numMatch[1] : null;
@@ -605,16 +605,16 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
 
     const l = (livestock || []).find(
       (a) => (cleanTag && String(a.tag_number || "").trim().toLowerCase() === cleanTag) ||
-             (livestockId && String(a.id || "").trim() === livestockId) ||
-             (baseTag && String(a.tag_number || "").trim().toLowerCase() === baseTag)
+        (livestockId && String(a.id || "").trim() === livestockId) ||
+        (baseTag && String(a.tag_number || "").trim().toLowerCase() === baseTag)
     );
     const p = (processing || []).find(
       (a) => (cleanTag && String(a.tag_number || "").trim().toLowerCase() === cleanTag) ||
-             (livestockId && String(a.id || "").trim() === livestockId)
+        (livestockId && String(a.id || "").trim() === livestockId)
     );
     const s = (slaughter || []).find(
       (a) => (cleanTag && String(a.tag_number || "").trim().toLowerCase() === cleanTag) ||
-             (livestockId && String(a.id || a.livestock_id || "").trim() === livestockId)
+        (livestockId && String(a.id || a.livestock_id || "").trim() === livestockId)
     );
     const resolvedOwner = resolveOwnerName(insp);
     const baseAnimal = l || p || s || insp.animal || {};
@@ -904,8 +904,8 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       const records = Array.isArray(payload)
         ? payload
         : payload?.records && Array.isArray(payload.records)
-        ? payload.records
-        : null;
+          ? payload.records
+          : null;
 
       const failedTags = [];
       const succeededTags = [];
@@ -1007,9 +1007,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         const statusMessage = isPartial
           ? `Passed with Partial Condemnation (${payload.condemned_parts?.length || 1} cuts recorded). Carcass proceeds to Carcass Weighing!`
           : isApproved
-          ? "Passed & Fit for Food. Carcass proceeds to Carcass Weighing!"
-          : "Whole Carcass Condemned (Will not proceed to weighing).";
-        
+            ? "Passed & Fit for Food. Carcass proceeds to Carcass Weighing!"
+            : "Whole Carcass Condemned (Will not proceed to weighing).";
+
         const successMsg = `Successfully recorded and certified Post-Mortem carcass inspection for ${succeededTags.length} carcass(es)! ${statusMessage}`;
 
         if (batchRes.failedTags.length > 0) {
@@ -1084,9 +1084,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     const condemnedCuts = (insp.condemned_parts && insp.condemned_parts.length > 0)
       ? insp.condemned_parts
       : (condemnedRecords || []).filter((c) =>
-          matchesStage(c, "Post-Mortem") &&
-          String(c.tag_number || "").split(",").map((t) => t.trim()).includes(condTag)
-        );
+        matchesStage(c, "Post-Mortem") &&
+        String(c.tag_number || "").split(",").map((t) => t.trim()).includes(condTag)
+      );
 
     const html = `
       <!DOCTYPE html>
@@ -1260,11 +1260,11 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
 
           <p class="body-text">
             ${isPartial
-              ? `The main carcass of the aforementioned animal was examined and verified wholesome and fit for human food, following the mandatory safe excision and sanitary condemnation of non-conforming cut(s): <strong>${condemnedCuts.map((c) => `${c.part || "Part"} (${c.weight_kg ? `${c.weight_kg} kg` : c.quantity})`).join(", ") || "specified parts"}</strong> in strict compliance with NMIS regulations.`
-              : isCondemned
-              ? `The carcass and offal of the aforementioned animal exhibited generalized pathology or infectious lesion and was formally condemned in its entirety as unfit for human consumption.`
-              : `The said livestock / carcass showed no lesions, symptoms, or indications of infectious, zoonotic, or contagious disease and is hereby declared and certified as:`
-            }
+        ? `The main carcass of the aforementioned animal was examined and verified wholesome and fit for human food, following the mandatory safe excision and sanitary condemnation of non-conforming cut(s): <strong>${condemnedCuts.map((c) => `${c.part || "Part"} (${c.weight_kg ? `${c.weight_kg} kg` : c.quantity})`).join(", ") || "specified parts"}</strong> in strict compliance with NMIS regulations.`
+        : isCondemned
+          ? `The carcass and offal of the aforementioned animal exhibited generalized pathology or infectious lesion and was formally condemned in its entirety as unfit for human consumption.`
+          : `The said livestock / carcass showed no lesions, symptoms, or indications of infectious, zoonotic, or contagious disease and is hereby declared and certified as:`
+      }
           </p>
 
           <div class="stamp-text" style="color: ${isCondemned ? '#dc2626' : isPartial ? '#0284c7' : '#0f172a'};">
@@ -1580,7 +1580,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Species</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "center", background: "var(--color-bg)" }}>Total Carcasses</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Result / Decision</th>
-                    <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>Action</th>
+                    <th className="table-action-th">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1710,26 +1710,18 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                       </td>
 
                       {/* Action */}
-                      <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedOwnerKey(grp.key)}
-                          style={{
-                            height: 32,
-                            padding: "6px 12px",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            background: "var(--color-surface)",
-                            border: "1px solid var(--color-border)",
-                            color: "var(--color-text)",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                          }}
-                        >
-                          <Icon.Eye size={13} /> View
-                        </Button>
+                      <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                        <div className="table-action-group">
+                          <button
+                            type="button"
+                            className="action-btn action-btn-outline"
+                            onClick={() => setSelectedOwnerKey(grp.key)}
+                            title="View Owner Records"
+                          >
+                            <Icon.Eye size={13} />
+                            <span>View</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1758,7 +1750,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Species</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "center", background: "var(--color-bg)" }}>Total Carcasses</th>
                     <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", background: "var(--color-bg)" }}>Status</th>
-                    <th style={{ padding: "12px 16px", fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-muted)", textAlign: "right", background: "var(--color-bg)" }}>Action</th>
+                    <th className="table-action-th">ACTIONS</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1853,44 +1845,26 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </td>
 
                         {/* Action */}
-                        <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-                            <Button
-                              size="sm"
-                              variant="outline"
+                        <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                          <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-outline"
                               onClick={() => setSelectedOwnerKey(grp.key)}
-                              style={{
-                                height: 32,
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "var(--color-surface)",
-                                border: "1px solid var(--color-border)",
-                                color: "var(--color-text)",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                              }}
+                              title="View Owner Records"
                             >
-                              <Icon.Eye size={13} /> View
-                            </Button>
-                            <Button
-                              size="sm"
+                              <Icon.Eye size={13} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="action-btn action-btn-purple"
                               onClick={() => handleOpenModal(allTags)}
-                              style={{
-                                height: 32,
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
-                                color: "#ffffff",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                              }}
+                              title="Inspect all carcasses in this batch"
                             >
-                              <Icon.Activity size={13} /> Inspect Batch
-                            </Button>
+                              <Icon.Activity size={13} />
+                              <span>Inspect Batch</span>
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -1901,7 +1875,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             </div>
           )
         )}
-        
+
         {/* Pagination Footer */}
         {false && currentDataset.length > 0 && (
           <div
@@ -2002,7 +1976,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         )}
       </div>
 
-            {/* Standardized Dedicated Owner Records Modal */}
+      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -2071,12 +2045,12 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
                       <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
                       <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Inspected</th>
+                      <th style={{ width: "8%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Date Inspected</th>
                       <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Findings / Lesions</th>
-                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Inspector</th>
-                      <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Decision</th>
-                      <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Actions</th>
+                      <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Inspector</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Decision</th>
+                      <th className="table-action-th" style={{ width: "14%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2142,9 +2116,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               const postParts = (i.condemned_parts && i.condemned_parts.length > 0)
                                 ? i.condemned_parts
                                 : (condemnedRecords || []).filter((c) =>
-                                    matchesStage(c, "Post-Mortem") &&
-                                    String(c.tag_number || "").split(",").map((t) => t.trim()).includes(inspectionTag)
-                                  );
+                                  matchesStage(c, "Post-Mortem") &&
+                                  String(c.tag_number || "").split(",").map((t) => t.trim()).includes(inspectionTag)
+                                );
                               if (!postParts || postParts.length === 0) return null;
                               const totalW = postParts.reduce((s, p) => s + (parseFloat(p.weight_kg || p.quantity) || 0), 0);
                               const chipLabel = isPartial
@@ -2159,35 +2133,27 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               );
                             })()}
                           </td>
-                          <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                            <div className="actions" style={{ justifyContent: "flex-end", gap: 6, flexWrap: "nowrap" }}>
+                          <td className="table-action-td">
+                            <div className="table-action-group">
                               <button
                                 type="button"
-                                className="icon-btn"
+                                className="action-btn action-btn-outline"
                                 onClick={() => setSelectedInspection({ ...i, animal, owner_name: resolvedOwner })}
                                 title="View Official Inspection Details"
                                 aria-label="View Details"
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 7,
-                                  border: "1px solid var(--color-border)",
-                                  background: "var(--color-surface)",
-                                  color: "#8b5cf6",
-                                  cursor: "pointer",
-                                }}
                               >
-                                <Icon.Eye size={14} />
+                                <Icon.Eye size={13} />
+                                <span>View</span>
                               </button>
                               <button
                                 type="button"
-                                className="icon-btn danger"
+                                className="action-btn action-btn-danger"
                                 onClick={() => setConfirmDel(i)}
                                 title="Delete record"
                                 aria-label="Delete"
-                                style={{ width: 32, height: 32, borderRadius: 7, cursor: "pointer" }}
                               >
                                 <Icon.Trash size={13} />
+                                <span>Delete</span>
                               </button>
                             </div>
                           </td>
@@ -2202,13 +2168,13 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Operator</th>
-                      <th style={{ width: "19%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Completed Time</th>
-                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Processing Status</th>
-                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                      <th style={{ width: "8%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Operator</th>
+                      <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Completed Time</th>
+                      <th style={{ width: "17%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Processing Status</th>
+                      <th className="table-action-th" style={{ width: "18%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2258,28 +2224,21 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                             Slaughter Completed - Ready for Vet
                           </span>
                         </td>
-                        <td style={{ padding: "12px 14px", textAlign: "right", whiteSpace: "nowrap" }}>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelectedOwnerKey(null);
-                              handleOpenModal(item.tag_number);
-                            }}
-                            style={{
-                              height: 32,
-                              padding: "5px 12px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
-                              color: "#ffffff",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 5,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            <Icon.Activity size={13} /> Inspect Carcass
-                          </Button>
+                        <td className="table-action-td">
+                          <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-purple"
+                              onClick={() => {
+                                setSelectedOwnerKey(null);
+                                handleOpenModal(item.tag_number);
+                              }}
+                              title={`Inspect carcass ${item.tag_number}`}
+                            >
+                              <Icon.Activity size={13} />
+                              <span>Inspect Carcass</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -2291,7 +2250,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         )}
       </Modal>
 
-{/* New Post-Mortem Inspection Modal */}
+      {/* New Post-Mortem Inspection Modal */}
       <Modal
         open={modalOpen}
         onClose={() => { setModalOpen(false); setTargetTagForModal(""); setModalSuccessAlert(null); setPostDecision("Approved"); }}
@@ -2449,6 +2408,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           livestock={awaitingCarcasses}
           initialTag={targetTagForModal}
           onSubmit={save}
+          onSuccess={() => { setModalOpen(false); setTargetTagForModal(""); setModalSuccessAlert(null); setPostDecision("Approved"); }}
           onCancel={() => { setModalOpen(false); setTargetTagForModal(""); setModalSuccessAlert(null); setPostDecision("Approved"); }}
         />
       </Modal>

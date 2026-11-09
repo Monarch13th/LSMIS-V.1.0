@@ -459,6 +459,238 @@ export const getEvidenceSpecies = (ev, allCondemnedList, livestock = []) => {
 };
 
 /**
+ * Extracts complete, accurate condemnation parts and quantities for a record
+ * directly from real Supabase data (condemnation_records, post_mortem_inspections, ante_mortem_inspections).
+ * Distinguishes fully condemned from partially condemned records and preserves every individual rejected part.
+ */
+export const getCondemnationRecordParts = ({
+  record,
+  stage = "Post-Mortem",
+  ante = [],
+  post = [],
+  livestock = [],
+  condemned = [],
+  postCuts = [],
+}) => {
+  const cleanTag = String(record?.tag_number || "").trim().toLowerCase();
+  const cleanId = String(record?.livestock_id || "").trim();
+
+  // Find source matches across tables
+  const matchedAnimal = (livestock || []).find((l) => {
+    const lId = String(l.id || "").trim();
+    const lTag = String(l.tag_number || "").trim().toLowerCase();
+    return (cleanId && lId === cleanId) || (cleanTag && lTag === cleanTag);
+  });
+  const matchedAnte = (ante || []).find((a) => {
+    const aTag = String(a.tag_number || "").trim().toLowerCase();
+    const aId = String(a.livestock_id || "").trim();
+    return (cleanTag && aTag === cleanTag) || (cleanId && aId === cleanId);
+  });
+  const matchedPost = (post || []).find((p) => {
+    const pTag = String(p.tag_number || "").trim().toLowerCase();
+    const pId = String(p.livestock_id || "").trim();
+    return (cleanTag && pTag === cleanTag) || (cleanId && pId === cleanId);
+  });
+
+  const effStage =
+    record?.inspection_type ||
+    stage ||
+    (matchedAnte && !matchedPost ? "Ante-Mortem" : "Post-Mortem");
+
+  const matchedCondemnedRows = (condemned || []).filter((c) => {
+    if (!cleanTag) return false;
+    return (
+      String(c.tag_number || "").trim().toLowerCase() === cleanTag &&
+      matchesStage(c, effStage)
+    );
+  });
+
+  // 1. Ante-Mortem condemnation: always Whole Animal
+  const isAnte =
+    effStage === "Ante-Mortem" ||
+    (!matchedPost && matchedAnte) ||
+    matchedCondemnedRows.some((c) => c.part === "Live Animal");
+
+  if (isAnte) {
+    const reason =
+      matchedAnte?.reason ||
+      matchedAnte?.findings ||
+      matchedCondemnedRows[0]?.reason ||
+      record?.reason ||
+      record?.notes ||
+      "Unfit for slaughter";
+    const liveWeight =
+      matchedAnte?.live_weight ||
+      matchedAnimal?.live_weight ||
+      matchedAnimal?.weight ||
+      matchedCondemnedRows[0]?.weight_kg;
+    const qtyStr = liveWeight ? `1 Head (${liveWeight} kg)` : "1 Head";
+
+    return {
+      scope: "whole",
+      stage: "Ante-Mortem",
+      scopeLabel: "Ante-Mortem · Whole Animal Condemnation",
+      cardBadgeLabel: "Whole Animal Condemnation",
+      totalParts: 1,
+      isWhole: true,
+      parts: [
+        {
+          id: matchedCondemnedRows[0]?.id || "ante-whole",
+          part: "Live Animal (Whole)",
+          location: matchedCondemnedRows[0]?.location || "",
+          quantity: matchedCondemnedRows[0]?.quantity || qtyStr,
+          weight: liveWeight ? `${liveWeight} kg` : "",
+          reason: String(reason).replace(/^Condemned:\s*/i, "").trim(),
+          disposition: "Condemned / Rendered",
+        },
+      ],
+    };
+  }
+
+  // 2. Post-Mortem: check if Whole Carcass Condemnation
+  const postDecision = String(matchedPost?.decision || "").trim().toLowerCase();
+  const isWholeCarcass =
+    postDecision.includes("whole") ||
+    postDecision === "condemned" ||
+    postDecision === "rejected" ||
+    matchedCondemnedRows.some(
+      (c) => c.part === "Whole Carcass" || c.part === "Entire Carcass"
+    ) ||
+    record?.part === "Whole Carcass" ||
+    record?.part === "Entire Carcass";
+
+  if (isWholeCarcass) {
+    const carcassWeight =
+      matchedPost?.carcass_weight ||
+      matchedAnimal?.carcass_weight ||
+      matchedCondemnedRows[0]?.weight_kg;
+    const qtyStr = carcassWeight ? `${carcassWeight} kg` : "Whole Carcass";
+    const reason =
+      matchedPost?.findings ||
+      matchedPost?.remarks ||
+      matchedCondemnedRows[0]?.reason ||
+      record?.reason ||
+      record?.notes ||
+      "Whole Carcass Condemnation";
+
+    return {
+      scope: "whole",
+      stage: "Post-Mortem",
+      scopeLabel: "Post-Mortem · Whole Carcass Condemnation",
+      cardBadgeLabel: "Whole Carcass Condemnation",
+      totalParts: 1,
+      isWhole: true,
+      parts: [
+        {
+          id: matchedCondemnedRows[0]?.id || "post-whole",
+          part: "Whole Carcass",
+          location: matchedCondemnedRows[0]?.location || "",
+          quantity: matchedCondemnedRows[0]?.quantity || qtyStr,
+          weight: carcassWeight ? `${carcassWeight} kg` : "",
+          reason: String(reason).replace(/^Whole Carcass Condemned:\s*/i, "").trim(),
+          disposition: "Condemned / Rendered",
+        },
+      ],
+    };
+  }
+
+  // 3. Partial Condemnation: Extract EVERY individual rejected part separately
+  const parts = [];
+
+  // Source A: post_mortem_inspections.condemned_parts JSON array
+  if (Array.isArray(matchedPost?.condemned_parts) && matchedPost.condemned_parts.length > 0) {
+    matchedPost.condemned_parts.forEach((cp, idx) => {
+      const pName = cp.part || cp.name || "Excised Cut";
+      const loc = cp.specific_part || cp.location || cp.carcass_area || "";
+      const wKg = parseFloat(cp.weight_kg ?? cp.weight);
+      const wStr = !isNaN(wKg) && wKg > 0 ? (wKg % 1 === 0 ? `${wKg} kg` : `${wKg.toFixed(2)} kg`) : "";
+      const qty = cp.quantity || wStr || "1 pc";
+      const reason = cp.reason || cp.notes || "Condemned";
+      parts.push({
+        id: `cp-${idx}`,
+        part: pName,
+        location: loc,
+        quantity: qty,
+        weight: wStr,
+        reason: String(reason).replace(/^Part:\s*[^·]+·\s*/i, "").trim(),
+        disposition: cp.disposition || "Condemned / Rendered",
+      });
+    });
+  } else if (matchedCondemnedRows.length > 0) {
+    // Source B: condemnation_records matching rows
+    matchedCondemnedRows.forEach((cr, idx) => {
+      const pName = cr.part || "Excised Cut";
+      const loc = cr.location || "";
+      const wKg = parseFloat(cr.weight_kg);
+      const wStr = !isNaN(wKg) && wKg > 0 ? (wKg % 1 === 0 ? `${wKg} kg` : `${wKg.toFixed(2)} kg`) : "";
+      const qty = cr.quantity || wStr || "1 pc";
+      const reason = cr.reason || cr.findings || cr.notes || "Condemned";
+      parts.push({
+        id: cr.id || `cr-${idx}`,
+        part: pName,
+        location: loc,
+        quantity: qty,
+        weight: wStr,
+        reason: String(reason).replace(/^Part:\s*[^·]+·\s*/i, "").trim(),
+        disposition: cr.disposition || "Condemned / Rendered",
+      });
+    });
+  } else {
+    // Source C: post_mortem_condemned_cuts
+    const matchingCuts = (postCuts || []).filter(
+      (cut) => cleanTag && String(cut?.tag_number || "").trim().toLowerCase() === cleanTag
+    );
+    if (matchingCuts.length > 0) {
+      matchingCuts.forEach((cut, idx) => {
+        const pName = cut.part || "Excised Cut";
+        const loc = cut.location || "";
+        const wKg = parseFloat(cut.weight_kg);
+        const wStr = !isNaN(wKg) && wKg > 0 ? `${wKg} kg` : "";
+        const qty = cut.quantity || wStr || "1 pc";
+        parts.push({
+          id: cut.id || `cut-${idx}`,
+          part: pName,
+          location: loc,
+          quantity: qty,
+          weight: wStr,
+          reason: cut.reason || "Condemned",
+          disposition: cut.disposition || "Condemned / Rendered",
+        });
+      });
+    }
+  }
+
+  // Fallback if nothing matched
+  if (parts.length === 0 && (record?.part || record?.notes)) {
+    const pName = record.part || "Excised Cut";
+    const loc = record.location || "";
+    const wKg = parseFloat(record.weight_kg);
+    const wStr = !isNaN(wKg) && wKg > 0 ? `${wKg} kg` : "";
+    const qty = record.quantity || wStr || "1 pc";
+    parts.push({
+      id: record.id || "fallback-part",
+      part: pName,
+      location: loc,
+      quantity: qty,
+      weight: wStr,
+      reason: record.reason || record.notes || "Condemned",
+      disposition: "Condemned / Rendered",
+    });
+  }
+
+  const count = parts.length;
+  return {
+    scope: "partial",
+    stage: "Post-Mortem",
+    scopeLabel: `Post-Mortem · Partial Condemnation (${count} ${count === 1 ? "Part" : "Parts"})`,
+    cardBadgeLabel: `Partial · ${count} ${count === 1 ? "Part" : "Parts"} Condemned`,
+    totalParts: count,
+    isWhole: false,
+    parts,
+  };
+};
+
+/**
  * Builds the Condemnation Evidence repository for one inspection stage.
  *
  * Returns:

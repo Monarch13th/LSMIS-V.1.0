@@ -31,6 +31,7 @@ import {
   getEvidenceScope as getEvidenceScopeFor,
   getEvidencePartLabel as getEvidencePartLabelFor,
   getEvidenceSpecies as getEvidenceSpeciesFor,
+  getCondemnationRecordParts,
 } from "./condemnationEvidenceIndex";
 import {
   collectCondemnationEvidencePhotos,
@@ -59,13 +60,13 @@ export const AnimalInspectionHistory = () => {
   const animals = livestock.map((l) => {
     const ante = anteMortem.filter((a) => (a.livestock_id && a.livestock_id === l.id) || (a.tag_number === l.tag_number && (!a.livestock_id || l.status !== "Pending")));
     const post = postMortem.filter((p) => p.tag_number === l.tag_number);
-    const dis  = diseases.filter((d) => d.tag_number === l.tag_number);
-    const car  = carcass.find((c) => c.tag_number === l.tag_number);
+    const dis = diseases.filter((d) => d.tag_number === l.tag_number);
+    const car = carcass.find((c) => c.tag_number === l.tag_number);
     const lastAnte = ante.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
     const overallStatus = dis.some((d) => d.status === "Active") ? "Disease"
       : lastAnte?.decision === "Rejected" ? "Unfit"
-      : l.status === "Rejected" ? "Unfit"
-      : "Healthy";
+        : l.status === "Rejected" ? "Unfit"
+          : "Healthy";
     return { ...l, ante, post, dis, car, overallStatus };
   });
 
@@ -90,7 +91,7 @@ export const AnimalInspectionHistory = () => {
     return matchQ && matchSp && matchSt;
   });
 
-  const healthy  = animals.filter((a) => a.overallStatus === "Healthy").length;
+  const healthy = animals.filter((a) => a.overallStatus === "Healthy").length;
   const { condemned, partiallyCondemned } = useMemo(() => {
     const whole = new Set();
     const ante = new Set();
@@ -115,10 +116,12 @@ export const AnimalInspectionHistory = () => {
   const speciesList = [...new Set(livestock.map((l) => l.species).filter(Boolean))];
 
   const statusColor = (s) => s === "Healthy" ? "#10b981" : s === "Disease" ? "#f59e0b" : "#ef4444";
-  const statusBg    = (s) => s === "Healthy" ? "rgba(16,185,129,0.1)" : s === "Disease" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)";
+  const statusBg = (s) => s === "Healthy" ? "rgba(16,185,129,0.1)" : s === "Disease" ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)";
   const decisionBadge = (d) => (
-    <span style={{ fontSize: 12, fontWeight: 600,
-      color: d === "Approved" ? "#10b981" : "#ef4444" }}>{d}</span>
+    <span style={{
+      fontSize: 12, fontWeight: 600,
+      color: d === "Approved" ? "#10b981" : "#ef4444"
+    }}>{d}</span>
   );
 
   const TimelineEvent = ({ icon, title, detail, date, color, badge }) => (
@@ -272,8 +275,10 @@ export const AnimalInspectionHistory = () => {
                             title={`Disease: ${ev.disease || "Unknown"}`}
                             detail={`Severity: ${ev.severity || "—"} · Status: ${ev.status || "—"}`}
                             date={ev.created_at}
-                            badge={<span style={{ fontSize: 12, fontWeight: 600,
-                              color: ev.status === "Active" ? "#ef4444" : ev.status === "Monitoring" ? "#f59e0b" : "#10b981" }}>{ev.status}</span>}
+                            badge={<span style={{
+                              fontSize: 12, fontWeight: 600,
+                              color: ev.status === "Active" ? "#ef4444" : ev.status === "Monitoring" ? "#f59e0b" : "#10b981"
+                            }}>{ev.status}</span>}
                           />
                         ))}
                         {/* Carcass */}
@@ -338,7 +343,7 @@ export const CarcassInspection = () => {
 
   const eligibleAnimals = livestock.filter(
     (l) => processing.some((p) => p.tag_number === l.tag_number && p.status === "Completed") &&
-           !post.some((i) => i.tag_number === l.tag_number)
+      !post.some((i) => i.tag_number === l.tag_number)
   );
 
   return (
@@ -390,6 +395,7 @@ export const CarcassInspection = () => {
           type="Post-Mortem"
           livestock={eligibleAnimals}
           onSubmit={save}
+          onSuccess={() => { setModalOpen(false); setModalSuccessAlert(null); }}
           onCancel={() => { setModalOpen(false); setModalSuccessAlert(null); }}
         />
       </Modal>
@@ -423,7 +429,7 @@ export const OrganInspection = () => {
   // Group eligible animals by owner
   const eligibleGroups = [];
   const ownerToTags = {};
-  
+
   eligibleAnimals.forEach((l) => {
     const owner = l.owner_name || "Unknown Owner";
     if (!ownerToTags[owner]) {
@@ -797,24 +803,24 @@ export const resolveCondemnationTimestamp = ({
   const matchedCut =
     stage === "Post-Mortem"
       ? (postCuts || []).find((c) => {
-          const cTag = String(c?.tag_number || "").trim().toLowerCase();
-          const cId = String(c?.livestock_id || "").trim().toLowerCase();
-          return (cleanId && cId === cleanId) || (cleanTag && cTag === cleanTag);
-        })
+        const cTag = String(c?.tag_number || "").trim().toLowerCase();
+        const cId = String(c?.livestock_id || "").trim().toLowerCase();
+        return (cleanId && cId === cleanId) || (cleanTag && cTag === cleanTag);
+      })
       : null;
 
   const matchedInsp =
     stage === "Post-Mortem"
       ? (post || []).find((p) => {
-          const pTag = String(p?.tag_number || "").trim().toLowerCase();
-          const pId = String(p?.livestock_id || "").trim().toLowerCase();
-          return (cleanId && pId === cleanId) || (cleanTag && pTag === cleanTag);
-        })
+        const pTag = String(p?.tag_number || "").trim().toLowerCase();
+        const pId = String(p?.livestock_id || "").trim().toLowerCase();
+        return (cleanId && pId === cleanId) || (cleanTag && pTag === cleanTag);
+      })
       : (ante || []).find((a) => {
-          const aTag = String(a?.tag_number || "").trim().toLowerCase();
-          const aId = String(a?.livestock_id || "").trim().toLowerCase();
-          return (cleanId && aId === cleanId) || (cleanTag && aTag === cleanTag);
-        });
+        const aTag = String(a?.tag_number || "").trim().toLowerCase();
+        const aId = String(a?.livestock_id || "").trim().toLowerCase();
+        return (cleanId && aId === cleanId) || (cleanTag && aTag === cleanTag);
+      });
 
   const matchedCond = (condemned || []).find((c) => {
     const cTag = String(c?.tag_number || "").trim().toLowerCase();
@@ -837,22 +843,22 @@ export const resolveCondemnationTimestamp = ({
   const exactCandidates =
     stage === "Post-Mortem"
       ? [
-          !record?.is_synthetic ? record?.created_at : null,
-          matchedCut?.created_at,
-          matchedLs?.post_inspected_at,
-          matchedEv?.created_at,
-          matchedInsp?.created_at,
-          matchedCond?.created_at,
-          record?.created_at,
-        ]
+        !record?.is_synthetic ? record?.created_at : null,
+        matchedCut?.created_at,
+        matchedLs?.post_inspected_at,
+        matchedEv?.created_at,
+        matchedInsp?.created_at,
+        matchedCond?.created_at,
+        record?.created_at,
+      ]
       : [
-          !record?.is_synthetic ? record?.created_at : null,
-          matchedLs?.ante_inspected_at,
-          matchedEv?.created_at,
-          matchedInsp?.created_at,
-          matchedCond?.created_at,
-          record?.created_at,
-        ];
+        !record?.is_synthetic ? record?.created_at : null,
+        matchedLs?.ante_inspected_at,
+        matchedEv?.created_at,
+        matchedInsp?.created_at,
+        matchedCond?.created_at,
+        record?.created_at,
+      ];
 
   const exactMatch = exactCandidates.find((c) => c && hasExactTime(c));
   if (exactMatch) return exactMatch;
@@ -2069,15 +2075,15 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   {scopeFilter === "partial"
                     ? "No Partial Condemnation records found"
                     : scopeFilter === "whole"
-                    ? "No Whole Carcass Condemnation records found"
-                    : "No condemnation records"}
+                      ? "No Whole Carcass Condemnation records found"
+                      : "No condemnation records"}
                 </div>
                 <div className="empty-state-msg">
                   {scopeFilter === "partial"
                     ? "Excised cuts and organs from partial condemnations will appear here"
                     : scopeFilter === "whole"
-                    ? "Entire carcasses condemned during post-mortem will appear here"
-                    : "All condemned cuts and livestock from inspections will appear here"}
+                      ? "Entire carcasses condemned during post-mortem will appear here"
+                      : "All condemned cuts and livestock from inspections will appear here"}
                 </div>
               </div>
             ) : (
@@ -2136,8 +2142,8 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                       <th style={{ padding: "12px 14px", fontWeight: 700, fontSize: 11, letterSpacing: "0.05em", color: "var(--color-text-muted)", textTransform: "uppercase", whiteSpace: "nowrap", width: 100 }}>
                         DATE
                       </th>
-                      <th style={{ padding: "12px 14px", paddingRight: 20, fontWeight: 700, fontSize: 11, letterSpacing: "0.05em", color: "var(--color-text-muted)", textTransform: "uppercase", textAlign: "right", whiteSpace: "nowrap", width: 85 }}>
-                        ACTION
+                      <th className="table-action-th" style={{ width: 140 }}>
+                        ACTIONS
                       </th>
                     </tr>
                   </thead>
@@ -2422,42 +2428,26 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                           </td>
 
                           {/* ACTIONS */}
-                          <td style={{ padding: "12px 14px", paddingRight: 20, textAlign: "right", whiteSpace: "nowrap" }}>
-                            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, justifyContent: "flex-end" }}>
-                              <Button
-                                size="sm"
-                                variant="outline"
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
                                 onClick={() => setViewRec(r)}
-                                style={{
-                                  height: 32,
-                                  padding: "4px 9px",
-                                  fontSize: 12,
-                                  fontWeight: 600,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                }}
+                                title="View inspection details"
                               >
-                                <Icon.Eye size={13} /> View
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
+                                <Icon.Eye size={13} />
+                                <span>View</span>
+                              </button>
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
                                 onClick={() => handleOpenEdit(r)}
-                                style={{
-                                  height: 32,
-                                  padding: "4px 9px",
-                                  fontSize: 12,
-                                  fontWeight: 600,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 4,
-                                  color: "#0284c7",
-                                  borderColor: "#bae6fd",
-                                }}
+                                title="Edit inspection details"
                               >
-                                <Icon.Edit size={13} /> Edit
-                              </Button>
+                                <Icon.Edit size={13} />
+                                <span>Edit</span>
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -3441,7 +3431,7 @@ export const DisposalRecords = ({ type }) => {
                   <th>Witness</th>
                   <th>Date</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th className="table-action-th">ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -3456,10 +3446,18 @@ export const DisposalRecords = ({ type }) => {
                     <td>
                       <span className={`badge ${r.status === "Completed" ? "badge-approved" : "badge-pending"}`}>{r.status}</span>
                     </td>
-                    <td>
-                      <Button size="sm" variant="outline" onClick={() => setViewRec(r)} style={{ height: 32, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                        <Icon.Eye size={13} /> View
-                      </Button>
+                    <td className="table-action-td">
+                      <div className="table-action-group">
+                        <button
+                          type="button"
+                          className="action-btn action-btn-outline"
+                          onClick={() => setViewRec(r)}
+                          title="View disposal details"
+                        >
+                          <Icon.Eye size={13} />
+                          <span>View</span>
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -4566,12 +4564,12 @@ export const EvidenceUpload = ({
                   {searchEv
                     ? `No evidence matching "${searchEv}"`
                     : evidenceScopeFilter === "partial"
-                    ? "No partial condemnation photos found"
-                    : evidenceScopeFilter === "whole"
-                    ? "No whole carcass condemnation photos found"
-                    : filterSpecies !== "all"
-                    ? `No evidence documents found for ${filterSpecies}`
-                    : "No evidence documents found"}
+                      ? "No partial condemnation photos found"
+                      : evidenceScopeFilter === "whole"
+                        ? "No whole carcass condemnation photos found"
+                        : filterSpecies !== "all"
+                          ? `No evidence documents found for ${filterSpecies}`
+                          : "No evidence documents found"}
                 </p>
                 <span style={{ fontSize: "12px", color: "var(--color-text-muted)", marginTop: 4 }}>
                   {searchEv
@@ -4614,8 +4612,8 @@ export const EvidenceUpload = ({
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>
                         Status / Scope
                       </th>
-                      <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>
-                        Action
+                      <th className="table-action-th">
+                        ACTIONS
                       </th>
                     </tr>
                   </thead>
@@ -4790,26 +4788,18 @@ export const EvidenceUpload = ({
                           </td>
 
                           {/* Action */}
-                          <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedOwnerKey(grp.key)}
-                              style={{
-                                height: 32,
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "var(--color-surface)",
-                                border: "1px solid var(--color-border)",
-                                color: "var(--color-text)",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                              }}
-                            >
-                              <Icon.Eye size={13} /> View
-                            </Button>
+                          <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={() => setSelectedOwnerKey(grp.key)}
+                                title="View Details"
+                              >
+                                <Icon.Eye size={13} />
+                                <span>View</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -4947,12 +4937,12 @@ export const EvidenceUpload = ({
                   {searchEv
                     ? `No evidence matching "${searchEv}"`
                     : evidenceScopeFilter === "partial"
-                    ? "No partial condemnation photos found"
-                    : evidenceScopeFilter === "whole"
-                    ? "No whole carcass condemnation photos found"
-                    : filterSpecies !== "all"
-                    ? `No evidence documents found for ${filterSpecies}`
-                    : "No evidence documents found"}
+                      ? "No partial condemnation photos found"
+                      : evidenceScopeFilter === "whole"
+                        ? "No whole carcass condemnation photos found"
+                        : filterSpecies !== "all"
+                          ? `No evidence documents found for ${filterSpecies}`
+                          : "No evidence documents found"}
                 </p>
                 <span style={{ fontSize: "12px", color: "var(--color-text-muted)", marginTop: 4 }}>
                   {searchEv
@@ -4995,8 +4985,8 @@ export const EvidenceUpload = ({
                       <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>
                         Status / Scope
                       </th>
-                      <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>
-                        Action
+                      <th className="table-action-th">
+                        ACTIONS
                       </th>
                     </tr>
                   </thead>
@@ -5171,26 +5161,18 @@ export const EvidenceUpload = ({
                           </td>
 
                           {/* Action */}
-                          <td style={{ padding: "14px 18px", textAlign: "right" }} onClick={(e) => e.stopPropagation()}>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedOwnerKey(grp.key)}
-                              style={{
-                                height: 32,
-                                padding: "6px 12px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                background: "var(--color-surface)",
-                                border: "1px solid var(--color-border)",
-                                color: "var(--color-text)",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                              }}
-                            >
-                              <Icon.Eye size={13} /> View
-                            </Button>
+                          <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={() => setSelectedOwnerKey(grp.key)}
+                                title="View Details"
+                              >
+                                <Icon.Eye size={13} />
+                                <span>View</span>
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       );
@@ -5202,7 +5184,7 @@ export const EvidenceUpload = ({
           </Card>
         )}
       </div>
-      
+
       {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
@@ -5281,21 +5263,20 @@ export const EvidenceUpload = ({
             </div>
           )
         }
-        size="xl"
+        size="lg"
         dialogStyle={{
-          minHeight: "560px",
-          maxHeight: "88vh",
+          maxHeight: "85vh",
           width: "100%",
-          maxWidth: "1120px",
+          maxWidth: "920px",
           display: "flex",
           flexDirection: "column",
         }}
         bodyStyle={{
           flex: 1,
-          minHeight: "420px",
           display: "flex",
           flexDirection: "column",
-          padding: "16px 24px",
+          padding: "16px 20px",
+          overflowY: "auto",
         }}
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
@@ -5323,10 +5304,9 @@ export const EvidenceUpload = ({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
                 gap: "14px",
                 flex: 1,
-                minHeight: "380px",
                 maxHeight: "65vh",
                 overflowY: "auto",
                 scrollbarWidth: "thin",
@@ -5335,20 +5315,22 @@ export const EvidenceUpload = ({
             >
               {ownerFilteredItems.map((ev) => {
                 const animalInfo = allCondemnedList.find((c) => c.tag_number === ev.tag_number);
-                const scope = getEvidenceScope(ev);
-                const isWhole = scope === "whole";
-                const cutLabel = getEvidencePartLabel(ev);
+                const condPartsInfo = getCondemnationRecordParts({
+                  record: ev,
+                  stage: type,
+                  ante,
+                  post,
+                  livestock,
+                  condemned,
+                  postCuts,
+                });
+                const isWhole = condPartsInfo.isWhole;
                 const tagPhotosList = getTagPhotosList(ev);
                 const thumbPhoto = tagPhotosList[0] || null;
                 const photoCount = tagPhotosList.length;
                 const rawTimestamp = getEvidenceTimestamp(ev);
                 const isNew = isCondemnationWithin24Hours(rawTimestamp, nowMs);
-                const scopeBadgeLabel =
-                  type === "Post-Mortem"
-                    ? isWhole
-                      ? "Whole Carcass"
-                      : `Partial · ${cutLabel || "Cut"}`
-                    : "Whole Animal";
+                const scopeBadgeLabel = condPartsInfo.cardBadgeLabel;
                 const rawNotesText = cleanEvidenceNotes(ev.notes) || "Not recorded";
                 const conciseFindings =
                   rawNotesText
@@ -5408,6 +5390,7 @@ export const EvidenceUpload = ({
                           fontWeight: 700,
                           padding: "2px 7px",
                           borderRadius: 4,
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
                         }}
                       >
                         {scopeBadgeLabel}
@@ -5430,7 +5413,7 @@ export const EvidenceUpload = ({
                         </span>
                       )}
                     </div>
-                    <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 6 }}>
+                    <div style={{ padding: "12px 14px", flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <span
                           style={{
@@ -5450,9 +5433,72 @@ export const EvidenceUpload = ({
                         <Icon.User size={12} style={{ display: "inline", marginRight: 4 }} />
                         {resolvedOwner}
                       </div>
+
+                      {/* Display All Condemned Parts & Quantities separately */}
                       <div
                         style={{
+                          background: isWhole ? "rgba(220, 38, 38, 0.04)" : "var(--color-bg)",
+                          padding: "8px 10px",
+                          borderRadius: 8,
+                          border: `1px solid ${isWhole ? "rgba(220, 38, 38, 0.2)" : "var(--color-border)"}`,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 4,
                           fontSize: 12,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            color: "var(--color-text-muted)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.03em",
+                            borderBottom: "1px solid var(--color-border)",
+                            paddingBottom: 3,
+                            marginBottom: 2,
+                          }}
+                        >
+                          <span>{isWhole ? "Condemned Record" : "Condemned Parts"}</span>
+                          <span style={{ color: isWhole ? "#dc2626" : "#d97706", fontWeight: 800 }}>
+                            {isWhole ? "1 Whole" : `${condPartsInfo.totalParts} Part${condPartsInfo.totalParts === 1 ? "" : "s"}`}
+                          </span>
+                        </div>
+                        {condPartsInfo.parts.map((p, pIdx) => (
+                          <div
+                            key={p.id || pIdx}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "baseline",
+                              gap: 6,
+                            }}
+                          >
+                            <span style={{ fontWeight: 600, color: "var(--color-text)", fontSize: 11.5, wordBreak: "break-word" }}>
+                              • {p.part}
+                              {p.location ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> ({p.location})</span> : null}
+                            </span>
+                            <span
+                              style={{
+                                fontWeight: 700,
+                                color: isWhole ? "#dc2626" : "#b45309",
+                                fontSize: 11.5,
+                                whiteSpace: "nowrap",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {p.quantity || p.weight || "1 pc"}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div
+                        style={{
+                          fontSize: 11.5,
                           color: "var(--color-text)",
                           background: "var(--color-bg)",
                           padding: "6px 8px",
@@ -5496,7 +5542,21 @@ export const EvidenceUpload = ({
         open={!!viewingEv}
         onClose={handleModalDismiss}
         title="Condemnation Evidence Viewer"
-        size={isVetViewer ? "xl" : "md"}
+        size="lg"
+        dialogStyle={{
+          maxWidth: "860px",
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          padding: "16px 20px",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: 0,
+        }}
         closeOnBackdropClick={isVetViewer}
       >
         {viewingEv && (() => {
@@ -5514,8 +5574,18 @@ export const EvidenceUpload = ({
           const cleanTag = String(displayRecord?.tag_number || viewingEv?.tag_number || "").trim().toLowerCase();
           const cleanId = String(displayRecord?.livestock_id || viewingEv?.livestock_id || "").trim();
           const stage = displayRecord?.inspection_type || type || "Ante-Mortem";
-          const scope = getEvidenceScope(displayRecord);
-          const isWhole = scope === "whole";
+
+          // Authoritative parts & scope extraction from Supabase
+          const condPartsInfo = getCondemnationRecordParts({
+            record: displayRecord,
+            stage,
+            ante,
+            post,
+            livestock,
+            condemned,
+            postCuts,
+          });
+          const isWhole = condPartsInfo.isWhole;
 
           // Look up source records without inventing values
           const matchedAnimal = (livestock || []).find((l) => {
@@ -5542,22 +5612,10 @@ export const EvidenceUpload = ({
           const rawOwner = getEvidenceOwner(displayRecord);
           const ownerDisplay = isValidOwnerName(rawOwner) ? rawOwner : "Not recorded";
 
-          // 2. Livestock / Carcass ID & Tag Number
+          // 2. Livestock / Carcass Tag Number
           const tagValue = String(displayRecord?.tag_number || viewingEv?.tag_number || matchedAnimal?.tag_number || "").trim();
-          const rawEntityId =
-            matchedAnimal?.id ||
-            displayRecord?.livestock_id ||
-            viewingEv?.livestock_id ||
-            matchedInspection?.livestock_id ||
-            "";
-          const cleanEntityId =
-            String(rawEntityId).trim() &&
-            !String(rawEntityId).startsWith("synth-") &&
-            !String(rawEntityId).startsWith("whole-")
-              ? String(rawEntityId).trim()
-              : "";
 
-          // 3. Species (only real values, never generic fallback like "Livestock" or "Carcass")
+          // 3. Species
           const isRealSpecies = (val) => {
             if (!val || typeof val !== "string") return false;
             const s = val.trim().toLowerCase();
@@ -5572,62 +5630,10 @@ export const EvidenceUpload = ({
           ];
           const resolvedSpecies = speciesCandidates.find(isRealSpecies)?.trim() || "Not recorded";
 
-          // 4. Condemnation Type
-          const condemnationTypeDisplay =
-            stage === "Ante-Mortem"
-              ? "Ante-Mortem · Whole Animal Condemnation"
-              : isWhole
-              ? "Post-Mortem · Whole Carcass Condemnation"
-              : "Post-Mortem · Partial Condemnation";
+          // 4. Condemnation Classification
+          const condemnationTypeDisplay = condPartsInfo.scopeLabel;
 
-          // 5. Condemned Part / Affected Area (from real database/inspection records, no guessing)
-          const recordedParts = [];
-          const seenPartKeys = new Set();
-          const pushPartItem = (partName, area, weightKg) => {
-            const pClean = String(partName || "").trim();
-            if (!pClean || pClean === "—" || pClean.toLowerCase() === "none") return;
-            const aClean = String(area || "").trim();
-            const validArea = aClean && aClean !== "—" && aClean !== "-" ? aClean : "";
-            const wNum = parseFloat(weightKg);
-            const validWeight = !isNaN(wNum) && wNum > 0 ? (wNum % 1 === 0 ? `${wNum} kg` : `${wNum.toFixed(2)} kg`) : "";
-            const key = `${pClean.toLowerCase()}__${validArea.toLowerCase()}`;
-            if (seenPartKeys.has(key)) return;
-            seenPartKeys.add(key);
-            recordedParts.push({
-              part: pClean,
-              area: validArea,
-              weight: validWeight,
-            });
-          };
-
-          if (stage === "Post-Mortem" && Array.isArray(matchedPost?.condemned_parts)) {
-            matchedPost.condemned_parts.forEach((cp) => {
-              pushPartItem(cp?.part || cp?.name, cp?.location || cp?.area, cp?.weight_kg || cp?.weight);
-            });
-          }
-          matchedCondemnedRows.forEach((cr) => {
-            pushPartItem(cr?.part, cr?.location, cr?.weight_kg || cr?.weight);
-          });
-          if (stage === "Post-Mortem") {
-            (postCuts || []).forEach((cut) => {
-              if (cleanTag && String(cut?.tag_number || "").trim().toLowerCase() === cleanTag) {
-                pushPartItem(cut?.part, cut?.location, cut?.weight_kg || cut?.weight);
-              }
-            });
-          }
-          if (recordedParts.length === 0) {
-            if (displayRecord?.part || currentPhoto?.part) {
-              pushPartItem(currentPhoto?.part || displayRecord?.part, displayRecord?.location, displayRecord?.weight_kg);
-            } else if (isWhole) {
-              pushPartItem(
-                stage === "Ante-Mortem" ? "Live Animal (Whole)" : "Whole Carcass",
-                matchedCondemnedRows[0]?.location || displayRecord?.location || "",
-                matchedCondemnedRows[0]?.weight_kg || matchedPost?.carcass_weight || matchedAnte?.live_weight
-              );
-            }
-          }
-
-          // 6. Findings (actual recorded notes / inspection findings / condemnation reason)
+          // 5. Findings
           const rawPhotoNotes = cleanEvidenceNotes(currentPhoto?.notes || (!displayRecord?.is_synthetic ? displayRecord?.notes : ""));
           const rawInspFindings = String(matchedInspection?.findings || matchedInspection?.remarks || "").trim();
           const rawCondReason = matchedCondemnedRows
@@ -5640,7 +5646,7 @@ export const EvidenceUpload = ({
             .filter((s) => s && s !== "—" && s !== "-");
           const findingsDisplay = findingsCandidates[0] || "Not recorded";
 
-          // 7. Condemnation Date & Time & Inspector
+          // 6. Condemnation Date & Time & Inspector
           const matchedCut = (postCuts || []).find(
             (c) => cleanTag && String(c.tag_number || "").trim().toLowerCase() === cleanTag
           );
@@ -5681,7 +5687,7 @@ export const EvidenceUpload = ({
           };
 
           return (
-            <div className="vet-evidence-viewer-root">
+            <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               <div className="vet-evidence-viewer-grid">
                 {/* ── LEFT / TOP: PRIMARY PHOTO & FILE VIEWER ── */}
                 <div className="vet-evidence-viewer-media-col">
@@ -5692,23 +5698,24 @@ export const EvidenceUpload = ({
                       alignItems: "center",
                       justifyContent: "space-between",
                       flexWrap: "wrap",
-                      gap: 8,
-                      padding: "8px 12px",
+                      gap: 6,
+                      padding: "6px 10px",
                       background: "#1e293b",
                       borderBottom: "1px solid #334155",
                       color: "#f8fafc",
-                      fontSize: 12,
+                      fontSize: 11.5,
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                       <span
                         style={{
                           fontWeight: 700,
                           color: "#e2e8f0",
                           background: "#0f172a",
-                          padding: "3px 9px",
-                          borderRadius: 6,
+                          padding: "2px 7px",
+                          borderRadius: 5,
                           border: "1px solid #334155",
+                          fontSize: 11,
                         }}
                         data-testid="evidence-photo-counter"
                       >
@@ -5717,20 +5724,20 @@ export const EvidenceUpload = ({
                           : "0 of 0"}
                       </span>
                       {currentPhoto?.part && (
-                        <span style={{ color: "#94a3b8", fontSize: 11.5, fontWeight: 600 }}>
+                        <span style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600 }}>
                           Part: <strong style={{ color: "#f1f5f9" }}>{currentPhoto.part}</strong>
                         </span>
                       )}
                       {tagPhotos.length > 1 && (
-                        <span style={{ color: "#64748b", fontSize: 11 }} className="vet-ev-kbd-hint">
-                          Use ← / → keys to navigate
+                        <span style={{ color: "#64748b", fontSize: 10.5 }} className="vet-ev-kbd-hint">
+                          Use ← / → keys
                         </span>
                       )}
                     </div>
 
                     {/* Zoom & Open Controls */}
                     {currentViewerFileKind === "image" && currentPhoto?.url && !isCurrentFailed && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <button
                           type="button"
                           onClick={() => setZoomLevel((z) => Math.max(1, +(z - 0.5).toFixed(1)))}
@@ -5738,13 +5745,13 @@ export const EvidenceUpload = ({
                           title="Zoom out"
                           aria-label="Zoom out"
                           style={{
-                            height: 26,
-                            padding: "0 8px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: zoomLevel <= 1 ? "#0f172a" : "#334155",
                             color: zoomLevel <= 1 ? "#475569" : "#f8fafc",
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel <= 1 ? "not-allowed" : "pointer",
                           }}
@@ -5756,16 +5763,16 @@ export const EvidenceUpload = ({
                           onClick={() => setZoomLevel(1)}
                           title="Reset zoom to 100%"
                           style={{
-                            height: 26,
-                            padding: "0 8px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 6px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: "#0f172a",
                             color: "#e2e8f0",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
-                            minWidth: 46,
+                            minWidth: 40,
                           }}
                         >
                           {Math.round(zoomLevel * 100)}%
@@ -5777,13 +5784,13 @@ export const EvidenceUpload = ({
                           title="Zoom in"
                           aria-label="Zoom in"
                           style={{
-                            height: 26,
-                            padding: "0 8px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: zoomLevel >= 2.5 ? "#0f172a" : "#334155",
                             color: zoomLevel >= 2.5 ? "#475569" : "#f8fafc",
-                            fontSize: 13,
+                            fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel >= 2.5 ? "not-allowed" : "pointer",
                           }}
@@ -5795,60 +5802,60 @@ export const EvidenceUpload = ({
                           onClick={() => setIsEnlarged(true)}
                           title="Enlarge image to full screen"
                           style={{
-                            height: 26,
-                            padding: "0 9px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #0284c7",
                             background: "#0284c7",
                             color: "#ffffff",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 4,
+                            gap: 3,
                           }}
                         >
-                          <Icon.Eye size={12} /> Enlarge
+                          <Icon.Eye size={11} /> Enlarge
                         </button>
                         <button
                           type="button"
                           onClick={() => window.open(currentPhoto.url, "_blank", "noopener,noreferrer")}
                           title="Open original file in a new tab"
                           style={{
-                            height: 26,
-                            padding: "0 9px",
-                            borderRadius: 5,
+                            height: 24,
+                            padding: "0 7px",
+                            borderRadius: 4,
                             border: "1px solid #475569",
                             background: "#334155",
                             color: "#f8fafc",
-                            fontSize: 11,
+                            fontSize: 10.5,
                             fontWeight: 600,
                             cursor: "pointer",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: 4,
+                            gap: 3,
                           }}
                         >
-                          <Icon.ExternalLink size={12} /> Open
+                          <Icon.ExternalLink size={11} /> Open
                         </button>
                       </div>
                     )}
                   </div>
 
-                  {/* Primary Media Stage */}
+                  {/* Primary Media Stage - Compact and cleanly framed */}
                   <div
                     style={{
                       position: "relative",
                       flex: 1,
-                      minHeight: 360,
-                      maxHeight: "min(62vh, 520px)",
+                      minHeight: 200,
+                      maxHeight: "270px",
                       background: "#0f172a",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: zoomLevel > 1 ? "auto" : "hidden",
-                      padding: 12,
+                      padding: 10,
                     }}
                   >
                     {/* STATE 1: No evidence file exists */}
@@ -5856,89 +5863,73 @@ export const EvidenceUpload = ({
                       <div
                         data-testid="evidence-empty-state"
                         style={{
-                          padding: "36px 24px",
+                          padding: "24px 16px",
                           textAlign: "center",
                           color: "#cbd5e1",
-                          maxWidth: 380,
+                          maxWidth: 340,
                         }}
                       >
                         <div
                           style={{
-                            width: 52,
-                            height: 52,
+                            width: 44,
+                            height: 44,
                             borderRadius: "50%",
                             background: "rgba(148, 163, 184, 0.12)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            margin: "0 auto 12px",
+                            margin: "0 auto 8px",
                             color: "#94a3b8",
                           }}
                         >
-                          <Icon.FileText size={26} />
+                          <Icon.FileText size={22} />
                         </div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
-                          No evidence file exists for this record
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#f8fafc" }}>
+                          No evidence file attached
                         </div>
-                        <div style={{ fontSize: 12.5, color: "#94a3b8", marginTop: 6, lineHeight: 1.5 }}>
-                          No photo or document file is attached to this condemnation record.
+                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                          No photo is recorded for this condemnation entry.
                         </div>
                       </div>
                     ) : currentViewerFileKind === "document" ? (
-                      /* STATE 2: Non-image document (e.g., PDF / Lab Report) */
+                      /* STATE 2: Non-image document */
                       <div
                         data-testid="evidence-document-state"
                         style={{
-                          padding: "36px 24px",
+                          padding: "24px 16px",
                           textAlign: "center",
                           color: "#e2e8f0",
-                          maxWidth: 420,
+                          maxWidth: 360,
                         }}
                       >
                         <div
                           style={{
-                            width: 56,
-                            height: 56,
-                            borderRadius: 12,
+                            width: 46,
+                            height: 46,
+                            borderRadius: 10,
                             background: "rgba(2, 132, 199, 0.16)",
                             border: "1px solid rgba(2, 132, 199, 0.35)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            margin: "0 auto 12px",
+                            margin: "0 auto 8px",
                             color: "#38bdf8",
                           }}
                         >
-                          <Icon.FileText size={28} />
+                          <Icon.FileText size={24} />
                         </div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc", wordBreak: "break-word" }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#f8fafc", wordBreak: "break-word" }}>
                           {currentPhoto.name || displayRecord.file_name || "Evidence Document"}
                         </div>
-                        <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-                          {displayRecord.type || "Document"} · Non-image evidence file
+                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 3 }}>
+                          {displayRecord.type || "Document"} · Non-image file
                         </div>
-                        <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 16 }}>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginTop: 12 }}>
                           <Button
                             size="sm"
                             onClick={() => window.open(currentPhoto.url, "_blank", "noopener,noreferrer")}
                           >
-                            <Icon.ExternalLink size={14} /> Open Document
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              const a = document.createElement("a");
-                              a.href = currentPhoto.url;
-                              a.target = "_blank";
-                              a.rel = "noopener noreferrer";
-                              a.download = currentPhoto.name || displayRecord.file_name || "evidence-document";
-                              document.body.appendChild(a);
-                              a.click();
-                              document.body.removeChild(a);
-                            }}
-                          >
-                            <Icon.Download size={14} /> Download File
+                            <Icon.ExternalLink size={13} /> Open
                           </Button>
                         </div>
                       </div>
@@ -5947,55 +5938,41 @@ export const EvidenceUpload = ({
                       <div
                         data-testid="evidence-error-state"
                         style={{
-                          padding: "32px 24px",
+                          padding: "20px 16px",
                           textAlign: "center",
                           color: "#cbd5e1",
-                          maxWidth: 440,
+                          maxWidth: 360,
                         }}
                       >
                         <div
                           style={{
-                            width: 52,
-                            height: 52,
+                            width: 44,
+                            height: 44,
                             borderRadius: "50%",
                             background: "rgba(245, 158, 11, 0.14)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
-                            margin: "0 auto 12px",
+                            margin: "0 auto 8px",
                             color: "#f59e0b",
                           }}
                         >
-                          <Icon.AlertTriangle size={26} />
+                          <Icon.AlertTriangle size={22} />
                         </div>
-                        <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
-                          Unable to load evidence photo
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#f8fafc" }}>
+                          Photo unavailable
                         </div>
-                        <div style={{ fontSize: 12.5, color: "#94a3b8", marginTop: 6, lineHeight: 1.5 }}>
-                          The image file could not be loaded from storage. The file may have been removed or the URL is temporarily unreachable.
+                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                          The image file could not be loaded from storage.
                         </div>
-                        {currentPhoto.name && (
-                          <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 8, wordBreak: "break-all" }}>
-                            File: {currentPhoto.name}
-                          </div>
-                        )}
-                        <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 14 }}>
+                        <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginTop: 10 }}>
                           <Button size="sm" onClick={handleRetryPhoto}>
-                            <Icon.RefreshCw size={13} /> Retry Load
+                            <Icon.RefreshCw size={12} /> Retry
                           </Button>
-                          {currentPhoto.url && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => window.open(currentPhoto.url, "_blank", "noopener,noreferrer")}
-                            >
-                              <Icon.ExternalLink size={13} /> Open Link Directly
-                            </Button>
-                          )}
                         </div>
                       </div>
                     ) : (
-                      /* STATE 4 & 5: Loading Spinner + Image View */
+                      /* STATE 4: Loading & Image View */
                       <>
                         {isCurrentLoading && (
                           <div
@@ -6010,12 +5987,12 @@ export const EvidenceUpload = ({
                               background: "rgba(15, 23, 42, 0.82)",
                               color: "#e2e8f0",
                               zIndex: 3,
-                              gap: 10,
+                              gap: 8,
                             }}
                           >
-                            <span className="spinner" style={{ width: 28, height: 28 }} />
-                            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#cbd5e1" }}>
-                              Loading evidence photo...
+                            <span className="spinner" style={{ width: 24, height: 24 }} />
+                            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#cbd5e1" }}>
+                              Loading photo...
                             </span>
                           </div>
                         )}
@@ -6023,7 +6000,7 @@ export const EvidenceUpload = ({
                           ref={viewerImgRef}
                           key={`${viewingEv.id || viewingEv.tag_number}-${currentPhotoIndex}-${currentPhoto.url}-${retryCount}`}
                           src={currentPhoto.url}
-                          alt={currentPhoto.name || `Evidence photo ${currentPhotoIndex + 1} for ${tagValue || "record"}`}
+                          alt={currentPhoto.name || `Evidence photo for ${tagValue || "record"}`}
                           onClick={() => setIsEnlarged(true)}
                           onLoad={() => {
                             const activeSeq = loadSeqRef.current;
@@ -6040,7 +6017,7 @@ export const EvidenceUpload = ({
                             width: zoomLevel > 1 ? `${zoomLevel * 100}%` : "100%",
                             height: zoomLevel > 1 ? "auto" : "100%",
                             maxWidth: zoomLevel > 1 ? "none" : "100%",
-                            maxHeight: zoomLevel > 1 ? "none" : "min(56vh, 480px)",
+                            maxHeight: zoomLevel > 1 ? "none" : "250px",
                             objectFit: "contain",
                             borderRadius: 6,
                             cursor: "zoom-in",
@@ -6051,7 +6028,7 @@ export const EvidenceUpload = ({
                       </>
                     )}
 
-                    {/* Previous / Next Controls when multiple photos exist */}
+                    {/* Previous / Next Controls */}
                     {tagPhotos.length > 1 && (
                       <>
                         <button
@@ -6063,24 +6040,24 @@ export const EvidenceUpload = ({
                           title="Previous photo (Left arrow)"
                           style={{
                             position: "absolute",
-                            left: 12,
+                            left: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
                             background: "rgba(15, 23, 42, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
-                            width: 38,
-                            height: 38,
+                            width: 32,
+                            height: 32,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
-                            boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
                             zIndex: 4,
                           }}
                         >
-                          <Icon.ChevronLeft size={20} />
+                          <Icon.ChevronLeft size={16} />
                         </button>
                         <button
                           type="button"
@@ -6091,37 +6068,37 @@ export const EvidenceUpload = ({
                           title="Next photo (Right arrow)"
                           style={{
                             position: "absolute",
-                            right: 12,
+                            right: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
                             background: "rgba(15, 23, 42, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
-                            width: 38,
-                            height: 38,
+                            width: 32,
+                            height: 32,
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             cursor: "pointer",
-                            boxShadow: "0 2px 10px rgba(0,0,0,0.45)",
+                            boxShadow: "0 2px 8px rgba(0,0,0,0.45)",
                             zIndex: 4,
                           }}
                         >
-                          <Icon.ChevronRight size={20} />
+                          <Icon.ChevronRight size={16} />
                         </button>
                       </>
                     )}
                   </div>
 
-                  {/* Multi-Photo Thumbnail Strip (only shown when > 1 photo belongs to this record) */}
+                  {/* Multi-Photo Thumbnail Strip */}
                   {tagPhotos.length > 1 && (
                     <div
                       style={{
                         display: "flex",
                         alignItems: "center",
-                        gap: 8,
-                        padding: "8px 12px",
+                        gap: 6,
+                        padding: "6px 10px",
                         background: "#1e293b",
                         borderTop: "1px solid #334155",
                         overflowX: "auto",
@@ -6135,12 +6112,12 @@ export const EvidenceUpload = ({
                             key={photo.id || idx}
                             type="button"
                             onClick={() => setActivePhotoIndex(idx)}
-                            title={photo.part ? `${photo.part} (${idx + 1} of ${tagPhotos.length})` : `Photo ${idx + 1} of ${tagPhotos.length}`}
+                            title={photo.part ? `${photo.part} (${idx + 1} of ${tagPhotos.length})` : `Photo ${idx + 1}`}
                             style={{
-                              width: 58,
-                              height: 42,
+                              width: 48,
+                              height: 36,
                               padding: 0,
-                              borderRadius: 6,
+                              borderRadius: 4,
                               overflow: "hidden",
                               border: isSelected ? "2px solid #38bdf8" : "1px solid #475569",
                               background: "#0f172a",
@@ -6165,7 +6142,7 @@ export const EvidenceUpload = ({
                                   justifyContent: "center",
                                   width: "100%",
                                   height: "100%",
-                                  fontSize: 9,
+                                  fontSize: 8.5,
                                   fontWeight: 700,
                                   color: "#f59e0b",
                                 }}
@@ -6180,21 +6157,38 @@ export const EvidenceUpload = ({
                   )}
                 </div>
 
-                {/* ── RIGHT / BOTTOM: COMPACT LABELED DETAILS LIST ── */}
+                {/* ── RIGHT / BOTTOM: TWO-LINE LABELED EVIDENCE DETAILS ── */}
                 <div className="vet-evidence-viewer-details-col">
                   <div
+                    className="vet-evidence-viewer-details-header"
                     style={{
-                      padding: "10px 14px",
+                      padding: "9px 12px",
                       borderBottom: "1px solid var(--color-border)",
                       background: "var(--color-bg)",
-                      fontSize: 11.5,
+                      fontSize: 11,
                       fontWeight: 800,
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                       color: "var(--color-text-muted)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      flexShrink: 0,
                     }}
                   >
-                    Condemnation Record Details
+                    <span>Condemnation Details</span>
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: isWhole ? "#dc2626" : "#d97706",
+                        background: isWhole ? "rgba(220, 38, 38, 0.08)" : "rgba(217, 119, 6, 0.08)",
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                      }}
+                    >
+                      {isWhole ? "Whole Condemnation" : `${condPartsInfo.totalParts} Parts Rejected`}
+                    </span>
                   </div>
 
                   <dl className="vet-evidence-viewer-dl">
@@ -6204,7 +6198,7 @@ export const EvidenceUpload = ({
                       <dd>{ownerDisplay}</dd>
                     </div>
 
-                    {/* 2. Livestock / Carcass Tag Number (internal ID removed for clean presentation) */}
+                    {/* 2. Tag Number */}
                     <div className="vet-evidence-viewer-row">
                       <dt>{stage === "Post-Mortem" ? "Carcass Tag #" : "Livestock Tag #"}</dt>
                       <dd>
@@ -6218,53 +6212,134 @@ export const EvidenceUpload = ({
                       <dd>{resolvedSpecies}</dd>
                     </div>
 
-                    {/* 4. Condemnation Type */}
+                    {/* 4. Condemnation Classification */}
                     <div className="vet-evidence-viewer-row">
-                      <dt>Condemnation Type</dt>
-                      <dd
-                        style={{
-                          fontWeight: 700,
-                          color: isWhole ? "var(--color-danger, #dc2626)" : "var(--color-warning, #d97706)",
-                        }}
-                      >
-                        {condemnationTypeDisplay}
+                      <dt>Condemnation Classification</dt>
+                      <dd>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 5,
+                            fontWeight: 750,
+                            fontSize: 12.5,
+                            color: isWhole ? "#dc2626" : "#d97706",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: isWhole ? "#dc2626" : "#d97706",
+                            }}
+                          />
+                          {condemnationTypeDisplay}
+                        </span>
                       </dd>
                     </div>
 
-                    {/* 5. Condemned Part / Affected Area */}
+                    {/* 5. Condemned Parts & Quantities */}
                     <div className="vet-evidence-viewer-row">
-                      <dt>Condemned Part / Affected Area</dt>
-                      <dd>
-                        {recordedParts.length === 0 ? (
-                          "Not recorded"
-                        ) : recordedParts.length === 1 ? (
-                          <div>
-                            <span style={{ fontWeight: 700 }}>{recordedParts[0].part}</span>
-                            {recordedParts[0].area ? (
-                              <span style={{ color: "var(--color-text-muted)" }}> · {recordedParts[0].area}</span>
-                            ) : null}
-                            {recordedParts[0].weight ? (
-                              <span style={{ color: "#b45309", fontWeight: 600 }}> ({recordedParts[0].weight})</span>
-                            ) : null}
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <dt>Condemned Parts & Quantities</dt>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            color: isWhole ? "#dc2626" : "#b45309",
+                          }}
+                        >
+                          Total: {condPartsInfo.totalParts} {condPartsInfo.totalParts === 1 ? "Part" : "Parts"}
+                        </span>
+                      </div>
+                      <dd style={{ marginTop: 4 }}>
+                        {condPartsInfo.parts.length === 0 ? (
+                          <span style={{ color: "var(--color-text-muted)" }}>Not recorded</span>
+                        ) : isWhole ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              padding: "6px 10px",
+                              borderRadius: 6,
+                              background: "rgba(220, 38, 38, 0.05)",
+                              border: "1px solid rgba(220, 38, 38, 0.2)",
+                            }}
+                          >
+                            <span style={{ fontWeight: 700, color: "#dc2626", fontSize: 12.5 }}>
+                              • {condPartsInfo.parts[0].part}
+                            </span>
+                            <span style={{ fontWeight: 800, color: "#dc2626", fontSize: 12.5 }}>
+                              {condPartsInfo.parts[0].quantity}
+                            </span>
                           </div>
                         ) : (
-                          <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
-                            {recordedParts.map((rp, i) => (
-                              <li key={i} style={{ fontSize: 12.5 }}>
-                                <span style={{ fontWeight: 700 }}>{rp.part}</span>
-                                {rp.area ? <span style={{ color: "var(--color-text-muted)" }}> · {rp.area}</span> : null}
-                                {rp.weight ? <span style={{ color: "#b45309", fontWeight: 600 }}> ({rp.weight})</span> : null}
-                              </li>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                            {condPartsInfo.parts.map((p, idx) => (
+                              <div
+                                key={p.id || idx}
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "flex-start",
+                                  padding: "6px 9px",
+                                  borderRadius: 6,
+                                  background: "var(--color-bg)",
+                                  border: "1px solid var(--color-border)",
+                                  gap: 8,
+                                }}
+                              >
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                                    <span style={{ fontWeight: 700, color: "var(--color-text)", fontSize: 12 }}>
+                                      {idx + 1}. {p.part}
+                                    </span>
+                                    {p.location && (
+                                      <span style={{ color: "var(--color-text-muted)", fontSize: 11 }}>
+                                        ({p.location})
+                                      </span>
+                                    )}
+                                  </div>
+                                  {p.reason && (
+                                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                                      Reason: <strong style={{ color: "var(--color-text)", fontWeight: 600 }}>{p.reason}</strong>
+                                    </div>
+                                  )}
+                                </div>
+                                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                                  <span
+                                    style={{
+                                      fontWeight: 800,
+                                      fontSize: 11.5,
+                                      color: "#b45309",
+                                      background: "rgba(217, 119, 6, 0.1)",
+                                      padding: "1px 6px",
+                                      borderRadius: 4,
+                                      border: "1px solid rgba(217, 119, 6, 0.25)",
+                                      display: "inline-block",
+                                    }}
+                                  >
+                                    {p.quantity || p.weight || "1 pc"}
+                                  </span>
+                                  {p.disposition && (
+                                    <div style={{ fontSize: 9.5, color: "var(--color-text-muted)", marginTop: 2 }}>
+                                      {p.disposition}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             ))}
-                          </ul>
+                          </div>
                         )}
                       </dd>
                     </div>
 
                     {/* 6. Findings */}
                     <div className="vet-evidence-viewer-row">
-                      <dt>Findings</dt>
-                      <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{findingsDisplay}</dd>
+                      <dt>Inspection Findings & Pathology Notes</dt>
+                      <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45, fontSize: 12.5 }}>{findingsDisplay}</dd>
                     </div>
 
                     {/* 7. Condemnation Date & Time */}
@@ -6275,7 +6350,7 @@ export const EvidenceUpload = ({
 
                     {/* 8. Condemned By */}
                     <div className="vet-evidence-viewer-row" style={{ borderBottom: "none" }}>
-                      <dt>Condemned By</dt>
+                      <dt>Condemned By (Veterinarian / Inspector)</dt>
                       <dd style={{ fontWeight: 600 }}>{condemnedInspector}</dd>
                     </div>
                   </dl>
@@ -6286,13 +6361,14 @@ export const EvidenceUpload = ({
               <div
                 className="form-actions"
                 style={{
-                  marginTop: 16,
+                  marginTop: 14,
                   paddingTop: 12,
                   borderTop: "1px solid var(--color-border)",
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
                   gap: 10,
+                  flexShrink: 0,
                 }}
               >
                 <Button
@@ -6492,13 +6568,16 @@ export const EvidenceUpload = ({
         }
         .vet-evidence-viewer-grid {
           display: grid;
-          grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.95fr);
-          gap: 16px;
+          grid-template-columns: minmax(0, 1fr) minmax(320px, 1.15fr);
+          gap: 14px;
           align-items: start;
+          flex: 1;
+          min-height: 0;
         }
         @media (max-width: 820px) {
           .vet-evidence-viewer-grid {
             grid-template-columns: 1fr;
+            overflow-y: auto;
           }
           .vet-ev-kbd-hint {
             display: none;
@@ -6511,32 +6590,62 @@ export const EvidenceUpload = ({
           border-radius: 10px;
           overflow: hidden;
           background: #0f172a;
+          flex-shrink: 0;
         }
         .vet-evidence-viewer-details-col {
+          display: flex;
+          flex-direction: column;
           border: 1px solid var(--color-border);
           border-radius: 10px;
           background: var(--color-surface);
           overflow: hidden;
+          max-height: min(400px, calc(85vh - 175px));
+          min-height: 0;
+        }
+        @media (max-width: 820px) {
+          .vet-evidence-viewer-details-col {
+            max-height: 280px;
+          }
         }
         .vet-evidence-viewer-dl {
           margin: 0;
           padding: 0;
+          overflow-y: auto;
+          flex: 1;
+          min-height: 0;
+          scrollbar-width: thin;
+          overscroll-behavior: contain;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar {
+          width: 6px;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.4);
+          border-radius: 4px;
+        }
+        .vet-evidence-viewer-dl::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.7);
         }
         .vet-evidence-viewer-row {
-          display: grid;
-          grid-template-columns: 135px minmax(0, 1fr);
-          gap: 10px;
-          padding: 10px 14px;
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+          padding: 8px 12px;
           border-bottom: 1px solid var(--color-border);
           font-size: 12.5px;
-          align-items: baseline;
+        }
+        .vet-evidence-viewer-row:last-child {
+          border-bottom: none;
         }
         .vet-evidence-viewer-row dt {
           margin: 0;
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.04em;
           color: var(--color-text-muted);
         }
         .vet-evidence-viewer-row dd {
@@ -6545,6 +6654,7 @@ export const EvidenceUpload = ({
           font-weight: 600;
           color: var(--color-text);
           word-break: break-word;
+          line-height: 1.4;
         }
       `}</style>
     </div>
@@ -6774,9 +6884,8 @@ export const VetSlaughterHistory = () => {
     }
     const headers = "Tag #,Species,Owner,Slaughter Date,Operator,Carcass Weight (kg),Status";
     const rows = filtered.map((r) => {
-      return `"${r.tag_number}","${r.species || "—"}","${(r.owner_name || "—").replace(/"/g, '""')}","${
-        r.slaughter_date ? formatDate(r.slaughter_date) : "—"
-      }","${r.operator || "—"}","${r.carcass_weight || "—"}","${r.status || "Completed"}"`;
+      return `"${r.tag_number}","${r.species || "—"}","${(r.owner_name || "—").replace(/"/g, '""')}","${r.slaughter_date ? formatDate(r.slaughter_date) : "—"
+        }","${r.operator || "—"}","${r.carcass_weight || "—"}","${r.status || "Completed"}"`;
     });
     const csvContent = [headers, ...rows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -7049,7 +7158,7 @@ export const VetSlaughterHistory = () => {
                   <th style={{ width: "15%", padding: "11px 12px" }}>Slaughter Date</th>
                   <th style={{ width: "14%", padding: "11px 12px" }}>Operator Team</th>
                   <th style={{ width: "10%", padding: "11px 12px", textAlign: "center" }}>Carcass Yield</th>
-                  <th style={{ width: "10%", padding: "11px 12px", textAlign: "right" }}>Action</th>
+                  <th className="table-action-th" style={{ width: "10%", padding: "11px 12px" }}>ACTIONS</th>
                 </tr>
               </thead>
               <tbody>
@@ -7180,28 +7289,18 @@ export const VetSlaughterHistory = () => {
                       </td>
 
                       {/* Action Button */}
-                      <td style={{ padding: "8px 12px", textAlign: "right" }}>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedRecord(r)}
-                          style={{
-                            height: 32,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            fontWeight: 700,
-                            padding: "5px 11px",
-                            borderRadius: 8,
-                            borderColor: "#cbd5e1",
-                            color: "#0f172a",
-                            background: "#ffffff",
-                            whiteSpace: "nowrap",
-                            fontSize: 12,
-                          }}
-                        >
-                          <Icon.Eye size={13} /> View Details
-                        </Button>
+                      <td className="table-action-td">
+                        <div className="table-action-group">
+                          <button
+                            type="button"
+                            className="action-btn action-btn-outline"
+                            onClick={() => setSelectedRecord(r)}
+                            title="View Carcass Details"
+                          >
+                            <Icon.Eye size={13} />
+                            <span>View</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );

@@ -6,8 +6,10 @@ import { logActivity } from "../services/activityService";
 import { useEffect } from "react";
 
 export const AdminRoute = ({ children }) => {
-  const { session, role, userName, loading, isInitialized } = useAuth();
+  const { session, role, userName, loading, isInitialized, mfaRequired } = useAuth();
   const location = useLocation();
+
+  if (mfaRequired) return <Navigate to="/login?mfa=required" state={{ from: location }} replace />;
 
   const activeRole = normalizeRole(role || session?.role);
 

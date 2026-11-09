@@ -1444,81 +1444,76 @@ export const OwnerManagement = () => {
       </div>
 
       {/* ========================================================================= */}
-      {/* MODAL 1: APPROVE OWNER CONFIRMATION */}
+      {/* MODAL 1: APPROVE OWNER CONFIRMATION (Standardized to Ante-Mortem ConfirmDialog) */}
       {/* ========================================================================= */}
-      <Modal
-        open={!!approveConfirmOwner}
-        onClose={() => setApproveConfirmOwner(null)}
+      <ConfirmDialog
+        open={Boolean(approveConfirmOwner)}
+        onCancel={() => setApproveConfirmOwner(null)}
+        onConfirm={handleApprove}
         title="Approve Owner Account Registration"
+        confirmText="Approve Account"
+        confirmVariant="success"
+        loading={actionLoading}
         size="md"
-      >
-        {approveConfirmOwner && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{
-              background: "#ecfdf5",
-              border: "1px solid #a7f3d0",
-              borderRadius: "8px",
-              padding: "12px 14px",
-              color: "#065f46",
-              fontSize: "0.85rem",
-              lineHeight: 1.45,
-              display: "flex",
-              alignItems: "flex-start",
-              gap: 10,
-            }}>
-              <Icon.CheckCircle size={18} style={{ color: "#059669", flexShrink: 0, marginTop: 2 }} />
-              <div>
-                <strong>You are approving this prospective livestock owner.</strong>
-                <div style={{ marginTop: 2, fontSize: "0.8rem" }}>
-                  Approving will automatically assign the official Owner ID (e.g. <code>OWN-001-2026</code>) and activate portal sign-in access.
+        message={
+          approveConfirmOwner ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
+              <div style={{
+                background: "#ecfdf5",
+                border: "1px solid #a7f3d0",
+                borderRadius: "8px",
+                padding: "10px 12px",
+                color: "#065f46",
+                fontSize: "0.85rem",
+                lineHeight: 1.45,
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 8,
+              }}>
+                <Icon.CheckCircle size={16} style={{ color: "#059669", flexShrink: 0, marginTop: 2 }} />
+                <div>
+                  <strong>You are approving this prospective livestock owner.</strong>
+                  <div style={{ marginTop: 2, fontSize: "0.8rem", textAlign: "justify", textJustify: "inter-word", textAlignLast: "left" }}>
+                    Approving will automatically assign the official Owner ID (e.g. <code>OWN-001-2026</code>) and activate portal sign-in access.
+                  </div>
+                </div>
+              </div>
+
+              <div style={{
+                background: "var(--color-bg)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "10px",
+                padding: "12px 14px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                fontSize: "0.85rem",
+              }}>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
+                  <span style={{ color: "var(--color-text-muted)" }}>Owner Full Name:</span>
+                  <strong style={{ color: "var(--color-text)" }}>{approveConfirmOwner.name}</strong>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
+                  <span style={{ color: "var(--color-text-muted)" }}>Email Address:</span>
+                  <span className="mono font-semibold" style={{ color: "var(--color-text)" }}>{approveConfirmOwner.email}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
+                  <span style={{ color: "var(--color-text-muted)" }}>Contact Number:</span>
+                  <span style={{ color: "var(--color-text)", fontWeight: 600 }}>{approveConfirmOwner.contact}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
+                  <span style={{ color: "var(--color-text-muted)" }}>Address:</span>
+                  <span style={{ color: "var(--color-text)", textAlign: "right", maxWidth: "260px" }}>{approveConfirmOwner.address}</span>
+                </div>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "var(--color-text-muted)" }}>Current Reference:</span>
+                  <span className="mono" style={{ color: "var(--color-warning, #d97706)", fontWeight: 700 }}>{formatOwnerId(approveConfirmOwner)}</span>
                 </div>
               </div>
             </div>
-
-            <div style={{
-              background: "var(--color-bg)",
-              border: "1px solid var(--color-border)",
-              borderRadius: "10px",
-              padding: "14px",
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-              fontSize: "0.85rem",
-            }}>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
-                <span style={{ color: "var(--color-text-muted)" }}>Owner Full Name:</span>
-                <strong style={{ color: "var(--color-text)" }}>{approveConfirmOwner.name}</strong>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
-                <span style={{ color: "var(--color-text-muted)" }}>Email Address:</span>
-                <span className="mono font-semibold" style={{ color: "var(--color-text)" }}>{approveConfirmOwner.email}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
-                <span style={{ color: "var(--color-text-muted)" }}>Contact Number:</span>
-                <span style={{ color: "var(--color-text)", fontWeight: 600 }}>{approveConfirmOwner.contact}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--color-border)", paddingBottom: 6 }}>
-                <span style={{ color: "var(--color-text-muted)" }}>Address:</span>
-                <span style={{ color: "var(--color-text)", textAlign: "right", maxWidth: "260px" }}>{approveConfirmOwner.address}</span>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "var(--color-text-muted)" }}>Current Reference:</span>
-                <span className="mono" style={{ color: "var(--color-warning, #d97706)", fontWeight: 700 }}>{formatOwnerId(approveConfirmOwner)}</span>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid #e2e8f0" }}>
-              <Button variant="outline" size="sm" onClick={() => setApproveConfirmOwner(null)} disabled={actionLoading}>
-                Cancel
-              </Button>
-              <Button variant="primary" size="sm" onClick={handleApprove} disabled={actionLoading}>
-                {actionLoading ? <span className="spinner" /> : <Icon.Check size={14} />}
-                <span>Approve</span>
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
+          ) : ""
+        }
+      />
 
       {/* ========================================================================= */}
       {/* MODAL 2: REJECT OWNER */}

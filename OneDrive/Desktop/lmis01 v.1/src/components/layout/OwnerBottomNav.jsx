@@ -55,17 +55,18 @@ export const OwnerBottomNav = () => {
     };
   }, [ownerId]);
 
-  // Exactly 5 Essential Navigation Sections for Livestock Owners
+  // Exactly 5 Essential Navigation Sections for Livestock Owners in exact specified order:
+  // 1. Home, 2. Today Livestock, 3. Records, 4. Notification, 5. Profile
   const navItems = [
     {
       to: "/owner",
-      label: "Dashboard",
+      label: "Home",
       icon: <Icon.Home size={20} />,
       exact: true,
     },
     {
       to: "/owner/animals",
-      label: "Today's Livestock",
+      label: "Today Livestock",
       icon: <Icon.Tag size={20} />,
       exact: false,
     },

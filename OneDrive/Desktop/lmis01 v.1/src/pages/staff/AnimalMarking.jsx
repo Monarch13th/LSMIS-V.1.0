@@ -1486,7 +1486,9 @@ export const AnimalMarking = ({ navTabs }) => {
                   <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
                   <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "center" }}>Total Heads</th>
                   <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                  <th style={{ padding: "14px 18px", fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                  <th className="table-action-th">
+                    ACTIONS
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -1628,52 +1630,33 @@ export const AnimalMarking = ({ navTabs }) => {
                       </td>
 
                       {/* Action */}
-                      <td style={{ padding: "14px 18px", textAlign: "right" }}>
-                        <div style={{ display: "inline-flex", gap: 8, alignItems: "center", justifyContent: "flex-end" }}>
-                          <Button
-                            size="sm"
-                            variant="outline"
+                      <td className="table-action-td">
+                        <div className="table-action-group">
+                          <button
+                            type="button"
+                            className="action-btn action-btn-outline"
                             onClick={(e) => {
                               e?.stopPropagation?.();
                               setSelectedOwnerKey(grp.key);
                             }}
-                            style={{
-                              padding: "6px 14px",
-                              fontSize: 12,
-                              fontWeight: 700,
-                              background: "var(--color-surface)",
-                              border: "1px solid var(--color-border)",
-                              color: "var(--color-text)",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 6,
-                            }}
+                            title="View Owner Records"
                           >
-                            <Icon.Eye size={13} /> View
-                          </Button>
+                            <Icon.Eye size={13} />
+                            <span>View</span>
+                          </button>
                           {activeTab === "for_marking" && (
-                            <>
-                              <Button
-                                size="sm"
-                                className={grp.hasFallback ? "btn-warning" : "btn-primary"}
-                                onClick={(e) => {
-                                  e?.stopPropagation?.();
-                                  openMarkBatch(grp);
-                                }}
-                                style={{
-                                  padding: "6px 14px",
-                                  fontSize: 12,
-                                  fontWeight: 700,
-                                  background: grp.hasFallback ? "#f59e0b" : undefined,
-                                  borderColor: grp.hasFallback ? "#d97706" : undefined,
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: 6,
-                                }}
-                              >
-                                <Icon.Tag size={13} /> {grp.hasFallback ? "Re-Mark Batch" : "Mark Batch"}
-                              </Button>
-                            </>
+                            <button
+                              type="button"
+                              className={grp.hasFallback ? "action-btn action-btn-warning" : "action-btn action-btn-primary"}
+                              onClick={(e) => {
+                                e?.stopPropagation?.();
+                                openMarkBatch(grp);
+                              }}
+                              title={grp.hasFallback ? "Re-Mark returned animals" : "Mark livestock"}
+                            >
+                              <Icon.Tag size={13} />
+                              <span>{grp.hasFallback ? "Re-Mark Batch" : "Mark Batch"}</span>
+                            </button>
                           )}
                         </div>
                       </td>
@@ -1750,7 +1733,7 @@ export const AnimalMarking = ({ navTabs }) => {
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <div
               style={{
-                overflowX: "auto",
+                overflowX: "hidden",
                 overflowY: "auto",
                 flex: 1,
                 minHeight: "380px",
@@ -1760,20 +1743,29 @@ export const AnimalMarking = ({ navTabs }) => {
                 scrollbarWidth: "thin",
               }}
             >
-              <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none" }}>
+              <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                   <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                    <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                    <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                    <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                    <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
-                    <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>{activeTab === "for_marking" ? "Registration Date" : "Marked Date"}</th>
-                    {activeTab === "marked" && (
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Type of Marking</th>
-                    )}
-                    <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                    {activeTab === "for_marking" && (
-                      <th style={{ padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                    {activeTab === "for_marking" ? (
+                      <>
+                        <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                        <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                        <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                        <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
+                        <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Registration Date</th>
+                        <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
+                        <th className="table-action-th" style={{ width: "22%" }}>ACTIONS</th>
+                      </>
+                    ) : (
+                      <>
+                        <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                        <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                        <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                        <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
+                        <th style={{ width: "22%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Marked Date</th>
+                        <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Type of Marking</th>
+                        <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
+                      </>
                     )}
                   </tr>
                 </thead>
@@ -1864,41 +1856,26 @@ export const AnimalMarking = ({ navTabs }) => {
                           )}
                         </td>
                         {activeTab === "for_marking" && (
-                          <td style={{ padding: "12px 14px", textAlign: "right" }}>
-                            <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
-                              {/* 1. Mark Animal Icon Button */}
+                          <td className="table-action-td">
+                            <div className="table-action-group">
+                              {/* 1. Mark Animal Button */}
                               <button
                                 type="button"
+                                className={isFallback ? "action-btn action-btn-warning" : "action-btn action-btn-primary"}
                                 title={isFallback ? "Re-Mark Animal" : "Mark Animal"}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openMarkSingle(item);
                                 }}
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 7,
-                                  border: "none",
-                                  background: isFallback
-                                    ? "linear-gradient(135deg, #f59e0b, #d97706)"
-                                    : "linear-gradient(135deg, #0284c7, #0369a1)",
-                                  color: "#ffffff",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  cursor: "pointer",
-                                  boxShadow: isFallback
-                                    ? "0 2px 5px rgba(217, 119, 6, 0.25)"
-                                    : "0 2px 5px rgba(2, 132, 199, 0.25)",
-                                  transition: "all 0.15s ease",
-                                }}
                               >
-                                <Icon.Tag size={14} />
+                                <Icon.Tag size={13} />
+                                <span>Mark</span>
                               </button>
 
-                              {/* 2. Edit Details Icon Button */}
+                              {/* 2. Edit Details Button */}
                               <button
                                 type="button"
+                                className="action-btn action-btn-outline"
                                 title={`Edit details for ${item.tag_number}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1908,26 +1885,15 @@ export const AnimalMarking = ({ navTabs }) => {
                                     owner_id: item.owner_id || selectedOwnerView?.owner_id || resolveOwnerId(item),
                                   });
                                 }}
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 7,
-                                  border: "1px solid var(--color-border)",
-                                  background: "var(--color-surface)",
-                                  color: "var(--color-text)",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  cursor: "pointer",
-                                  transition: "all 0.15s ease",
-                                }}
                               >
-                                <Icon.Edit size={14} />
+                                <Icon.Edit size={13} />
+                                <span>Edit</span>
                               </button>
 
-                              {/* 3. Delete Record Icon Button */}
+                              {/* 3. Delete Record Button */}
                               <button
                                 type="button"
+                                className="action-btn action-btn-danger"
                                 title={`Delete livestock ${item.tag_number}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1940,21 +1906,9 @@ export const AnimalMarking = ({ navTabs }) => {
                                     },
                                   });
                                 }}
-                                style={{
-                                  width: 32,
-                                  height: 32,
-                                  borderRadius: 7,
-                                  border: "none",
-                                  background: "rgba(239, 68, 68, 0.08)",
-                                  color: "#ef4444",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  cursor: "pointer",
-                                  transition: "all 0.15s ease",
-                                }}
                               >
-                                <Icon.Trash size={14} />
+                                <Icon.Trash size={13} />
+                                <span>Delete</span>
                               </button>
                             </div>
                           </td>
@@ -2308,13 +2262,13 @@ export const AnimalMarking = ({ navTabs }) => {
         title="Confirm Animal Marking"
         message={
           confirmingMark ? (
-            <div>
-              <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--color-text)", marginBottom: 8 }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: "var(--color-text)", marginBottom: 8, textAlign: "center" }}>
                 {confirmingMark.type === "batch"
                   ? `Do you want to mark this batch of ${confirmingMark.target?.count} livestock?`
                   : "Do you want to mark this livestock?"}
               </div>
-              <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+              <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", lineHeight: 1.5, textAlign: "center" }}>
                 {(() => {
                   const speciesDisplay =
                     resolveTargetSpeciesList(confirmingMark.target).join(", ") ||
@@ -2331,7 +2285,7 @@ export const AnimalMarking = ({ navTabs }) => {
                   );
                 })()}
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", marginTop: 8 }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", marginTop: 8, textAlign: "center" }}>
                 This will record official marking and transfer the livestock to <strong>Ante-Mortem Inspection</strong>.
               </div>
             </div>

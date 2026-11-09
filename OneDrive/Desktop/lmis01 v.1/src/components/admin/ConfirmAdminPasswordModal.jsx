@@ -129,7 +129,18 @@ export const ConfirmAdminPasswordModal = ({
             <h3 id="admin-confirm-title" style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 800, color: "var(--color-text)" }}>
               {title}
             </h3>
-            <p style={{ margin: 0, fontSize: 13, color: "var(--color-text-muted)", lineHeight: 1.5 }}>
+            <p
+              className="confirm-dialog-description"
+              style={{
+                margin: 0,
+                fontSize: 13,
+                color: "var(--color-text-muted)",
+                lineHeight: 1.6,
+                textAlign: "justify",
+                textJustify: "inter-word",
+                textAlignLast: "left",
+              }}
+            >
               {actionDescription}
             </p>
           </div>

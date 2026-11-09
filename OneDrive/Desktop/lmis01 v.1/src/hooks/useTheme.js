@@ -94,11 +94,8 @@ export const ThemeProvider = ({ children }) => {
 
   // Active theme state
   const [theme, setThemeState] = useState(() => {
+    if (isPublic) return "light";
     if (session) return getStoredUserTheme(session);
-    if (typeof localStorage !== "undefined") {
-      const g = localStorage.getItem("lsmis_theme_guest");
-      if (g === "dark" || g === "light") return g;
-    }
     return "light";
   });
 
@@ -109,20 +106,15 @@ export const ThemeProvider = ({ children }) => {
       const userTheme = getStoredUserTheme(session);
       setThemeState(userTheme);
       applyThemeToDom(userTheme);
-    } else if (pathname === "/") {
-      // Landing page: load guest preference if toggled, otherwise light
-      const guestTheme = (typeof localStorage !== "undefined" && localStorage.getItem("lsmis_theme_guest")) || "light";
-      setThemeState(guestTheme);
-      applyThemeToDom(guestTheme);
-    } else if (isPublicPath(pathname)) {
-      // Public authentication pages (login, register, forgot-password): strictly default light
-      applyThemeToDom("light");
     } else {
+      // Public pages (landing page, login, register, forgot-password): strictly default light
+      setThemeState("light");
       applyThemeToDom("light");
     }
   }, [pathname, session?.id, session?.email, session?.role]);
 
   const updateTheme = useCallback((newTheme) => {
+    if (isPublicPath(pathname)) return;
     const safeTheme = newTheme === "dark" ? "dark" : "light";
     try {
       if (session) {
@@ -133,14 +125,12 @@ export const ThemeProvider = ({ children }) => {
         if (supabase?.auth?.updateUser) {
           supabase.auth.updateUser({ data: { theme: safeTheme } }).catch(() => {});
         }
-      } else {
-        localStorage.setItem("lsmis_theme_guest", safeTheme);
       }
     } catch (_) {}
 
     applyThemeToDom(safeTheme);
     setThemeState(safeTheme);
-  }, [session]);
+  }, [session, pathname]);
 
   const toggleTheme = useCallback(() => {
     updateTheme(theme === "dark" ? "light" : "dark");

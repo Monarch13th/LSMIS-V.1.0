@@ -294,6 +294,36 @@ export const OwnerProfileCard = ({
 /**
  * Standardized Owner Profile Dossier Modal
  */
+const getLivestockStatusStyle = (status) => {
+  const s = String(status || "").toLowerCase();
+  if (s.includes("condemn") || s.includes("reject") || s.includes("discard")) {
+    return {
+      background: "rgba(239, 68, 68, 0.12)",
+      color: "#dc2626",
+      border: "1px solid rgba(239, 68, 68, 0.3)",
+    };
+  }
+  if (s.includes("weighed") || s.includes("permit issued") || s.includes("completed") || s.includes("dispatch") || s.includes("passed")) {
+    return {
+      background: "rgba(16, 185, 129, 0.12)",
+      color: "#16a34a",
+      border: "1px solid rgba(16, 185, 129, 0.3)",
+    };
+  }
+  if (s.includes("inspection") || s.includes("processing") || s.includes("ante-mortem") || s.includes("post-mortem") || s.includes("slaughter")) {
+    return {
+      background: "rgba(59, 130, 246, 0.12)",
+      color: "#2563eb",
+      border: "1px solid rgba(59, 130, 246, 0.3)",
+    };
+  }
+  return {
+    background: "rgba(245, 158, 11, 0.12)",
+    color: "#d97706",
+    border: "1px solid rgba(245, 158, 11, 0.3)",
+  };
+};
+
 export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
   const [avatarError, setAvatarError] = useState(false);
 
@@ -618,40 +648,52 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
                   </tr>
                 </thead>
                 <tbody>
-                  {ownerAnimals.map((a) => (
-                    <tr key={a.id || a.tag_number}>
-                      <td style={{ padding: "8px 12px", fontWeight: 700, fontFamily: "monospace" }}>
-                        {a.tag_number || a.id}
-                      </td>
-                      <td style={{ padding: "8px 12px" }}>
-                        <span>{a.species || "—"}</span>
-                      </td>
-                      <td style={{ padding: "8px 12px", fontWeight: 600 }}>
-                        {formatSex(a.sex)}
-                      </td>
-                      <td style={{ padding: "8px 12px", color: "var(--color-text-muted)" }}>
-                        {a.breed || "Standard"}
-                      </td>
-                      <td style={{ padding: "8px 12px", textAlign: "center" }}>
-                        {a.weight ? `${a.weight} kg` : "Pending scale"}
-                      </td>
-                      <td style={{ padding: "8px 12px", textAlign: "right" }}>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            padding: "2px 8px",
-                            borderRadius: 6,
-                            fontSize: 11,
-                            fontWeight: 700,
-                            background: "rgba(16, 185, 129, 0.12)",
-                            color: "#10b981",
-                          }}
-                        >
-                          {a.status || a.health_status || "Registered"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                      {ownerAnimals.map((a, idx) => {
+                        const stStyle = getLivestockStatusStyle(a.status || a.health_status);
+                        return (
+                          <tr
+                            key={a.id || a.tag_number || idx}
+                            style={{
+                              borderBottom: "1px solid var(--color-border, #f1f5f9)",
+                              background: idx % 2 === 0 ? "transparent" : "var(--color-surface-subtle, #fcfcfc)",
+                            }}
+                          >
+                            <td style={{ padding: "8px 12px", fontWeight: 700, fontFamily: "monospace", color: "var(--color-text)" }}>
+                              {a.tag_number || a.id}
+                            </td>
+                            <td style={{ padding: "8px 12px", color: "var(--color-text)" }}>
+                              <span>{a.species || "—"}</span>
+                            </td>
+                            <td style={{ padding: "8px 12px", fontWeight: 600, color: "var(--color-text)" }}>
+                              {formatSex(a.sex)}
+                            </td>
+                            <td style={{ padding: "8px 12px", color: "var(--color-text-muted)" }}>
+                              {a.breed || "Standard"}
+                            </td>
+                            <td style={{ padding: "8px 12px", textAlign: "center", fontWeight: a.weight ? 700 : 500, color: a.weight ? "var(--color-text)" : "var(--color-text-muted)" }}>
+                              {a.weight ? `${a.weight} kg` : "Pending scale"}
+                            </td>
+                            <td style={{ padding: "8px 12px", textAlign: "right" }}>
+                              <span
+                                style={{
+                                  display: "inline-block",
+                                  padding: "3px 8px",
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  lineHeight: 1.25,
+                                  maxWidth: 180,
+                                  whiteSpace: "normal",
+                                  wordBreak: "break-word",
+                                  ...stStyle,
+                                }}
+                              >
+                                {a.status || a.health_status || "Registered"}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
                 </tbody>
               </table>
             </div>

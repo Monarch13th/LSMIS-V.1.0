@@ -90,16 +90,6 @@ const ROLE_REPORT_TYPES = {
       badgeBg: "rgba(239, 68, 68, 0.15)",
       badgeColor: "#ef4444",
     },
-    {
-      id: "weighing",
-      label: "Carcass Weighing",
-      title: "Carcass Weighing & Branding Report",
-      subtitle: "Official hot and cold carcass weights, meat grades, brand codes, and weighing personnel",
-      icon: <Icon.Scale size={16} />,
-      color: "#d97706",
-      badgeBg: "rgba(217, 119, 6, 0.15)",
-      badgeColor: "#d97706",
-    },
   ],
   staff: [
     {
@@ -2310,8 +2300,8 @@ export const RoleReportsModule = ({
                     <th style={{ width: "14%", padding: "13px 18px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>
                       Status Summary
                     </th>
-                    <th style={{ width: 120, padding: "13px 18px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>
-                      Action
+                    <th className="table-action-th" style={{ width: 120 }}>
+                      ACTIONS
                     </th>
                   </tr>
                 </thead>
@@ -2457,27 +2447,18 @@ export const RoleReportsModule = ({
                       </td>
 
                       {/* Action */}
-                      <td
-                        style={{ padding: "14px 18px", verticalAlign: "middle", textAlign: "right" }}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => setSelectedOwnerKey(grp.key)}
-                          style={{
-                            height: 32,
-                            padding: "6px 12px",
-                            fontSize: 12,
-                            fontWeight: 700,
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: 5,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          <Icon.Eye size={13} /> View
-                        </Button>
+                      <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
+                        <div className="table-action-group">
+                          <button
+                            type="button"
+                            className="action-btn action-btn-outline"
+                            onClick={() => setSelectedOwnerKey(grp.key)}
+                            title="View Owner Records"
+                          >
+                            <Icon.Eye size={13} />
+                            <span>View</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -2824,7 +2805,7 @@ export const RoleReportsModule = ({
                     <th style={{ width: "11%", minWidth: 110, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
                     <th style={{ width: "14%", minWidth: 140, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: activeType === "condemnation" ? "left" : "right" }}>Responsible Personnel</th>
                     {activeType === "condemnation" && (
-                      <th style={{ width: "10%", minWidth: 100, padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", textAlign: "right" }}>Action</th>
+                      <th className="table-action-th" style={{ width: "10%", minWidth: 100 }}>ACTIONS</th>
                     )}
                   </tr>
                 </thead>
@@ -2918,26 +2899,21 @@ export const RoleReportsModule = ({
                         </td>
                         {activeType === "condemnation" && (
                           <td
-                            style={{ width: "10%", minWidth: 100, padding: "12px 14px", textAlign: "right", verticalAlign: "middle" }}
+                            className="table-action-td"
+                            style={{ width: "10%", minWidth: 100 }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setViewingCondemnation(item)}
-                              style={{
-                                height: 32,
-                                padding: "5px 10px",
-                                fontSize: 12,
-                                fontWeight: 700,
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              <Icon.Eye size={12} /> View Details
-                            </Button>
+                            <div className="table-action-group">
+                              <button
+                                type="button"
+                                className="action-btn action-btn-outline"
+                                onClick={() => setViewingCondemnation(item)}
+                                title="View Details"
+                              >
+                                <Icon.Eye size={13} />
+                                <span>Details</span>
+                              </button>
+                            </div>
                           </td>
                         )}
                       </tr>

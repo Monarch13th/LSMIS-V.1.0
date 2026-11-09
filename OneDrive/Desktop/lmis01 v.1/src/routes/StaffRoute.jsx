@@ -5,9 +5,11 @@ import { ROLES } from "../utils/constants";
 import { adminService } from "../services/adminService";
 
 export const StaffRoute = ({ children }) => {
-  const { session, role, signOut, loading, isInitialized } = useAuth();
+  const { session, role, signOut, loading, isInitialized, mfaRequired } = useAuth();
   const [checking, setChecking] = useState(true);
   const [isTerminated, setIsTerminated] = useState(false);
+
+  if (mfaRequired) return <Navigate to="/login?mfa=required" replace />;
 
   useEffect(() => {
     if (loading || !isInitialized) return;

@@ -24,6 +24,7 @@ import {
 } from "../../utils/phoneValidation";
 import { formatDate } from "../../utils/formatters";
 import { PermitConfig } from "../../pages/admin/PermitConfig";
+import { AuthSecuritySessions } from "./AuthSecuritySessions";
 
 export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) => {
   const { session, signOut } = useAuth();
@@ -2444,167 +2445,13 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             </div>
           </Card>
 
-          {/* Card 2: Security & Session Protection */}
-          <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <div style={{ borderBottom: "1px solid var(--color-border, #e2e8f0)", paddingBottom: 16 }}>
-                <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)" }}>
-                  Authentication &amp; Active Sessions
-                </h2>
-                <p style={{ fontSize: 14, color: "var(--color-text-muted, #64748b)", margin: "4px 0 0" }}>
-                  Active session status, single-device concurrency protection, and two-factor authentication.
-                </p>
-              </div>
-
-              {/* 2FA Card Row */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "18px 22px",
-                  borderRadius: 14,
-                  border: "1.5px solid var(--color-border, #e2e8f0)",
-                  background: "var(--color-bg, #f8fafc)",
-                  flexWrap: "wrap",
-                  gap: 16,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 10,
-                      background: twoFA ? "rgba(16, 185, 129, 0.14)" : "rgba(100, 116, 139, 0.12)",
-                      color: twoFA ? "#10b981" : "#64748b",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Icon.Shield size={20} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
-                      Two-Factor Authentication (2FA)
-                    </div>
-                    <div style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
-                      Requires email verification code on logins from unfamiliar browsers.
-                    </div>
-                  </div>
-                </div>
-
-                <Button
-                  variant={twoFA ? "outline" : "primary"}
-                  onClick={handleToggle2FA}
-                  style={{
-                    height: 40,
-                    padding: "0 18px",
-                    fontSize: 13.5,
-                    fontWeight: 700,
-                    borderRadius: 9,
-                  }}
-                >
-                  {twoFA ? "Disable 2FA" : "Enable 2FA"}
-                </Button>
-              </div>
-
-              {/* Single Session Concurrency Protection */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "18px 22px",
-                  borderRadius: 14,
-                  border: "1.5px solid var(--color-border, #e2e8f0)",
-                  background: "var(--color-bg, #f8fafc)",
-                  flexWrap: "wrap",
-                  gap: 16,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div
-                    style={{
-                      width: 42,
-                      height: 42,
-                      borderRadius: 10,
-                      background: "rgba(16, 185, 129, 0.14)",
-                      color: "#10b981",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Icon.Check size={20} />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
-                      Single Concurrent Session Protection
-                    </div>
-                    <div style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
-                      Enforces unique login tokens per device. Subsequent logins automatically terminate older browser tabs.
-                    </div>
-                  </div>
-                </div>
-
-                <span
-                  style={{
-                    padding: "5px 14px",
-                    borderRadius: 999,
-                    fontSize: 12,
-                    fontWeight: 800,
-                    background: "rgba(16, 185, 129, 0.12)",
-                    color: "#10b981",
-                    border: "1px solid rgba(16, 185, 129, 0.28)",
-                  }}
-                >
-                  Active &amp; Enforced
-                </span>
-              </div>
-
-              {/* Sign out Active Session */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "18px 22px",
-                  borderRadius: 14,
-                  border: "1.5px solid rgba(239, 68, 68, 0.25)",
-                  background: "rgba(239, 68, 68, 0.04)",
-                  flexWrap: "wrap",
-                  gap: 16,
-                }}
-              >
-                <div>
-                  <div style={{ fontSize: 15.5, fontWeight: 750, color: "#ef4444" }}>
-                    Sign Out Active Session
-                  </div>
-                  <div style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
-                    Clears session credentials and returns you to the login screen.
-                  </div>
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={() => signOut?.()}
-                  style={{
-                    height: 40,
-                    padding: "0 18px",
-                    fontSize: 13.5,
-                    fontWeight: 700,
-                    color: "#ef4444",
-                    borderColor: "rgba(239, 68, 68, 0.35)",
-                    borderRadius: 9,
-                  }}
-                >
-                  Sign Out
-                </Button>
-              </div>
-            </div>
-          </Card>
+          {/* Card 2: Security & Session Protection (Integrated with Supabase MFA & Active Sessions) */}
+          <AuthSecuritySessions
+            userEmail={profile.email || session?.email}
+            userRole={profile.role || role}
+            userName={profile.name || session?.name}
+            onSignOut={signOut}
+          />
         </div>
       )}
 

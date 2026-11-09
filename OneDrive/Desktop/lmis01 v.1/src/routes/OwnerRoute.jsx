@@ -3,7 +3,9 @@ import { useAuth } from "../hooks/useAuth";
 import { ROLES } from "../utils/constants";
 
 export const OwnerRoute = ({ children }) => {
-  const { role, loading, isInitialized } = useAuth();
+  const { role, loading, isInitialized, mfaRequired } = useAuth();
+
+  if (mfaRequired) return <Navigate to="/login?mfa=required" replace />;
 
   if (loading || !isInitialized) {
     return (

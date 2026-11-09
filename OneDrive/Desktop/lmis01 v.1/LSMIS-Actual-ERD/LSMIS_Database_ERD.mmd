@@ -1,0 +1,526 @@
+erDiagram
+    %% LSMIS Physical Database ERD - Supabase PostgreSQL 17.6
+    ante_mortem_inspections {
+        text id PK
+        text livestock_id FK
+        text tag_number
+        text species
+        text inspector_name
+        date date
+        text findings
+        text decision
+        text remarks
+        timestamptz inspected_at
+        text inspector_id
+        text created_by_user_id
+    }
+
+    audit_logs {
+        text id PK
+        text user
+        text role
+        text action
+        text module
+        text timestamp
+        text ip
+        text tag_number
+        text old_value
+        text new_value
+        text field_changed
+        text security_event
+        text severity
+        text user_id
+        timestamptz created_at
+    }
+
+    carcass_branding_records {
+        uuid id PK
+        uuid carcass_id FK
+        text livestock_id FK
+        text tag_number
+        text branding_code
+        text branding_type
+        text branding_status
+        timestamptz branded_at
+        uuid branded_by FK
+        text cancellation_reason
+        text notes
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    carcass_records {
+        uuid id PK
+        text tag_number
+        text slaughter_id
+        int4 quantity
+        numeric total_weight
+        numeric hot_weight
+        numeric cold_weight
+        numeric organ_weight
+        text grade
+        text operator
+        date date
+        text status
+        timestamptz weighed_at
+        timestamptz created_at
+        text weighed_by
+        text weighed_by_user_id
+        text brand_code
+        text branding_status
+        text brand_method
+        text weighed_by_role
+    }
+
+    condemnation_records {
+        text id PK
+        text livestock_id FK
+        date date
+        text tag_number
+        text species
+        text reason
+        text part
+        text quantity
+        text inspector
+        text notes
+        numeric weight_kg
+        text location
+        text disposition
+        text findings
+        text photo_url
+        text file_url
+        text inspector_id
+        text created_by_user_id
+    }
+
+    dispatch {
+        text id PK
+        text owner_id FK
+        text owner_name
+        numeric carcass_weight
+        numeric organ_weight
+        text driver
+        text vehicle
+        text released_date
+        text status
+        text destination
+        text permit_config_id
+        jsonb tags
+        timestamptz released_at
+        timestamptz dispatched_at
+        timestamptz created_at
+        text dispatched_by
+        text dispatched_by_user_id
+    }
+
+    evidence_records {
+        text id PK
+        timestamptz created_at
+        date date
+        text tag_number
+        text type
+        text file_name
+        text file_path
+        text file_url
+        int8 file_size
+        text mime_type
+        uuid uploaded_by FK
+        text inspection_type
+        text status
+        text notes
+        text file_preview
+        jsonb photos
+        jsonb file_urls
+    }
+
+    fees {
+        text id PK
+        text fee_name
+        text animal_type
+        text method
+        numeric rate
+        date effective_date
+        text status
+        timestamptz updated_at
+    }
+
+    livestock {
+        text id PK
+        text tag_number
+        text species
+        text sex
+        text age_months
+        numeric weight
+        text owner_id FK
+        text owner_name
+        date received_date
+        text status
+        int4 quantity
+        bool marked
+        text mark_type
+        date mark_date
+        timestamptz permit_issued_at
+        timestamptz registered_at
+        timestamptz dispatched_at
+        timestamptz released_at
+        timestamptz marked_at
+        timestamptz fallback_at
+        text fallback_reason
+        jsonb marking_history
+        text created_by
+        text created_by_user_id
+        text registered_by
+        text registered_by_user_id
+        text received_by
+        text received_by_user_id
+        timestamptz received_at
+        text marked_by
+        text marked_by_user_id
+        text ante_inspected_by
+        text ante_inspected_by_user_id
+        timestamptz ante_inspected_at
+        text slaughtered_by
+        text slaughtered_by_user_id
+        timestamptz slaughtered_at
+        text weighed_by
+        text weighed_by_user_id
+        timestamptz weighed_at
+        text post_inspected_by
+        text post_inspected_by_user_id
+        timestamptz post_inspected_at
+        text paid_by_staff
+        text paid_by_user_id
+        timestamptz paid_at
+        text permit_issued_by
+        text permit_issued_by_user_id
+        text dispatched_by
+        text dispatched_by_user_id
+        jsonb process_history
+        timestamptz created_at
+        timestamptz reassigned_at
+        text previous_operator
+        text species_id
+    }
+
+    login_security {
+        text email PK
+        int4 failed_attempts
+        timestamptz locked_until
+        timestamptz last_failed_at
+        text active_session_id
+        timestamptz active_session_updated_at
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    notifications {
+        text id PK
+        text title
+        text message
+        text date
+        bool read
+        text type
+        text owner_id FK
+        text role
+    }
+
+    otp_rate_limits {
+        text email PK
+        int4 request_count
+        timestamptz last_request
+        timestamptz blocked_until
+    }
+
+    owners {
+        text id PK
+        text name
+        text contact
+        text address
+        date registered_date
+        int4 total_animals
+        text email
+        text username
+        text status
+        bool email_verified
+        timestamptz email_verified_at
+        bool agreement_status
+        text agreement_version
+        timestamptz agreement_accepted_at
+        text approved_by
+        timestamptz approved_at
+        text rejection_reason
+        text suspension_reason
+        jsonb history
+        text created_by
+        text created_by_user_id
+        timestamptz created_at
+        text google_id
+        uuid auth_user_id
+        text avatar_url
+        text auth_provider
+    }
+
+    payments {
+        uuid id PK
+        date date
+        text receipt_no
+        text owner_name
+        text tag_number
+        text animal_type
+        int4 quantity
+        numeric weight
+        text method
+        numeric rate
+        numeric amount
+        text status
+        text staff_name
+        text livestock_id FK
+        text fee_id FK
+        text species
+        text fee_name
+        timestamptz paid_at
+        timestamptz created_at
+        text staff_id
+        text processed_by_user_id
+    }
+
+    permit_config {
+        text id PK
+        text permit_prefix
+        text origin
+        text destination
+        text address
+        text time_issued
+        text conveyance
+        text plate_no
+        text inspector
+        text city_vet
+        timestamptz updated_at
+    }
+
+    permit_config_history {
+        uuid id PK
+        text permit_prefix
+        text origin
+        text destination
+        text address
+        text time_issued
+        text conveyance
+        text plate_no
+        text inspector
+        text city_vet
+        timestamptz updated_at
+        uuid changed_by
+    }
+
+    permits {
+        uuid id PK
+        text permit_no
+        text livestock_id
+        text tag_number
+        uuid carcass_id
+        text owner_name
+        text species
+        numeric carcass_weight
+        text origin
+        text destination
+        text address
+        text time_issued
+        text conveyance
+        text plate_no
+        text inspector
+        text city_vet
+        text status
+        timestamptz issued_at
+        timestamptz created_at
+        text issued_by
+        text issued_by_user_id
+        jsonb config_snapshot
+    }
+
+    post_mortem_condemned_cuts {
+        uuid id PK
+        timestamptz created_at
+        date date
+        text inspection_id FK
+        text livestock_id FK
+        text tag_number
+        text species
+        text part
+        text custom_part
+        text location
+        numeric weight_kg
+        text reason
+        text custom_reason
+        text findings
+        text disposition
+        text photo_url
+        text photo_name
+        text inspector
+        text notes
+    }
+
+    post_mortem_inspections {
+        text id PK
+        text livestock_id FK
+        text tag_number
+        text species
+        text inspector_name
+        date date
+        text findings
+        text decision
+        text remarks
+        text raw_decision
+        jsonb condemned_parts
+        timestamptz inspected_at
+        text inspector_id
+        text created_by_user_id
+    }
+
+    slaughter_processing {
+        text id PK
+        text tag_number
+        text species
+        text owner_name
+        text operator
+        date date
+        jsonb steps
+        text status
+        text notes
+        text operator_id
+        text processed_by
+        text processed_by_user_id
+        timestamptz processed_at
+        timestamptz fallback_at
+        text fallback_reason
+        timestamptz reassigned_at
+        text previous_operator
+    }
+
+    slaughter_records {
+        text id PK
+        text tag_number
+        text species
+        text owner_name
+        date scheduled_date
+        date slaughter_date
+        text status
+        text operator
+        text livestock_id FK
+        text operator_id
+        text processed_by
+        text processed_by_user_id
+        timestamptz processed_at
+        timestamptz fallback_at
+        text fallback_reason
+        timestamptz reassigned_at
+        text previous_operator
+    }
+
+    species {
+        text id PK
+        text name
+        text code
+        text description
+        text color
+        text icon
+        text status
+        int4 sort_order
+        timestamptz created_at
+        timestamptz updated_at
+        text image_url
+        text image_path
+    }
+
+    system_settings {
+        text id PK
+        text system_name
+        text organization
+        text email
+        text timezone
+        text language
+        text date_format
+        int4 session_timeout
+        bool enable_notifications
+        bool enable_email_alerts
+        bool enable_audit_log
+    }
+
+    user_preferences {
+        uuid id PK
+        uuid user_id
+        text email
+        jsonb notification_preferences
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
+    users {
+        uuid id PK
+        timestamptz created_at
+        text full_name
+        text email
+        text username
+        text role
+        text status
+        text last_login
+        text owner_id FK
+        timestamptz terminated_at
+        timestamptz terminated_until
+        text termination_reason
+        text active_session_id
+        timestamptz active_session_updated_at
+        text google_id
+        text avatar_url
+        text auth_provider
+        int4 failed_login_attempts
+        timestamptz locked_until
+        timestamptz last_failed_login
+        text phone
+        text contact
+        text address
+        text license
+        text specialization
+    }
+
+    view_post_mortem_partial_summary {
+        text tag_number
+        text species
+        date date
+        int8 total_condemned_cuts
+        numeric total_condemned_weight_kg
+        text condemned_parts_list
+        text condemnation_reasons
+        text inspector_name
+    }
+
+    %% Verified PostgreSQL Foreign Keys (Engine Enforced)
+    owners ||--o{ livestock : "owner_id"
+    owners ||--o| users : "owner_id"
+    owners ||--o{ dispatch : "owner_id"
+    owners ||--o{ notifications : "owner_id"
+    livestock ||--o{ ante_mortem_inspections : "livestock_id"
+    livestock ||--o| slaughter_records : "livestock_id"
+    livestock ||--o{ post_mortem_inspections : "livestock_id"
+    post_mortem_inspections ||--o{ post_mortem_condemned_cuts : "inspection_id"
+    livestock ||--o{ post_mortem_condemned_cuts : "livestock_id"
+    carcass_records ||--o{ carcass_branding_records : "carcass_id"
+    livestock ||--o{ carcass_branding_records : "livestock_id"
+    users ||--o{ carcass_branding_records : "branded_by"
+    livestock ||--o{ condemnation_records : "livestock_id"
+    fees ||--o{ payments : "fee_id"
+    livestock ||--o{ payments : "livestock_id"
+    users ||--o{ evidence_records : "uploaded_by"
+
+    %% Application-Level Logical Joins
+    livestock ||--o| slaughter_processing : "livestock_id"
+    livestock ||--o| carcass_records : "livestock_id"
+    livestock ||--o| permits : "livestock_id"
+    carcass_records ||--o| permits : "carcass_id"
+    species ||--o{ livestock : "species"
+    species ||--o{ fees : "species"
+    permit_config ||--o{ dispatch : "permit_config_id"
+    permit_config ||--o{ permit_config_history : "id"
+    users ||--o| user_preferences : "user_id"
+    users ||--o{ audit_logs : "user_id"
+    post_mortem_condemned_cuts ||..o| view_post_mortem_partial_summary : "aggregates"

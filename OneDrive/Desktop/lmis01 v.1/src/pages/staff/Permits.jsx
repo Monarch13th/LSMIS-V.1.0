@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef, Fragment } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Button, Modal, AlertDialog, Badge, EmptyState } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, AlertDialog, Badge, EmptyState } from "../../components/ui";
 import { TagBadge } from "../../components/ui/TagBadge";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
@@ -54,9 +54,15 @@ export const isTagPermitIssued = (tagNumber, livestock, dbPermits = [], dispatch
     if (isDispatched) return true;
   }
   if (Array.isArray(dbPermits) && dbPermits.length > 0) {
-    const hasActivePermit = dbPermits.some(
-      (p) => String(p.tag_number || "").trim().toLowerCase() === cleanTag && String(p.status || "").toLowerCase() !== "revoked"
-    );
+    const hasActivePermit = dbPermits.some((p) => {
+      if (String(p.status || "").toLowerCase() === "revoked") return false;
+      const rawT = String(p.tag_number || "").trim().toLowerCase();
+      if (rawT === cleanTag) return true;
+      if (rawT.includes(",")) {
+        return rawT.split(",").map((s) => s.trim()).includes(cleanTag);
+      }
+      return false;
+    });
     if (hasActivePermit) return true;
   }
   return false;
@@ -809,9 +815,15 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
     const permitByTag = new Map();
     (dbPermits || []).forEach((p) => {
-      const t = normTag(p?.tag_number);
-      if (t && String(p?.status || "").toLowerCase() !== "revoked") {
-        permitByTag.set(t, p);
+      if (String(p?.status || "").toLowerCase() === "revoked") return;
+      const rawTag = String(p?.tag_number || "");
+      const t = normTag(rawTag);
+      if (t && !permitByTag.has(t)) permitByTag.set(t, p);
+      if (rawTag.includes(",")) {
+        rawTag.split(",").forEach((sub) => {
+          const st = normTag(sub);
+          if (st && !permitByTag.has(st)) permitByTag.set(st, p);
+        });
       }
     });
 
@@ -1248,15 +1260,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
   }, [carcass, payments, dbPermits, slaughterRecords, slaughterProcessing, livestock, dispatches, fees]);
 
-  // Which specific transactions already have an issued permit
-  const issuedKeys = useMemo(() => {
-    const keys = new Set();
-    (slaughterBatchGroups || []).forEach((grp) => {
-      if (grp.isIssued) keys.add(grp.key);
-    });
-    return keys;
-  }, [slaughterBatchGroups]);
-
   const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "—";
 
   const resolvedPermit = useMemo(() => {
@@ -1284,14 +1287,180 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     return permitNo || "MIC-06-016246";
   }, [selectedGroup, resolvedPermit, permitNo]);
 
-  // Search and species filtering
-  const q = search.trim().toLowerCase();
+  // Is batch issued helper
   const isBatchIssued = (grp) => grp.status === "Permit Issued" || grp.issuedCount > 0 || grp.isIssued;
 
-  const filteredSlaughterBatchGroups = useMemo(() => {
-    return (slaughterBatchGroups || []).filter((grp) => {
-      const matchTab = activeTab === "issued" ? isBatchIssued(grp) : !isBatchIssued(grp);
+  // Pending Slaughter Batches (unissued records awaiting permit)
+  const pendingSlaughterBatchGroups = useMemo(() => {
+    return (slaughterBatchGroups || []).filter((grp) => !isBatchIssued(grp));
+  }, [slaughterBatchGroups]);
 
+  // Helper to normalize Carcass Weighing timestamp down to Asia/Manila minute key for grouping
+  const getWeighingKey = (rawTime) => {
+    if (!rawTime) return "no_weighing_time";
+    const d = new Date(rawTime);
+    if (isNaN(d.getTime())) return String(rawTime).trim().toLowerCase();
+    return d.toLocaleString("en-CA", {
+      timeZone: "Asia/Manila",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  // Dedicated Issued Permits Dataset:
+  // - Grouped strictly by Owner
+  // - Multiple livestock records belonging to the same owner with the exact same Carcass Weighing date and time group under one entry
+  // - Displays owner's name once, followed by all applicable livestock records and their corresponding permit details
+  // - Uses the actual Carcass Weighing timestamp as the grouping reference, not the permit creation or issuance timestamp
+  // - Different Carcass Weighing timestamps for the same owner display in separate groups
+  // - Records from different owners are never combined
+  // - Each livestock record retains its individual permit information and issued status
+  const issuedPermitGroups = useMemo(() => {
+    const groups = {};
+
+    (slaughterBatchGroups || []).forEach((batchGrp) => {
+      (batchGrp.items || []).forEach((it) => {
+        if (!it.isIssued) return;
+
+        const carc = it.carcass;
+        const animal = it.animal;
+        const perm = it.permit;
+
+        // Retrieve actual Carcass Weighing timestamp from Supabase
+        const weighingTimestamp =
+          carc?.weighed_at ||
+          animal?.weighed_at ||
+          carc?.created_at ||
+          carc?.date ||
+          animal?.carcass_weighed_at ||
+          it.process_date_time ||
+          it.slaughter_date_time ||
+          it.permit_issued_at ||
+          perm?.created_at ||
+          null;
+
+        const weighingKey = getWeighingKey(weighingTimestamp);
+        const ownerKey = (batchGrp.owner_id || batchGrp.owner_name || "unknown_owner").trim().toLowerCase();
+        const groupKey = `issued_${ownerKey}_${weighingKey}`;
+
+        const itemPermitNo = it.permit_no || perm?.permit_no || animal?.permit_no || batchGrp.permit_no || "—";
+        const itemPermitIssuedAt = it.permit_issued_at || perm?.issued_at || perm?.created_at || animal?.permit_issued_at || null;
+        const itemPermitIssuedBy = it.permit_issued_by || perm?.issued_by || animal?.permit_issued_by || "Jenel Selgas";
+
+        const enrichedItem = {
+          ...it,
+          weighed_at: weighingTimestamp,
+          permit_no: itemPermitNo,
+          permit_issued_at: itemPermitIssuedAt,
+          permit_issued_by: itemPermitIssuedBy,
+          status: "Permit Issued",
+          isIssued: true,
+        };
+
+        if (!groups[groupKey]) {
+          groups[groupKey] = {
+            key: groupKey,
+            id: groupKey,
+            owner_name: batchGrp.owner_name,
+            owner_id: batchGrp.owner_id,
+            owner_address: batchGrp.owner_address || perm?.owner_address || "",
+            owner_avatar: batchGrp.owner_avatar || perm?.owner_avatar || null,
+            owner_contact: batchGrp.owner_contact || "",
+            batch_reference: batchGrp.batch_reference,
+            destination: perm?.destination || batchGrp.destination || cfg?.destination || "NEW PEOPLES MARKET",
+            origin: perm?.origin || batchGrp.origin || cfg?.origin || "TAPON TINAAN",
+            address: perm?.address || batchGrp.address || cfg?.address || "EAST POBLACION",
+            time_issued: perm?.time_issued || batchGrp.time_issued || cfg?.timeIssued || "",
+            conveyance: perm?.conveyance || batchGrp.conveyance || cfg?.conveyance || "MEAT VAN",
+            plate_no: perm?.plate_no ?? batchGrp.plate_no ?? cfg?.plateNo ?? "",
+            inspector: perm?.inspector || batchGrp.inspector || cfg?.inspector || "NERISSA U. VELOSO",
+            city_vet: perm?.city_vet || batchGrp.city_vet || cfg?.cityVet || "DR. RAYMUNDO VALENTINE P. PAMIREZ",
+            config_snapshot: perm?.config_snapshot || batchGrp.config_snapshot || null,
+            permit: perm || batchGrp.permit || null,
+            weighing_date_time: weighingTimestamp,
+            date: weighingTimestamp,
+            slaughter_date_time: it.slaughter_date_time || batchGrp.slaughter_date_time,
+            permit_issued_at: itemPermitIssuedAt,
+            permit_issued_by: itemPermitIssuedBy,
+            rawTimestamp: weighingTimestamp ? new Date(weighingTimestamp).getTime() : 0,
+            items: [],
+            tags: [],
+            speciesList: [],
+            species: it.species || batchGrp.species || "Hog",
+            amount: 0,
+            totalAmount: 0,
+            receipt_no: itemPermitNo !== "—" ? itemPermitNo : batchGrp.receipt_no,
+            receipts: [],
+            permit_no: itemPermitNo !== "—" ? itemPermitNo : batchGrp.permit_no,
+            permit_id: perm?.id || batchGrp.permit_id || null,
+            permit_issued: true,
+            isIssued: true,
+            status: "Permit Issued",
+          };
+        }
+
+        const grp = groups[groupKey];
+        grp.items.push(enrichedItem);
+        if (!grp.tags.includes(it.tag_number)) grp.tags.push(it.tag_number);
+        if (it.species && !grp.speciesList.includes(it.species)) grp.speciesList.push(it.species);
+        if (it.brand_code && it.brand_code !== "—" && !grp.receipts.includes(it.brand_code)) grp.receipts.push(it.brand_code);
+        if (itemPermitNo && itemPermitNo !== "—" && !grp.receipts.includes(itemPermitNo)) grp.receipts.push(itemPermitNo);
+        grp.amount += (it.feeAmount || 0);
+        grp.totalAmount += (it.feeAmount || 0);
+
+        if (perm) {
+          if (!grp.permit) grp.permit = perm;
+          if (!grp.permit_id) grp.permit_id = perm.id;
+          if (!grp.permit_no && perm.permit_no) grp.permit_no = perm.permit_no;
+        }
+
+        if (itemPermitIssuedAt && (!grp.permit_issued_at || new Date(itemPermitIssuedAt) > new Date(grp.permit_issued_at))) {
+          grp.permit_issued_at = itemPermitIssuedAt;
+        }
+      });
+    });
+
+    return Object.values(groups)
+      .map((grp) => {
+        const sortedItems = [...grp.items].sort((a, b) =>
+          String(a.tag_number || "").localeCompare(String(b.tag_number || ""), undefined, {
+            numeric: true,
+            sensitivity: "base",
+          })
+        );
+        const totalLivestock = sortedItems.length;
+        const totalCarcasses = sortedItems.filter((it) => it.hasCarcassWeight).length;
+        const totalWeight = sortedItems.reduce((sum, it) => sum + (Number(it.carcass_weight) || 0), 0);
+
+        return {
+          ...grp,
+          items: sortedItems,
+          tag_number: grp.tags.join(", "),
+          totalLivestock,
+          totalCarcasses,
+          totalWeight,
+          eligibleCount: 0,
+          issuedCount: totalLivestock,
+          unweighedCount: 0,
+          isIssued: true,
+          status: "Permit Issued",
+        };
+      })
+      .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
+  }, [slaughterBatchGroups, cfg]);
+
+  // Which dataset is active based on tab
+  const activeGroups = activeTab === "issued" ? issuedPermitGroups : pendingSlaughterBatchGroups;
+
+  // Search and species filtering
+  const q = search.trim().toLowerCase();
+
+  const filteredSlaughterBatchGroups = useMemo(() => {
+    return (activeGroups || []).filter((grp) => {
       const matchSearch =
         !q ||
         (grp.owner_name || "").toLowerCase().includes(q) ||
@@ -1301,17 +1470,23 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         (grp.tag_number || "").toLowerCase().includes(q) ||
         (grp.receipts || []).some((r) => r.toLowerCase().includes(q)) ||
         (grp.tags || []).some((t) => t.toLowerCase().includes(q)) ||
-        (grp.speciesList || []).some((s) => s.toLowerCase().includes(q));
+        (grp.speciesList || []).some((s) => s.toLowerCase().includes(q)) ||
+        (grp.items || []).some(
+          (it) =>
+            (it.tag_number || "").toLowerCase().includes(q) ||
+            (it.brand_code || "").toLowerCase().includes(q) ||
+            (it.permit_no || "").toLowerCase().includes(q)
+        );
 
       const matchSpecies =
         filterSpecies === "all" ||
         (grp.speciesList || []).some((s) => s.toLowerCase() === filterSpecies.toLowerCase());
 
-      return matchTab && matchSearch && matchSpecies;
+      return matchSearch && matchSpecies;
     });
-  }, [slaughterBatchGroups, activeTab, q, filterSpecies]);
+  }, [activeGroups, q, filterSpecies]);
 
-  // Main table pagination (10 per page default)
+  // Main table dataset
   const totalCount = filteredSlaughterBatchGroups.length;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
   const currentPage = Math.min(page, totalPages);
@@ -1321,15 +1496,33 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
   // KPI Metrics
   const totalBatches = slaughterBatchGroups.length;
-  const issuedBatches = slaughterBatchGroups.filter(isBatchIssued).length;
-  const pendingBatches = slaughterBatchGroups.filter((g) => !isBatchIssued(g)).length;
-  const readyBatches = slaughterBatchGroups.filter((g) => g.eligibleCount > 0).length;
+  const issuedBatches = issuedPermitGroups.length;
+  const pendingBatches = pendingSlaughterBatchGroups.length;
+  const readyBatches = pendingSlaughterBatchGroups.filter((g) => g.eligibleCount > 0).length;
   const incompleteBatches = pendingBatches;
-  const totalAmount = slaughterBatchGroups.reduce((sum, g) => sum + (g.totalAmount || 0), 0);
+  const totalAmount = (activeTab === "issued" ? issuedPermitGroups : pendingSlaughterBatchGroups).reduce(
+    (sum, g) => sum + (g.totalAmount || 0),
+    0
+  );
 
   // Identify display items for print preview modal
   const displayItems = selectedGroup
     ? (() => {
+        if (Array.isArray(selectedGroup.items) && selectedGroup.items.length > 0) {
+          return selectedGroup.items.map((it) => {
+            const w = parseFloat(it.carcass_weight || it.total_weight || it.cold_weight || it.weight || 0);
+            return {
+              ...it,
+              tag_number: it.tag_number,
+              species: it.species || selectedGroup.species || "Hog",
+              sex: it.sex || "",
+              owner_name: it.owner_name || selectedGroup.owner_name,
+              quantity: it.quantity || 1,
+              total_weight: w,
+              cold_weight: w,
+            };
+          });
+        }
         const tagList = Array.from(
           new Set(
             (selectedGroup.tags && selectedGroup.tags.length
@@ -1781,10 +1974,16 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
               </thead>
               <tbody>
                 {paginatedGroups.map((grp) => {
-                  const isIssued = grp.isIssued || grp.issuedCount > 0 || isBatchIssued(grp);
+                  const isIssued = activeTab === "issued" || grp.isIssued || grp.issuedCount > 0 || isBatchIssued(grp);
                   const displayDateTime = isIssued
-                    ? (grp.permit_issued_at ? formatPhDateTime(grp.permit_issued_at) : (grp.rawTimestamp ? formatPhDateTime(grp.rawTimestamp) : "—"))
-                    : (grp.slaughter_date_time ? formatPhDateTime(grp.slaughter_date_time) : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "—"));
+                    ? (grp.weighing_date_time
+                        ? formatPhDateTime(grp.weighing_date_time)
+                        : (grp.permit_issued_at
+                            ? formatPhDateTime(grp.permit_issued_at)
+                            : (grp.rawTimestamp ? formatPhDateTime(grp.rawTimestamp) : "—")))
+                    : (grp.slaughter_date_time
+                        ? formatPhDateTime(grp.slaughter_date_time)
+                        : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "—"));
                   const rawPermitNo = grp.permit_no || (grp.receipts || []).find((r) => String(r).startsWith("MIC-")) || "";
                   const basePermitNo = rawPermitNo ? rawPermitNo.split("-").slice(0, 3).join("-") : "";
 
@@ -1876,6 +2075,11 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           >
                             {grp.totalLivestock} {grp.totalLivestock === 1 ? "Head" : "Heads"}
                           </span>
+                          {grp.speciesList && grp.speciesList.length > 0 && (
+                            <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
+                              {grp.speciesList.join(", ")}
+                            </div>
+                          )}
                         </td>
 
                         {/* 3. Date & Time */}
@@ -2273,205 +2477,32 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         })()}
       </Modal>
 
-      {/* Issue Permit Confirmation Modal */}
-      <Modal
-        open={Boolean(confirmingGroup)}
-        onClose={() => {
-          if (!issuingId) setConfirmingGroup(null);
-        }}
-        title="Issue Meat Permit"
-        size={confirmingGroup && (confirmingGroup.items || []).filter((it) => it.isEligible && !it.isIssued).length > 1 ? "md" : "sm"}
-        backdropStyle={{ zIndex: 1100 }}
-      >
-        {confirmingGroup && (() => {
-          const eligibleItems = (confirmingGroup.items || []).filter((it) => it.isEligible && !it.isIssued);
-          const isSingle = eligibleItems.length === 1;
-          const singleItem = eligibleItems[0] || {};
-          const totalWeight = eligibleItems.reduce((sum, it) => sum + (Number(it.carcass_weight) || 0), 0);
+      {/* Issue Permit Confirmation Dialog */}
+      {confirmingGroup && (() => {
+        const eligibleItems = (confirmingGroup.items || []).filter((it) => it.isEligible && !it.isIssued);
+        const isSingle = eligibleItems.length === 1;
 
-          return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 13.5,
-                  color: "var(--color-text)",
-                  lineHeight: 1.5,
-                }}
-              >
-                {isSingle
-                  ? "Are you sure you want to issue a meat permit for this livestock?"
-                  : `Are you sure you want to issue a meat permit for these ${eligibleItems.length} selected livestock records?`}
-              </p>
-
-              {/* Identification & Permit Details */}
-              {isSingle ? (
-                <div
-                  style={{
-                    background: "var(--color-bg)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: 8,
-                    padding: "12px 14px",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                    fontSize: 12.5,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "var(--color-text-muted)" }}>Tag Number:</span>
-                    <span style={{ fontWeight: 700, color: "var(--color-text)", fontFamily: "monospace" }}>
-                      {singleItem.tag_number || "—"}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "var(--color-text-muted)" }}>Owner Name:</span>
-                    <span style={{ fontWeight: 700, color: "var(--color-text)" }}>
-                      {confirmingGroup.owner_name || singleItem.owner_name}
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "var(--color-text-muted)" }}>Species &amp; Sex:</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-text)" }}>
-                      {singleItem.species || "Hog"} ({formatSex(singleItem.sex)})
-                    </span>
-                  </div>
-                  {singleItem.brand_code && (
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <span style={{ color: "var(--color-text-muted)" }}>Brand Code:</span>
-                      <span style={{ fontWeight: 600, color: "var(--color-primary, #0284c7)", fontFamily: "monospace" }}>
-                        {singleItem.brand_code}
-                      </span>
-                    </div>
-                  )}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "var(--color-text-muted)" }}>Carcass Weight:</span>
-                    <span style={{ fontWeight: 700, color: "#047857" }}>
-                      {Number(singleItem.carcass_weight || 0).toFixed(2)} kg
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ color: "var(--color-text-muted)" }}>Destination:</span>
-                    <span style={{ fontWeight: 600, color: "var(--color-text)" }}>
-                      {cfg?.destination || "NEW PEOPLES MARKET"}
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  <div
-                    style={{
-                      background: "var(--color-bg)",
-                      border: "1px solid var(--color-border)",
-                      borderRadius: 8,
-                      padding: "10px 14px",
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      flexWrap: "wrap",
-                      gap: 8,
-                      fontSize: 12.5,
-                    }}
-                  >
-                    <div>
-                      <span style={{ color: "var(--color-text-muted)" }}>Owner: </span>
-                      <strong style={{ color: "var(--color-text)" }}>{confirmingGroup.owner_name}</strong>
-                    </div>
-                    <div>
-                      <span style={{ color: "var(--color-text-muted)" }}>Selected: </span>
-                      <strong style={{ color: "#047857" }}>{eligibleItems.length} records ({totalWeight.toFixed(2)} kg)</strong>
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      border: "1px solid var(--color-border)",
-                      borderRadius: 8,
-                      overflowX: "auto",
-                      maxHeight: "220px",
-                      scrollbarWidth: "thin",
-                    }}
-                  >
-                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                      <thead style={{ position: "sticky", top: 0, background: "var(--color-bg)", zIndex: 1 }}>
-                        <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
-                          <th style={{ padding: "8px 10px", textAlign: "left", color: "var(--color-text-muted)", fontWeight: 700 }}>Tag #</th>
-                          <th style={{ padding: "8px 10px", textAlign: "left", color: "var(--color-text-muted)", fontWeight: 700 }}>Brand Code</th>
-                          <th style={{ padding: "8px 10px", textAlign: "left", color: "var(--color-text-muted)", fontWeight: 700 }}>Species</th>
-                          <th style={{ padding: "8px 10px", textAlign: "left", color: "var(--color-text-muted)", fontWeight: 700 }}>Sex</th>
-                          <th style={{ padding: "8px 10px", textAlign: "right", color: "var(--color-text-muted)", fontWeight: 700 }}>Carcass Wt</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {eligibleItems.map((it) => (
-                          <tr key={it.tag_number} style={{ borderBottom: "1px solid var(--color-border)" }}>
-                            <td style={{ padding: "7px 10px", fontWeight: 700, fontFamily: "monospace" }}>{it.tag_number}</td>
-                            <td style={{ padding: "7px 10px", fontFamily: "monospace", color: "var(--color-primary, #0284c7)" }}>{it.brand_code || "—"}</td>
-                            <td style={{ padding: "7px 10px" }}>{it.species || "—"}</td>
-                            <td style={{ padding: "7px 10px" }}>{formatSex(it.sex)}</td>
-                            <td style={{ padding: "7px 10px", textAlign: "right", fontWeight: 700, color: "#047857" }}>
-                              {Number(it.carcass_weight || 0).toFixed(2)} kg
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Modal Actions (strictly Cancel and Confirm only) */}
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                  gap: 10,
-                  marginTop: 4,
-                  paddingTop: 12,
-                  borderTop: "1px solid var(--color-border)",
-                }}
-              >
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setConfirmingGroup(null)}
-                  disabled={Boolean(issuingId)}
-                  style={{
-                    minWidth: 96,
-                    height: 38,
-                    fontWeight: 650,
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => handleExecutePermitIssuance(confirmingGroup)}
-                  disabled={Boolean(issuingId)}
-                  style={{
-                    minWidth: 120,
-                    height: 38,
-                    fontWeight: 650,
-                    background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
-                    color: "#ffffff",
-                    border: "none",
-                    boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                  }}
-                >
-                  {issuingId ? (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                      <span className="spinner" style={{ width: 14, height: 14 }} /> Issuing...
-                    </span>
-                  ) : (
-                    "Confirm"
-                  )}
-                </Button>
-              </div>
-            </div>
-          );
-        })()}
-      </Modal>
+        return (
+          <ConfirmDialog
+            open={Boolean(confirmingGroup)}
+            onCancel={() => {
+              if (!issuingId) setConfirmingGroup(null);
+            }}
+            onConfirm={() => handleExecutePermitIssuance(confirmingGroup)}
+            title="Issue Meat Permit"
+            confirmText="Issue Permit"
+            confirmVariant="success"
+            loading={Boolean(issuingId)}
+            size="sm"
+            backdropStyle={{ zIndex: 1100 }}
+            message={
+              isSingle
+                ? "Are you sure you want to issue a meat permit for this livestock?"
+                : `Are you sure you want to issue a meat permit for these ${eligibleItems.length} selected livestock records?`
+            }
+          />
+        );
+      })()}
 
 
       <Modal open={!!selectedGroup} onClose={() => setSelectedGroup(null)} title={permitModalMode === "print" ? "Print Preview — Meat Permit" : "Official Meat Permit"} size="lg"

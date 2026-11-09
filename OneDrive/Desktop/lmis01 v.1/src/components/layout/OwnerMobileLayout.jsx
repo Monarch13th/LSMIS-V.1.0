@@ -103,17 +103,15 @@ export const OwnerMobileLayout = ({ theme: propTheme, onToggleTheme: propToggleT
           </div>
         </header>
 
-        {/* Navigation Bar */}
-        <div className="shrink-0 z-30 w-full border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
-          <OwnerBottomNav />
-        </div>
-
         {/* Scrollable Main Content */}
         <main className="owner-mobile-main flex-1 overflow-y-auto">
           <div className="w-full max-w-5xl mx-auto">
             <Outlet />
           </div>
         </main>
+
+        {/* Fixed Bottom Navigation Bar */}
+        <OwnerBottomNav />
       </div>
     </div>
   );

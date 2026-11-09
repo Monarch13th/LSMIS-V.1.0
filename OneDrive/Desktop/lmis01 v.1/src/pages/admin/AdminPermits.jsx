@@ -17,10 +17,10 @@ import { initials } from "../../utils/helpers";
 export const AdminPermits = () => {
   const { data: dbPermits = [], refresh: refreshPermits, loading: loadingPermits } = useSupabase(TABLES.PERMITS);
   const { data: livestock = [], refresh: refreshLivestock, loading: loadingLivestock } = useSupabase(TABLES.LIVESTOCK);
-  const { data: carcass = [], refresh: refreshCarcass } = useSupabase(TABLES.CARCASS_WEIGHTS);
+  const { data: carcass = [], refresh: refreshCarcass } = useSupabase(TABLES.CARCASS);
   const { data: owners = [] } = useSupabase(TABLES.OWNERS);
 
-  const [activeTab, setActiveTab] = useState("all"); // 'all' | 'issued' | 'pending'
+  const [activeTab, setActiveTab] = useState("pending"); // 'pending' | 'issued'
   const [search, setSearch] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [page, setPage] = useState(1);
@@ -190,16 +190,15 @@ export const AdminPermits = () => {
     return result;
   }, [dbPermits, livestock, carcass, ownersMap]);
 
-  // Counts for tabs
+  // Counts for tabs (number of batches matching Staff view)
   const tabCounts = useMemo(() => {
     let issued = 0;
     let pending = 0;
     allGroups.forEach((g) => {
-      if (g.status === "Issued") issued += g.total_heads;
-      else if (g.status === "Pending") pending += g.total_heads;
+      if (g.status === "Issued") issued++;
+      else if (g.status === "Pending") pending++;
     });
     return {
-      all: issued + pending,
       issued,
       pending,
     };
@@ -280,7 +279,7 @@ export const AdminPermits = () => {
             boxSizing: "border-box",
           }}
         >
-          {/* Left: Navigation Tabs */}
+          {/* Left: Navigation Tabs (Matching Staff Meat Permit: Pending & Permit Issued) */}
           <div
             style={{
               display: "inline-flex",
@@ -294,131 +293,61 @@ export const AdminPermits = () => {
               whiteSpace: "nowrap",
             }}
           >
-            {/* All Permits */}
-            <button
-              type="button"
-              onClick={() => setActiveTab("all")}
-              style={{
-                height: 32,
-                padding: "0 10px",
-                borderRadius: 7,
-                fontSize: 12,
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-                background: activeTab === "all" ? "var(--color-surface)" : "transparent",
-                color: activeTab === "all" ? "var(--color-text)" : "var(--color-text-muted)",
-                boxShadow: activeTab === "all" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                transition: "all 140ms ease",
-              }}
-            >
-              <Icon.FileText size={14} style={{ color: "#0284c7" }} />
-              <span>All Permits</span>
-              <span
-                style={{
-                  minWidth: 18,
-                  height: 18,
-                  padding: "0 5px",
-                  borderRadius: 999,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: activeTab === "all" ? "rgba(2, 132, 199, 0.15)" : "var(--color-border)",
-                  color: activeTab === "all" ? "#0284c7" : "var(--color-text-muted)",
-                }}
-              >
-                {tabCounts.all}
-              </span>
-            </button>
-
-            {/* Issued */}
-            <button
-              type="button"
-              onClick={() => setActiveTab("issued")}
-              style={{
-                height: 32,
-                padding: "0 10px",
-                borderRadius: 7,
-                fontSize: 12,
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-                background: activeTab === "issued" ? "var(--color-surface)" : "transparent",
-                color: activeTab === "issued" ? "var(--color-text)" : "var(--color-text-muted)",
-                boxShadow: activeTab === "issued" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                transition: "all 140ms ease",
-              }}
-            >
-              <Icon.Check size={14} style={{ color: "#10b981" }} />
-              <span>Issued</span>
-              <span
-                style={{
-                  minWidth: 18,
-                  height: 18,
-                  padding: "0 5px",
-                  borderRadius: 999,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: activeTab === "issued" ? "rgba(16, 185, 129, 0.15)" : "var(--color-border)",
-                  color: activeTab === "issued" ? "#10b981" : "var(--color-text-muted)",
-                }}
-              >
-                {tabCounts.issued}
-              </span>
-            </button>
-
-            {/* Pending */}
-            <button
-              type="button"
-              onClick={() => setActiveTab("pending")}
-              style={{
-                height: 32,
-                padding: "0 10px",
-                borderRadius: 7,
-                fontSize: 12,
-                fontWeight: 700,
-                border: "none",
-                cursor: "pointer",
-                background: activeTab === "pending" ? "var(--color-surface)" : "transparent",
-                color: activeTab === "pending" ? "var(--color-text)" : "var(--color-text-muted)",
-                boxShadow: activeTab === "pending" ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 5,
-                transition: "all 140ms ease",
-              }}
-            >
-              <Icon.Clock size={14} style={{ color: "#d97706" }} />
-              <span>Pending</span>
-              <span
-                style={{
-                  minWidth: 18,
-                  height: 18,
-                  padding: "0 5px",
-                  borderRadius: 999,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  background: activeTab === "pending" ? "rgba(217, 119, 6, 0.15)" : "var(--color-border)",
-                  color: activeTab === "pending" ? "#d97706" : "var(--color-text-muted)",
-                }}
-              >
-                {tabCounts.pending}
-              </span>
-            </button>
+            {[
+              { id: "pending", label: "Pending", count: tabCounts.pending, icon: <Icon.Clock size={14} />, color: "#d97706", badgeBg: "rgba(217, 119, 6, 0.15)", badgeColor: "#d97706" },
+              { id: "issued", label: "Permit Issued", count: tabCounts.issued, icon: <Icon.FileText size={14} />, color: "#8b5cf6", badgeBg: "rgba(139, 92, 246, 0.15)", badgeColor: "#8b5cf6" },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    setPage(1);
+                  }}
+                  style={{
+                    height: 32,
+                    padding: "0 10px",
+                    borderRadius: 7,
+                    fontSize: 12,
+                    fontWeight: isActive ? 700 : 600,
+                    border: isActive ? "1px solid var(--color-border)" : "1px solid transparent",
+                    cursor: "pointer",
+                    background: isActive ? "var(--color-surface)" : "transparent",
+                    color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
+                    boxShadow: isActive ? "0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 140ms ease",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <span style={{ color: isActive ? tab.color : "var(--color-text-muted)", display: "flex" }}>
+                    {tab.icon}
+                  </span>
+                  <span>{tab.label}</span>
+                  <span
+                    style={{
+                      minWidth: 18,
+                      height: 18,
+                      padding: "0 5px",
+                      borderRadius: 999,
+                      fontSize: 11,
+                      fontWeight: 800,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: isActive ? tab.badgeBg : "var(--color-border)",
+                      color: isActive ? tab.badgeColor : "var(--color-text-muted)",
+                    }}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Right: Search Bar & Species Filter */}
@@ -513,7 +442,7 @@ export const AdminPermits = () => {
               title="Filter by species"
             >
               <option value="all">All Species</option>
-              <option value="Hog">Swine / Hog</option>
+              <option value="Hog">Hog</option>
               <option value="Cattle">Cattle</option>
               <option value="Carabao">Carabao</option>
               <option value="Goat">Goat</option>
@@ -523,21 +452,23 @@ export const AdminPermits = () => {
 
         {/* Content: View-Only Table */}
         {isLoading ? (
-          <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--color-text-muted)", fontSize: 13.5 }}>
+          <div style={{ flex: 1, minHeight: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 20px", color: "var(--color-text-muted)", fontSize: 13.5 }}>
             Loading permit records...
           </div>
         ) : filteredGroups.length === 0 ? (
-          <EmptyState
-            title="No permit records found"
-            message={
-              search || filterSpecies !== "all"
-                ? "No records match your search or filter criteria."
-                : activeTab === "pending"
-                ? "No pending permits awaiting clearance."
-                : "No meat inspection permit records found."
-            }
-            icon={<Icon.FileText size={38} />}
-          />
+          <div style={{ flex: 1, minHeight: 340, display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 20px" }}>
+            <EmptyState
+              title="No permit records found"
+              message={
+                search || filterSpecies !== "all"
+                  ? "No records match your search or filter criteria."
+                  : activeTab === "pending"
+                  ? "No pending permits awaiting clearance."
+                  : "No meat inspection permit records found."
+              }
+              icon={<Icon.FileText size={38} />}
+            />
+          </div>
         ) : (
           <div
             className="records-scrollable-content table-wrap"
@@ -553,8 +484,6 @@ export const AdminPermits = () => {
               className="table"
               style={{
                 width: "100%",
-                minWidth: 920,
-                tableLayout: "fixed",
                 borderCollapse: "separate",
                 borderSpacing: 0,
               }}
@@ -563,7 +492,6 @@ export const AdminPermits = () => {
                 <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
                   <th
                     style={{
-                      width: "25%",
                       padding: "12px 16px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -577,7 +505,6 @@ export const AdminPermits = () => {
                   </th>
                   <th
                     style={{
-                      width: "16%",
                       padding: "12px 16px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -585,13 +512,13 @@ export const AdminPermits = () => {
                       letterSpacing: "0.05em",
                       color: "var(--color-text-muted)",
                       textAlign: "center",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Livestock Count
                   </th>
                   <th
                     style={{
-                      width: "24%",
                       padding: "12px 16px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -599,27 +526,29 @@ export const AdminPermits = () => {
                       letterSpacing: "0.05em",
                       color: "var(--color-text-muted)",
                       textAlign: "left",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     Date and Time
                   </th>
+                  {activeTab !== "pending" && (
+                    <th
+                      style={{
+                        padding: "12px 16px",
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "var(--color-text-muted)",
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Permit #
+                    </th>
+                  )}
                   <th
                     style={{
-                      width: "20%",
-                      padding: "12px 16px",
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: "var(--color-text-muted)",
-                      textAlign: "left",
-                    }}
-                  >
-                    Permit #
-                  </th>
-                  <th
-                    style={{
-                      width: "15%",
                       padding: "12px 16px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -627,9 +556,10 @@ export const AdminPermits = () => {
                       letterSpacing: "0.05em",
                       color: "var(--color-text-muted)",
                       textAlign: "center",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    Issued
+                    STATUS
                   </th>
                 </tr>
               </thead>
@@ -725,22 +655,24 @@ export const AdminPermits = () => {
                       </td>
 
                       {/* 4. Permit # */}
-                      <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
-                        {isIssued ? (
-                          <span
-                            style={{
-                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "#0284c7",
-                            }}
-                          >
-                            {grp.base_permit_no}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
-                        )}
-                      </td>
+                      {activeTab !== "pending" && (
+                        <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
+                          {isIssued ? (
+                            <span
+                              style={{
+                                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: "#0284c7",
+                              }}
+                            >
+                              {grp.base_permit_no}
+                            </span>
+                          ) : (
+                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
+                          )}
+                        </td>
+                      )}
 
                       {/* 5. Issued */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle", textAlign: "center" }}>

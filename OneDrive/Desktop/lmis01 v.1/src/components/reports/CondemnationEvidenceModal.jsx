@@ -12,6 +12,7 @@ import {
   resolveCondemningPersonnel,
 } from "../../pages/vet/VetExtra";
 import { matchesStage } from "../../pages/vet/condemnationStage";
+import { getCondemnationRecordParts } from "../../pages/vet/condemnationEvidenceIndex";
 
 export const CondemnationEvidenceModal = ({
   open,
@@ -241,69 +242,18 @@ export const CondemnationEvidenceModal = ({
   ];
   const resolvedSpecies = speciesCandidates.find(isRealSpecies)?.trim() || "Not recorded";
 
-  // 4. Condemnation Scope & Type
-  const partVal = String(displayRecord.part || record.raw?.part || record.part || "").trim().toLowerCase();
-  const statusVal = String(record.status || displayRecord.status || "").trim().toLowerCase();
-  const isWhole =
-    stage === "Ante-Mortem" ||
-    partVal === "live animal" ||
-    partVal === "whole carcass" ||
-    statusVal === "condemned" ||
-    (!statusVal.includes("partial") && !partVal.includes("cut") && partVal !== "head" && partVal !== "liver" && partVal !== "lungs");
-
-  const condemnationTypeDisplay =
-    stage === "Ante-Mortem"
-      ? "Ante-Mortem · Whole Animal Condemnation"
-      : isWhole
-      ? "Post-Mortem · Whole Carcass Condemnation"
-      : "Post-Mortem · Partial Condemnation";
-
-  // 5. Condemned Parts & Weights
-  const recordedParts = [];
-  const seenPartKeys = new Set();
-  const pushPartItem = (partName, area, weightKg) => {
-    const pClean = String(partName || "").trim();
-    if (!pClean || pClean === "—" || pClean.toLowerCase() === "none") return;
-    const aClean = String(area || "").trim();
-    const validArea = aClean && aClean !== "—" && aClean !== "-" ? aClean : "";
-    const wNum = parseFloat(weightKg);
-    const validWeight = !isNaN(wNum) && wNum > 0 ? (wNum % 1 === 0 ? `${wNum} kg` : `${wNum.toFixed(2)} kg`) : "";
-    const key = `${pClean.toLowerCase()}__${validArea.toLowerCase()}`;
-    if (seenPartKeys.has(key)) return;
-    seenPartKeys.add(key);
-    recordedParts.push({
-      part: pClean,
-      area: validArea,
-      weight: validWeight,
-    });
-  };
-
-  if (stage === "Post-Mortem" && Array.isArray(matchedPost?.condemned_parts)) {
-    matchedPost.condemned_parts.forEach((cp) => {
-      pushPartItem(cp?.part || cp?.name, cp?.location || cp?.area, cp?.weight_kg || cp?.weight);
-    });
-  }
-  matchedCondemnedRows.forEach((cr) => {
-    pushPartItem(cr?.part, cr?.location, cr?.weight_kg || cr?.weight);
+  // 4. Condemnation Scope & Parts extraction from Supabase
+  const condPartsInfo = getCondemnationRecordParts({
+    record: displayRecord,
+    stage,
+    ante,
+    post,
+    livestock,
+    condemned,
+    postCuts,
   });
-  if (stage === "Post-Mortem") {
-    (postCuts || []).forEach((cut) => {
-      if (cleanTag && String(cut?.tag_number || "").trim().toLowerCase() === cleanTag) {
-        pushPartItem(cut?.part, cut?.location, cut?.weight_kg || cut?.weight);
-      }
-    });
-  }
-  if (recordedParts.length === 0) {
-    if (displayRecord?.part || currentPhoto?.part) {
-      pushPartItem(currentPhoto?.part || displayRecord?.part, displayRecord?.location, displayRecord?.weight_kg || record?.weight_kg);
-    } else if (isWhole) {
-      pushPartItem(
-        stage === "Ante-Mortem" ? "Live Animal (Whole)" : "Whole Carcass",
-        matchedCondemnedRows[0]?.location || displayRecord?.location || "",
-        matchedCondemnedRows[0]?.weight_kg || matchedPost?.carcass_weight || matchedAnte?.live_weight
-      );
-    }
-  }
+  const isWhole = condPartsInfo.isWhole;
+  const condemnationTypeDisplay = condPartsInfo.scopeLabel;
 
   // 6. Findings / Pathology Notes
   const cleanEvidenceNotes = (rawNotes) => {
@@ -374,10 +324,24 @@ export const CondemnationEvidenceModal = ({
         open={open}
         onClose={onClose}
         title="Condemnation Evidence Viewer"
-        size="xl"
+        size="lg"
+        dialogStyle={{
+          maxWidth: "860px",
+          maxHeight: "85vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          padding: "16px 20px",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          minHeight: 0,
+        }}
         closeOnBackdropClick
       >
-        <div className="vet-evidence-viewer-root">
+        <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <div className="vet-evidence-viewer-grid">
             {/* ── LEFT COLUMN: PHOTO & FILE VIEWER ── */}
             <div className="vet-evidence-viewer-media-col">
@@ -537,14 +501,14 @@ export const CondemnationEvidenceModal = ({
                 style={{
                   position: "relative",
                   flex: 1,
-                  minHeight: 360,
-                  maxHeight: "min(62vh, 520px)",
+                  minHeight: 200,
+                  maxHeight: "270px",
                   background: "#0f172a",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   overflow: zoomLevel > 1 ? "auto" : "hidden",
-                  padding: 12,
+                  padding: 10,
                 }}
               >
                 {/* State 1: No evidence file */}
@@ -730,7 +694,7 @@ export const CondemnationEvidenceModal = ({
                         width: zoomLevel > 1 ? `${zoomLevel * 100}%` : "100%",
                         height: zoomLevel > 1 ? "auto" : "100%",
                         maxWidth: zoomLevel > 1 ? "none" : "100%",
-                        maxHeight: zoomLevel > 1 ? "none" : "min(56vh, 480px)",
+                        maxHeight: zoomLevel > 1 ? "none" : "250px",
                         objectFit: "contain",
                         borderRadius: 6,
                         cursor: "zoom-in",
@@ -870,21 +834,38 @@ export const CondemnationEvidenceModal = ({
               )}
             </div>
 
-            {/* ── RIGHT COLUMN: DETAILS LIST ── */}
+            {/* ── RIGHT COLUMN: TWO-LINE LABELED DETAILS LIST ── */}
             <div className="vet-evidence-viewer-details-col">
               <div
+                className="vet-evidence-viewer-details-header"
                 style={{
-                  padding: "10px 14px",
+                  padding: "9px 12px",
                   borderBottom: "1px solid var(--color-border)",
                   background: "var(--color-bg)",
-                  fontSize: 11.5,
+                  fontSize: 11,
                   fontWeight: 800,
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                   color: "var(--color-text-muted)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexShrink: 0,
                 }}
               >
-                Condemnation Record Details
+                <span>Condemnation Details</span>
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    color: isWhole ? "#dc2626" : "#d97706",
+                    background: isWhole ? "rgba(220, 38, 38, 0.08)" : "rgba(217, 119, 6, 0.08)",
+                    padding: "2px 6px",
+                    borderRadius: 4,
+                  }}
+                >
+                  {isWhole ? "Whole Condemnation" : `${condPartsInfo.totalParts} Parts Rejected`}
+                </span>
               </div>
 
               <dl className="vet-evidence-viewer-dl">
@@ -908,53 +889,134 @@ export const CondemnationEvidenceModal = ({
                   <dd>{resolvedSpecies}</dd>
                 </div>
 
-                {/* 4. Condemnation Type */}
+                {/* 4. Condemnation Classification */}
                 <div className="vet-evidence-viewer-row">
-                  <dt>Condemnation Type</dt>
-                  <dd
-                    style={{
-                      fontWeight: 700,
-                      color: isWhole ? "var(--color-danger, #dc2626)" : "var(--color-warning, #d97706)",
-                    }}
-                  >
-                    {condemnationTypeDisplay}
+                  <dt>Condemnation Classification</dt>
+                  <dd>
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        fontWeight: 750,
+                        fontSize: 12.5,
+                        color: isWhole ? "#dc2626" : "#d97706",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: isWhole ? "#dc2626" : "#d97706",
+                        }}
+                      />
+                      {condemnationTypeDisplay}
+                    </span>
                   </dd>
                 </div>
 
-                {/* 5. Condemned Part / Affected Area */}
+                {/* 5. Condemned Parts & Quantities */}
                 <div className="vet-evidence-viewer-row">
-                  <dt>Condemned Part / Affected Area</dt>
-                  <dd>
-                    {recordedParts.length === 0 ? (
-                      "Not recorded"
-                    ) : recordedParts.length === 1 ? (
-                      <div>
-                        <span style={{ fontWeight: 700 }}>{recordedParts[0].part}</span>
-                        {recordedParts[0].area ? (
-                          <span style={{ color: "var(--color-text-muted)" }}> · {recordedParts[0].area}</span>
-                        ) : null}
-                        {recordedParts[0].weight ? (
-                          <span style={{ color: "#b45309", fontWeight: 600 }}> ({recordedParts[0].weight})</span>
-                        ) : null}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <dt>Condemned Parts & Quantities</dt>
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        color: isWhole ? "#dc2626" : "#b45309",
+                      }}
+                    >
+                      Total: {condPartsInfo.totalParts} {condPartsInfo.totalParts === 1 ? "Part" : "Parts"}
+                    </span>
+                  </div>
+                  <dd style={{ marginTop: 4 }}>
+                    {condPartsInfo.parts.length === 0 ? (
+                      <span style={{ color: "var(--color-text-muted)" }}>Not recorded</span>
+                    ) : isWhole ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "6px 10px",
+                          borderRadius: 6,
+                          background: "rgba(220, 38, 38, 0.05)",
+                          border: "1px solid rgba(220, 38, 38, 0.2)",
+                        }}
+                      >
+                        <span style={{ fontWeight: 700, color: "#dc2626", fontSize: 12.5 }}>
+                          • {condPartsInfo.parts[0].part}
+                        </span>
+                        <span style={{ fontWeight: 800, color: "#dc2626", fontSize: 12.5 }}>
+                          {condPartsInfo.parts[0].quantity}
+                        </span>
                       </div>
                     ) : (
-                      <ul style={{ margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 3 }}>
-                        {recordedParts.map((rp, i) => (
-                          <li key={i} style={{ fontSize: 12.5 }}>
-                            <span style={{ fontWeight: 700 }}>{rp.part}</span>
-                            {rp.area ? <span style={{ color: "var(--color-text-muted)" }}> · {rp.area}</span> : null}
-                            {rp.weight ? <span style={{ color: "#b45309", fontWeight: 600 }}> ({rp.weight})</span> : null}
-                          </li>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                        {condPartsInfo.parts.map((p, idx) => (
+                          <div
+                            key={p.id || idx}
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "flex-start",
+                              padding: "6px 9px",
+                              borderRadius: 6,
+                              background: "var(--color-bg)",
+                              border: "1px solid var(--color-border)",
+                              gap: 8,
+                            }}
+                          >
+                            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+                                <span style={{ fontWeight: 700, color: "var(--color-text)", fontSize: 12 }}>
+                                  {idx + 1}. {p.part}
+                                </span>
+                                {p.location && (
+                                  <span style={{ color: "var(--color-text-muted)", fontSize: 11 }}>
+                                    ({p.location})
+                                  </span>
+                                )}
+                              </div>
+                              {p.reason && (
+                                <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
+                                  Reason: <strong style={{ color: "var(--color-text)", fontWeight: 600 }}>{p.reason}</strong>
+                                </div>
+                              )}
+                            </div>
+                            <div style={{ textAlign: "right", flexShrink: 0 }}>
+                              <span
+                                style={{
+                                  fontWeight: 800,
+                                  fontSize: 11.5,
+                                  color: "#b45309",
+                                  background: "rgba(217, 119, 6, 0.1)",
+                                  padding: "1px 6px",
+                                  borderRadius: 4,
+                                  border: "1px solid rgba(217, 119, 6, 0.25)",
+                                  display: "inline-block",
+                                }}
+                              >
+                                {p.quantity || p.weight || "1 pc"}
+                              </span>
+                              {p.disposition && (
+                                <div style={{ fontSize: 9.5, color: "var(--color-text-muted)", marginTop: 2 }}>
+                                  {p.disposition}
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     )}
                   </dd>
                 </div>
 
                 {/* 6. Findings / Reasons */}
                 <div className="vet-evidence-viewer-row">
-                  <dt>Findings</dt>
-                  <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{findingsDisplay}</dd>
+                  <dt>Inspection Findings & Pathology Notes</dt>
+                  <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45, fontSize: 12.5 }}>{findingsDisplay}</dd>
                 </div>
 
                 {/* 7. Condemnation Date & Time */}
@@ -965,7 +1027,7 @@ export const CondemnationEvidenceModal = ({
 
                 {/* 8. Condemned By */}
                 <div className="vet-evidence-viewer-row" style={{ borderBottom: "none" }}>
-                  <dt>Condemned By</dt>
+                  <dt>Condemned By (Veterinarian / Inspector)</dt>
                   <dd style={{ fontWeight: 600 }}>{condemnedInspector}</dd>
                 </div>
               </dl>
@@ -976,13 +1038,14 @@ export const CondemnationEvidenceModal = ({
           <div
             className="form-actions"
             style={{
-              marginTop: 16,
+              marginTop: 14,
               paddingTop: 12,
               borderTop: "1px solid var(--color-border)",
               display: "flex",
               justifyContent: "flex-end",
               alignItems: "center",
               gap: 10,
+              flexShrink: 0,
             }}
           >
             <Button variant="outline" onClick={onClose}>
@@ -1058,13 +1121,16 @@ export const CondemnationEvidenceModal = ({
         <style>{`
           .vet-evidence-viewer-grid {
             display: grid;
-            grid-template-columns: minmax(0, 1.45fr) minmax(290px, 0.95fr);
-            gap: 16px;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 1.15fr);
+            gap: 14px;
             align-items: start;
+            flex: 1;
+            min-height: 0;
           }
           @media (max-width: 820px) {
             .vet-evidence-viewer-grid {
               grid-template-columns: 1fr;
+              overflow-y: auto;
             }
             .vet-ev-kbd-hint {
               display: none;
@@ -1077,32 +1143,62 @@ export const CondemnationEvidenceModal = ({
             border-radius: 10px;
             overflow: hidden;
             background: #0f172a;
+            flex-shrink: 0;
           }
           .vet-evidence-viewer-details-col {
+            display: flex;
+            flex-direction: column;
             border: 1px solid var(--color-border);
             border-radius: 10px;
             background: var(--color-surface);
             overflow: hidden;
+            max-height: min(400px, calc(85vh - 175px));
+            min-height: 0;
+          }
+          @media (max-width: 820px) {
+            .vet-evidence-viewer-details-col {
+              max-height: 280px;
+            }
           }
           .vet-evidence-viewer-dl {
             margin: 0;
             padding: 0;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
+            scrollbar-width: thin;
+            overscroll-behavior: contain;
+          }
+          .vet-evidence-viewer-dl::-webkit-scrollbar {
+            width: 6px;
+          }
+          .vet-evidence-viewer-dl::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .vet-evidence-viewer-dl::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 4px;
+          }
+          .vet-evidence-viewer-dl::-webkit-scrollbar-thumb:hover {
+            background: rgba(148, 163, 184, 0.7);
           }
           .vet-evidence-viewer-row {
-            display: grid;
-            grid-template-columns: 135px minmax(0, 1fr);
-            gap: 10px;
-            padding: 10px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 8px 12px;
             border-bottom: 1px solid var(--color-border);
             font-size: 12.5px;
-            align-items: baseline;
+          }
+          .vet-evidence-viewer-row:last-child {
+            border-bottom: none;
           }
           .vet-evidence-viewer-row dt {
             margin: 0;
-            font-size: 11px;
+            font-size: 10.5px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.04em;
             color: var(--color-text-muted);
           }
           .vet-evidence-viewer-row dd {
@@ -1111,6 +1207,7 @@ export const CondemnationEvidenceModal = ({
             font-weight: 600;
             color: var(--color-text);
             word-break: break-word;
+            line-height: 1.4;
           }
         `}</style>
       </Modal>
