@@ -262,7 +262,7 @@ export const ForgotPassword = () => {
               {/* Account Email + Send Code */}
               <div className="form-group">
                 <label className="form-label" htmlFor="fp-page-email">
-                  Account Email <span className="req">*</span>
+                  Email <span className="req">*</span>
                 </label>
                 <div className="fp-email-row">
                   <div className="login-pwd-wrap" style={{ flex: 1 }}>
@@ -273,7 +273,7 @@ export const ForgotPassword = () => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="name@example.com"
+                      placeholder="e.g. user@gmail.com"
                       autoComplete="email"
                       required
                       disabled={loadingSend}

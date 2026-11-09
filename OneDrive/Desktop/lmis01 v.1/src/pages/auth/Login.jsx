@@ -1965,8 +1965,8 @@ export const Login = ({ embedded = false, initialView }) => {
     setFpError("");
     let inputVal = fpEmail.trim();
     if (!inputVal) {
-      showToast("Please enter your registered email or username", "error");
-      setFpError("Please enter your registered email address or username.");
+      showToast("Please enter your email", "error");
+      setFpError("Please enter your email address.");
       fpEmailRef.current?.focus();
       return;
     }
@@ -3324,7 +3324,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   {/* Registered Email + Send Code row */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="fp-email">
-                      Registered Email Address or Username <span className="req">*</span>
+                      Email <span className="req">*</span>
                     </label>
                     <div className="fp-email-row">
                       <div className="login-pwd-wrap fp-email-input-wrap">
@@ -3332,7 +3332,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         <input
                           id="fp-email"
                           ref={fpEmailRef}
-                          type="text"
+                          type="email"
                           className="form-control"
                           value={fpEmail}
                           onChange={(e) => {
@@ -3342,8 +3342,8 @@ export const Login = ({ embedded = false, initialView }) => {
                           onKeyDown={(e) => {
                             if (e.key === "Enter") e.preventDefault();
                           }}
-                          placeholder="e.g. user@gmail.com or username"
-                          autoComplete="username"
+                          placeholder="e.g. user@gmail.com"
+                          autoComplete="email"
                           required
                           disabled={loadingSend}
                         />
