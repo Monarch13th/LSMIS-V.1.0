@@ -1080,17 +1080,7 @@ export const OwnerRecords = () => {
                             ) : null}
                           </div>
 
-                          {st.initialMarkTimestampFormatted && st.reMarkTimestampFormatted && st.initialMarkTimestampFormatted !== st.reMarkTimestampFormatted ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 4, textAlign: "right" }}>
-                              <div style={{ fontSize: 10, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
-                                Initial Mark: <span style={{ color: "var(--color-text, #0f172a)" }}>{st.initialMarkTimestampFormatted}</span>
-                              </div>
-                              <div style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 700 }}>
-                                {st.isReturnedToMarking ? "Returned:" : "Re-Marked:"}{" "}
-                                <span>{st.reMarkTimestampFormatted}</span>
-                              </div>
-                            </div>
-                          ) : st.timestampFormatted ? (
+                          {st.timestampFormatted ? (
                             <div style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 600, marginTop: 3 }}>
                               {st.timestampFormatted}
                             </div>

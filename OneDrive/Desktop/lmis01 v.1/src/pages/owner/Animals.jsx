@@ -144,7 +144,11 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     initialMarkTimestamp =
       firstHist?.previous_marked_at ||
       firstHist?.previous_mark_date ||
-      firstHist?.fallback_at;
+      firstHist?.fallback_at ||
+      firstHist?.marked_at ||
+      firstHist?.created_at ||
+      firstHist?.date ||
+      firstHist?.timestamp;
   }
   if (!initialMarkTimestamp) {
     initialMarkTimestamp =
@@ -160,18 +164,27 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
   if (isReturnedToMarking) {
     reMarkTimestamp =
       animal?.fallback_at ||
-      findHistoryTimestamp(history, ["fallback", "returned to animal marking", "return"]);
+      animal?.fallback_date ||
+      animal?.return_date ||
+      animal?.returned_at ||
+      findHistoryTimestamp(history, ["fallback", "returned to animal marking", "return", "re-marking", "remarking"]) ||
+      animal?.updated_at;
   } else if (hasReMarkHistory) {
     const lastHist = rawMarkingHistory[rawMarkingHistory.length - 1];
     reMarkTimestamp =
       lastHist?.re_marked_at ||
+      lastHist?.marked_at ||
+      lastHist?.created_at ||
+      lastHist?.date ||
+      lastHist?.timestamp ||
+      animal?.re_marked_at ||
       animal?.marked_at ||
       findHistoryTimestamp(history, ["re-marked", "re_marked", "re-mark"]);
   }
 
   const currentMarkTimestamp = isReturnedToMarking
-    ? (reMarkTimestamp || initialMarkTimestamp)
-    : (reMarkTimestamp || animal?.marked_at || initialMarkTimestamp || animal?.mark_date);
+    ? (reMarkTimestamp || animal?.fallback_at || animal?.fallback_date || animal?.updated_at || initialMarkTimestamp || animal?.marked_at || animal?.mark_date || animal?.marking_date || regTimestamp)
+    : (reMarkTimestamp || animal?.marked_at || initialMarkTimestamp || animal?.mark_date || animal?.marking_date || animal?.fallback_at || animal?.updated_at || regTimestamp);
 
   const markTimestamp = currentMarkTimestamp;
   const markActor =
@@ -326,7 +339,19 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       markSublabel = animal?.mark_type || "Ear Tag";
     }
 
-    const effectiveTimestamp = currentMarkTimestamp || (isStepDone ? regTimestamp : null);
+    const effectiveTimestamp =
+      currentMarkTimestamp ||
+      reMarkTimestamp ||
+      initialMarkTimestamp ||
+      animal?.fallback_at ||
+      animal?.fallback_date ||
+      animal?.marked_at ||
+      animal?.mark_date ||
+      animal?.marking_date ||
+      animal?.re_marked_at ||
+      animal?.updated_at ||
+      (anteTimestamp && Boolean(ante) ? anteTimestamp : null) ||
+      regTimestamp;
 
     return {
       id: 2,
@@ -336,10 +361,10 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       state: isStepDone ? "completed" : isStepCurr ? "current" : "pending",
       timestamp: effectiveTimestamp,
       timestampFormatted: fmtTime(effectiveTimestamp),
-      initialMarkTimestamp,
-      initialMarkTimestampFormatted: fmtTime(initialMarkTimestamp),
-      reMarkTimestamp,
-      reMarkTimestampFormatted: fmtTime(reMarkTimestamp),
+      initialMarkTimestamp: initialMarkTimestamp || effectiveTimestamp,
+      initialMarkTimestampFormatted: fmtTime(initialMarkTimestamp || effectiveTimestamp),
+      reMarkTimestamp: reMarkTimestamp || (isReturnedToMarking ? effectiveTimestamp : null),
+      reMarkTimestampFormatted: fmtTime(reMarkTimestamp || (isReturnedToMarking ? effectiveTimestamp : null)),
       isReturnedToMarking,
       isReMarked,
       markingHistory: rawMarkingHistory,
@@ -1942,26 +1967,7 @@ export const OwnerAnimals = () => {
                             </div>
 
                             <div style={{ textAlign: "right", flexShrink: 0 }}>
-                              {st.initialMarkTimestampFormatted && st.reMarkTimestampFormatted && st.initialMarkTimestampFormatted !== st.reMarkTimestampFormatted ? (
-                                <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
-                                  <div style={{ fontSize: 10, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
-                                    Initial: <span style={{ color: "var(--color-text, #0f172a)" }}>{st.initialMarkTimestampFormatted}</span>
-                                  </div>
-                                  <div
-                                    style={{
-                                      fontSize: 10.5,
-                                      fontWeight: 700,
-                                      color: "#0284c7",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      gap: 3,
-                                    }}
-                                  >
-                                    <Icon.Clock size={11} style={{ color: "#0284c7" }} />
-                                    <span>{st.isReturnedToMarking ? "Returned:" : "Re-Marked:"} {st.reMarkTimestampFormatted}</span>
-                                  </div>
-                                </div>
-                              ) : hasTime ? (
+                              {hasTime ? (
                                 <div
                                   style={{
                                     fontSize: 10.5,
