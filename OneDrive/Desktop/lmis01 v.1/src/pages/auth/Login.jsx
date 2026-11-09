@@ -2650,12 +2650,12 @@ export const Login = ({ embedded = false, initialView }) => {
               </>
             ) : view === "signin" ? (
               <>
-                <div className="login-form-head">
-                  <h1>Login</h1>
-                  <p className="subtitle">Enter your authorized email address to access the portal</p>
-                </div>
-
                 <form onSubmit={submitSignIn} className="login-form-body" noValidate>
+                  <div className="login-form-head">
+                    <h1>Login</h1>
+                    <p className="subtitle">Enter your authorized email address to access the portal</p>
+                  </div>
+
                   <div className="form-group">
                     <label className="form-label" htmlFor="login-email">
                       Email <span className="req">*</span>
@@ -2819,12 +2819,12 @@ export const Login = ({ embedded = false, initialView }) => {
             ) : view === "register" ? (
               <>
                 {/* Owner Registration View */}
-                <div className="login-form-head">
-                  <h1>Register as Owner</h1>
-                  <p className="subtitle">Create an official abattoir account to track livestock, slaughter progress, and clearances</p>
-                </div>
-
                 <form onSubmit={submitOwnerRegistration} className={`login-form-body ${regShake ? "form-shake" : ""}`} noValidate autoComplete="off">
+                  <div className="login-form-head">
+                    <h1>Register as Owner</h1>
+                    <p className="subtitle">Create an official abattoir account to track livestock, slaughter progress, and clearances</p>
+                  </div>
+
                   {/* Full Name */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-name">Full Name <span className="req">*</span></label>
@@ -3306,11 +3306,6 @@ export const Login = ({ embedded = false, initialView }) => {
             ) : (
               <>
                 {/* Forgot Password Header - Unified with Sign In */}
-                <div className="login-form-head">
-                  <h1>Reset Password</h1>
-                  <p className="subtitle">Enter your registered email and verification code to recover your account</p>
-                </div>
-
                 <form
                   onSubmit={submitForgot}
                   className="login-form-body"
@@ -3321,6 +3316,11 @@ export const Login = ({ embedded = false, initialView }) => {
                     }
                   }}
                 >
+                  <div className="login-form-head">
+                    <h1>Reset Password</h1>
+                    <p className="subtitle">Enter your registered email and verification code to recover your account</p>
+                  </div>
+
                   {/* Registered Email + Send Code row */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="fp-email">

@@ -252,13 +252,13 @@ export const ForgotPassword = () => {
               <span className="login-mobile-badge">City Government of Naga, Cebu</span>
             </div>
             
-            {/* Header - Unified with Sign In */}
-            <div className="login-form-head">
-              <h1>Reset Password</h1>
-              <p className="subtitle">Enter your registered email and verification code to recover your account</p>
-            </div>
-
             <form onSubmit={handleResetPassword} className="login-form-body" noValidate>
+              {/* Header - Unified with Sign In */}
+              <div className="login-form-head">
+                <h1>Reset Password</h1>
+                <p className="subtitle">Enter your registered email and verification code to recover your account</p>
+              </div>
+
               {/* Account Email + Send Code */}
               <div className="form-group">
                 <label className="form-label" htmlFor="fp-page-email">

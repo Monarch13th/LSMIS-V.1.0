@@ -2197,7 +2197,7 @@
     justify-content: center !important;
     text-align: center !important;
     margin: 0 !important;
-    padding: max(14px, env(safe-area-inset-top, 0px)) 16px 4px 16px !important;
+    padding: max(12px, env(safe-area-inset-top, 0px)) 16px clamp(6px, 1.2vh, 10px) 16px !important;
     flex-shrink: 1 !important;
     min-height: 0 !important;
     gap: 2px !important;
@@ -2250,37 +2250,49 @@
     display: none !important;
   }
 
-  /* 2. Header Headings (Login, Reset Password, Register as Owner) */
+  /* 2. Header Headings (Login, Reset Password, Register as Owner) INSIDE White Form Container */
   .login-page.lsmis-login .login-form-head {
-    margin: 0 0 clamp(8px, 1.8vh, 14px) 0 !important;
-    padding: 0 16px !important;
+    margin: 0 0 clamp(8px, 1.6vh, 12px) 0 !important;
+    padding: 0 !important;
     text-align: center !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    gap: 2px !important;
-    flex-shrink: 1 !important;
-    min-height: 0 !important;
+    gap: 3px !important;
+    flex-shrink: 0 !important;
+    width: 100% !important;
   }
 
   .login-page.lsmis-login .login-form-head h1 {
-    font-size: clamp(20px, 5.2vw, 26px) !important;
+    font-size: clamp(20px, 5.2vw, 24px) !important;
     font-weight: 800 !important;
     letter-spacing: -0.02em !important;
-    line-height: 1.2 !important;
-    color: #ffffff !important;
+    line-height: 1.25 !important;
+    color: #173D32 !important; /* Official Naga Cebu Forest Green */
     margin: 0 !important;
-    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    text-shadow: none !important;
+    text-align: center !important;
   }
 
   .login-page.lsmis-login .login-form-head .subtitle {
-    font-size: clamp(11.5px, 2.7vw, 12.5px) !important;
+    font-size: clamp(12px, 2.8vw, 13px) !important;
     font-weight: 400 !important;
-    color: rgba(255, 255, 255, 0.82) !important;
-    line-height: 1.35 !important;
+    color: #5D6660 !important;
+    line-height: 1.4 !important;
     margin: 0 auto !important;
     max-width: 100% !important;
     text-wrap: balance !important;
+    text-align: center !important;
+  }
+
+  [data-theme="dark"] .login-page.lsmis-login .login-form-head h1,
+  .dark .login-page.lsmis-login .login-form-head h1 {
+    color: #F3F7F5 !important;
+  }
+
+  [data-theme="dark"] .login-page.lsmis-login .login-form-head .subtitle,
+  .dark .login-page.lsmis-login .login-form-head .subtitle {
+    color: #9BA49E !important;
   }
 
   /* 3. Form Panel: White Rounded Card with Soft Upward Shadow */
@@ -2294,13 +2306,29 @@
     background: #ffffff !important;
     border-radius: 30px 30px 0 0 !important;
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.16) !important;
-    padding: clamp(16px, 2.6vh, 22px) clamp(16px, 5vw, 26px) max(14px, env(safe-area-inset-bottom, 0px)) clamp(16px, 5vw, 26px) !important;
+    padding: clamp(16px, 2.4vh, 22px) clamp(16px, 5vw, 24px) max(14px, env(safe-area-inset-bottom, 0px)) clamp(16px, 5vw, 24px) !important;
     box-sizing: border-box !important;
     overflow-y: auto !important;
     overscroll-behavior: contain !important;
     -webkit-overflow-scrolling: touch !important;
-    gap: clamp(8px, 1.6vh, 12px) !important;
+    gap: clamp(8px, 1.5vh, 12px) !important;
     scrollbar-width: none !important;
+  }
+
+  .login-page.lsmis-login.is-view-signin .login-form-body {
+    overflow-y: hidden !important;
+  }
+
+  @media (max-height: 620px) {
+    .login-page.lsmis-login.is-view-signin .login-form-body {
+      overflow-y: auto !important;
+    }
+  }
+
+  .login-page.lsmis-login.is-view-register .login-form-body,
+  .login-page.lsmis-login.is-view-forgot .login-form-body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
 
   .login-page.lsmis-login .login-form-body::-webkit-scrollbar {
@@ -2313,7 +2341,7 @@
     box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5) !important;
   }
 
-  /* 4. Inputs, Labels & Icons */
+  /* 4. Inputs, Labels & Icons (Zero Box Shadows, Flat Borders, Clear Focus Ring) */
   .login-page.lsmis-login .form-group {
     display: flex !important;
     flex-direction: column !important;
@@ -2342,6 +2370,7 @@
     display: flex !important;
     align-items: center !important;
     width: 100% !important;
+    box-shadow: none !important;
   }
 
   .login-page.lsmis-login .login-pwd-icon {
@@ -2382,7 +2411,9 @@
     background-color: #ffffff !important;
     color: #1A201C !important;
     box-sizing: border-box !important;
-    transition: border-color 150ms ease, box-shadow 150ms ease !important;
+    box-shadow: none !important; /* Remove all box shadows around fields */
+    outline: none !important;
+    transition: border-color 140ms ease !important;
   }
 
   .login-page.lsmis-login #login-password,
@@ -2400,6 +2431,7 @@
     background-color: #101613 !important;
     border-color: #26332B !important;
     color: #F3F7F5 !important;
+    box-shadow: none !important;
   }
 
   .login-page.lsmis-login .login-pwd-wrap input::placeholder,
@@ -2413,7 +2445,8 @@
   .login-page.lsmis-login .form-control:focus {
     outline: none !important;
     border-color: #173D32 !important;
-    box-shadow: 0 0 0 3.5px rgba(45, 106, 79, 0.22) !important;
+    border-width: 2px !important;
+    box-shadow: none !important; /* Flat: zero glow or shadow effects on focus */
   }
 
   [data-theme="dark"] .login-page.lsmis-login .login-pwd-wrap input:focus,
@@ -2421,21 +2454,27 @@
   .dark .login-page.lsmis-login .login-pwd-wrap input:focus,
   .dark .login-page.lsmis-login .form-control:focus {
     border-color: #34D399 !important;
-    box-shadow: 0 0 0 3.5px rgba(52, 211, 153, 0.25) !important;
+    border-width: 2px !important;
+    box-shadow: none !important;
   }
 
   .login-page.lsmis-login .login-pwd-wrap input[aria-invalid="true"],
   .login-page.lsmis-login .form-control[aria-invalid="true"],
-  .login-page.lsmis-login .form-control.field-error-pulse {
+  .login-page.lsmis-login .form-control.field-error-pulse,
+  .login-page.lsmis-login .login-pwd-wrap.has-error .form-control {
     border-color: #dc2626 !important;
+    border-width: 1.5px !important;
+    box-shadow: none !important;
     animation: none !important;
   }
 
   .login-page.lsmis-login .login-pwd-wrap input[aria-invalid="true"]:focus,
   .login-page.lsmis-login .form-control[aria-invalid="true"]:focus,
-  .login-page.lsmis-login .form-control.field-error-pulse:focus {
+  .login-page.lsmis-login .form-control.field-error-pulse:focus,
+  .login-page.lsmis-login .login-pwd-wrap.has-error .form-control:focus {
     border-color: #dc2626 !important;
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18) !important;
+    border-width: 2px !important;
+    box-shadow: none !important;
   }
 
   /* Password Toggle (WCAG minimum 44x44px touch target) */
@@ -2866,8 +2905,7 @@
   .login-page.lsmis-login .login-box,
   .login-page.lsmis-login .login-form {
     display: grid !important;
-    grid-template-columns: 38% 62% !important;
-    grid-template-rows: auto 1fr !important;
+    grid-template-columns: 36% 64% !important;
     height: 100% !important;
     max-height: 100% !important;
     width: 100% !important;
@@ -2875,9 +2913,9 @@
 
   .login-page.lsmis-login .login-mobile-brand {
     grid-column: 1 !important;
-    grid-row: 1 !important;
-    padding: max(12px, env(safe-area-inset-top, 0px)) 14px 4px max(16px, env(safe-area-inset-left, 0px)) !important;
+    padding: max(12px, env(safe-area-inset-top, 0px)) 14px max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)) !important;
     justify-content: center !important;
+    align-self: center !important;
   }
 
   .login-page.lsmis-login .login-mobile-logo {
@@ -2895,23 +2933,37 @@
   }
 
   .login-page.lsmis-login .login-form-head {
-    grid-column: 1 !important;
-    grid-row: 2 !important;
-    padding: 0 14px max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)) !important;
-    justify-content: flex-start !important;
+    margin-bottom: 4px !important;
+    padding: 0 !important;
+    width: 100% !important;
+    text-align: center !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
   }
 
   .login-page.lsmis-login .login-form-head h1 {
-    font-size: 20px !important;
+    font-size: 18px !important;
+    color: #173D32 !important;
   }
 
   .login-page.lsmis-login .login-form-head .subtitle {
-    font-size: 11.5px !important;
+    font-size: 11px !important;
+    color: #5D6660 !important;
+  }
+
+  [data-theme="dark"] .login-page.lsmis-login .login-form-head h1,
+  .dark .login-page.lsmis-login .login-form-head h1 {
+    color: #F3F7F5 !important;
+  }
+
+  [data-theme="dark"] .login-page.lsmis-login .login-form-head .subtitle,
+  .dark .login-page.lsmis-login .login-form-head .subtitle {
+    color: #9BA49E !important;
   }
 
   .login-page.lsmis-login .login-form-body {
     grid-column: 2 !important;
-    grid-row: 1 / span 2 !important;
     border-radius: 28px 0 0 28px !important;
     height: 100% !important;
     max-height: 100% !important;
