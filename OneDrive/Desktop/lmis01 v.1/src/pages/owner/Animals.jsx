@@ -131,11 +131,42 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     } catch (_) {}
   }
 
+  // Stage signals indicating animal has progressed past marking
+  const isPastMarking =
+    Boolean(ante) ||
+    Boolean(slaughterProc) ||
+    Boolean(slaughterRec) ||
+    Boolean(carcass) ||
+    Boolean(permit) ||
+    Boolean(dispatch) ||
+    rawStatusLower === "approved" ||
+    rawStatusLower === "passed" ||
+    rawStatusLower === "ante-mortem passed" ||
+    rawStatusLower === "ready for slaughter" ||
+    rawStatusLower === "slaughtering" ||
+    rawStatusLower === "slaughtered" ||
+    rawStatusLower === "in progress" ||
+    rawStatusLower === "completed" ||
+    rawStatusLower === "weighed" ||
+    rawStatusLower === "permit issued" ||
+    rawStatusLower === "released" ||
+    rawStatusLower === "condemned" ||
+    rawStatusLower === "rejected";
+
+  const hasFallbackHistory = Boolean(animal?.fallback_at) || rawMarkingHistory.length > 0;
+
+  // An animal is ACTIVELY in returned-to-marking ONLY if its current status is explicitly
+  // "returned to animal marking" (or contains "return") AND it has not moved to subsequent stages.
   const isReturnedToMarking =
-    rawStatusLower === "returned to animal marking" || Boolean(animal?.fallback_at);
+    !isPastMarking &&
+    (rawStatusLower === "returned to animal marking" ||
+      rawStatusLower === "returned to marking" ||
+      rawStatusLower.includes("returned to") ||
+      rawStatusLower === "for re-marking" ||
+      rawStatusLower === "awaiting re-marking");
 
   const hasReMarkHistory = rawMarkingHistory.length > 0;
-  const isReMarked = hasReMarkHistory && !isReturnedToMarking;
+  const isReMarked = hasFallbackHistory && !isReturnedToMarking;
 
   // Extract initial / earliest mark timestamp
   let initialMarkTimestamp = null;
@@ -327,16 +358,31 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       (rawStatusLower === "condemned" && !isAntePassed && !post && !slaughterProc && !slaughterRec && !carcass));
 
   const buildMarkStep = (overrideState = null) => {
-    const isStepDone = overrideState === "completed" || (!isReturnedToMarking && Boolean(currentMarkTimestamp || animal?.marked));
-    const isStepCurr = overrideState === "current" || isReturnedToMarking || (!isStepDone && Boolean(initialMarkTimestamp || currentMarkTimestamp || animal?.tag_number));
+    const isStepDone =
+      overrideState === "completed" ||
+      (!isReturnedToMarking &&
+        (isPastMarking ||
+          rawStatusLower === "marked" ||
+          rawStatusLower === "re-marked" ||
+          animal?.marked === true ||
+          animal?.marked === "true" ||
+          animal?.marked === 1 ||
+          Boolean(animal?.marked_at || animal?.re_marked_at || animal?.mark_date || animal?.marking_date) ||
+          (Boolean(animal?.tag_number) && rawStatusLower !== "registered" && !rawStatusLower.includes("awaiting"))));
+
+    const isStepCurr =
+      overrideState === "current" ||
+      (!isStepDone &&
+        (isReturnedToMarking ||
+          Boolean(initialMarkTimestamp || currentMarkTimestamp || animal?.tag_number || rawStatusLower.includes("marking"))));
 
     let markSublabel = "Awaiting Mark";
-    if (isReturnedToMarking) {
+    if (isStepDone) {
+      markSublabel = "Marked";
+    } else if (isReturnedToMarking) {
       markSublabel = "Re-Marking";
-    } else if (isReMarked) {
-      markSublabel = `${animal?.mark_type || "Ear Tag"} · Re-Marked`;
-    } else if (isStepDone) {
-      markSublabel = animal?.mark_type || "Ear Tag";
+    } else if (isStepCurr) {
+      markSublabel = "Awaiting Mark";
     }
 
     const effectiveTimestamp =

@@ -586,9 +586,9 @@ export const OwnerRecords = () => {
                       <>
                         <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                          <Icon.Tag size={12} style={{ color: progress.isReturnedToMarking ? "#f59e0b" : "#8b5cf6", flexShrink: 0 }} />
+                          <Icon.Tag size={12} style={{ color: progress.isReturnedToMarking ? "#f59e0b" : "#10b981", flexShrink: 0 }} />
                           <span style={{ fontWeight: 600 }}>
-                            {progress.isReturnedToMarking ? "Re-Marking: " : progress.isReMarked ? "Re-Marked: " : "Marked: "}
+                            {progress.isReturnedToMarking ? "Re-Marking: " : "Marked: "}
                             {progress.markTimestampFormatted}
                           </span>
                         </span>
@@ -1051,7 +1051,7 @@ export const OwnerRecords = () => {
                             >
                               {isDone ? "Completed" : isCurr ? "Active" : "Pending"}
                             </span>
-                            {st.isReturnedToMarking ? (
+                            {!isDone && isCurr && st.isReturnedToMarking ? (
                               <span
                                 style={{
                                   fontSize: 10.5,
@@ -1063,19 +1063,6 @@ export const OwnerRecords = () => {
                                 }}
                               >
                                 Re-Marking
-                              </span>
-                            ) : st.isReMarked ? (
-                              <span
-                                style={{
-                                  fontSize: 10.5,
-                                  fontWeight: 700,
-                                  padding: "2px 8px",
-                                  borderRadius: 6,
-                                  background: "rgba(99, 102, 241, 0.12)",
-                                  color: "#6366f1",
-                                }}
-                              >
-                                Re-Marked
                               </span>
                             ) : null}
                           </div>
