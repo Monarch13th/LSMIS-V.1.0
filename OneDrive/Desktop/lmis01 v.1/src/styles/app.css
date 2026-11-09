@@ -3978,3 +3978,37 @@ textarea.has-error:focus {
     height: 44px;
   }
 }
+
+/* ============================================================
+   MFA RESPONSIVE TEXT SWITCHING (COMPACT ON MOBILE & INSTALLED PWA)
+   Desktop, laptops, and tablets retain standard layout
+   ============================================================ */
+.mfa-mobile-text {
+  display: none !important;
+}
+.mfa-desktop-text {
+  display: block;
+}
+span.mfa-desktop-text {
+  display: inline;
+}
+
+@media (max-width: 640px), (display-mode: standalone) {
+  .mfa-desktop-text {
+    display: none !important;
+  }
+  .mfa-mobile-text {
+    display: block !important;
+  }
+  span.mfa-mobile-text {
+    display: inline !important;
+  }
+  .mfa-security-card {
+    padding: 16px 14px !important;
+    border-radius: 14px !important;
+  }
+  .mfa-security-row {
+    padding: 14px 14px !important;
+    gap: 12px !important;
+  }
+}

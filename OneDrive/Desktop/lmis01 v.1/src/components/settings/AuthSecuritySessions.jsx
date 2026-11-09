@@ -282,7 +282,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
   };
 
   return (
-    <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
+    <Card className="mfa-security-card" style={{ padding: "30px 32px", borderRadius: 16 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {/* Section Header */}
         <div style={{ borderBottom: "1px solid var(--color-border, #e2e8f0)", paddingBottom: 16 }}>
@@ -291,8 +291,11 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)" }}>
                 Two-Factor Authentication &amp; Security
               </h2>
-              <p style={{ fontSize: 14, color: "var(--color-text-muted, #64748b)", margin: "4px 0 0" }}>
+              <p className="mfa-desktop-text" style={{ fontSize: 14, color: "var(--color-text-muted, #64748b)", margin: "4px 0 0" }}>
                 Protect your account using Two-Factor Authentication (2FA) with Google Authenticator, Microsoft Authenticator, or 2FAS.
+              </p>
+              <p className="mfa-mobile-text" style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", margin: "3px 0 0", lineHeight: 1.4 }}>
+                Add an extra layer of security to your account with 2FA.
               </p>
             </div>
             {is2FAEnabled && (
@@ -308,6 +311,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   background: "rgba(16, 185, 129, 0.12)",
                   color: "#10b981",
                   border: "1px solid rgba(16, 185, 129, 0.28)",
+                  whiteSpace: "nowrap",
                 }}
               >
                 <Icon.ShieldCheck size={14} /> 2FA Active (AAL2)
@@ -318,6 +322,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
 
         {/* 1. TWO-FACTOR AUTHENTICATION ROW */}
         <div
+          className="mfa-security-row"
           style={{
             display: "flex",
             alignItems: "center",
@@ -346,10 +351,11 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             >
               <Icon.Shield size={22} />
             </div>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 16, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
-                  Two-Factor Authentication (2FA)
+                  <span className="mfa-desktop-text">Two-Factor Authentication (2FA)</span>
+                  <span className="mfa-mobile-text">2FA Authentication</span>
                 </span>
                 <span
                   style={{
@@ -360,13 +366,18 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                     background: is2FAEnabled ? "#dcfce7" : "#f1f5f9",
                     color: is2FAEnabled ? "#15803d" : "#64748b",
                     textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                    flexShrink: 0,
                   }}
                 >
                   {is2FAEnabled ? "Enabled" : "Disabled"}
                 </span>
               </div>
-              <div style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 3 }}>
+              <div className="mfa-desktop-text" style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 3 }}>
                 Secures your account using Time-based One-Time Passwords (TOTP). Compatible with Google Authenticator, Microsoft Authenticator, and 2FAS.
+              </div>
+              <div className="mfa-mobile-text" style={{ fontSize: 12.5, color: "var(--color-text-muted, #64748b)", marginTop: 2, lineHeight: 1.4 }}>
+                Requires a 6-digit code from your authenticator app when signing in.
               </div>
               {lastVerifiedTime && (
                 <div style={{ fontSize: 12, color: "#059669", fontWeight: 600, marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
@@ -435,6 +446,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
 
         {/* 2. SINGLE SESSION CONCURRENCY PROTECTION ROW */}
         <div
+          className="mfa-security-row"
           style={{
             display: "flex",
             alignItems: "center",
@@ -463,12 +475,16 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             >
               <Icon.Check size={22} strokeWidth={2.4} />
             </div>
-            <div>
+            <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
-                Single Concurrent Session Protection
+                <span className="mfa-desktop-text">Single Concurrent Session Protection</span>
+                <span className="mfa-mobile-text">Single Session Protection</span>
               </div>
-              <div style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 3 }}>
+              <div className="mfa-desktop-text" style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 3 }}>
                 Enforces unique login tokens per authenticated user. Logins from unauthorized devices or secondary browsers automatically trigger termination notices.
+              </div>
+              <div className="mfa-mobile-text" style={{ fontSize: 12.5, color: "var(--color-text-muted, #64748b)", marginTop: 2, lineHeight: 1.4 }}>
+                Automatically ends older sessions when you log in on another device.
               </div>
             </div>
           </div>
@@ -482,6 +498,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               background: "rgba(16, 185, 129, 0.12)",
               color: "#10b981",
               border: "1px solid rgba(16, 185, 129, 0.28)",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             Active &amp; Enforced
@@ -517,16 +535,21 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
           {/* Instructions */}
           <div
             style={{
-              padding: "12px 14px",
+              padding: "10px 14px",
               borderRadius: 10,
               background: "rgba(2, 132, 199, 0.08)",
               border: "1px solid rgba(2, 132, 199, 0.2)",
               color: "#0369a1",
               fontSize: 13,
-              lineHeight: 1.5,
+              lineHeight: 1.45,
             }}
           >
-            <strong>Step 1:</strong> Open <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or your preferred TOTP app on your mobile device. Scan the QR code below or enter the secret key manually.
+            <div className="mfa-desktop-text">
+              <strong>Step 1:</strong> Open <strong>Google Authenticator</strong>, <strong>Microsoft Authenticator</strong>, or your preferred TOTP app on your mobile device. Scan the QR code below or enter the secret key manually.
+            </div>
+            <div className="mfa-mobile-text">
+              <strong>Step 1:</strong> Scan the QR code with your authenticator app (Google Authenticator, Microsoft, or 2FAS).
+            </div>
           </div>
 
           {/* QR Code and Secret Key Container */}
@@ -574,8 +597,11 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               {/* Secret Key Alternative */}
               {enrollData.secret && (
                 <div style={{ width: "100%", textAlign: "center" }}>
-                  <div style={{ fontSize: 11.5, color: "#64748b", fontWeight: 600, marginBottom: 4 }}>
+                  <div className="mfa-desktop-text" style={{ fontSize: 11.5, color: "#64748b", fontWeight: 600, marginBottom: 4 }}>
                     Can&apos;t scan? Enter this secret key manually into your app:
+                  </div>
+                  <div className="mfa-mobile-text" style={{ fontSize: 11.5, color: "#64748b", fontWeight: 600, marginBottom: 4 }}>
+                    Or enter secret key manually:
                   </div>
                   <div
                     style={{
@@ -639,7 +665,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   marginBottom: 6,
                 }}
               >
-                Step 2: Enter 6-digit confirmation code <span style={{ color: "#ef4444" }}>*</span>
+                <span className="mfa-desktop-text">Step 2: Enter 6-digit confirmation code <span style={{ color: "#ef4444" }}>*</span></span>
+                <span className="mfa-mobile-text">Step 2: Enter 6-digit code <span style={{ color: "#ef4444" }}>*</span></span>
               </label>
               <input
                 ref={enrollInputRef}
@@ -744,16 +771,21 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         <form onSubmit={handleConfirmDisable} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div
             style={{
-              padding: "12px 14px",
+              padding: "10px 14px",
               borderRadius: 10,
               background: "rgba(239, 68, 68, 0.08)",
               border: "1px solid rgba(239, 68, 68, 0.25)",
               color: "#b91c1c",
               fontSize: 13,
-              lineHeight: 1.5,
+              lineHeight: 1.45,
             }}
           >
-            <strong>Security Warning:</strong> Disabling Two-Factor Authentication removes the OTP verification requirement on future logins. To confirm this security change, verify your identity below.
+            <div className="mfa-desktop-text">
+              <strong>Security Warning:</strong> Disabling Two-Factor Authentication removes the OTP verification requirement on future logins. To confirm this security change, verify your identity below.
+            </div>
+            <div className="mfa-mobile-text">
+              <strong>Warning:</strong> Disabling 2FA removes the OTP requirement when signing in.
+            </div>
           </div>
 
           {/* 6-Digit Authenticator OTP Code */}
@@ -768,7 +800,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 marginBottom: 6,
               }}
             >
-              Enter Current 6-Digit Code from Authenticator App <span style={{ color: "#ef4444" }}>*</span>
+              <span className="mfa-desktop-text">Enter Current 6-Digit Code from Authenticator App <span style={{ color: "#ef4444" }}>*</span></span>
+              <span className="mfa-mobile-text">6-Digit Authenticator Code <span style={{ color: "#ef4444" }}>*</span></span>
             </label>
             <input
               id="mfa-disable-otp"
