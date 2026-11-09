@@ -2100,10 +2100,13 @@
    (APPLIES TO MOBILE PHONE WIDTHS <= 767px & INSTALLED PWA ON PHONES)
    STRICTLY DOES NOT APPLY TO TABLET, DESKTOP, FORGOT PASSWORD, OR REGISTER OWNER
    ========================================================= */
-@media (max-width: 767px), ((display-mode: standalone) and (max-width: 767px)), ((max-height: 500px) and (max-width: 1024px)) {
+@media (max-width: 767px), (display-mode: standalone), (display-mode: fullscreen), (display-mode: minimal-ui), (max-height: 500px) and (max-width: 1024px) {
   html:has(.login-page.is-view-signin),
   body:has(.login-page.is-view-signin),
-  #root:has(.login-page.is-view-signin) {
+  #root:has(.login-page.is-view-signin),
+  html:has(.login-page.is-installed-app.is-view-signin),
+  body:has(.login-page.is-installed-app.is-view-signin),
+  #root:has(.login-page.is-installed-app.is-view-signin) {
     height: 100vh !important;
     height: 100dvh !important;
     max-height: 100dvh !important;
@@ -2114,6 +2117,7 @@
     overscroll-behavior: none !important;
   }
 
+  .login-page.is-installed-app.is-view-signin,
   .login-page.lsmis-login.is-view-signin,
   .login-page.is-view-signin {
     position: fixed !important;
@@ -2707,7 +2711,7 @@
 /* =========================================================
    COMPACT MOBILE SCREENS (e.g. 320x568 iPhone SE 1st gen)
    ========================================================= */
-@media ((max-width: 767px) or (display-mode: standalone)) and (max-height: 620px) and (orientation: portrait) {
+@media (max-width: 767px) and (max-height: 620px) and (orientation: portrait), (display-mode: standalone) and (max-height: 620px) and (orientation: portrait) {
   .login-page.is-view-signin .login-mobile-brand {
     padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
     margin-bottom: 2px !important;
@@ -2769,7 +2773,7 @@
    LANDSCAPE / SHORT HEIGHTS (max-height: 500px)
    TWO-COLUMN LAYOUT: BRANDING ON LEFT, FORM ON RIGHT
    ========================================================= */
-@media ((max-height: 500px) and (max-width: 1024px)) or ((orientation: landscape) and (max-height: 500px)) {
+@media (max-height: 500px) and (max-width: 1024px), (orientation: landscape) and (max-height: 500px) {
   .login-page.is-view-signin .login-container {
     max-width: 100% !important;
     height: 100% !important;

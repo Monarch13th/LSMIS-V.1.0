@@ -7,9 +7,9 @@
 import { isCapacitorNativeApp } from "./capacitor";
 
 const RELOAD_GUARD_KEY = "lsmis_sw_reload_ts";
-const RELOAD_GUARD_MS = 10000; // never reload twice within 10s -> prevents reload loops
-const AUTO_APPLY_WINDOW_MS = 12000; // updates found within 12s of launch are applied silently
-const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000; // check every 15 minutes
+const RELOAD_GUARD_MS = 6000; // never reload twice within 6s -> prevents reload loops
+const AUTO_APPLY_WINDOW_MS = 15000; // updates found within 15s of launch are applied silently
+const UPDATE_CHECK_INTERVAL_MS = 60 * 1000; // check every 60s for rapid detection
 
 const startedAt = Date.now();
 let isReloading = false;
@@ -151,16 +151,22 @@ async function checkForNewVersionOnline(registration) {
     if (!res.ok) return;
     const data = await res.json();
     if (data && data.buildId && data.buildId !== RUNNING_BUILD_ID) {
-      console.log("[LSMIS PWA] Detected newer build deployed on server:", data.buildId);
+      console.log("[LSMIS PWA] Detected newer build deployed on server:", data.buildId, "vs current:", RUNNING_BUILD_ID);
       if (registration) {
-        await registration.update();
+        try {
+          await registration.update();
+        } catch (_) {}
       }
       if (waitingWorkerInstance) {
-        if (isSafeToAutoReload()) {
+        activateWorker(waitingWorkerInstance);
+      }
+      if (isSafeToAutoReload()) {
+        safeReload();
+      } else {
+        showUpdateBanner(() => {
           activateWorker(waitingWorkerInstance);
-        } else {
-          showUpdateBanner(() => activateWorker(waitingWorkerInstance));
-        }
+          safeReload();
+        });
       }
     }
   } catch (_) {}
@@ -240,7 +246,7 @@ export function registerServiceWorker() {
     }
   });
 
-  window.addEventListener("load", async () => {
+  const init = async () => {
     let registration;
 
     // Clean up any foreign / rogue service workers registered on other paths
@@ -272,12 +278,14 @@ export function registerServiceWorker() {
     const handleWaitingWorker = (worker) => {
       if (!worker) return;
       waitingWorkerInstance = worker;
-      if (!navigator.serviceWorker.controller) return; // First install, nothing to upgrade
-
+      activateWorker(worker);
       if (isSafeToAutoReload()) {
-        activateWorker(worker);
+        safeReload();
       } else {
-        showUpdateBanner(() => activateWorker(worker));
+        showUpdateBanner(() => {
+          activateWorker(worker);
+          safeReload();
+        });
       }
     };
 
@@ -291,6 +299,10 @@ export function registerServiceWorker() {
       installing.addEventListener("statechange", () => {
         if (installing.state === "installed") {
           handleWaitingWorker(registration.waiting || installing);
+        } else if (installing.state === "activated") {
+          if (isSafeToAutoReload()) {
+            safeReload();
+          }
         }
       });
     });
@@ -305,9 +317,9 @@ export function registerServiceWorker() {
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
         triggerUpdateCheck();
-        // If there's an already waiting worker and it's now safe, activate it
         if (waitingWorkerInstance && isSafeToAutoReload()) {
           activateWorker(waitingWorkerInstance);
+          safeReload();
         }
       }
     });
@@ -318,10 +330,17 @@ export function registerServiceWorker() {
     // 3. Check when network comes back online
     window.addEventListener("online", triggerUpdateCheck);
 
-    // 4. Periodic check every 15 minutes
+    // 4. Periodic check every 60s
     window.setInterval(triggerUpdateCheck, UPDATE_CHECK_INTERVAL_MS);
 
     // Initial check on load
     triggerUpdateCheck();
-  });
+  };
+
+  if (document.readyState === "complete" || document.readyState === "interactive") {
+    init();
+  } else {
+    window.addEventListener("DOMContentLoaded", init, { once: true });
+    window.addEventListener("load", init, { once: true });
+  }
 }

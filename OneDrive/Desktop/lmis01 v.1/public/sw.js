@@ -15,14 +15,15 @@ const CACHE_PREFIX = "lsmis-pwa-";
 const CACHE_NAME = `${CACHE_PREFIX}${BUILD_ID}`;
 const OFFLINE_FALLBACK_URL = "/index.html";
 
-// 1. Install phase: pre-cache the fresh application shell
+// 1. Install phase: pre-cache the fresh application shell and activate immediately
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       try {
         const response = await fetch(OFFLINE_FALLBACK_URL, { cache: "reload" });
         if (response && response.ok) {
-          await cache.put(OFFLINE_FALLBACK_URL, response);
+          await cache.put(OFFLINE_FALLBACK_URL, response.clone());
         }
       } catch (err) {
         console.warn("[LSMIS SW] Offline fallback pre-caching failed:", err);
@@ -99,20 +100,24 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(
       (async () => {
         try {
-          // Direct network fetch without mutating mode/credentials
-          const fresh = await fetch(req);
+          // Direct network fetch with cache: "no-cache" so online requests always get the fresh deployment
+          const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
           if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
             // Update offline cache with the fresh response
             const clone = fresh.clone();
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(OFFLINE_FALLBACK_URL, clone);
+              try {
+                cache.put(req.url, fresh.clone());
+              } catch (_) {}
             }).catch(() => {});
             return fresh;
           }
           return fresh;
         } catch (fetchErr) {
           // Network failed (offline): serve cached offline fallback
-          const cached = await caches.match(OFFLINE_FALLBACK_URL);
+          const cache = await caches.open(CACHE_NAME);
+          const cached = (await cache.match(req.url)) || (await cache.match(OFFLINE_FALLBACK_URL));
           if (cached) return cached;
           return new Response("LSMIS is currently offline. Please check your connection and try again.", {
             status: 503,
