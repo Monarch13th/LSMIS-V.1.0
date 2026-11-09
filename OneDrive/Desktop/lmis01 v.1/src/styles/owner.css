@@ -452,35 +452,30 @@
   background: #0f172a;
 }
 
-/* Mobile Sticky Header */
+/* Mobile Sticky Header (Inside .owner-top-nav-group) */
 .owner-mobile-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
+  position: relative;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 16px;
-  background-color: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  padding-top: max(10px, env(safe-area-inset-top, 0px));
+  background-color: transparent;
   border-bottom: 1px solid rgba(226, 232, 240, 0.85);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.03);
-  min-height: 60px;
+  min-height: 58px;
   box-sizing: border-box;
 }
 
 [data-theme="dark"] .owner-mobile-header {
-  background-color: rgba(15, 23, 42, 0.96);
   border-bottom-color: rgba(51, 65, 85, 0.85);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
 }
 
-/* Mobile Scrollable Body Content Container (Provides clean, generous breathing room with fixed bottom navigation bar) */
+/* Mobile Scrollable Body Content Container (Starts cleanly directly below fixed top header & navigation) */
 .owner-mobile-main {
   flex: 1;
   width: 100%;
-  padding: 16px 16px calc(76px + env(safe-area-inset-bottom, 0px)) 16px;
+  padding: 16px 16px calc(24px + env(safe-area-inset-bottom, 0px)) 16px;
   overflow-y: auto;
   box-sizing: border-box;
   scroll-behavior: smooth;
@@ -1288,29 +1283,35 @@
 }
 
 /* ============================================================
-   5. FIXED BOTTOM NAVIGATION BAR
+   5. TOP NAVIGATION BAR (Directly Below Header, Sticky at Top)
    ============================================================ */
-.owner-bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 50;
+.owner-top-nav-group {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
   background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-top: 1px solid #e2e8f0;
-  border-bottom: none;
-  box-shadow: 0 -3px 12px rgba(15, 23, 42, 0.08);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  overflow-x: hidden;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
 }
 
-[data-theme="dark"] .owner-bottom-bar {
+[data-theme="dark"] .owner-top-nav-group {
   background: rgba(15, 23, 42, 0.98);
-  border-top-color: rgba(51, 65, 85, 0.7);
-  border-bottom: none;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(51, 65, 85, 0.85);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+}
+
+.owner-bottom-bar {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 .owner-bottom-grid {
@@ -1320,8 +1321,8 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: stretch;
-  height: 58px;
-  padding: 0 4px;
+  height: 52px;
+  padding: 0 2px;
 }
 
 .owner-nav-item {
@@ -1329,13 +1330,14 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 6px 2px 5px 2px;
+  padding: 5px 1px 6px 1px;
   color: #64748b;
   text-decoration: none;
   transition: all 0.15s ease;
   min-width: 0;
   position: relative;
-  border-top: 2.5px solid transparent;
+  border-bottom: 2.5px solid transparent;
+  margin-bottom: -1px;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -1353,18 +1355,18 @@
 }
 
 .owner-nav-item:active {
-  transform: scale(0.92);
+  transform: scale(0.94);
 }
 
 .owner-nav-item.active {
   color: #0284c7;
   font-weight: 750;
-  border-top-color: #0284c7;
+  border-bottom-color: #0284c7;
 }
 
 [data-theme="dark"] .owner-nav-item.active {
   color: #38bdf8;
-  border-top-color: #38bdf8;
+  border-bottom-color: #38bdf8;
 }
 
 .owner-nav-icon-wrap {
@@ -1372,8 +1374,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 24px;
-  width: 24px;
+  height: 22px;
+  width: 22px;
 }
 
 .owner-nav-dot {
@@ -1390,8 +1392,8 @@
 }
 
 .owner-nav-text {
-  font-size: clamp(9px, 2.3vw, 10.5px);
-  margin-top: 3px;
+  font-size: clamp(8.5px, 2.2vw, 10.5px);
+  margin-top: 2px;
   letter-spacing: -0.025em;
   white-space: nowrap;
   text-align: center;
@@ -1400,10 +1402,46 @@
   max-width: 100%;
   font-weight: 500;
   transition: font-weight 0.15s ease;
+  padding: 0 1px;
 }
 
 .owner-nav-item.active .owner-nav-text {
   font-weight: 750;
+}
+
+/* Compact layout adjustments for narrow mobile screens */
+@media (max-width: 380px) {
+  .owner-bottom-grid {
+    height: 48px;
+  }
+  .owner-nav-item {
+    padding: 4px 1px 4px 1px;
+  }
+  .owner-nav-icon-wrap {
+    height: 20px;
+    width: 20px;
+  }
+  .owner-nav-icon-wrap svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+  .owner-nav-text {
+    font-size: 8.5px;
+    margin-top: 1px;
+  }
+}
+
+/* Installed PWA Standalone Mode adjustments */
+@media (display-mode: standalone) {
+  .owner-mobile-layout-card {
+    border-left: none !important;
+    border-right: none !important;
+    box-shadow: none !important;
+    max-width: 100% !important;
+  }
+  .owner-mobile-header {
+    padding-top: max(14px, env(safe-area-inset-top, 0px));
+  }
 }
 
 /* Floating Action Button (Register) */

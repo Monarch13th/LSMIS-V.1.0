@@ -377,7 +377,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10 }}>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
             {is2FAEnabled ? (
               <Button
                 variant="outline"
@@ -497,6 +497,18 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         onClose={() => !verifyingEnroll && setEnrollModalOpen(false)}
         title="Set Up Two-Factor Authentication"
         size="md"
+        dialogStyle={{
+          maxWidth: "480px",
+          width: "94vw",
+          maxHeight: "90dvh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          padding: "16px",
+          overflowY: "auto",
+          flex: 1,
+        }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           {/* Instructions */}
@@ -526,12 +538,15 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 borderRadius: 12,
                 border: "1px solid var(--color-border, #e2e8f0)",
                 background: "#ffffff",
+                boxSizing: "border-box",
               }}
             >
               <div
                 style={{
-                  width: 190,
-                  height: 190,
+                  width: "100%",
+                  maxWidth: 190,
+                  aspectRatio: "1/1",
+                  margin: "0 auto",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -539,6 +554,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   padding: 8,
                   borderRadius: 8,
                   border: "1px solid #cbd5e1",
+                  boxSizing: "border-box",
                 }}
               >
                 <img
@@ -548,7 +564,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                       : `data:image/svg+xml;utf-8,${encodeURIComponent(enrollData.qrCode)}`
                   }
                   alt="2FA TOTP QR Code"
-                  style={{ width: "100%", height: "100%", display: "block" }}
+                  style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                 />
               </div>
 
@@ -568,15 +584,18 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                       padding: "8px 12px",
                       borderRadius: 8,
                       border: "1px solid #cbd5e1",
+                      flexWrap: "wrap",
+                      wordBreak: "break-all",
                     }}
                   >
                     <code
                       style={{
                         fontFamily: "monospace",
-                        fontSize: 13.5,
+                        fontSize: 13,
                         fontWeight: 700,
-                        letterSpacing: "0.08em",
+                        letterSpacing: "0.06em",
                         color: "#0f172a",
+                        wordBreak: "break-all",
                       }}
                     >
                       {enrollData.secret}
@@ -588,11 +607,12 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                         border: "none",
                         background: copiedSecret ? "#dcfce7" : "#e2e8f0",
                         color: copiedSecret ? "#15803d" : "#334155",
-                        padding: "3px 8px",
+                        padding: "4px 10px",
                         borderRadius: 6,
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: 700,
                         cursor: "pointer",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {copiedSecret ? "Copied!" : "Copy"}
@@ -623,6 +643,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 id="mfa-enroll-code"
                 type="text"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 autoComplete="one-time-code"
                 maxLength={6}
                 placeholder="123456"
@@ -635,7 +656,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 style={{
                   width: "100%",
                   height: 48,
-                  fontSize: 22,
+                  fontSize: "clamp(18px, 5vw, 22px)",
                   letterSpacing: "0.25em",
                   fontWeight: 800,
                   textAlign: "center",
@@ -644,6 +665,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   background: "var(--color-bg, #ffffff)",
                   color: "var(--color-text, #0f172a)",
                   fontFamily: "monospace",
+                  boxSizing: "border-box",
                 }}
                 required
               />
@@ -655,13 +677,13 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               )}
             </div>
 
-            <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+            <div style={{ display: "flex", gap: 10, marginTop: 6, flexWrap: "wrap" }}>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setEnrollModalOpen(false)}
                 disabled={verifyingEnroll}
-                style={{ flex: 1, height: 42, borderRadius: 9 }}
+                style={{ flex: "1 1 120px", height: 44, borderRadius: 9 }}
               >
                 Cancel
               </Button>
@@ -670,8 +692,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 variant="primary"
                 disabled={verifyingEnroll || enrollCode.length !== 6}
                 style={{
-                  flex: 1,
-                  height: 42,
+                  flex: "1 1 160px",
+                  height: 44,
                   borderRadius: 9,
                   background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
                   fontWeight: 700,
@@ -700,6 +722,18 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         onClose={() => !disabling && setDisableModalOpen(false)}
         title="Disable Two-Factor Authentication"
         size="md"
+        dialogStyle={{
+          maxWidth: "460px",
+          width: "94vw",
+          maxHeight: "90dvh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          padding: "16px",
+          overflowY: "auto",
+          flex: 1,
+        }}
       >
         <form onSubmit={handleConfirmDisable} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div
@@ -734,6 +768,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               id="mfa-disable-otp"
               type="text"
               inputMode="numeric"
+              pattern="[0-9]*"
               maxLength={6}
               autoComplete="one-time-code"
               placeholder="••••••"
@@ -746,7 +781,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               style={{
                 width: "100%",
                 height: 44,
-                fontSize: 22,
+                fontSize: "clamp(18px, 5vw, 22px)",
                 letterSpacing: "0.25em",
                 fontWeight: 800,
                 textAlign: "center",
@@ -755,6 +790,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 background: "var(--color-bg, #ffffff)",
                 color: "var(--color-text, #0f172a)",
                 fontFamily: "monospace",
+                boxSizing: "border-box",
               }}
               autoFocus
             />
@@ -793,6 +829,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   border: "1px solid var(--color-border, #cbd5e1)",
                   background: "var(--color-bg, #ffffff)",
                   color: "var(--color-text, #0f172a)",
+                  boxSizing: "border-box",
                 }}
               />
               <button
@@ -822,7 +859,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             )}
           </div>
 
-          <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+          <div style={{ display: "flex", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
             <Button
               type="button"
               variant="outline"
@@ -833,7 +870,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 setDisableError("");
               }}
               disabled={disabling}
-              style={{ flex: 1, height: 40, borderRadius: 8 }}
+              style={{ flex: "1 1 120px", height: 42, borderRadius: 8 }}
             >
               Cancel
             </Button>
@@ -841,8 +878,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               type="submit"
               disabled={disabling || (!disableOtpCode && !disablePassword)}
               style={{
-                flex: 1,
-                height: 40,
+                flex: "1 1 160px",
+                height: 42,
                 borderRadius: 8,
                 background: "#dc2626",
                 color: "#ffffff",
@@ -870,6 +907,18 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         onClose={() => savedCodesChecked && setRecoveryModalOpen(false)}
         title="Emergency Recovery Backup Codes"
         size="md"
+        dialogStyle={{
+          maxWidth: "480px",
+          width: "94vw",
+          maxHeight: "90dvh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        bodyStyle={{
+          padding: "16px",
+          overflowY: "auto",
+          flex: 1,
+        }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div
@@ -889,12 +938,13 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(2, 1fr)",
-              gap: 10,
-              padding: "14px",
+              gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
+              gap: 8,
+              padding: "12px",
               background: "var(--color-bg, #f8fafc)",
               borderRadius: 12,
               border: "1px solid var(--color-border, #cbd5e1)",
+              boxSizing: "border-box",
             }}
           >
             {recoveryCodes.map((c, i) => (
@@ -923,7 +973,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               type="button"
               variant="outline"
               onClick={handleCopyRecoveryCodes}
-              style={{ flex: 1, height: 38, borderRadius: 8, fontSize: 13, fontWeight: 700 }}
+              style={{ flex: "1 1 120px", height: 40, borderRadius: 8, fontSize: 13, fontWeight: 700 }}
             >
               {copiedRecoveryCodes ? "Copied All Codes!" : "Copy Codes"}
             </Button>
@@ -931,7 +981,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               type="button"
               variant="outline"
               onClick={handleDownloadRecoveryCodes}
-              style={{ flex: 1, height: 38, borderRadius: 8, fontSize: 13, fontWeight: 700 }}
+              style={{ flex: "1 1 120px", height: 40, borderRadius: 8, fontSize: 13, fontWeight: 700 }}
             >
               Download (.txt)
             </Button>
@@ -967,7 +1017,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               setRecoveryCodes([]);
             }}
             style={{
-              height: 42,
+              height: 44,
               borderRadius: 9,
               background: savedCodesChecked ? "linear-gradient(135deg, #10b981 0%, #047857 100%)" : undefined,
               fontWeight: 700,

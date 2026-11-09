@@ -61,40 +61,40 @@ export const OwnerBottomNav = () => {
     {
       to: "/owner",
       label: "Home",
-      icon: <Icon.Home size={20} />,
+      icon: <Icon.Home size={19} />,
       exact: true,
     },
     {
       to: "/owner/animals",
       label: "Today Livestock",
-      icon: <Icon.Tag size={20} />,
+      icon: <Icon.Tag size={19} />,
       exact: false,
     },
     {
       to: "/owner/records",
       label: "Records",
-      icon: <Icon.ClipboardList size={20} />,
+      icon: <Icon.ClipboardList size={19} />,
       exact: false,
       altPaths: ["/owner/payments", "/owner/permits"],
     },
     {
       to: "/owner/notifications",
       label: "Notification",
-      icon: <Icon.Bell size={20} />,
+      icon: <Icon.Bell size={19} />,
       exact: false,
       badge: unreadCount,
     },
     {
       to: "/owner/profile",
       label: "Profile",
-      icon: <Icon.User size={20} />,
+      icon: <Icon.User size={19} />,
       exact: false,
       altPaths: ["/owner/settings"],
     },
   ];
 
   return (
-    <nav className="owner-bottom-bar" aria-label="Mobile Navigation">
+    <nav className="owner-bottom-bar" aria-label="Owner Top Navigation">
       <div className="owner-bottom-grid">
         {navItems.map((item) => {
           const isActive = item.exact
@@ -115,20 +115,21 @@ export const OwnerBottomNav = () => {
                   <span
                     style={{
                       position: "absolute",
-                      top: -3,
-                      right: -8,
-                      minWidth: 16,
-                      height: 16,
-                      padding: "0 4px",
+                      top: -4,
+                      right: -7,
+                      minWidth: 15,
+                      height: 15,
+                      padding: "0 3px",
                       borderRadius: 8,
                       backgroundColor: "#ef4444",
                       color: "#ffffff",
-                      fontSize: 9.5,
+                      fontSize: 9,
                       fontWeight: 900,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       border: "1.5px solid var(--color-surface, #ffffff)",
+                      lineHeight: 1,
                     }}
                   >
                     {item.badge > 9 ? "9+" : item.badge}

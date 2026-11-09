@@ -3929,3 +3929,52 @@ textarea.has-error:focus {
 .action-btn-purple:hover:not(:disabled) {
   background: #6d28d9;
 }
+
+/* ============================================================
+   RESPONSIVE ENHANCEMENTS: PHONES, TABLETS & DESKTOP DEVICES
+   ============================================================ */
+@media (max-width: 768px) {
+  /* Tables gracefully scroll horizontally on mobile and tablet without breaking layout */
+  .table-responsive,
+  .table-container,
+  .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Modals fit neatly inside the mobile viewport */
+  .modal {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    max-height: calc(100dvh - 24px) !important;
+    margin: auto;
+  }
+
+  .modal-body {
+    max-height: calc(100dvh - 140px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Accessible touch targets for buttons on mobile */
+  .btn,
+  button:not(.modal-close):not(.p-0) {
+    min-height: 38px;
+  }
+}
+
+/* Landscape orientation adjustments for mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .modal {
+    max-height: calc(100dvh - 16px) !important;
+  }
+  .modal-body {
+    max-height: calc(100dvh - 90px);
+    overflow-y: auto;
+  }
+  .owner-bottom-grid {
+    height: 44px;
+  }
+}

@@ -71,47 +71,50 @@ export const OwnerMobileLayout = ({ theme: propTheme, onToggleTheme: propToggleT
   }, [ownerId]);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] w-full overflow-x-hidden bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col items-center">
-      <div className="w-full max-w-5xl min-h-screen min-h-[100dvh] bg-white dark:bg-slate-900 shadow-sm flex flex-col relative sm:border-x border-slate-200 dark:border-slate-800">
-        {/* Top Header (Fixed at top) */}
-        <header className="owner-mobile-header shrink-0">
-          <div className="w-full flex items-center justify-between px-3 sm:px-6">
-            <div className="owner-header-left">
-              <div className="owner-header-logo-wrap">
-                <img src={logoImg} alt="LSMIS Official Seal" />
+    <div className="owner-mobile-layout-root min-h-screen min-h-[100dvh] w-full overflow-x-hidden bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col items-center">
+      <div className="owner-mobile-layout-card w-full max-w-5xl min-h-screen min-h-[100dvh] bg-white dark:bg-slate-900 shadow-sm flex flex-col relative sm:border-x border-slate-200 dark:border-slate-800">
+        {/* Sticky/Fixed Header & Navigation Group (Together at Top) */}
+        <div className="owner-top-nav-group sticky top-0 z-40 shrink-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800">
+          {/* Top Header */}
+          <header className="owner-mobile-header">
+            <div className="w-full flex items-center justify-between px-3 sm:px-6">
+              <div className="owner-header-left">
+                <div className="owner-header-logo-wrap">
+                  <img src={logoImg} alt="LSMIS Official Seal" />
+                </div>
+                <div className="owner-header-text">
+                  <span className="owner-header-title">LSMIS</span>
+                  <span className="owner-header-subtitle">Livestock Owner Portal</span>
+                </div>
               </div>
-              <div className="owner-header-text">
-                <span className="owner-header-title">LSMIS</span>
-                <span className="owner-header-subtitle">Livestock Owner Portal</span>
+
+              <div className="owner-header-right">
+                {/* Theme Toggle Button */}
+                {onToggleTheme && (
+                  <button
+                    type="button"
+                    onClick={onToggleTheme}
+                    className="owner-header-btn"
+                    title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
+                    aria-label="Toggle theme"
+                  >
+                    {theme === "dark" ? <Icon.Sun size={17} /> : <Icon.Moon size={17} />}
+                  </button>
+                )}
               </div>
             </div>
+          </header>
 
-            <div className="owner-header-right">
-              {/* Theme Toggle Button */}
-              {onToggleTheme && (
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className="owner-header-btn"
-                  title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-                  aria-label="Toggle theme"
-                >
-                  {theme === "dark" ? <Icon.Sun size={17} /> : <Icon.Moon size={17} />}
-                </button>
-              )}
-            </div>
-          </div>
-        </header>
+          {/* Navigation Bar Placed Directly Below Header */}
+          <OwnerBottomNav />
+        </div>
 
-        {/* Scrollable Main Content */}
+        {/* Scrollable Main Content (Starts cleanly below fixed header & navigation) */}
         <main className="owner-mobile-main flex-1 overflow-y-auto">
           <div className="w-full max-w-5xl mx-auto">
             <Outlet />
           </div>
         </main>
-
-        {/* Fixed Bottom Navigation Bar */}
-        <OwnerBottomNav />
       </div>
     </div>
   );

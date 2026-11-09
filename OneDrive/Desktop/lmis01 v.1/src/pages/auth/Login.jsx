@@ -2365,6 +2365,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         ref={twoFaInputRef}
                         type="text"
                         inputMode="numeric"
+                        pattern="[0-9]*"
                         maxLength={6}
                         autoComplete="one-time-code"
                         className="form-control"
