@@ -1126,32 +1126,6 @@ export const OwnerRecords = () => {
                 </div>
               </div>
 
-              {/* If Condemned or Partially Condemned, prominent View Evidence trigger */}
-              {(isCondemned || prog.isPartialCondemned) && (
-                <button
-                  type="button"
-                  onClick={() => handleOpenCondemnation(selectedLivestock.tag_number)}
-                  style={{
-                    padding: "9px 14px",
-                    borderRadius: 12,
-                    backgroundColor: prog.isPartialCondemned ? "#fffbeb" : "#fef2f2",
-                    color: prog.isPartialCondemned ? "#b45309" : "#dc2626",
-                    border: `1.5px solid ${prog.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 6,
-                    cursor: "pointer",
-                    width: "100%",
-                  }}
-                >
-                  <Icon.AlertTriangle size={15} style={{ color: prog.isPartialCondemned ? "#b45309" : "#dc2626" }} />
-                  <span>View {prog.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
-                </button>
-              )}
-
               {/* Core Particulars Grid (Species, Sex, Carcass Weight) */}
               <div
                 className="owner-animal-modal-stats-grid"
@@ -1314,7 +1288,7 @@ export const OwnerRecords = () => {
                         </div>
 
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5 }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
                             <span
                               style={{
                                 fontSize: 10.5,
@@ -1323,14 +1297,47 @@ export const OwnerRecords = () => {
                                 borderRadius: 6,
                                 background: isDone
                                   ? "rgba(16, 185, 129, 0.12)"
+                                  : isRej
+                                  ? "rgba(239, 68, 68, 0.12)"
                                   : isCurr
                                   ? "rgba(14, 165, 233, 0.12)"
                                   : "rgba(148, 163, 184, 0.12)",
-                                color: isDone ? "#10b981" : isCurr ? "#0ea5e9" : "#64748b",
+                                color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#0ea5e9" : "#64748b",
+                                border: isRej ? "1px solid rgba(239, 68, 68, 0.28)" : "none",
                               }}
                             >
-                              {isDone ? "Completed" : isCurr ? "Active" : "Pending"}
+                              {isRej ? "Condemned" : isDone ? "Completed" : isCurr ? "Active" : "Pending"}
                             </span>
+
+                            {isRej && (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleOpenCondemnation(selectedLivestock.tag_number, e);
+                                }}
+                                style={{
+                                  padding: "2px 8px",
+                                  borderRadius: 6,
+                                  fontSize: 11,
+                                  fontWeight: 700,
+                                  backgroundColor: "#dc2626",
+                                  color: "#ffffff",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: 3.5,
+                                  lineHeight: 1.4,
+                                  flexShrink: 0,
+                                }}
+                                title="View Condemnation Details"
+                              >
+                                <Icon.Eye size={11} />
+                                <span>View</span>
+                              </button>
+                            )}
+
                             {!isDone && isCurr && st.isReturnedToMarking ? (
                               <span
                                 style={{
@@ -1348,7 +1355,7 @@ export const OwnerRecords = () => {
                           </div>
 
                           {st.timestampFormatted ? (
-                            <div style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 600, marginTop: 3 }}>
+                            <div style={{ fontSize: 10.5, color: isRej ? "#dc2626" : "#0284c7", fontWeight: 600, marginTop: 3 }}>
                               {st.timestampFormatted}
                             </div>
                           ) : null}

@@ -271,6 +271,33 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               </div>
             </div>
 
+            {/* Rejected Weight (Shown for Condemned Livestock) */}
+            {!isPartial && (
+              <div
+                style={{
+                  padding: "11px 14px",
+                  borderRadius: 12,
+                  backgroundColor: "#fef2f2",
+                  border: "1px solid #fecaca",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#991b1b", letterSpacing: "0.04em" }}>
+                  Rejected Weight
+                </span>
+                <span style={{ fontSize: 13.5, fontWeight: 800, color: "#dc2626" }}>
+                  {(() => {
+                    const raw = details.totalWeightQty || details.condemnedParts?.[0]?.quantityWeight || details.weight;
+                    if (!raw || raw === "N/A" || raw === "—") return "Whole Animal";
+                    const clean = String(raw).trim();
+                    return clean.toLowerCase().includes("kg") ? clean : `${clean} kg`;
+                  })()}
+                </span>
+              </div>
+            )}
+
             {/* Rejected Carcass Parts (Shown for Partial Condemnation) */}
             {isPartial && (
               <div

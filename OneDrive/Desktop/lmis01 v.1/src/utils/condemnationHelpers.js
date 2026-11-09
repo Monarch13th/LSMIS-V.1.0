@@ -126,9 +126,18 @@ export const getOwnerCondemnationDetails = ({
   const parts = [];
 
   if (scope.includes("ante")) {
+    const anteWeight =
+      animal?.weight ||
+      animal?.live_weight ||
+      ante?.weight_kg ||
+      ante?.weight ||
+      (condList.find((c) => String(c.stage || c.inspection_type || c.part || "").toLowerCase().includes("ante") || String(c.part || "").toLowerCase() === "live animal")?.weight_kg) ||
+      (condList.find((c) => String(c.stage || c.inspection_type || c.part || "").toLowerCase().includes("ante") || String(c.part || "").toLowerCase() === "live animal")?.weight) ||
+      null;
+
     parts.push({
       part: "Live Animal",
-      quantityWeight: animal?.weight ? `${animal.weight} kg live` : "1 Head",
+      quantityWeight: anteWeight ? `${anteWeight} kg` : "Live Animal",
       reason: ante?.reason || ante?.findings || animal?.rejection_reason || animal?.remarks || "Unfit for slaughter on clinical examination",
       findings: ante?.findings || ante?.remarks || "Clinical signs detected during ante-mortem inspection",
       disposition: ante?.disposition || "Condemned & Returned / Disposed per NMIS Regulations",
@@ -441,8 +450,15 @@ export const getOwnerCondemnationDetails = ({
   // 2. Condemnation Records: Direct cut-level condemnation photos matching individual parts
   if (Array.isArray(condList) && condList.length > 0) {
     condList.forEach((c, idx) => {
-      if (scope.includes("ante") && c.part !== "Live Animal") return;
-      if (!scope.includes("ante") && c.part === "Live Animal") return;
+      if (scope.includes("ante")) {
+        const isAnteRec =
+          String(c.stage || c.inspection_type || "").toLowerCase().includes("ante") ||
+          String(c.part || "").toLowerCase().includes("live") ||
+          String(c.part || "").toLowerCase().includes("animal");
+        if (!isAnteRec && c.stage && !String(c.stage).toLowerCase().includes("ante")) return;
+      } else {
+        if (c.part === "Live Animal" || String(c.stage || "").toLowerCase().includes("ante")) return;
+      }
       const urls = extractPhotoUrls(c);
       urls.forEach((u, uIdx) => {
         addPhoto({

@@ -418,34 +418,14 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     };
   };
 
-  if (isAnteRejected) {
-    return {
-      statusLabel: "Rejected",
-      statusCategory: "rejected",
-      currentStageIndex: 3,
-      isTerminated: true,
-      terminationType: "rejected",
-      reason: ante?.findings || "Ante-Mortem examination failed clinical criteria",
-      steps: [
-        { id: 1, key: "registered", label: "Registered", sublabel: "Registered", state: "completed", timestamp: regTimestamp, timestampFormatted: fmtTime(regTimestamp), actor: regActor },
-        buildMarkStep("completed"),
-        { id: 3, key: "ante_mortem", label: "Ante-Mortem", sublabel: "Rejected", state: "rejected", timestamp: anteTimestamp, timestampFormatted: fmtTime(anteTimestamp), actor: anteActor },
-        { id: 4, key: "slaughter", label: "Slaughter", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
-        { id: 5, key: "post_mortem", label: "Post-Mortem", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
-        { id: 6, key: "weighing", label: "Weighing", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
-        { id: 7, key: "permit", label: "Meat Permit", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
-      ],
-    };
-  }
-
-  if (isAnteCondemned) {
+  if (isAnteCondemned || isAnteRejected) {
     return {
       statusLabel: "Condemned",
       statusCategory: "condemned",
       currentStageIndex: 3,
       isTerminated: true,
       terminationType: "condemned",
-      reason: firstCond?.reason || ante?.findings || "Whole animal condemned at Ante-Mortem",
+      reason: firstCond?.reason || ante?.findings || animal?.rejection_reason || "Whole animal condemned at Ante-Mortem",
       steps: [
         { id: 1, key: "registered", label: "Registered", sublabel: "Registered", state: "completed", timestamp: regTimestamp, timestampFormatted: fmtTime(regTimestamp), actor: regActor },
         buildMarkStep("completed"),
@@ -1989,77 +1969,6 @@ export const OwnerAnimals = () => {
               );
             })()}
 
-            {/* CONDEMNATION & EVIDENCE NOTICE (IF CONDEMNED) */}
-            {(() => {
-              const selTag = selectedAnimal?.tag_number;
-              const selTagUpper = String(selTag || "").trim().toUpperCase();
-              const selProg = calculateLivestockProgress(selectedAnimal, milestones);
-              const isActuallyCondemned =
-                selProg.isTerminated ||
-                selProg.isPartialCondemned ||
-                selProg.statusCategory === "condemned" ||
-                selProg.statusCategory === "rejected";
-              if (!isActuallyCondemned) return null;
-
-              const condDet =
-                selectedAnimal.condemnationDetails ||
-                getOwnerCondemnationDetails({
-                  animal: selectedAnimal,
-                  ante: milestones.ante[selTag] || milestones.ante[selTagUpper],
-                  post: milestones.post[selTag] || milestones.post[selTagUpper],
-                  condemnation: milestones.condemnation[selTag] || milestones.condemnation[selTagUpper],
-                  evidence: milestones.evidence[selTag] || milestones.evidence[selTagUpper] || [],
-                });
-              if (!condDet) return null;
-
-              return (
-                <div
-                  style={{
-                    backgroundColor: "#fef2f2",
-                    border: "1px solid #fecaca",
-                    borderRadius: 14,
-                    padding: 14,
-                    marginBottom: 12,
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#dc2626", fontWeight: 800, fontSize: 13 }}>
-                      <Icon.AlertTriangle size={16} />
-                      <span>{condDet.resultLabel}</span>
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "#991b1b" }}>
-                      {condDet.inspectionDateFormatted}
-                    </span>
-                  </div>
-                  <p style={{ fontSize: 12, color: "#7f1d1d", margin: "0 0 10px 0", lineHeight: 1.4 }}>
-                    <strong>Pathology / Findings:</strong> {condDet.pathologyReasons}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={(e) => handleOpenCondemnationDetails(selectedAnimal, e)}
-                    style={{
-                      width: "100%",
-                      backgroundColor: "#dc2626",
-                      color: "#ffffff",
-                      border: "none",
-                      borderRadius: 10,
-                      padding: "9px 12px",
-                      fontSize: 12,
-                      fontWeight: 800,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Icon.FileText size={14} />
-                    <span>View Full Condemnation & Evidence Photos</span>
-                  </button>
-                </div>
-              );
-            })()}
-
             {/* 7-STAGE WORKFLOW TIMELINE & DETAILED SECTIONS */}
             {(() => {
               const selTag = selectedAnimal.tag_number;
@@ -2192,25 +2101,77 @@ export const OwnerAnimals = () => {
                             </div>
 
                             <div style={{ textAlign: "right", flexShrink: 0 }}>
-                              {hasTime ? (
-                                <div
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 6 }}>
+                                <span
                                   style={{
                                     fontSize: 10.5,
                                     fontWeight: 700,
-                                    color: "var(--color-text, #334155)",
+                                    padding: "2px 8px",
+                                    borderRadius: 6,
+                                    background: isDone
+                                      ? "rgba(16, 185, 129, 0.12)"
+                                      : isRej
+                                      ? "rgba(239, 68, 68, 0.12)"
+                                      : isCurr
+                                      ? "rgba(14, 165, 233, 0.12)"
+                                      : "rgba(148, 163, 184, 0.12)",
+                                    color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#0ea5e9" : "#64748b",
+                                    border: isRej ? "1px solid rgba(239, 68, 68, 0.28)" : "none",
+                                  }}
+                                >
+                                  {isRej ? "Condemned" : isDone ? "Completed" : isCurr ? "Active" : "Pending"}
+                                </span>
+
+                                {isRej && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenCondemnationDetails(selectedAnimal, e);
+                                    }}
+                                    style={{
+                                      padding: "2px 8px",
+                                      borderRadius: 6,
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      backgroundColor: "#dc2626",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 3.5,
+                                      lineHeight: 1.4,
+                                      flexShrink: 0,
+                                    }}
+                                    title="View Condemnation Details"
+                                  >
+                                    <Icon.Eye size={11} />
+                                    <span>View</span>
+                                  </button>
+                                )}
+                              </div>
+
+                              {hasTime ? (
+                                <div
+                                  style={{
+                                    fontSize: 10,
+                                    fontWeight: 600,
+                                    color: isRej ? "#dc2626" : "var(--color-text, #334155)",
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 4,
                                     justifyContent: "flex-end",
+                                    marginTop: 2,
                                   }}
                                 >
-                                  <Icon.Clock size={11} style={{ color: "#0284c7" }} />
+                                  <Icon.Clock size={10} style={{ color: isRej ? "#dc2626" : "#0284c7" }} />
                                   <span>{st.timestampFormatted}</span>
                                 </div>
                               ) : (
-                                <span style={{ fontSize: 10.5, fontWeight: 600, color: "#94a3b8", fontStyle: "italic" }}>
+                                <div style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8", fontStyle: "italic", marginTop: 2 }}>
                                   {st.sublabel === "Stopped" ? "Stopped" : "Pending"}
-                                </span>
+                                </div>
                               )}
                             </div>
                           </div>
