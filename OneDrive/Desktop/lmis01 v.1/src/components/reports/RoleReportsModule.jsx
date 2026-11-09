@@ -692,7 +692,7 @@ export const RoleReportsModule = ({
         const markDate = l.mark_date || l.marked_at || l.received_date || l.created_at;
         const markLabel = awaiting
           ? "Awaiting Marking"
-          : `${markType} (${markDate ? formatPhDate(markDate) : "Marked"})`;
+          : `${markType} (${markDate ? formatPhDateTime(markDate) : "Marked"})`;
         const ts = l.marked_at || l.mark_date || l.created_at || l.received_date;
         const actor = l.marked_by || extractStaffActor(l, "mark") || "Staff Personnel";
         return {

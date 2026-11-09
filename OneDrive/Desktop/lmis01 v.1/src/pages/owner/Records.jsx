@@ -581,6 +581,19 @@ export const OwnerRecords = () => {
                         {formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}
                       </span>
                     </span>
+
+                    {progress.markTimestampFormatted && (
+                      <>
+                        <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <Icon.Tag size={12} style={{ color: progress.isReturnedToMarking ? "#f59e0b" : "#8b5cf6", flexShrink: 0 }} />
+                          <span style={{ fontWeight: 600 }}>
+                            {progress.isReturnedToMarking ? "Re-Marking: " : progress.isReMarked ? "Re-Marked: " : "Marked: "}
+                            {progress.markTimestampFormatted}
+                          </span>
+                        </span>
+                      </>
+                    )}
                   </div>
 
                   {/* 7-Milestone Visual Progress Tracker */}
@@ -1021,27 +1034,67 @@ export const OwnerRecords = () => {
                         </div>
 
                         <div style={{ textAlign: "right", flexShrink: 0 }}>
-                          <span
-                            style={{
-                              fontSize: 10.5,
-                              fontWeight: 700,
-                              padding: "2px 8px",
-                              borderRadius: 6,
-                              background: isDone
-                                ? "rgba(16, 185, 129, 0.12)"
-                                : isCurr
-                                ? "rgba(14, 165, 233, 0.12)"
-                                : "rgba(148, 163, 184, 0.12)",
-                              color: isDone ? "#10b981" : isCurr ? "#0ea5e9" : "#64748b",
-                            }}
-                          >
-                            {isDone ? "Completed" : isCurr ? "Active" : "Pending"}
-                          </span>
-                          {st.timestampFormatted && (
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5 }}>
+                            <span
+                              style={{
+                                fontSize: 10.5,
+                                fontWeight: 700,
+                                padding: "2px 8px",
+                                borderRadius: 6,
+                                background: isDone
+                                  ? "rgba(16, 185, 129, 0.12)"
+                                  : isCurr
+                                  ? "rgba(14, 165, 233, 0.12)"
+                                  : "rgba(148, 163, 184, 0.12)",
+                                color: isDone ? "#10b981" : isCurr ? "#0ea5e9" : "#64748b",
+                              }}
+                            >
+                              {isDone ? "Completed" : isCurr ? "Active" : "Pending"}
+                            </span>
+                            {st.isReturnedToMarking ? (
+                              <span
+                                style={{
+                                  fontSize: 10.5,
+                                  fontWeight: 700,
+                                  padding: "2px 8px",
+                                  borderRadius: 6,
+                                  background: "rgba(245, 158, 11, 0.14)",
+                                  color: "#b45309",
+                                }}
+                              >
+                                Re-Marking
+                              </span>
+                            ) : st.isReMarked ? (
+                              <span
+                                style={{
+                                  fontSize: 10.5,
+                                  fontWeight: 700,
+                                  padding: "2px 8px",
+                                  borderRadius: 6,
+                                  background: "rgba(99, 102, 241, 0.12)",
+                                  color: "#6366f1",
+                                }}
+                              >
+                                Re-Marked
+                              </span>
+                            ) : null}
+                          </div>
+
+                          {st.initialMarkTimestampFormatted && st.reMarkTimestampFormatted && st.initialMarkTimestampFormatted !== st.reMarkTimestampFormatted ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginTop: 4, textAlign: "right" }}>
+                              <div style={{ fontSize: 10, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                                Initial Mark: <span style={{ color: "var(--color-text, #0f172a)" }}>{st.initialMarkTimestampFormatted}</span>
+                              </div>
+                              <div style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 700 }}>
+                                {st.isReturnedToMarking ? "Returned:" : "Re-Marked:"}{" "}
+                                <span>{st.reMarkTimestampFormatted}</span>
+                              </div>
+                            </div>
+                          ) : st.timestampFormatted ? (
                             <div style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 600, marginTop: 3 }}>
                               {st.timestampFormatted}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     );

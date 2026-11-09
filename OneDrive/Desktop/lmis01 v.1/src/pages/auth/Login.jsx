@@ -2668,7 +2668,10 @@ export const Login = ({ embedded = false, initialView }) => {
                         type="email"
                         className="form-control"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (error) setError("");
+                        }}
                         onKeyDown={(e) => {
                           if (e.key === "Enter") {
                             e.preventDefault();
@@ -2678,7 +2681,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         placeholder="Enter your email address"
                         autoComplete="email"
                         required
-                        aria-invalid={Boolean(error)}
+                        aria-invalid={Boolean(error && !error.toLowerCase().includes("enter your password"))}
                         aria-describedby={error ? "login-error-alert" : undefined}
                         disabled={loading || googleLoginLoading}
                       />
@@ -2696,11 +2699,14 @@ export const Login = ({ embedded = false, initialView }) => {
                         className="form-control"
                         type={showPwd ? "text" : "password"}
                         value={password}
-                        onChange={(e) => setPassword(e.target.value)}
+                        onChange={(e) => {
+                          setPassword(e.target.value);
+                          if (error) setError("");
+                        }}
                         placeholder="Enter your password"
                         autoComplete="current-password"
                         required
-                        aria-invalid={Boolean(error)}
+                        aria-invalid={Boolean(error && !error.toLowerCase().includes("email address"))}
                         aria-describedby={error ? "login-error-alert" : undefined}
                         disabled={loading || googleLoginLoading}
                       />

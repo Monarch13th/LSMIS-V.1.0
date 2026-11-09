@@ -121,12 +121,59 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     findHistoryActor(history, ["registration", "registered", "receiving"]) ||
     "Staff Personnel";
 
-  const markTimestamp =
-    animal?.marked_at ||
-    findHistoryTimestamp(history, ["marking", "marked"]) ||
-    animal?.mark_date ||
-    animal?.marking_date ||
-    null;
+  // Parse marking history safely for audit and re-marking tracking
+  let rawMarkingHistory = [];
+  if (Array.isArray(animal?.marking_history)) {
+    rawMarkingHistory = animal.marking_history;
+  } else if (typeof animal?.marking_history === "string") {
+    try {
+      rawMarkingHistory = JSON.parse(animal.marking_history) || [];
+    } catch (_) {}
+  }
+
+  const isReturnedToMarking =
+    rawStatusLower === "returned to animal marking" || Boolean(animal?.fallback_at);
+
+  const hasReMarkHistory = rawMarkingHistory.length > 0;
+  const isReMarked = hasReMarkHistory && !isReturnedToMarking;
+
+  // Extract initial / earliest mark timestamp
+  let initialMarkTimestamp = null;
+  if (hasReMarkHistory) {
+    const firstHist = rawMarkingHistory[0];
+    initialMarkTimestamp =
+      firstHist?.previous_marked_at ||
+      firstHist?.previous_mark_date ||
+      firstHist?.fallback_at;
+  }
+  if (!initialMarkTimestamp) {
+    initialMarkTimestamp =
+      findHistoryTimestamp(history, ["marking", "marked"]) ||
+      animal?.marked_at ||
+      animal?.mark_date ||
+      animal?.marking_date ||
+      null;
+  }
+
+  // Extract re-marking timestamp (either fallback trigger or actual re-marking)
+  let reMarkTimestamp = null;
+  if (isReturnedToMarking) {
+    reMarkTimestamp =
+      animal?.fallback_at ||
+      findHistoryTimestamp(history, ["fallback", "returned to animal marking", "return"]);
+  } else if (hasReMarkHistory) {
+    const lastHist = rawMarkingHistory[rawMarkingHistory.length - 1];
+    reMarkTimestamp =
+      lastHist?.re_marked_at ||
+      animal?.marked_at ||
+      findHistoryTimestamp(history, ["re-marked", "re_marked", "re-mark"]);
+  }
+
+  const currentMarkTimestamp = isReturnedToMarking
+    ? (reMarkTimestamp || initialMarkTimestamp)
+    : (reMarkTimestamp || animal?.marked_at || initialMarkTimestamp || animal?.mark_date);
+
+  const markTimestamp = currentMarkTimestamp;
   const markActor =
     animal?.marked_by ||
     findHistoryActor(history, ["marking", "marked"]) ||
@@ -266,6 +313,40 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       condListForAnimal.some((c) => String(c.part || "").toLowerCase() === "live animal") ||
       (rawStatusLower === "condemned" && !isAntePassed && !post && !slaughterProc && !slaughterRec && !carcass));
 
+  const buildMarkStep = (overrideState = null) => {
+    const isStepDone = overrideState === "completed" || (!isReturnedToMarking && Boolean(currentMarkTimestamp || animal?.marked));
+    const isStepCurr = overrideState === "current" || isReturnedToMarking || (!isStepDone && Boolean(initialMarkTimestamp || currentMarkTimestamp || animal?.tag_number));
+
+    let markSublabel = "Awaiting Mark";
+    if (isReturnedToMarking) {
+      markSublabel = "Re-Marking";
+    } else if (isReMarked) {
+      markSublabel = `${animal?.mark_type || "Ear Tag"} · Re-Marked`;
+    } else if (isStepDone) {
+      markSublabel = animal?.mark_type || "Ear Tag";
+    }
+
+    const effectiveTimestamp = currentMarkTimestamp || (isStepDone ? regTimestamp : null);
+
+    return {
+      id: 2,
+      key: "marking",
+      label: "Marked",
+      sublabel: markSublabel,
+      state: isStepDone ? "completed" : isStepCurr ? "current" : "pending",
+      timestamp: effectiveTimestamp,
+      timestampFormatted: fmtTime(effectiveTimestamp),
+      initialMarkTimestamp,
+      initialMarkTimestampFormatted: fmtTime(initialMarkTimestamp),
+      reMarkTimestamp,
+      reMarkTimestampFormatted: fmtTime(reMarkTimestamp),
+      isReturnedToMarking,
+      isReMarked,
+      markingHistory: rawMarkingHistory,
+      actor: markActor,
+    };
+  };
+
   if (isAnteRejected) {
     return {
       statusLabel: "Rejected",
@@ -276,7 +357,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       reason: ante?.findings || "Ante-Mortem examination failed clinical criteria",
       steps: [
         { id: 1, key: "registered", label: "Registered", sublabel: "Registered", state: "completed", timestamp: regTimestamp, timestampFormatted: fmtTime(regTimestamp), actor: regActor },
-        { id: 2, key: "marking", label: "Marked", sublabel: animal?.mark_type || "Ear Tag", state: "completed", timestamp: markTimestamp || regTimestamp, timestampFormatted: fmtTime(markTimestamp || regTimestamp), actor: markActor },
+        buildMarkStep("completed"),
         { id: 3, key: "ante_mortem", label: "Ante-Mortem", sublabel: "Rejected", state: "rejected", timestamp: anteTimestamp, timestampFormatted: fmtTime(anteTimestamp), actor: anteActor },
         { id: 4, key: "slaughter", label: "Slaughter", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
         { id: 5, key: "post_mortem", label: "Post-Mortem", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
@@ -296,7 +377,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       reason: firstCond?.reason || ante?.findings || "Whole animal condemned at Ante-Mortem",
       steps: [
         { id: 1, key: "registered", label: "Registered", sublabel: "Registered", state: "completed", timestamp: regTimestamp, timestampFormatted: fmtTime(regTimestamp), actor: regActor },
-        { id: 2, key: "marking", label: "Marked", sublabel: animal?.mark_type || "Ear Tag", state: "completed", timestamp: markTimestamp || regTimestamp, timestampFormatted: fmtTime(markTimestamp || regTimestamp), actor: markActor },
+        buildMarkStep("completed"),
         { id: 3, key: "ante_mortem", label: "Ante-Mortem", sublabel: "Condemned", state: "condemned", timestamp: anteTimestamp, timestampFormatted: fmtTime(anteTimestamp), actor: anteActor },
         { id: 4, key: "slaughter", label: "Slaughter", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
         { id: 5, key: "post_mortem", label: "Post-Mortem", sublabel: "Stopped", state: "pending", timestamp: null, timestampFormatted: null, actor: null },
@@ -316,7 +397,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       reason: firstCond?.reason || post?.findings || "Whole carcass condemned at Post-Mortem",
       steps: [
         { id: 1, key: "registered", label: "Registered", sublabel: "Registered", state: "completed", timestamp: regTimestamp, timestampFormatted: fmtTime(regTimestamp), actor: regActor },
-        { id: 2, key: "marking", label: "Marked", sublabel: animal?.mark_type || "Ear Tag", state: "completed", timestamp: markTimestamp || regTimestamp, timestampFormatted: fmtTime(markTimestamp || regTimestamp), actor: markActor },
+        buildMarkStep("completed"),
         { id: 3, key: "ante_mortem", label: "Ante-Mortem", sublabel: "Approved", state: "completed", timestamp: anteTimestamp, timestampFormatted: fmtTime(anteTimestamp), actor: anteActor },
         { id: 4, key: "slaughter", label: "Slaughter", sublabel: "Completed", state: "completed", timestamp: slaughterTimestamp, timestampFormatted: fmtTime(slaughterTimestamp), actor: slaughterActor },
         { id: 5, key: "post_mortem", label: "Post-Mortem", sublabel: "Condemned", state: "condemned", timestamp: postTimestamp, timestampFormatted: fmtTime(postTimestamp), actor: postActor },
@@ -415,9 +496,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     rawStatusLower === "passed" ||
     rawStatusLower === "ante-mortem passed";
 
-  const isReturnedToMarking =
-    rawStatusLower === "returned to animal marking" || Boolean(animal?.fallback_at);
-
   const isMarked =
     !isReturnedToMarking &&
     (isAnteMortemApproved ||
@@ -482,20 +560,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       actor: regActor,
     },
     // Step 2: Marked
-    {
-      id: 2,
-      key: "marking",
-      label: "Marked",
-      sublabel: isMarked
-        ? animal?.mark_type || "Ear Tag"
-        : isReturnedToMarking
-        ? "Re-Marking"
-        : "Awaiting Mark",
-      state: isMarked ? "completed" : "current",
-      timestamp: isMarked ? markTimestamp || regTimestamp : null,
-      timestampFormatted: isMarked ? fmtTime(markTimestamp || regTimestamp) : null,
-      actor: isMarked ? markActor : null,
-    },
+    buildMarkStep(),
     // Step 3: Ante-Mortem
     {
       id: 3,
@@ -596,6 +661,15 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     currentStageIndex,
     isTerminated: false,
     isPartialCondemned,
+    isReturnedToMarking,
+    isReMarked,
+    markTimestamp: currentMarkTimestamp,
+    markTimestampFormatted: fmtTime(currentMarkTimestamp),
+    initialMarkTimestamp,
+    initialMarkTimestampFormatted: fmtTime(initialMarkTimestamp),
+    reMarkTimestamp,
+    reMarkTimestampFormatted: fmtTime(reMarkTimestamp),
+    markingHistory: rawMarkingHistory,
     steps,
   };
 };
@@ -1868,7 +1942,26 @@ export const OwnerAnimals = () => {
                             </div>
 
                             <div style={{ textAlign: "right", flexShrink: 0 }}>
-                              {hasTime ? (
+                              {st.initialMarkTimestampFormatted && st.reMarkTimestampFormatted && st.initialMarkTimestampFormatted !== st.reMarkTimestampFormatted ? (
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
+                                  <div style={{ fontSize: 10, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                                    Initial: <span style={{ color: "var(--color-text, #0f172a)" }}>{st.initialMarkTimestampFormatted}</span>
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: 10.5,
+                                      fontWeight: 700,
+                                      color: "#0284c7",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      gap: 3,
+                                    }}
+                                  >
+                                    <Icon.Clock size={11} style={{ color: "#0284c7" }} />
+                                    <span>{st.isReturnedToMarking ? "Returned:" : "Re-Marked:"} {st.reMarkTimestampFormatted}</span>
+                                  </div>
+                                </div>
+                              ) : hasTime ? (
                                 <div
                                   style={{
                                     fontSize: 10.5,
@@ -1877,6 +1970,7 @@ export const OwnerAnimals = () => {
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 4,
+                                    justifyContent: "flex-end",
                                   }}
                                 >
                                   <Icon.Clock size={11} style={{ color: "#0284c7" }} />

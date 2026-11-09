@@ -306,7 +306,7 @@ export const AnimalMarking = ({ navTabs }) => {
   const resolveDateStr = (item, isMarkedTab = false) => {
     if (!item) return "";
     const rawDate = isMarkedTab
-      ? (item.mark_date || item.received_date || item.date || item.created_at)
+      ? (item.marked_at || item.mark_date || item.received_date || item.date || item.created_at)
       : (item.received_date || item.date || item.created_at);
 
     if (!rawDate) return "";
@@ -320,7 +320,7 @@ export const AnimalMarking = ({ navTabs }) => {
     if (loading) return [];
     return sortedData.filter((l) => {
       if (!l.tag_number || String(l.tag_number).trim() === "") return false;
-      return isMarked(l) || Boolean(l.mark_type) || Boolean(l.mark_date);
+      return isMarked(l) || Boolean(l.mark_type) || Boolean(l.mark_date) || Boolean(l.marked_at);
     });
   }, [loading, sortedData]);
 
@@ -403,8 +403,8 @@ export const AnimalMarking = ({ navTabs }) => {
         return (a.owner_name || "").localeCompare(b.owner_name || "");
       }
       // default: newest
-      const timeA = new Date(a.mark_date || a.created_at || a.received_date || 0).getTime();
-      const timeB = new Date(b.mark_date || b.created_at || b.received_date || 0).getTime();
+      const timeA = new Date(a.marked_at || a.mark_date || a.created_at || a.received_date || 0).getTime();
+      const timeB = new Date(b.marked_at || b.mark_date || b.created_at || b.received_date || 0).getTime();
       if (timeB !== timeA) return timeB - timeA;
       return (b.tag_number || "").localeCompare(a.tag_number || "", undefined, { numeric: true });
     });
@@ -1821,7 +1821,16 @@ export const AnimalMarking = ({ navTabs }) => {
                           {formatLivestockAge(item)}
                         </td>
                         <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
-                          {formatPhDateTime(item.mark_date || item.created_at || item.registered_at)}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                            <span>{formatPhDateTime(item.marked_at || item.mark_date || item.created_at || item.registered_at)}</span>
+                            {item.marking_history && (Array.isArray(item.marking_history) ? item.marking_history : []).length > 0 && (
+                              <span style={{ fontSize: 10.5, color: "#6366f1", fontWeight: 700 }}>
+                                Re-Marked: {formatPhDateTime(
+                                  (Array.isArray(item.marking_history) ? item.marking_history : [])[item.marking_history.length - 1]?.re_marked_at || item.marked_at
+                                )}
+                              </span>
+                            )}
+                          </div>
                         </td>
                         {activeTab === "marked" && (
                           <td style={{ padding: "12px 14px" }}>
