@@ -5,6 +5,8 @@ import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
 import { formatPhDateTime, formatSex } from "../../utils/formatters";
 import { calculateLivestockProgress } from "./Animals";
+import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
+import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 
 /**
  * Owner Records — view-only complete livestock history for the authenticated owner.
@@ -15,6 +17,7 @@ export const OwnerRecords = () => {
   const [allLivestock, setAllLivestock] = useState([]);
   const [milestones, setMilestones] = useState({});
   const [selectedLivestock, setSelectedLivestock] = useState(null);
+  const [condemnationDetails, setCondemnationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Search & Filter States
@@ -239,6 +242,48 @@ export const OwnerRecords = () => {
       return dateB - dateA;
     });
   }, [enrichedLivestock, searchQuery, dateFilter]);
+
+  // Handler for opening Condemnation Details with Pathology Photos
+  const handleOpenCondemnation = (tagNumber, e) => {
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+    const tagUpper = String(tagNumber || "").trim().toUpperCase();
+    const matchedAnimal =
+      filteredLivestock.find((a) => String(a.tag_number || "").trim().toUpperCase() === tagUpper) ||
+      { tag_number: tagNumber };
+    const ante = milestones.ante?.[tagNumber] || milestones.ante?.[tagUpper];
+    const post = milestones.post?.[tagNumber] || milestones.post?.[tagUpper];
+    const cond = milestones.condemnation?.[tagNumber] || milestones.condemnation?.[tagUpper];
+    const ev = milestones.evidence?.[tagNumber] || milestones.evidence?.[tagUpper] || [];
+
+    const details =
+      getOwnerCondemnationDetails({
+        animal: matchedAnimal,
+        ante,
+        post,
+        condemnation: cond,
+        evidence: ev,
+      }) || {
+        tagNumber: matchedAnimal.tag_number || tagNumber,
+        species: matchedAnimal.species || "Livestock",
+        sex: matchedAnimal.sex,
+        resultLabel: matchedAnimal.progress?.isPartialCondemned ? "Passed with Partial Condemnation" : "Condemned",
+        scope: matchedAnimal.progress?.isPartialCondemned ? "partial" : "whole",
+        locationArea: "Tinaan, City of Naga, Cebu, Philippines",
+        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "—",
+        inspectionDateFormatted: formatPhDateTime(new Date()),
+        vetName: "Official Meat Inspection Service (Veterinarian)",
+        pathologyReasons: "Veterinary condemnation decision recorded.",
+        inspectionFindings: "Official condemnation record on file.",
+        dispositionSummary: "Condemned carcass/cuts condemned and disposed in accordance with BAI/NMIS abattoir regulations.",
+        condemnedParts: [],
+        evidencePhotos: [],
+        hasPhotos: false,
+      };
+
+    if (details) {
+      setCondemnationDetails(details);
+    }
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -667,6 +712,34 @@ export const OwnerRecords = () => {
                     </div>
                   )}
 
+                  {/* View Condemnation Evidence Button (Mobile Only) */}
+                  {(isCondemnedOrRejected || progress.isPartialCondemned) && (
+                    <button
+                      type="button"
+                      className="owner-condemnation-mobile-only"
+                      onClick={(e) => handleOpenCondemnation(animal.tag_number, e)}
+                      style={{
+                        marginTop: 8,
+                        width: "100%",
+                        padding: "7px 12px",
+                        borderRadius: 10,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: progress.isPartialCondemned ? "#fffbeb" : "#fef2f2",
+                        color: progress.isPartialCondemned ? "#b45309" : "#dc2626",
+                        border: `1.5px solid ${progress.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye size={14} />
+                      <span>View {progress.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
+                    </button>
+                  )}
+
                   {/* View Details Action Button */}
                   <div
                     style={{
@@ -711,7 +784,7 @@ export const OwnerRecords = () => {
 
         return (
           <div
-            className="owner-modal-backdrop"
+            className="owner-modal-backdrop owner-animal-detail-overlay"
             onClick={() => setSelectedLivestock(null)}
             style={{
               position: "fixed",
@@ -726,7 +799,7 @@ export const OwnerRecords = () => {
             }}
           >
             <div
-              className="owner-modal-sheet"
+              className="owner-modal-sheet owner-animal-detail-modal"
               onClick={(e) => e.stopPropagation()}
               style={{
                 maxHeight: "90vh",
@@ -874,8 +947,35 @@ export const OwnerRecords = () => {
                 </div>
               </div>
 
+              {/* If Condemned or Partially Condemned, prominent View Evidence trigger */}
+              {(isCondemned || prog.isPartialCondemned) && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenCondemnation(selectedLivestock.tag_number)}
+                  style={{
+                    padding: "9px 14px",
+                    borderRadius: 12,
+                    backgroundColor: prog.isPartialCondemned ? "#fffbeb" : "#fef2f2",
+                    color: prog.isPartialCondemned ? "#b45309" : "#dc2626",
+                    border: `1.5px solid ${prog.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    cursor: "pointer",
+                    width: "100%",
+                  }}
+                >
+                  <Icon.AlertTriangle size={15} style={{ color: prog.isPartialCondemned ? "#b45309" : "#dc2626" }} />
+                  <span>View {prog.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
+                </button>
+              )}
+
               {/* Core Particulars Grid (Species, Sex, Carcass Weight) */}
               <div
+                className="owner-animal-modal-stats-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
@@ -974,6 +1074,7 @@ export const OwnerRecords = () => {
                     return (
                       <div
                         key={st.id}
+                        className="owner-animal-modal-milestone-item"
                         style={{
                           padding: "10px 14px",
                           borderRadius: 12,
@@ -1107,6 +1208,15 @@ export const OwnerRecords = () => {
           </div>
         );
       })()}
+
+      {/* Condemnation & Pathology Photo Viewer Modal */}
+      {condemnationDetails && (
+        <OwnerCondemnationModal
+          open={!!condemnationDetails}
+          details={condemnationDetails}
+          onClose={() => setCondemnationDetails(null)}
+        />
+      )}
     </div>
   );
 };

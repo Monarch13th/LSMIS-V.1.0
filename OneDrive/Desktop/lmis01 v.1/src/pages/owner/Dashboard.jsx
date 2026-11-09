@@ -467,19 +467,41 @@ export const OwnerDashboard = () => {
   ).length;
 
   // Handler for opening Condemnation Details with Pathology Photos
-  const handleOpenCondemnation = (tagNumber) => {
-    const matchedAnimal = animals.find((a) => a.tag_number === tagNumber) || { tag_number: tagNumber };
-    const ante = milestones.ante[tagNumber];
-    const post = milestones.post[tagNumber];
-    const cond = milestones.condemnation[tagNumber];
+  const handleOpenCondemnation = (tagNumber, e) => {
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
+    const tagUpper = String(tagNumber || "").trim().toUpperCase();
+    const matchedAnimal =
+      animals.find((a) => String(a.tag_number || "").trim().toUpperCase() === tagUpper) ||
+      { tag_number: tagNumber };
+    const ante = milestones.ante[tagNumber] || milestones.ante[tagUpper];
+    const post = milestones.post[tagNumber] || milestones.post[tagUpper];
+    const cond = milestones.condemnation[tagNumber] || milestones.condemnation[tagUpper];
+    const ev = milestones.evidence?.[tagNumber] || milestones.evidence?.[tagUpper] || [];
 
-    const details = getOwnerCondemnationDetails({
-      animal: matchedAnimal,
-      ante,
-      post,
-      condemnation: cond,
-      evidence: [],
-    });
+    const details =
+      getOwnerCondemnationDetails({
+        animal: matchedAnimal,
+        ante,
+        post,
+        condemnation: cond,
+        evidence: ev,
+      }) || {
+        tagNumber: matchedAnimal.tag_number || tagNumber,
+        species: matchedAnimal.species || "Livestock",
+        sex: matchedAnimal.sex,
+        resultLabel: matchedAnimal.progress?.isPartialCondemned ? "Passed with Partial Condemnation" : "Condemned",
+        scope: matchedAnimal.progress?.isPartialCondemned ? "partial" : "whole",
+        locationArea: "Tinaan, City of Naga, Cebu, Philippines",
+        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "—",
+        inspectionDateFormatted: formatPhDateTime(new Date()),
+        vetName: "Official Meat Inspection Service (Veterinarian)",
+        pathologyReasons: "Veterinary condemnation decision recorded.",
+        inspectionFindings: "Official condemnation record on file.",
+        dispositionSummary: "Condemned carcass/cuts condemned and disposed in accordance with BAI/NMIS abattoir regulations.",
+        condemnedParts: [],
+        evidencePhotos: [],
+        hasPhotos: false,
+      };
 
     if (details) {
       setCondemnationDetails(details);
@@ -1021,6 +1043,34 @@ export const OwnerDashboard = () => {
                     </div>
                   </div>
 
+                  {/* View Condemnation Evidence Button (Mobile Only, Condemned/Partial Condemned Only) */}
+                  {(isCondemned || prog.isPartialCondemned) && (
+                    <button
+                      type="button"
+                      className="owner-condemnation-mobile-only"
+                      onClick={(e) => handleOpenCondemnation(a.tag_number, e)}
+                      style={{
+                        marginTop: 4,
+                        width: "100%",
+                        padding: "7px 12px",
+                        borderRadius: 10,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        backgroundColor: prog.isPartialCondemned ? "#fffbeb" : "#fef2f2",
+                        color: prog.isPartialCondemned ? "#b45309" : "#dc2626",
+                        border: `1.5px solid ${prog.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Icon.Eye size={14} />
+                      <span>View {prog.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
+                    </button>
+                  )}
+
                   {/* Footer Row: Timestamp & View Details Action */}
                   <div
                     style={{
@@ -1137,6 +1187,7 @@ export const OwnerDashboard = () => {
         return (
           <div
             onClick={() => setSelectedAnimal(null)}
+            className="owner-animal-detail-overlay"
             style={{
               position: "fixed",
               inset: 0,
@@ -1151,6 +1202,7 @@ export const OwnerDashboard = () => {
           >
             <div
               onClick={(e) => e.stopPropagation()}
+              className="owner-animal-detail-modal"
               style={{
                 maxHeight: "90vh",
                 overflowY: "auto",
@@ -1296,8 +1348,35 @@ export const OwnerDashboard = () => {
                 </div>
               </div>
 
+              {/* If Condemned or Partially Condemned, prominent View Evidence trigger */}
+              {(isCondemned || prog.isPartialCondemned) && (
+                <button
+                  type="button"
+                  onClick={() => handleOpenCondemnation(selectedAnimal.tag_number)}
+                  style={{
+                    padding: "9px 14px",
+                    borderRadius: 12,
+                    backgroundColor: prog.isPartialCondemned ? "#fffbeb" : "#fef2f2",
+                    color: prog.isPartialCondemned ? "#b45309" : "#dc2626",
+                    border: `1.5px solid ${prog.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 6,
+                    cursor: "pointer",
+                    width: "100%",
+                  }}
+                >
+                  <Icon.AlertTriangle size={15} style={{ color: prog.isPartialCondemned ? "#b45309" : "#dc2626" }} />
+                  <span>View {prog.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
+                </button>
+              )}
+
               {/* Core Particulars Grid (Species, Sex, Carcass Weight) */}
               <div
+                className="owner-animal-modal-stats-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
@@ -1395,6 +1474,7 @@ export const OwnerDashboard = () => {
                     return (
                       <div
                         key={st.id}
+                        className="owner-animal-modal-milestone-item"
                         style={{
                           padding: "9px 12px",
                           borderRadius: 12,

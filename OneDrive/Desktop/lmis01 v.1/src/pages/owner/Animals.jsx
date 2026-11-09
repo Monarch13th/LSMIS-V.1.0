@@ -1675,19 +1675,20 @@ export const OwnerAnimals = () => {
                   })}
                 </div>
 
-                {/* Condemnation & Evidence Photos Quick Trigger */}
-                {animal.condemnationDetails && (
+                {/* Condemnation & Evidence Photos Quick Trigger (Mobile Only) */}
+                {(animal.condemnationDetails || animal.progress?.isPartialCondemned || animal.progress?.statusCategory === "condemned" || animal.progress?.statusCategory === "rejected") && (
                   <button
                     type="button"
+                    className="owner-condemnation-mobile-only"
                     onClick={(e) => handleOpenCondemnationDetails(animal, e)}
                     style={{
-                      marginTop: 10,
+                      marginTop: 8,
                       width: "100%",
-                      backgroundColor: "#fef2f2",
-                      color: "#dc2626",
-                      border: "1px solid #fecaca",
+                      backgroundColor: animal.progress?.isPartialCondemned ? "#fffbeb" : "#fef2f2",
+                      color: animal.progress?.isPartialCondemned ? "#b45309" : "#dc2626",
+                      border: `1.5px solid ${animal.progress?.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
                       borderRadius: 10,
-                      padding: "8px 12px",
+                      padding: "7px 12px",
                       fontSize: 12,
                       fontWeight: 700,
                       display: "flex",
@@ -1697,8 +1698,8 @@ export const OwnerAnimals = () => {
                       cursor: "pointer",
                     }}
                   >
-                    <Icon.AlertTriangle size={14} style={{ color: "#dc2626" }} />
-                    <span>View Condemnation & Evidence</span>
+                    <Icon.Eye size={14} />
+                    <span>View {animal.progress?.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
                   </button>
                 )}
 
@@ -1716,8 +1717,8 @@ export const OwnerAnimals = () => {
 
       {/* 5. COMPREHENSIVE VIEW LIVESTOCK DETAILS MODAL */}
       {selectedAnimal && (
-        <div className="owner-modal-backdrop" onClick={handleCloseDetails}>
-          <div className="owner-modal-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="owner-modal-backdrop owner-animal-detail-overlay" onClick={handleCloseDetails}>
+          <div className="owner-modal-sheet owner-animal-detail-modal" onClick={(e) => e.stopPropagation()}>
             <div className="owner-sheet-handle" />
 
             {/* Modal Header */}

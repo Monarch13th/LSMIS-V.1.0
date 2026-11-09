@@ -139,7 +139,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
         role="presentation"
       >
         <div
-          className="modal"
+          className="modal owner-condemnation-modal-card"
           style={{
             backgroundColor: "#ffffff",
             borderRadius: 20,
@@ -155,6 +155,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
         >
           {/* Header */}
           <div
+            className="owner-condemnation-modal-header"
             style={{
               padding: "20px 24px",
               borderBottom: "1px solid #e2e8f0",
@@ -216,7 +217,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
           </div>
 
           {/* Body */}
-          <div style={{ padding: 24 }}>
+          <div className="owner-condemnation-modal-body" style={{ padding: 24 }}>
             {/* Result Alert Banner */}
             <div
               style={{
@@ -256,7 +257,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                 <Icon.FileText size={15} style={{ color: "#0284c7" }} /> Inspection &amp; Condemnation Summary
               </h4>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, fontSize: 12.5 }}>
+              <div className="owner-condemnation-fields-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, fontSize: 12.5 }}>
                 {/* 1. Tag Number */}
                 <div>
                   <span style={{ color: "#64748b", fontSize: 11, fontWeight: 700, display: "block" }}>1. Livestock Tag Number</span>
@@ -377,7 +378,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               </h4>
 
               {details.hasPhotos ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
+                <div className="owner-condemnation-photos-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))", gap: 12 }}>
                   {details.evidencePhotos.map((photo) => (
                     <div
                       key={photo.id}

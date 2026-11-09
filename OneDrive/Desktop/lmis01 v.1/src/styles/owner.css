@@ -3217,3 +3217,102 @@
 .owner-btn-retry:active {
   transform: scale(0.97);
 }
+
+/* ============================================================
+   7. OWNER MOBILE ANIMAL DETAIL & CONDEMNATION EVIDENCE STYLES
+   ============================================================ */
+
+/* Desktop: hide mobile-only condemnation quick-trigger button */
+@media (min-width: 768px) {
+  .owner-condemnation-mobile-only {
+    display: none !important;
+  }
+}
+
+/* Mobile & PWA: responsive animal detail modal (Screenshot 2 fix) */
+@media (max-width: 640px) {
+  .owner-animal-detail-overlay {
+    padding: 10px !important;
+    align-items: center !important;
+    box-sizing: border-box !important;
+  }
+
+  .owner-animal-detail-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 28px) !important;
+    border-radius: 20px !important;
+    padding: 18px 16px max(18px, env(safe-area-inset-bottom, 0px)) 16px !important;
+    gap: 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .owner-animal-modal-stats-grid {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+
+  .owner-animal-modal-stats-grid > div {
+    padding: 8px 10px !important;
+    border-radius: 10px !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  .owner-animal-modal-stats-grid > div > div:first-child {
+    font-size: 10.5px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .owner-animal-modal-stats-grid > div > div:last-child {
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  .owner-animal-modal-milestone-item {
+    padding: 8px 11px !important;
+    gap: 8px !important;
+  }
+
+  /* Responsive Condemnation Evidence Modal on Mobile */
+  .owner-condemnation-modal-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: calc(100dvh - 28px) !important;
+    border-radius: 20px !important;
+    box-sizing: border-box !important;
+  }
+
+  .owner-condemnation-modal-header {
+    padding: 14px 16px !important;
+  }
+
+  .owner-condemnation-modal-body {
+    padding: 14px 14px max(18px, env(safe-area-inset-bottom, 0px)) 14px !important;
+  }
+
+  .owner-condemnation-fields-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+  }
+
+  .owner-condemnation-photos-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)) !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .owner-animal-modal-stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .owner-animal-modal-stats-grid > div:first-child {
+    grid-column: span 2 !important;
+  }
+}

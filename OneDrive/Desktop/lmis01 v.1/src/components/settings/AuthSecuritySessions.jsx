@@ -434,10 +434,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                     <span>Preparing...</span>
                   </>
                 ) : (
-                  <>
-                    <Icon.Plus size={15} />
-                    <span>Enable 2FA</span>
-                  </>
+                  <span>Enable 2FA</span>
                 )}
               </Button>
             )}
