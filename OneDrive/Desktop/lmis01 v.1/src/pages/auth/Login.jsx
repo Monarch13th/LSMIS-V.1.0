@@ -2651,7 +2651,7 @@ export const Login = ({ embedded = false, initialView }) => {
             ) : view === "signin" ? (
               <>
                 <div className="login-form-head">
-                  <h1>Sign in to LSMIS</h1>
+                  <h1>Login</h1>
                   <p className="subtitle">Enter your authorized email address to access the portal</p>
                 </div>
 
@@ -2765,7 +2765,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         <span>Verifying Credentials...</span>
                       </>
                     ) : (
-                      <span>Login to System</span>
+                      <span>Login</span>
                     )}
                   </Button>
 

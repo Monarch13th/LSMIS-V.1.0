@@ -321,7 +321,7 @@ export const LandingPage = () => {
                 <span>Register</span>
               </Link>
 
-              <Link to="/login" className="nav-btn-login" aria-label="Login to System">
+              <Link to="/login" className="nav-btn-login" aria-label="Login">
                 <Icon.LogIn size={15} />
                 <span>Login</span>
               </Link>

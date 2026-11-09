@@ -322,7 +322,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "20px 22px",
+            padding: "clamp(14px, 3.5vw, 20px)",
             borderRadius: 14,
             border: is2FAEnabled ? "1.5px solid rgba(16, 185, 129, 0.35)" : "1.5px solid var(--color-border, #e2e8f0)",
             background: is2FAEnabled ? "rgba(16, 185, 129, 0.03)" : "var(--color-bg, #f8fafc)",
@@ -330,7 +330,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             gap: 16,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 260, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0, flex: "1 1 240px" }}>
             <div
               style={{
                 width: 44,
@@ -439,7 +439,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "18px 22px",
+            padding: "clamp(14px, 3.5vw, 18px)",
             borderRadius: 14,
             border: "1.5px solid var(--color-border, #e2e8f0)",
             background: "var(--color-bg, #f8fafc)",
@@ -447,7 +447,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             gap: 16,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 260, flex: 1 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, minWidth: 0, flex: "1 1 240px" }}>
             <div
               style={{
                 width: 44,
@@ -499,14 +499,17 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         size="md"
         dialogStyle={{
           maxWidth: "480px",
-          width: "94vw",
-          maxHeight: "90dvh",
+          width: "min(480px, 94vw)",
+          maxHeight: "calc(100dvh - 32px)",
           display: "flex",
           flexDirection: "column",
+          margin: "auto",
         }}
         bodyStyle={{
-          padding: "16px",
+          padding: "clamp(12px, 3.5vw, 18px)",
           overflowY: "auto",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
           flex: 1,
         }}
       >
@@ -544,7 +547,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               <div
                 style={{
                   width: "100%",
-                  maxWidth: 190,
+                  maxWidth: "min(180px, 48vw)",
                   aspectRatio: "1/1",
                   margin: "0 auto",
                   display: "flex",
@@ -724,14 +727,17 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         size="md"
         dialogStyle={{
           maxWidth: "460px",
-          width: "94vw",
-          maxHeight: "90dvh",
+          width: "min(460px, 94vw)",
+          maxHeight: "calc(100dvh - 32px)",
           display: "flex",
           flexDirection: "column",
+          margin: "auto",
         }}
         bodyStyle={{
-          padding: "16px",
+          padding: "clamp(12px, 3.5vw, 18px)",
           overflowY: "auto",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
           flex: 1,
         }}
       >
@@ -909,14 +915,17 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         size="md"
         dialogStyle={{
           maxWidth: "480px",
-          width: "94vw",
-          maxHeight: "90dvh",
+          width: "min(480px, 94vw)",
+          maxHeight: "calc(100dvh - 32px)",
           display: "flex",
           flexDirection: "column",
+          margin: "auto",
         }}
         bodyStyle={{
-          padding: "16px",
+          padding: "clamp(12px, 3.5vw, 18px)",
           overflowY: "auto",
+          overscrollBehavior: "contain",
+          WebkitOverflowScrolling: "touch",
           flex: 1,
         }}
       >
