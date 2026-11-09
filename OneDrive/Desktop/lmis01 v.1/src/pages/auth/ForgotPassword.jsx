@@ -174,7 +174,7 @@ export const ForgotPassword = () => {
   const isInstalled = isInstalledApp();
 
   return (
-    <div className={`login-page${isInstalled ? " is-installed-app" : ""}`}>
+    <div className={`login-page lsmis-login is-view-forgot${isInstalled ? " is-installed-app" : ""}`}>
       <div className="login-container">
         {/* Left brand panel */}
         <div className="login-brand">

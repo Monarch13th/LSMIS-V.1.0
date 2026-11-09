@@ -2214,7 +2214,7 @@ export const Login = ({ embedded = false, initialView }) => {
   };
 
   return (
-    <div className={`login-page lsmis-login${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""}${view === "signin" ? " is-view-signin" : ""}`}>
+    <div className={`login-page lsmis-login${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""} is-view-${view}`}>
       {/* Professional Opening Animation for Installed Mobile App */}
       {showLaunchSplash && (
         <div className={`lsmis-launch-splash ${splashFadingOut ? "fade-out" : ""}`} role="status" aria-live="polite">
@@ -2856,7 +2856,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   </div>
 
                   {/* Contact Number & Username Grid */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div className="reg-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="form-group">
                       <label className="form-label" htmlFor="reg-contact">Contact Number <span className="req">*</span></label>
                       <div className={`login-pwd-wrap ${regFieldErrors.contact ? "has-error" : ""}`}>
@@ -3016,7 +3016,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   </div>
 
                   {/* Password & Confirm Password */}
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div className="reg-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="form-group">
                       <label className="form-label" htmlFor="reg-password">Password <span className="req">*</span></label>
                       <div className={`login-pwd-wrap ${regFieldErrors.password ? "has-error" : ""}`}>
