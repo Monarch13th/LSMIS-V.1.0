@@ -422,6 +422,9 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     return {
       statusLabel: "Condemned",
       statusCategory: "condemned",
+      condemnationStage: "Ante-Mortem",
+      condemnationTimestamp: anteTimestamp || regTimestamp,
+      condemnationDateFormatted: fmtTime(anteTimestamp || regTimestamp),
       currentStageIndex: 3,
       isTerminated: true,
       terminationType: "condemned",
@@ -442,6 +445,9 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     return {
       statusLabel: "Condemned",
       statusCategory: "condemned",
+      condemnationStage: "Post-Mortem",
+      condemnationTimestamp: postTimestamp || slaughterTimestamp,
+      condemnationDateFormatted: fmtTime(postTimestamp || slaughterTimestamp),
       currentStageIndex: 5,
       isTerminated: true,
       terminationType: "condemned",
@@ -567,13 +573,13 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     statusCategory = "cleared";
     currentStageIndex = 7;
   } else if (isWeighed) {
-    statusLabel = "Weighed";
+    statusLabel = "Completed";
     statusCategory = "cleared";
     currentStageIndex = 6;
   } else if (isPostMortemPassed) {
-    statusLabel = isPartialCondemned ? "Partially Condemned" : "Post-Mortem Approved";
-    statusCategory = "processing";
-    currentStageIndex = 5;
+    statusLabel = "Completed";
+    statusCategory = "cleared";
+    currentStageIndex = isPartialCondemned ? 7 : 5;
   } else if (isPendingPostMortem) {
     statusLabel = "Pending Post-Mortem Inspection";
     statusCategory = "processing";
@@ -1533,12 +1539,34 @@ export const OwnerAnimals = () => {
               const isPartial = progress.isPartialCondemned || /partial/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`);
               const isCondemned = !isPartial && (isCondemnedOrRejected || /condemn|reject/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`));
 
-              // 2. SIMPLIFIED CONDEMNED CARD (Mobile Owner UI)
+              const tag = animal.tag_number;
+              const tagUpper = String(tag || "").trim().toUpperCase();
+              const condRec = milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
+              const postRec = milestones.post?.[tag] || milestones.post?.[tagUpper];
+              const anteRec = milestones.ante?.[tag] || milestones.ante?.[tagUpper];
+              const rejectedPartsStr =
+                Array.isArray(animal.condemnationDetails?.condemnedParts) && animal.condemnationDetails.condemnedParts.length > 0
+                  ? animal.condemnationDetails.condemnedParts.map(p => `${p.part}${p.quantityWeight ? ` (${p.quantityWeight})` : ''}`).join(", ")
+                  : Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
+                  ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+                  : Array.isArray(condRec) && condRec.length > 0
+                  ? condRec.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+                  : condRec?.part
+                  ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
+                  : "Specific carcass cuts";
+
+              // 2. FULLY CONDEMNED CARD (Mobile Owner UI)
               if (isCondemned) {
+                const condStageName = progress.condemnationStage || (progress.currentStageIndex === 3 ? "Ante-Mortem" : "Post-Mortem");
+                const condTimeFormatted =
+                  progress.condemnationDateFormatted ||
+                  formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date);
+
                 return (
                   <div
                     key={animal.id || animal.tag_number}
                     className="owner-animal-card owner-condemned-card"
+                    onClick={() => handleOpenDetails(animal)}
                     style={{
                       padding: "14px 16px",
                       borderRadius: 14,
@@ -1547,6 +1575,7 @@ export const OwnerAnimals = () => {
                       display: "flex",
                       flexDirection: "column",
                       gap: 8,
+                      cursor: "pointer",
                     }}
                   >
                     {/* Livestock ID + Species & Condemned Status Badge */}
@@ -1573,24 +1602,45 @@ export const OwnerAnimals = () => {
                           alignItems: "center",
                           gap: 5,
                           whiteSpace: "nowrap",
+                          textTransform: "uppercase",
                         }}
                       >
                         <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#dc2626" }} />
-                        Condemned
+                        CONDEMNED
                       </span>
                     </div>
 
-                    {/* Date and time */}
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
-                      <Icon.Clock size={12} style={{ color: "#dc2626" }} />
-                      <span>{formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}</span>
+                    {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                        <span style={{ color: "#64748b", fontWeight: 600 }}>Stage:</span>
+                        <span
+                          style={{
+                            fontWeight: 800,
+                            color: "#dc2626",
+                            background: "rgba(239, 68, 68, 0.08)",
+                            padding: "2px 7px",
+                            borderRadius: 6,
+                            border: "1px solid rgba(239, 68, 68, 0.2)",
+                          }}
+                        >
+                          {condStageName}
+                        </span>
+                      </div>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#64748b" }}>
+                        <Icon.Clock size={12} style={{ color: "#dc2626" }} />
+                        <span>{condTimeFormatted}</span>
+                      </div>
                     </div>
 
                     {/* View Evidence button */}
                     <button
                       type="button"
                       className="owner-condemnation-view-btn"
-                      onClick={(e) => handleOpenCondemnationDetails(animal, e)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenCondemnationDetails(animal, e);
+                      }}
                       style={{
                         marginTop: 2,
                         width: "100%",
@@ -1605,100 +1655,6 @@ export const OwnerAnimals = () => {
                         backgroundColor: "#fef2f2",
                         color: "#dc2626",
                         border: "1.5px solid #fecaca",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Icon.Eye size={14} />
-                      <span>View Evidence</span>
-                    </button>
-                  </div>
-                );
-              }
-
-              // 3. SIMPLIFIED PARTIALLY CONDEMNED CARD (Mobile Owner UI)
-              if (isPartial) {
-                const rejectedPartsStr =
-                  Array.isArray(animal.condemnationDetails?.condemnedParts) && animal.condemnationDetails.condemnedParts.length > 0
-                    ? animal.condemnationDetails.condemnedParts.map(p => `${p.part}${p.quantityWeight ? ` (${p.quantityWeight})` : ''}`).join(", ")
-                    : Array.isArray(milestones.post?.[animal.tag_number]?.condemned_parts) && milestones.post[animal.tag_number].condemned_parts.length > 0
-                    ? milestones.post[animal.tag_number].condemned_parts.map(p => `${p.part || "Cut"}${p.weight || p.quantity ? ` (${p.weight || p.quantity} kg)` : ''}`).join(", ")
-                    : "Specific carcass cuts";
-
-                return (
-                  <div
-                    key={animal.id || animal.tag_number}
-                    className="owner-animal-card owner-partial-condemned-card"
-                    style={{
-                      padding: "14px 16px",
-                      borderRadius: 14,
-                      border: "1.5px solid #fde68a",
-                      background: "#ffffff",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                    }}
-                  >
-                    {/* Livestock ID + Species & Partially Condemned Status Badge */}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
-                          {animal.tag_number}
-                        </span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
-                          {animal.species}
-                        </span>
-                      </div>
-                      <span
-                        className="owner-status-pill"
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 800,
-                          color: "#b45309",
-                          background: "#fffbeb",
-                          border: "1px solid #fde68a",
-                          padding: "3px 9px",
-                          borderRadius: 999,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 5,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#b45309" }} />
-                        Partially Condemned
-                      </span>
-                    </div>
-
-                    {/* Rejected carcass parts */}
-                    <div style={{ fontSize: 12, color: "#92400e", background: "#fffbeb", padding: "6px 10px", borderRadius: 8, border: "1px solid #fef3c7" }}>
-                      <strong style={{ color: "#78350f" }}>Rejected parts:</strong> {rejectedPartsStr}
-                    </div>
-
-                    {/* Date and time */}
-                    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "#64748b" }}>
-                      <Icon.Clock size={12} style={{ color: "#b45309" }} />
-                      <span>{formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}</span>
-                    </div>
-
-                    {/* View Evidence button */}
-                    <button
-                      type="button"
-                      className="owner-condemnation-view-btn"
-                      onClick={(e) => handleOpenCondemnationDetails(animal, e)}
-                      style={{
-                        marginTop: 2,
-                        width: "100%",
-                        padding: "8px 12px",
-                        borderRadius: 10,
-                        fontSize: 12.5,
-                        fontWeight: 700,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 6,
-                        backgroundColor: "#fffbeb",
-                        color: "#b45309",
-                        border: "1.5px solid #fde68a",
                         cursor: "pointer",
                       }}
                     >
@@ -1791,6 +1747,56 @@ export const OwnerAnimals = () => {
                     </span>
                   </div>
 
+                  {/* Small Clear Indication for Partially Condemned Livestock with View button */}
+                  {isPartial && (
+                    <div
+                      style={{
+                        marginTop: 8,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: 8,
+                        backgroundColor: "#fffbeb",
+                        border: "1px solid #fde68a",
+                        borderRadius: 10,
+                        padding: "7px 12px",
+                        fontSize: 12,
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#92400e", minWidth: 0 }}>
+                        <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#d97706", flexShrink: 0 }} />
+                        <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <strong style={{ color: "#b45309" }}>Partially Condemned:</strong> {rejectedPartsStr}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenCondemnationDetails(animal, e);
+                        }}
+                        style={{
+                          padding: "3px 9px",
+                          borderRadius: 6,
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                          backgroundColor: "#f59e0b",
+                          color: "#ffffff",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          flexShrink: 0,
+                        }}
+                        title="View Partial Condemnation Details"
+                      >
+                        <Icon.Eye size={12} />
+                        <span>View</span>
+                      </button>
+                    </div>
+                  )}
+
                   {/* 7-Milestone Visual Progress Tracker */}
                 <div
                   className="owner-tracker-wrap no-scrollbar"
@@ -1832,34 +1838,6 @@ export const OwnerAnimals = () => {
                     );
                   })}
                 </div>
-
-                {/* Condemnation & Evidence Photos Quick Trigger (Mobile Only) */}
-                {(animal.condemnationDetails || animal.progress?.isPartialCondemned || animal.progress?.statusCategory === "condemned" || animal.progress?.statusCategory === "rejected") && (
-                  <button
-                    type="button"
-                    className="owner-condemnation-mobile-only"
-                    onClick={(e) => handleOpenCondemnationDetails(animal, e)}
-                    style={{
-                      marginTop: 8,
-                      width: "100%",
-                      backgroundColor: animal.progress?.isPartialCondemned ? "#fffbeb" : "#fef2f2",
-                      color: animal.progress?.isPartialCondemned ? "#b45309" : "#dc2626",
-                      border: `1.5px solid ${animal.progress?.isPartialCondemned ? "#fde68a" : "#fecaca"}`,
-                      borderRadius: 10,
-                      padding: "7px 12px",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 6,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <Icon.Eye size={14} />
-                    <span>View {animal.progress?.isPartialCondemned ? "Partial Condemnation" : "Condemnation"} Evidence</span>
-                  </button>
-                )}
 
                 {/* Tap to View Details Cue */}
                 <div className="owner-card-footer">
@@ -1929,17 +1907,33 @@ export const OwnerAnimals = () => {
                     marginBottom: 16,
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                    <span
-                      style={{
-                        fontSize: 11.5,
-                        fontWeight: 800,
-                        color: isCondemned ? "#dc2626" : isCleared ? "#059669" : "#0369a1",
-                        textTransform: "uppercase",
-                      }}
-                    >
-                      Status: {prog.statusLabel}
-                    </span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span
+                        style={{
+                          fontSize: 11.5,
+                          fontWeight: 800,
+                          color: isCondemned ? "#dc2626" : isCleared ? "#059669" : "#0369a1",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Status: {isCondemned ? "CONDEMNED" : prog.statusLabel}
+                      </span>
+                      {isCondemned && (
+                        <span
+                          style={{
+                            fontSize: 11,
+                            fontWeight: 700,
+                            color: "#dc2626",
+                            background: "rgba(239, 68, 68, 0.1)",
+                            padding: "1px 6px",
+                            borderRadius: 4,
+                          }}
+                        >
+                          {prog.condemnationStage || (prog.currentStageIndex === 3 ? "Ante-Mortem" : "Post-Mortem")}
+                        </span>
+                      )}
+                    </div>
                     <span style={{ fontSize: 11, fontWeight: 800, color: isCondemned ? "#dc2626" : "#0284c7" }}>
                       Stage {prog.currentStageIndex} of 7
                     </span>
@@ -1965,6 +1959,77 @@ export const OwnerAnimals = () => {
                       }}
                     />
                   </div>
+                </div>
+              );
+            })()}
+
+            {/* Small Clear Indication for Partially Condemned Livestock with View button */}
+            {(() => {
+              const selTag = selectedAnimal.tag_number;
+              const selTagUpper = String(selTag || "").trim().toUpperCase();
+              const prog = calculateLivestockProgress(selectedAnimal, milestones);
+              if (!prog.isPartialCondemned) return null;
+
+              const postRec = milestones.post[selTag] || milestones.post[selTagUpper] || null;
+              const condRecList = milestones.condemnation[selTag] || milestones.condemnation[selTagUpper] || [];
+              const condRec = Array.isArray(condRecList) ? condRecList[0] : condRecList;
+              const modalRejectedPartsStr =
+                Array.isArray(selectedAnimal.condemnationDetails?.condemnedParts) && selectedAnimal.condemnationDetails.condemnedParts.length > 0
+                  ? selectedAnimal.condemnationDetails.condemnedParts.map(p => `${p.part}${p.quantityWeight ? ` (${p.quantityWeight})` : ''}`).join(", ")
+                  : Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
+                  ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+                  : Array.isArray(condRecList) && condRecList.length > 0
+                  ? condRecList.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+                  : condRec?.part
+                  ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
+                  : "Specific carcass cuts";
+
+              return (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    backgroundColor: "#fffbeb",
+                    border: "1px solid #fde68a",
+                    borderRadius: 10,
+                    padding: "8px 12px",
+                    fontSize: 12,
+                    marginBottom: 14,
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#92400e", minWidth: 0 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#d97706", flexShrink: 0 }} />
+                    <span>
+                      <strong style={{ color: "#b45309" }}>Partially Condemned:</strong> {modalRejectedPartsStr}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOpenCondemnationDetails(selectedAnimal, e);
+                    }}
+                    style={{
+                      padding: "3px 9px",
+                      borderRadius: 6,
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      backgroundColor: "#f59e0b",
+                      color: "#ffffff",
+                      border: "none",
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      flexShrink: 0,
+                    }}
+                    title="View Partial Condemnation Details"
+                  >
+                    <Icon.Eye size={12} />
+                    <span>View</span>
+                  </button>
                 </div>
               );
             })()}
@@ -2145,6 +2210,35 @@ export const OwnerAnimals = () => {
                                       flexShrink: 0,
                                     }}
                                     title="View Condemnation Details"
+                                  >
+                                    <Icon.Eye size={11} />
+                                    <span>View</span>
+                                  </button>
+                                )}
+
+                                {st.id === 5 && prog.isPartialCondemned && !isRej && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenCondemnationDetails(selectedAnimal, e);
+                                    }}
+                                    style={{
+                                      padding: "2px 8px",
+                                      borderRadius: 6,
+                                      fontSize: 11,
+                                      fontWeight: 700,
+                                      backgroundColor: "#f59e0b",
+                                      color: "#ffffff",
+                                      border: "none",
+                                      cursor: "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 3.5,
+                                      lineHeight: 1.4,
+                                      flexShrink: 0,
+                                    }}
+                                    title="View Partial Condemnation Details"
                                   >
                                     <Icon.Eye size={11} />
                                     <span>View</span>

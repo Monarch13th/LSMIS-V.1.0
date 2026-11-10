@@ -249,8 +249,12 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                   {statusLabel}
                 </span>
               </div>
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: resultColor, opacity: 0.85 }}>
-                Official Decision
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: resultColor, opacity: 0.9 }}>
+                {isPartial
+                  ? "Post-Mortem Partial"
+                  : details.scope?.includes("ante")
+                  ? "Ante-Mortem Condemnation"
+                  : "Post-Mortem Condemnation"}
               </span>
             </div>
 

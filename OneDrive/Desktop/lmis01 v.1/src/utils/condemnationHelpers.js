@@ -555,6 +555,8 @@ export const getOwnerCondemnationDetails = ({
     sex: animal?.sex || animal?.gender ? (String(animal?.sex || animal?.gender).toLowerCase().startsWith("f") ? "Female" : String(animal?.sex || animal?.gender).toLowerCase().startsWith("m") ? "Male" : String(animal?.sex || animal?.gender)) : "Not specified",
     resultLabel,
     scope,
+    condemnationStage: scope.includes("ante") ? "Ante-Mortem" : scope === "partial" ? "Post-Mortem (Partial)" : "Post-Mortem",
+    isPartial: scope === "partial",
     condemnedParts: parts,
     locationArea,
     totalWeightQty,
