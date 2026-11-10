@@ -1160,8 +1160,7 @@ export const OwnerAnimals = () => {
 
   // Open Condemnation & Evidence Photos Modal for an animal
   const handleOpenCondemnationDetails = (animal, e) => {
-    if (e) e.stopPropagation();
-    setCondemnationModalDetails(null);
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     if (!animal) return;
 
     const tag = animal.tag_number;
@@ -1252,11 +1251,37 @@ export const OwnerAnimals = () => {
       const matched = enrichedAnimals.find(
         (a) => String(a.tag_number || "").trim().toUpperCase() === activeTag
       );
-      if (matched) {
+      if (matched && matched.condemnationDetails) {
         setCondemnationModalDetails(matched.condemnationDetails);
       }
     }
   }, [enrichedAnimals]);
+
+  // Sync selectedAnimal with latest data from animals when live updates arrive
+  useEffect(() => {
+    if (selectedAnimal?.tag_number) {
+      const activeTag = String(selectedAnimal.tag_number).trim().toUpperCase();
+      const updated = animals.find(
+        (a) => String(a.tag_number || "").trim().toUpperCase() === activeTag
+      );
+      if (updated && updated !== selectedAnimal) {
+        setSelectedAnimal((prev) => (prev ? { ...prev, ...updated } : prev));
+      }
+    }
+  }, [animals]);
+
+  // Escape key handler for selectedAnimal (only closes if condemnation modal is not open)
+  useEffect(() => {
+    if (!selectedAnimal || condemnationModalDetails) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        handleCloseDetails();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedAnimal, condemnationModalDetails]);
 
   // Filter exclusively for today's registered and processed livestock in Asia/Manila for this authenticated owner
   const todayEnrichedAnimals = useMemo(() => {
@@ -1330,13 +1355,27 @@ export const OwnerAnimals = () => {
     // Only open if the animal belongs to the loaded authorized dataset
     if (animals.some((a) => a.id === animal.id && a.tag_number === animal.tag_number)) {
       setSelectedAnimal(animal);
-      setSearchParams({ tag: animal.tag_number });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.set("tag", animal.tag_number);
+          return next;
+        },
+        { replace: true }
+      );
     }
   };
 
   const handleCloseDetails = () => {
     setSelectedAnimal(null);
-    setSearchParams({});
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("tag");
+        return next;
+      },
+      { replace: true }
+    );
   };
 
   return (
@@ -1853,7 +1892,25 @@ export const OwnerAnimals = () => {
 
       {/* 5. COMPREHENSIVE VIEW LIVESTOCK DETAILS MODAL */}
       {selectedAnimal && (
-        <div className="owner-modal-backdrop owner-animal-detail-overlay" onClick={handleCloseDetails}>
+        <div
+          className="owner-modal-backdrop owner-animal-detail-overlay"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleCloseDetails();
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(15, 23, 42, 0.75)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            zIndex: 10000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 12,
+          }}
+        >
           <div className="owner-modal-sheet owner-animal-detail-modal" onClick={(e) => e.stopPropagation()}>
             <div className="owner-sheet-handle" />
 

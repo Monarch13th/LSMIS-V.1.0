@@ -61,8 +61,9 @@ export const OwnerRecords = () => {
     return false;
   };
 
-  const fetchRecordsData = async () => {
-    setLoading(true);
+  const fetchRecordsData = async (opts = {}) => {
+    const isSilent = opts.silent === true;
+    if (!isSilent) setLoading(true);
     try {
       // 1. Resolve authentic owner from active Supabase session
       const { data: authUser } = await supabase.auth.getUser();
@@ -182,13 +183,13 @@ export const OwnerRecords = () => {
     } catch (err) {
       console.warn("Owner records fetch error:", err);
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchRecordsData();
-    const onRefresh = () => fetchRecordsData();
+    const onRefresh = () => fetchRecordsData({ silent: true });
     window.addEventListener("lmis-db-change", onRefresh);
     window.addEventListener("storage", onRefresh);
 
@@ -210,6 +211,32 @@ export const OwnerRecords = () => {
       if (channel) supabase.removeChannel(channel);
     };
   }, [ownerId]);
+
+  // Sync selectedLivestock with fresh data when allLivestock is silently updated
+  useEffect(() => {
+    if (selectedLivestock?.tag_number) {
+      const activeTag = String(selectedLivestock.tag_number).trim().toUpperCase();
+      const updated = (allLivestock || []).find(
+        (a) => String(a.tag_number || "").trim().toUpperCase() === activeTag
+      );
+      if (updated && updated !== selectedLivestock) {
+        setSelectedLivestock((prev) => (prev ? { ...prev, ...updated } : prev));
+      }
+    }
+  }, [allLivestock]);
+
+  // Escape key handler for selectedLivestock (only closes if condemnationDetails is NOT open)
+  useEffect(() => {
+    if (!selectedLivestock || condemnationDetails) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setSelectedLivestock(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedLivestock, condemnationDetails]);
 
   // Enrich full livestock history with milestone progress
   const enrichedLivestock = useMemo(() => {
@@ -941,13 +968,17 @@ export const OwnerRecords = () => {
         return (
           <div
             className="owner-modal-backdrop owner-animal-detail-overlay"
-            onClick={() => setSelectedLivestock(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedLivestock(null);
+            }}
             style={{
               position: "fixed",
               inset: 0,
               backgroundColor: "rgba(15, 23, 42, 0.75)",
               backdropFilter: "blur(6px)",
-              zIndex: 9999,
+              WebkitBackdropFilter: "blur(6px)",
+              zIndex: 10000,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

@@ -395,6 +395,32 @@ export const OwnerDashboard = () => {
     });
   }, [enrichedAnimals, resolvedOwnerId]);
 
+  // Sync selectedAnimal with latest data from animals on live update
+  useEffect(() => {
+    if (selectedAnimal?.tag_number) {
+      const activeTag = String(selectedAnimal.tag_number).trim().toUpperCase();
+      const updated = animals.find(
+        (a) => String(a.tag_number || "").trim().toUpperCase() === activeTag
+      );
+      if (updated && updated !== selectedAnimal) {
+        setSelectedAnimal((prev) => (prev ? { ...prev, ...updated } : prev));
+      }
+    }
+  }, [animals]);
+
+  // Escape key handler for selectedAnimal (only closes if condemnation modal is not open)
+  useEffect(() => {
+    if (!selectedAnimal || condemnationDetails) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        setSelectedAnimal(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedAnimal, condemnationDetails]);
+
   // Reset today's pagination when search or status filter changes
   useEffect(() => {
     setTodayPage(1);
@@ -1342,14 +1368,18 @@ export const OwnerDashboard = () => {
 
         return (
           <div
-            onClick={() => setSelectedAnimal(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedAnimal(null);
+            }}
             className="owner-animal-detail-overlay"
             style={{
               position: "fixed",
               inset: 0,
               backgroundColor: "rgba(15, 23, 42, 0.75)",
               backdropFilter: "blur(6px)",
-              zIndex: 9999,
+              WebkitBackdropFilter: "blur(6px)",
+              zIndex: 10000,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

@@ -1,27 +1,43 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Icon } from "../icons";
 
 /**
  * Image Lightbox Modal for enlarged photo viewing.
  */
 export const ImageLightboxModal = ({ photo, onClose }) => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [onClose]);
+
   if (!photo) return null;
 
-  return (
+  const content = (
     <div
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.92)",
+        backgroundColor: "rgba(15, 23, 42, 0.94)",
         backdropFilter: "blur(8px)",
-        zIndex: 4000,
+        WebkitBackdropFilter: "blur(8px)",
+        zIndex: 12000,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: 16,
       }}
-      onClick={onClose}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
       role="presentation"
     >
       <div
@@ -57,7 +73,10 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={(e) => {
+              e.stopPropagation();
+              onClose();
+            }}
             style={{
               background: "rgba(255, 255, 255, 0.12)",
               border: "none",
@@ -97,13 +116,43 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(content, document.body) : content;
 };
 
 /**
  * Concise & Compact Condemnation Evidence Modal for Owners.
+ * Layered with zIndex: 11000 so it ALWAYS mounts in front of View Details (zIndex: 10000).
  */
 export const OwnerCondemnationModal = ({ open, onClose, details }) => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+  // Keyboard Escape listener: closes condemnation modal (or lightbox if photo open)
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        e.stopPropagation();
+        if (selectedPhoto) {
+          setSelectedPhoto(null);
+        } else {
+          onClose();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown, true);
+    return () => window.removeEventListener("keydown", handleKeyDown, true);
+  }, [open, onClose, selectedPhoto]);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (!open) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [open]);
 
   if (!open || !details) return null;
 
@@ -119,7 +168,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
   // Clean rejected parts array
   const rejectedPartsList = Array.isArray(details.condemnedParts) ? details.condemnedParts : [];
 
-  return (
+  const modalMarkup = (
     <>
       <div
         className="modal-backdrop owner-condemnation-overlay"
@@ -128,13 +177,17 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
           inset: 0,
           backgroundColor: "rgba(15, 23, 42, 0.75)",
           backdropFilter: "blur(6px)",
-          zIndex: 3000,
+          WebkitBackdropFilter: "blur(6px)",
+          zIndex: 11000,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           padding: 12,
         }}
-        onClick={onClose}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClose();
+        }}
         role="presentation"
       >
         <div
@@ -146,7 +199,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
             width: "100%",
             maxHeight: "calc(100dvh - 32px)",
             overflowY: "auto",
-            boxShadow: "0 20px 40px -12px rgba(0, 0, 0, 0.3)",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4)",
             border: "1px solid #e2e8f0",
             position: "relative",
             display: "flex",
@@ -201,7 +254,10 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
 
             <button
               type="button"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               style={{
                 width: 32,
                 height: 32,
@@ -447,7 +503,10 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
             {/* Clear Close Button */}
             <button
               type="button"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
               style={{
                 width: "100%",
                 padding: "10px 16px",
@@ -467,10 +526,12 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
         </div>
       </div>
 
-      {/* Full-size Image Lightbox */}
+      {/* Full-size Image Lightbox (Mounted above OwnerCondemnationModal at zIndex: 12000) */}
       {selectedPhoto && (
         <ImageLightboxModal photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
       )}
     </>
   );
+
+  return typeof document !== "undefined" ? createPortal(modalMarkup, document.body) : modalMarkup;
 };
