@@ -228,12 +228,6 @@ export function registerServiceWorker() {
 
   // 4. CONTROLLER CHANGE: Triggered when a new service worker takes over clients
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (!controlled) {
-      // First install: SW took control of the current page for the first time
-      controlled = true;
-      return;
-    }
-    // Subsequent update: reload to run the new application bundle
     safeReload();
   });
 

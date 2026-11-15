@@ -39,7 +39,7 @@ self.addEventListener("activate", (event) => {
       const keys = await caches.keys();
       await Promise.all(
         keys
-          .filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE_NAME)
+          .filter((k) => k !== CACHE_NAME)
           .map((k) => {
             console.log("[LSMIS SW] Purging outdated cache:", k);
             return caches.delete(k);
