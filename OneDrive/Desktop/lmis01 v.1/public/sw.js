@@ -145,7 +145,30 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // C. Static public assets: Stale-While-Revalidate
+  // C. Brand logos and identity assets: Network-first to prevent stale logo caching
+  if (/(?:logo|icon|apple-touch-icon|favicon)\.(?:png|jpg|jpeg|webp|ico)/i.test(url.pathname)) {
+    event.respondWith(
+      (async () => {
+        try {
+          const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
+          if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
+            const cache = await caches.open(CACHE_NAME);
+            cache.put(req, fresh.clone()).catch(() => {});
+            return fresh;
+          }
+          const cache = await caches.open(CACHE_NAME);
+          const cached = await cache.match(req);
+          return cached || fresh;
+        } catch (_) {
+          const cache = await caches.open(CACHE_NAME);
+          return cache.match(req);
+        }
+      })()
+    );
+    return;
+  }
+
+  // D. Static public assets: Stale-While-Revalidate
   if (/\.(?:png|jpg|jpeg|webp|svg|ico)$/i.test(url.pathname)) {
     event.respondWith(
       (async () => {
