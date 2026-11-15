@@ -826,10 +826,36 @@ export const Users = () => {
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        title={editing ? "Edit Personnel Profile" : "Register New Personnel"}
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "10px",
+                background: "rgba(24, 122, 86, 0.12)",
+                color: "#187A56",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {editing ? <Icon.UserCheck size={20} /> : <Icon.UserPlus size={20} />}
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "var(--color-text, #192420)", lineHeight: 1.25 }}>
+                {editing ? "Edit Personnel Profile" : "Register New Personnel"}
+              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted, #687D73)", fontWeight: 400, marginTop: "2px" }}>
+                {editing ? "Update personnel credentials, contact details, or role assignment" : "Create internal abattoir staff or veterinary inspector portal access"}
+              </div>
+            </div>
+          </div>
+        }
         size="lg"
-        dialogStyle={{ maxWidth: "780px" }}
-        bodyStyle={{ padding: "16px 22px" }}
+        dialogStyle={{ maxWidth: "780px", borderRadius: "16px" }}
+        bodyStyle={{ padding: "18px 24px" }}
       >
         <UserForm initial={editing} onSubmit={save} onCancel={() => setModalOpen(false)} />
       </Modal>

@@ -21,10 +21,63 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
   const [emailVal, setEmailVal] = useState(data.email || "");
   const [contactVal, setContactVal] = useState(data.contact || data.phone || "");
   const [emailError, setEmailError] = useState("");
+  const [contactError, setContactError] = useState("");
   const [role, setRole] = useState(data.role || "staff");
   const [status, setStatus] = useState(data.status || "Active");
 
   const isPasswordValid = initial || validatePassword(password).isValid;
+
+  // ---- Handle Contact Number: strict digits, 11 length max, 09/08 prefix (same as register) ----
+  const handleContactChange = (e) => {
+    // 1. Keep only numeric digits (immediately reject letters/symbols)
+    let val = e.target.value.replace(/\D/g, "");
+
+    // 2. If user begins by typing 9 or 8, intelligently auto-prepend 0 so it forms 09 or 08
+    if (val.length === 1 && (val === "9" || val === "8")) {
+      val = "0" + val;
+    }
+
+    // 3. Stop strictly at exactly 11 digits
+    val = val.slice(0, 11);
+
+    setContactVal(val);
+
+    // 4. Real-time validation for 09 or 08 prefix
+    if (val.length >= 2) {
+      if (!val.startsWith("09") && !val.startsWith("08")) {
+        setContactError("Contact number must start with 09 or 08 (e.g. 09171234567).");
+        return;
+      }
+    }
+
+    // If valid prefix or currently typing, clear previous contact error
+    if (val.length === 11) {
+      if (val.startsWith("09") || val.startsWith("08")) {
+        setContactError("");
+      }
+    } else if (contactError) {
+      if (val.startsWith("09") || val.startsWith("08") || val.length < 2) {
+        setContactError("");
+      }
+    }
+
+    if (error) setError("");
+  };
+
+  const handleContactBlur = () => {
+    const raw = contactVal.trim().replace(/\D/g, "");
+    if (!raw) {
+      setContactError("");
+      return;
+    }
+    if (!raw.startsWith("09") && !raw.startsWith("08")) {
+      setContactError("Contact number must start with 09 or 08 (e.g. 09171234567).");
+    } else if (raw.length !== 11) {
+      setContactError(`Contact number must be exactly 11 digits (${raw.length}/11 entered).`);
+    } else {
+      setContactError("");
+    }
+  };
 
   const handleEmailBlur = async () => {
     const clean = emailVal.trim().toLowerCase();
@@ -60,6 +113,25 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
       return;
     }
 
+    // Validate Contact if provided
+    const rawContact = contactVal.trim().replace(/\D/g, "");
+    if (rawContact) {
+      if (!rawContact.startsWith("09") && !rawContact.startsWith("08")) {
+        const msg = "Contact number must start with 09 or 08 (e.g. 09171234567).";
+        setError(msg);
+        setContactError(msg);
+        scrollToFirstError("personnel-contact", { offset: 80 });
+        return;
+      }
+      if (rawContact.length !== 11) {
+        const msg = `Contact number must be exactly 11 digits (${rawContact.length}/11 entered).`;
+        setError(msg);
+        setContactError(msg);
+        scrollToFirstError("personnel-contact", { offset: 80 });
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const taken = await isEmailTakenAcrossSystem(cleanEmail, initial?.id);
@@ -76,8 +148,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         full_name: fullName.trim(),
         username: username.trim(),
         email: cleanEmail,
-        contact: contactVal.trim(),
-        phone: contactVal.trim(),
+        contact: rawContact,
+        phone: rawContact,
         role,
         status,
       };
@@ -113,8 +185,10 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
     }
   };
 
+  const isSubmitDisabled = !isPasswordValid || submitting || !!emailError || !!contactError;
+
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+    <form onSubmit={handleSubmit} className="user-form-modal-wrap" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {/* Header Profile Summary if editing */}
       {initial ? (
         <div
@@ -123,8 +197,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             alignItems: "center",
             gap: "12px",
             padding: "12px 16px",
-            background: "var(--color-bg)",
-            border: "1px solid var(--color-border)",
+            background: "var(--color-bg, #F7FAF9)",
+            border: "1px solid var(--color-border, #E4EDE8)",
             borderRadius: "12px",
           }}
         >
@@ -134,11 +208,11 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               alt={fullName || username || "Personnel"}
               referrerPolicy="no-referrer"
               style={{
-                width: 40,
-                height: 40,
+                width: 42,
+                height: 42,
                 borderRadius: "50%",
                 objectFit: "cover",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
                 border: "1.5px solid var(--color-border)",
                 flexShrink: 0,
               }}
@@ -152,8 +226,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
           ) : null}
           <div
             style={{
-              width: 40,
-              height: 40,
+              width: 42,
+              height: 42,
               borderRadius: "50%",
               background:
                 role === "admin"
@@ -166,23 +240,23 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               alignItems: "center",
               justifyContent: "center",
               fontWeight: 700,
-              fontSize: "0.9rem",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+              fontSize: "0.92rem",
+              boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
               flexShrink: 0,
             }}
           >
             {initials(fullName || username || "Personnel")}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <span style={{ fontWeight: 700, fontSize: "0.94rem", color: "var(--color-text, #192420)" }}>
                 {fullName || "Personnel Member"}
               </span>
               <span
                 style={{
-                  fontSize: "0.7rem",
+                  fontSize: "0.72rem",
                   fontWeight: 700,
-                  padding: "1px 7px",
+                  padding: "2px 8px",
                   borderRadius: "999px",
                   background: getRoleBadgeStyle(role).bg,
                   color: getRoleBadgeStyle(role).color,
@@ -192,9 +266,9 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                 {ROLE_LABELS[role] || role}
               </span>
             </div>
-            <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+            <div style={{ fontSize: "0.76rem", color: "var(--color-text-muted, #687D73)", marginTop: "2px" }}>
               @{username || "username"} • {initial.id ? `ID: ${String(initial.id).slice(0, 8)}...` : ""}
-            </span>
+            </div>
           </div>
         </div>
       ) : null}
@@ -203,15 +277,15 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
       {error && (
         <div
           style={{
-            padding: "8px 12px",
+            padding: "9px 14px",
             background: "#fef2f2",
             border: "1px solid #fecaca",
-            borderRadius: "7px",
+            borderRadius: "8px",
             color: "#b91c1c",
-            fontSize: "0.8rem",
+            fontSize: "0.82rem",
             display: "flex",
             alignItems: "center",
-            gap: "7px",
+            gap: "8px",
           }}
         >
           <Icon.AlertTriangle size={15} style={{ flexShrink: 0 }} />
@@ -228,8 +302,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             {/* Full Name & Username */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="personnel-fullname" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                  Full Name <span className="req">*</span>
+                <label className="form-label" htmlFor="personnel-fullname">
+                  Full Name <span className="req" style={{ color: "#dc2626" }}>*</span>
                 </label>
                 <div className="login-pwd-wrap">
                   <span className="login-pwd-icon"><Icon.User size={14} /></span>
@@ -242,16 +316,15 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                       setFullName(e.target.value);
                       if (error) setError("");
                     }}
-                    placeholder="Juan Dela Cruz"
-                    style={{ height: "36px", fontSize: "0.82rem" }}
+                    placeholder="e.g. Juan Dela Cruz"
                     required
                   />
                 </div>
               </div>
 
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label" htmlFor="personnel-username" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                  Username <span className="req">*</span>
+                <label className="form-label" htmlFor="personnel-username">
+                  Username <span className="req" style={{ color: "#dc2626" }}>*</span>
                 </label>
                 <div className="login-pwd-wrap">
                   <span className="login-pwd-icon"><Icon.Tag size={14} /></span>
@@ -261,11 +334,10 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                     className="form-control"
                     value={username}
                     onChange={(e) => {
-                      setUsername(e.target.value);
+                      setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
                       if (error) setError("");
                     }}
-                    placeholder="jdelacruz"
-                    style={{ height: "36px", fontSize: "0.82rem" }}
+                    placeholder="e.g. jdelacruz"
                     required
                   />
                 </div>
@@ -274,8 +346,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
 
             {/* Email Address */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="personnel-email" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Email Address <span className="req">*</span>
+              <label className="form-label" htmlFor="personnel-email">
+                Email Address <span className="req" style={{ color: "#dc2626" }}>*</span>
               </label>
               <div className={`login-pwd-wrap ${emailError ? "has-error" : ""}`}>
                 <span className="login-pwd-icon"><Icon.Mail size={14} /></span>
@@ -290,8 +362,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                     if (error) setError("");
                   }}
                   onBlur={handleEmailBlur}
-                  placeholder="personnel@nagacity.gov.ph"
-                  style={{ height: "36px", fontSize: "0.82rem" }}
+                  placeholder="e.g. personnel@nagacity.gov.ph"
                   required
                 />
               </div>
@@ -301,60 +372,99 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                     display: "flex",
                     alignItems: "center",
                     gap: "5px",
-                    marginTop: "3px",
+                    marginTop: "4px",
                     fontSize: "0.75rem",
                     color: "#dc2626",
                     fontWeight: 500,
                   }}
                 >
-                  <Icon.AlertTriangle size={12} />
+                  <Icon.AlertTriangle size={12} style={{ flexShrink: 0 }} />
                   <span>{emailError}</span>
                 </div>
               )}
             </div>
 
-            {/* Contact Number */}
+            {/* Contact Number (Strict 11 Digits, 09/08 Prefix, Same as Register) */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #5D6660)" }}>(Optional)</span>
-              </label>
-              <div className="login-pwd-wrap">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
+                <label className="form-label" htmlFor="personnel-contact" style={{ marginBottom: 0 }}>
+                  Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #687D73)" }}>(Optional)</span>
+                </label>
+                {contactVal.length > 0 && (
+                  <span
+                    style={{
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      color: contactVal.length === 11 ? "#10b981" : contactError ? "#dc2626" : "var(--color-text-muted, #687D73)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 3,
+                    }}
+                  >
+                    {contactVal.length === 11 && <Icon.Check size={11} />}
+                    {contactVal.length}/11
+                  </span>
+                )}
+              </div>
+              <div className={`login-pwd-wrap ${contactError ? "has-error" : ""}`}>
                 <span className="login-pwd-icon"><Icon.Phone size={14} /></span>
                 <input
                   id="personnel-contact"
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={11}
+                  autoComplete="tel"
                   className="form-control"
                   value={contactVal}
-                  onChange={(e) => setContactVal(e.target.value)}
-                  placeholder="09XXXXXXXXX"
-                  style={{ height: "36px", fontSize: "0.82rem" }}
+                  onChange={handleContactChange}
+                  onBlur={handleContactBlur}
+                  placeholder="09171234567"
                 />
               </div>
+              {contactError && (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "5px",
+                    marginTop: "4px",
+                    fontSize: "0.75rem",
+                    color: "#dc2626",
+                    fontWeight: 500,
+                  }}
+                >
+                  <Icon.AlertTriangle size={12} style={{ flexShrink: 0 }} />
+                  <span>{contactError}</span>
+                </div>
+              )}
             </div>
 
             {/* Role Selection */}
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="personnel-role" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Role <span className="req">*</span>
+              <label className="form-label" htmlFor="personnel-role">
+                Role <span className="req" style={{ color: "#dc2626" }}>*</span>
               </label>
-              <select
-                id="personnel-role"
-                className="form-control"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
-              >
-                <option value="staff">Slaughterhouse Staff</option>
-                <option value="vet">Veterinary Inspector</option>
-              </select>
+              <div className="login-pwd-wrap">
+                <span className="login-pwd-icon"><Icon.Shield size={14} /></span>
+                <select
+                  id="personnel-role"
+                  className="form-control"
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  style={{ cursor: "pointer", fontWeight: 500 }}
+                >
+                  <option value="staff">Slaughterhouse Staff</option>
+                  <option value="vet">Veterinary Inspector</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Right Column: Password & Security Checklist */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label" htmlFor="personnel-password" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Password <span className="req">*</span>
+              <label className="form-label" htmlFor="personnel-password">
+                Password <span className="req" style={{ color: "#dc2626" }}>*</span>
               </label>
               <div className="login-pwd-wrap">
                 <span className="login-pwd-icon"><Icon.Lock size={14} /></span>
@@ -362,13 +472,12 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                   id="personnel-password"
                   type={showPwd ? "text" : "password"}
                   className="form-control"
-                  placeholder="Enter password"
+                  placeholder="Enter secure password"
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
                     if (error) setError("");
                   }}
-                  style={{ height: "36px", fontSize: "0.82rem" }}
                   required
                 />
                 <button
@@ -391,14 +500,18 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "5px",
-                fontSize: "0.73rem",
-                color: "var(--color-text-muted, #5D6660)",
-                padding: "2px 2px",
+                gap: "7px",
+                fontSize: "0.75rem",
+                color: "#136647",
+                background: "rgba(24, 122, 86, 0.08)",
+                border: "1px solid rgba(24, 122, 86, 0.2)",
+                borderRadius: "8px",
+                padding: "8px 12px",
+                marginTop: "2px",
               }}
             >
-              <Icon.Info size={12} style={{ flexShrink: 0, color: "#187A56" }} />
-              <span>Personnel can change this password after login.</span>
+              <Icon.Info size={13} style={{ flexShrink: 0, color: "#187A56" }} />
+              <span>Personnel can change this password after initial login.</span>
             </div>
           </div>
         </div>
@@ -407,8 +520,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         <div className="user-form-edit-grid">
           {/* Row 1, Col 1: Full Name */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="personnel-fullname" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Full Name <span className="req">*</span>
+            <label className="form-label" htmlFor="personnel-fullname">
+              Full Name <span className="req" style={{ color: "#dc2626" }}>*</span>
             </label>
             <div className="login-pwd-wrap">
               <span className="login-pwd-icon"><Icon.User size={14} /></span>
@@ -422,7 +535,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                   if (error) setError("");
                 }}
                 placeholder="e.g. Juan Dela Cruz"
-                style={{ height: "36px", fontSize: "0.82rem" }}
                 required
               />
             </div>
@@ -430,8 +542,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
 
           {/* Row 1, Col 2: Username */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="personnel-username" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Username <span className="req">*</span>
+            <label className="form-label" htmlFor="personnel-username">
+              Username <span className="req" style={{ color: "#dc2626" }}>*</span>
             </label>
             <div className="login-pwd-wrap">
               <span className="login-pwd-icon"><Icon.Tag size={14} /></span>
@@ -441,11 +553,10 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                 className="form-control"
                 value={username}
                 onChange={(e) => {
-                  setUsername(e.target.value);
+                  setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9._-]/g, ""));
                   if (error) setError("");
                 }}
                 placeholder="e.g. jdelacruz"
-                style={{ height: "36px", fontSize: "0.82rem" }}
                 required
               />
             </div>
@@ -453,43 +564,49 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
 
           {/* Row 2, Col 1: Role */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="personnel-role" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Role <span className="req">*</span>
+            <label className="form-label" htmlFor="personnel-role">
+              Role <span className="req" style={{ color: "#dc2626" }}>*</span>
             </label>
-            <select
-              id="personnel-role"
-              className="form-control"
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
-            >
-              <option value="staff">Slaughterhouse Staff</option>
-              <option value="vet">Veterinary Inspector</option>
-              {role === "admin" && <option value="admin">System Administrator</option>}
-            </select>
+            <div className="login-pwd-wrap">
+              <span className="login-pwd-icon"><Icon.Shield size={14} /></span>
+              <select
+                id="personnel-role"
+                className="form-control"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                style={{ cursor: "pointer", fontWeight: 500 }}
+              >
+                <option value="staff">Slaughterhouse Staff</option>
+                <option value="vet">Veterinary Inspector</option>
+                {role === "admin" && <option value="admin">System Administrator</option>}
+              </select>
+            </div>
           </div>
 
           {/* Row 2, Col 2: Account Status */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="personnel-status" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Account Status <span className="req">*</span>
+            <label className="form-label" htmlFor="personnel-status">
+              Account Status <span className="req" style={{ color: "#dc2626" }}>*</span>
             </label>
-            <select
-              id="personnel-status"
-              className="form-control"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              style={{ height: "36px", fontWeight: 500, fontSize: "0.82rem" }}
-            >
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-            </select>
+            <div className="login-pwd-wrap">
+              <span className="login-pwd-icon"><Icon.Activity size={14} /></span>
+              <select
+                id="personnel-status"
+                className="form-control"
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                style={{ cursor: "pointer", fontWeight: 500 }}
+              >
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
           </div>
 
           {/* Row 3, Col 1: Email Address */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="personnel-email" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Email Address <span className="req">*</span>
+            <label className="form-label" htmlFor="personnel-email">
+              Email Address <span className="req" style={{ color: "#dc2626" }}>*</span>
             </label>
             <div className={`login-pwd-wrap ${emailError ? "has-error" : ""}`}>
               <span className="login-pwd-icon"><Icon.Mail size={14} /></span>
@@ -505,7 +622,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                 }}
                 onBlur={handleEmailBlur}
                 placeholder="personnel@nagacityabattoir.gov.ph"
-                style={{ height: "36px", fontSize: "0.82rem" }}
                 required
               />
             </div>
@@ -515,35 +631,71 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                   display: "flex",
                   alignItems: "center",
                   gap: "5px",
-                  marginTop: "3px",
+                  marginTop: "4px",
                   fontSize: "0.75rem",
                   color: "#dc2626",
                   fontWeight: 500,
                 }}
               >
-                <Icon.AlertTriangle size={12} />
+                <Icon.AlertTriangle size={12} style={{ flexShrink: 0 }} />
                 <span>{emailError}</span>
               </div>
             )}
           </div>
 
-          {/* Row 3, Col 2: Contact Number */}
+          {/* Row 3, Col 2: Contact Number (Strict 11 Digits, 09/08 Prefix, Same as Register) */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #5D6660)" }}>(Optional)</span>
-            </label>
-            <div className="login-pwd-wrap">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
+              <label className="form-label" htmlFor="personnel-contact" style={{ marginBottom: 0 }}>
+                Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #687D73)" }}>(Optional)</span>
+              </label>
+              {contactVal.length > 0 && (
+                <span
+                  style={{
+                    fontSize: "0.72rem",
+                    fontWeight: 700,
+                    color: contactVal.length === 11 ? "#10b981" : contactError ? "#dc2626" : "var(--color-text-muted, #687D73)",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 3,
+                  }}
+                >
+                  {contactVal.length === 11 && <Icon.Check size={11} />}
+                  {contactVal.length}/11
+                </span>
+              )}
+            </div>
+            <div className={`login-pwd-wrap ${contactError ? "has-error" : ""}`}>
               <span className="login-pwd-icon"><Icon.Phone size={14} /></span>
               <input
                 id="personnel-contact"
                 type="tel"
+                inputMode="numeric"
+                maxLength={11}
+                autoComplete="tel"
                 className="form-control"
                 value={contactVal}
-                onChange={(e) => setContactVal(e.target.value)}
-                placeholder="09XXXXXXXXX"
-                style={{ height: "36px", fontSize: "0.82rem" }}
+                onChange={handleContactChange}
+                onBlur={handleContactBlur}
+                placeholder="09171234567"
               />
             </div>
+            {contactError && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  marginTop: "4px",
+                  fontSize: "0.75rem",
+                  color: "#dc2626",
+                  fontWeight: 500,
+                }}
+              >
+                <Icon.AlertTriangle size={12} style={{ flexShrink: 0 }} />
+                <span>{contactError}</span>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -553,23 +705,128 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         style={{
           display: "flex",
           justifyContent: "flex-end",
+          alignItems: "center",
           gap: "10px",
-          paddingTop: "10px",
-          borderTop: "1px solid var(--color-border)",
-          marginTop: "2px",
+          paddingTop: "14px",
+          borderTop: "1px solid var(--color-border, #E4EDE8)",
+          marginTop: "4px",
         }}
       >
-        <Button type="button" variant="outline" onClick={onCancel} disabled={submitting} style={{ height: "36px", fontSize: "0.82rem", padding: "0 16px" }}>
-          Cancel
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onCancel}
+          disabled={submitting}
+          style={{
+            height: "38px",
+            fontSize: "0.84rem",
+            fontWeight: 600,
+            padding: "0 18px",
+            borderRadius: "8px",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <Icon.X size={14} />
+          <span>Cancel</span>
         </Button>
         <Button
           type="submit"
-          disabled={!isPasswordValid || submitting || !!emailError}
-          style={{ minWidth: "130px", height: "36px", fontSize: "0.82rem", padding: "0 16px" }}
+          disabled={isSubmitDisabled}
+          style={{
+            minWidth: "150px",
+            height: "38px",
+            fontSize: "0.84rem",
+            fontWeight: 700,
+            padding: "0 20px",
+            borderRadius: "8px",
+            background: isSubmitDisabled ? undefined : "linear-gradient(135deg, #187A56 0%, #136647 100%)",
+            border: "none",
+            boxShadow: isSubmitDisabled ? "none" : "0 2px 8px rgba(24, 122, 86, 0.28)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "7px",
+            color: "#ffffff",
+          }}
         >
-          {submitting ? "Saving..." : initial ? "Save Changes" : "Create Personnel"}
+          {submitting ? (
+            <>
+              <div className="spin-animation"><Icon.RefreshCw size={15} /></div>
+              <span>Saving...</span>
+            </>
+          ) : initial ? (
+            <>
+              <Icon.Check size={15} />
+              <span>Save Changes</span>
+            </>
+          ) : (
+            <>
+              <Icon.UserPlus size={15} />
+              <span>Create Personnel</span>
+            </>
+          )}
         </Button>
       </div>
+
+      <style>{`
+        .user-form-modal-wrap .form-label {
+          font-size: 0.78rem;
+          font-weight: 600;
+          color: var(--color-text, #192420);
+          margin-bottom: 4px;
+          display: block;
+        }
+        .user-form-modal-wrap .login-pwd-wrap .form-control {
+          height: 38px !important;
+          font-size: 0.84rem !important;
+          border-radius: 8px !important;
+          padding-left: 36px !important;
+          padding-right: 12px !important;
+          border: 1.5px solid var(--color-border, #CADCD4) !important;
+          background-color: var(--color-surface, #ffffff) !important;
+          color: var(--color-text, #192420) !important;
+          transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+          box-sizing: border-box !important;
+        }
+        .user-form-modal-wrap .login-pwd-wrap input#personnel-password {
+          padding-right: 36px !important;
+        }
+        .user-form-modal-wrap .login-pwd-wrap .form-control:hover {
+          border-color: #187A56 !important;
+        }
+        .user-form-modal-wrap .login-pwd-wrap .form-control:focus {
+          border-color: #187A56 !important;
+          box-shadow: 0 0 0 3px rgba(24, 122, 86, 0.14) !important;
+          outline: none !important;
+        }
+        .user-form-modal-wrap .login-pwd-wrap.has-error .form-control {
+          border-color: #dc2626 !important;
+          box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+        }
+        .user-form-modal-wrap .login-pwd-icon {
+          left: 12px !important;
+          color: #687D73 !important;
+        }
+        .user-form-modal-wrap .login-pwd-wrap:focus-within .login-pwd-icon {
+          color: #187A56 !important;
+        }
+        .user-form-modal-wrap .login-pwd-wrap.has-error .login-pwd-icon {
+          color: #dc2626 !important;
+        }
+        [data-theme="dark"] .user-form-modal-wrap .login-pwd-wrap .form-control,
+        .dark .user-form-modal-wrap .login-pwd-wrap .form-control {
+          background-color: #1A2420 !important;
+          border-color: #3E4E46 !important;
+          color: #EFF5F2 !important;
+        }
+        [data-theme="dark"] .user-form-modal-wrap .login-pwd-wrap .form-control:focus,
+        .dark .user-form-modal-wrap .login-pwd-wrap .form-control:focus {
+          border-color: #34D399 !important;
+          box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.2) !important;
+        }
+      `}</style>
     </form>
   );
 };
