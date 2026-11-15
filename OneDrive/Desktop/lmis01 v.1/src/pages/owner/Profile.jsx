@@ -73,7 +73,7 @@ export const OwnerProfile = () => {
     platform: "Android 8.0+ (Signed Release APK)",
     fileName: "LSMIS-Mobile-v1.0.0.apk",
     downloadUrl: "/downloads/LSMIS-Mobile-v1.0.0.apk",
-    fileSize: "40.5 MB",
+    fileSize: "12.2 MB",
     isAvailable: true,
     isChecking: false,
   });
@@ -507,7 +507,7 @@ export const OwnerProfile = () => {
           setAppPackage((prev) => ({
             ...prev,
             isAvailable: true,
-            fileSize: "40.5 MB",
+            fileSize: "12.2 MB",
             isChecking: false,
           }));
         }
@@ -515,7 +515,7 @@ export const OwnerProfile = () => {
         setAppPackage((prev) => ({
           ...prev,
           isAvailable: true,
-          fileSize: "40.5 MB",
+          fileSize: "12.2 MB",
           isChecking: false,
         }));
       }
@@ -538,7 +538,7 @@ export const OwnerProfile = () => {
       const link = document.createElement("a");
       link.href = `${appPackage.downloadUrl}?v=${encodeURIComponent(appPackage.version)}`;
       link.download = appPackage.fileName;
-      link.setAttribute("target", "_blank");
+      // Do not use target="_blank" to ensure seamless direct download without opening an unwanted blank tab
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -555,15 +555,9 @@ export const OwnerProfile = () => {
         const sizeLabel = appPackage.fileSize ? ` (${appPackage.fileSize})` : "";
         setDownloadMsg({
           type: "success",
-          text: `Download initiated: ${appPackage.fileName}${sizeLabel}. Open the downloaded APK from your notifications or Downloads folder to install LSMIS.`,
+          text: `Download initiated: ${appPackage.fileName}${sizeLabel}. Tap Open in your download notification to install LSMIS.`,
         });
-        setAlertDialog({
-          open: true,
-          title: "APK Download Started",
-          message: `${appPackage.fileName}${sizeLabel} is downloading to your Android device. Once finished, tap "Open" in your notification bar or Downloads app and select "Install" to add LSMIS to your app drawer.`,
-          variant: "success",
-        });
-      }, 900);
+      }, 800);
     } catch {
       setIsDownloading(false);
       setDownloadProgress(0);
