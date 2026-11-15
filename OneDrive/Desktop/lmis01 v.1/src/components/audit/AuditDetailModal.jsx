@@ -35,41 +35,63 @@ const getRoleBadgeStyle = (role) => {
   const label = formatRoleLabel(role);
   if (label === "Admin") {
     return {
-      bg: "rgba(24, 122, 86, 0.14)",
-      color: "#24966D",
-      border: "rgba(24, 122, 86, 0.3)",
+      bg: "rgba(24, 122, 86, 0.12)",
+      color: "#187A56",
+      border: "rgba(24, 122, 86, 0.28)",
       label: "Admin",
-      gradient: "#187A56",
+      gradient: "linear-gradient(135deg, #187A56 0%, #0d543a 100%)",
     };
   }
   if (label === "Veterinarian") {
     return {
-      bg: "rgba(24, 122, 86, 0.14)",
+      bg: "rgba(24, 122, 86, 0.12)",
       color: "#187A56",
-      border: "rgba(24, 122, 86, 0.3)",
+      border: "rgba(24, 122, 86, 0.28)",
       label: "Veterinarian",
-      gradient: "#187A56",
+      gradient: "linear-gradient(135deg, #187A56 0%, #10b981 100%)",
     };
   }
   return {
-    bg: "rgba(16, 185, 129, 0.14)",
-    color: "#10b981",
-    border: "rgba(16, 185, 129, 0.3)",
+    bg: "rgba(16, 185, 129, 0.12)",
+    color: "#059669",
+    border: "rgba(16, 185, 129, 0.28)",
     label: "Staff",
-    gradient: "linear-gradient(135deg, #16a34a, #15803d)",
+    gradient: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
   };
+};
+
+const getActionIcon = (category, action) => {
+  const text = `${category || ""} ${action || ""}`.toLowerCase();
+  if (text.includes("auth") || text.includes("log") || text.includes("session")) {
+    return <Icon.ShieldCheck size={20} style={{ color: "#187A56" }} />;
+  }
+  if (text.includes("inspect") || text.includes("ante") || text.includes("post")) {
+    return <Icon.ClipboardCheck size={20} style={{ color: "#187A56" }} />;
+  }
+  if (text.includes("permit") || text.includes("receipt") || text.includes("issue")) {
+    return <Icon.FileText size={20} style={{ color: "#187A56" }} />;
+  }
+  if (text.includes("weigh") || text.includes("slaughter") || text.includes("carcass")) {
+    return <Icon.Layers size={20} style={{ color: "#187A56" }} />;
+  }
+  if (text.includes("condemn")) {
+    return <Icon.AlertTriangle size={20} style={{ color: "#ef4444" }} />;
+  }
+  return <Icon.Activity size={20} style={{ color: "#187A56" }} />;
 };
 
 export const AuditDetailModal = ({ logId, open, onClose }) => {
   const [record, setRecord] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [copiedId, setCopiedId] = useState(false);
 
   useEffect(() => {
     if (!open || !logId) {
       setRecord(null);
       setError(null);
       setLoading(false);
+      setCopiedId(false);
       return;
     }
 
@@ -77,6 +99,7 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
     setLoading(true);
     setError(null);
     setRecord(null);
+    setCopiedId(false);
 
     getAuditLogById(logId).then(({ data, error: err }) => {
       if (!isCurrent) return;
@@ -100,6 +123,14 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
     setError(null);
     setLoading(false);
     onClose?.();
+  };
+
+  const copyRecordId = () => {
+    if (record?.id) {
+      navigator.clipboard?.writeText(record.id);
+      setCopiedId(true);
+      setTimeout(() => setCopiedId(false), 1800);
+    }
   };
 
   const roleStyle = getRoleBadgeStyle(record?.role_label || record?.role);
@@ -136,10 +167,10 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
         >
           <div
             style={{
-              width: 32,
-              height: 32,
+              width: 34,
+              height: 34,
               border: "3px solid var(--color-border)",
-              borderTopColor: "#10b981",
+              borderTopColor: "var(--color-primary, #10b981)",
               borderRadius: "50%",
               animation: "spin 0.8s linear infinite",
             }}
@@ -154,9 +185,9 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
         <div
           style={{
             padding: "24px",
-            background: "rgba(239, 68, 68, 0.1)",
-            border: "1px solid rgba(239, 68, 68, 0.3)",
-            borderRadius: 10,
+            background: "rgba(239, 68, 68, 0.08)",
+            border: "1px solid rgba(239, 68, 68, 0.25)",
+            borderRadius: 12,
             display: "flex",
             alignItems: "flex-start",
             gap: 12,
@@ -192,54 +223,73 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
 
       {/* Strictly Read-Only Detail View */}
       {!loading && !error && record && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {/* Header Action Banner */}
           <div
             style={{
-              padding: "16px",
-              background: "var(--color-bg)",
-              border: "1px solid var(--color-border)",
+              padding: "16px 18px",
+              background: "linear-gradient(135deg, rgba(24, 122, 86, 0.06) 0%, rgba(24, 122, 86, 0.02) 100%)",
+              border: "1px solid rgba(24, 122, 86, 0.2)",
+              borderLeft: "4px solid #187A56",
               borderRadius: 12,
               display: "flex",
               alignItems: "flex-start",
               justifyContent: "space-between",
-              gap: 16,
+              gap: 14,
               flexWrap: "wrap",
             }}
           >
-            <div style={{ flex: 1, minWidth: 240 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 800,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
-                    color: "var(--color-text-muted)",
-                  }}
-                >
-                  Action
-                </span>
-                {actionCategory && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, flex: 1, minWidth: 240 }}>
+              <div
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: 10,
+                  background: "rgba(24, 122, 86, 0.12)",
+                  border: "1px solid rgba(24, 122, 86, 0.25)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  marginTop: 2,
+                }}
+              >
+                {getActionIcon(actionCategory, record.action)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5, flexWrap: "wrap" }}>
                   <span
                     style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      padding: "2px 8px",
-                      borderRadius: 6,
-                      fontSize: 11,
+                      fontSize: 10.5,
                       fontWeight: 800,
-                      background: "rgba(24, 122, 86, 0.14)",
-                      color: "#187A56",
-                      border: "1px solid rgba(24, 122, 86, 0.3)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.08em",
+                      color: "var(--color-text-muted)",
                     }}
                   >
-                    {actionCategory}
+                    Action
                   </span>
-                )}
-              </div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: "var(--color-text)", lineHeight: 1.4 }}>
-                {record.action || actionCategory || "Not recorded"}
+                  {actionCategory && (
+                    <span
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        fontSize: 11,
+                        fontWeight: 700,
+                        background: "rgba(24, 122, 86, 0.12)",
+                        color: "#187A56",
+                        border: "1px solid rgba(24, 122, 86, 0.28)",
+                      }}
+                    >
+                      {actionCategory}
+                    </span>
+                  )}
+                </div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "var(--color-text)", lineHeight: 1.35 }}>
+                  {record.action || actionCategory || "Not recorded"}
+                </div>
               </div>
             </div>
 
@@ -249,7 +299,7 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                   display: "inline-flex",
                   alignItems: "center",
                   padding: "4px 10px",
-                  borderRadius: 6,
+                  borderRadius: 7,
                   fontSize: 12,
                   fontWeight: 700,
                   background: "var(--color-surface)",
@@ -265,11 +315,11 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                     display: "inline-flex",
                     alignItems: "center",
                     padding: "4px 10px",
-                    borderRadius: 6,
+                    borderRadius: 7,
                     fontSize: 12,
                     fontWeight: 700,
-                    background: record.severity === "danger" ? "rgba(239, 68, 68, 0.15)" : "rgba(245, 158, 11, 0.15)",
-                    color: record.severity === "danger" ? "#ef4444" : "#f59e0b",
+                    background: record.severity === "danger" ? "rgba(239, 68, 68, 0.12)" : "rgba(245, 158, 11, 0.12)",
+                    color: record.severity === "danger" ? "#ef4444" : "#d97706",
                     border: `1px solid ${record.severity === "danger" ? "rgba(239, 68, 68, 0.3)" : "rgba(245, 158, 11, 0.3)"}`,
                     textTransform: "capitalize",
                   }}
@@ -284,7 +334,7 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
               gap: 12,
             }}
           >
@@ -294,7 +344,7 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                 padding: "14px 16px",
                 background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
-                borderRadius: 10,
+                borderRadius: 12,
                 display: "flex",
                 alignItems: "center",
                 gap: 12,
@@ -302,8 +352,8 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
             >
               <div
                 style={{
-                  width: 42,
-                  height: 42,
+                  width: 44,
+                  height: 44,
                   borderRadius: 10,
                   background: roleStyle.gradient,
                   color: "#ffffff",
@@ -313,23 +363,27 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.1)",
                 }}
               >
                 {initials(fullName)}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>
-                  User
+                <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                  <Icon.User size={12} style={{ color: "#187A56" }} />
+                  <span>User / Actor</span>
                 </div>
                 <div
                   style={{
-                    fontSize: 13.5,
+                    fontSize: 14,
                     fontWeight: 800,
                     color: "var(--color-text)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
+                    marginTop: 2,
                   }}
+                  title={fullName}
                 >
                   {fullName}
                 </div>
@@ -358,151 +412,195 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                 padding: "14px 16px",
                 background: "var(--color-surface)",
                 border: "1px solid var(--color-border)",
-                borderRadius: 10,
+                borderRadius: 12,
                 display: "flex",
                 flexDirection: "column",
                 justifyContent: "center",
                 gap: 4,
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>
-                Date &amp; Time (Asia/Manila)
+              <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                <Icon.Clock size={12} style={{ color: "#187A56" }} />
+                <span>Date &amp; Time (Asia/Manila)</span>
               </div>
-              <div style={{ fontSize: 13.5, fontWeight: 800, color: "var(--color-text)" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>
                 {formatManilaDateTime(record.timestamp || record.created_at)}
               </div>
-              <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                Official Philippine Standard Time (PHT)
+              <div style={{ fontSize: 11, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                <Icon.Check size={12} style={{ color: "#10b981", strokeWidth: 3 }} />
+                <span>Official Philippine Standard Time (PHT)</span>
               </div>
             </div>
           </div>
 
-          {/* Record Identifiers & Clinical / Operational Context */}
+          {/* Record Identifiers & Context Card */}
           <div
             style={{
               padding: "14px 16px",
               background: "var(--color-surface)",
               border: "1px solid var(--color-border)",
-              borderRadius: 10,
+              borderRadius: 12,
               display: "flex",
               flexDirection: "column",
               gap: 10,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>
-              Affected Record &amp; Identifiers
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <Icon.Database size={12} style={{ color: "#187A56" }} />
+              <span>Affected Record &amp; Identifiers</span>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>Livestock / Entity:</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", padding: "8px 12px", background: "var(--color-bg)", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-muted)" }}>Target Entity:</span>
               {tags.length > 0 ? (
                 tags.map((t) => <TagBadge key={t} tag={t} />)
               ) : (
-                <span style={{ fontSize: 12.5, color: "var(--color-text-muted)", fontStyle: "italic" }}>
+                <span style={{ fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                   {record.tag_number || "Not recorded"}
                 </span>
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12, marginTop: 4 }}>
-              <div>
-                <span style={{ fontSize: 11.5, color: "var(--color-text-muted)" }}>Field Modified: </span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text)", fontFamily: "monospace" }}>
-                  {record.field_changed || "Not recorded"}
-                </span>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 10, marginTop: 2 }}>
+              <div style={{ padding: "8px 12px", background: "var(--color-bg)", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>Field Modified</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text)", fontFamily: "monospace", marginTop: 3 }}>
+                  {record.field_changed || "None"}
+                </div>
               </div>
-              <div>
-                <span style={{ fontSize: 11.5, color: "var(--color-text-muted)" }}>Security Event: </span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text)" }}>
+              <div style={{ padding: "8px 12px", background: "var(--color-bg)", borderRadius: 8, border: "1px solid var(--color-border)" }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>Security Event</div>
+                <div style={{ fontSize: 12.5, fontWeight: 700, color: record.security_event && record.security_event !== "None" ? "#ef4444" : "var(--color-text)", marginTop: 3 }}>
                   {record.security_event || "None"}
-                </span>
+                </div>
               </div>
-              <div>
-                <span style={{ fontSize: 11.5, color: "var(--color-text-muted)" }}>Actor User ID: </span>
-                <span
-                  style={{ fontSize: 11.5, fontWeight: 600, color: "var(--color-text-muted)", fontFamily: "monospace" }}
+              <div style={{ padding: "8px 12px", background: "var(--color-bg)", borderRadius: 8, border: "1px solid var(--color-border)", minWidth: 0 }}>
+                <div style={{ fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>Actor User ID</div>
+                <div
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: "var(--color-text)",
+                    fontFamily: "monospace",
+                    marginTop: 3,
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
                   title={record.user_id || "Not recorded"}
                 >
                   {record.user_id ? record.user_id : "Not recorded"}
-                </span>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Before & After Values (Diff Card) */}
+          {/* Before & After Values (State Transition Diff Card) */}
           <div
             style={{
               padding: "16px",
               background: "var(--color-surface)",
               border: "1px solid var(--color-border)",
-              borderRadius: 10,
+              borderRadius: 12,
               display: "flex",
               flexDirection: "column",
               gap: 12,
             }}
           >
-            <div style={{ fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase" }}>
-              State Transition (Before / After)
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10.5, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <Icon.GitCommit size={13} style={{ color: "#187A56" }} />
+              <span>State Transition (Before / After)</span>
             </div>
 
             {record.old_value !== null || record.new_value !== null ? (
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                  gap: 12,
+                  gridTemplateColumns: "1fr auto 1fr",
+                  gap: 10,
+                  alignItems: "stretch",
                 }}
               >
                 {/* Previous Value */}
                 <div
                   style={{
-                    padding: "12px",
-                    background: "rgba(239, 68, 68, 0.08)",
-                    border: "1px solid rgba(239, 68, 68, 0.25)",
-                    borderRadius: 8,
+                    padding: "12px 14px",
+                    background: "rgba(239, 68, 68, 0.05)",
+                    border: "1px solid rgba(239, 68, 68, 0.22)",
+                    borderRadius: 10,
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", textTransform: "uppercase" }}>
-                    Previous State (Before)
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444" }} />
+                    <span>Previous State (Before)</span>
                   </div>
                   <div
                     style={{
-                      marginTop: 6,
-                      fontSize: 12.5,
+                      marginTop: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
                       color: "var(--color-text)",
-                      fontFamily: "monospace",
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                       wordBreak: "break-word",
                       whiteSpace: "pre-wrap",
                       maxHeight: 180,
                       overflowY: "auto",
+                      flex: 1,
                     }}
                   >
                     {record.old_value !== null && record.old_value !== undefined ? String(record.old_value) : "Not recorded"}
                   </div>
                 </div>
 
+                {/* Transition Flow Indicator */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      background: "var(--color-bg)",
+                      border: "1px solid var(--color-border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "var(--color-text-muted)",
+                    }}
+                    title="Transition flow"
+                  >
+                    <Icon.ArrowRight size={14} />
+                  </div>
+                </div>
+
                 {/* New Value */}
                 <div
                   style={{
-                    padding: "12px",
-                    background: "rgba(16, 185, 129, 0.08)",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                    borderRadius: 8,
+                    padding: "12px 14px",
+                    background: "rgba(16, 185, 129, 0.05)",
+                    border: "1px solid rgba(16, 185, 129, 0.22)",
+                    borderRadius: 10,
+                    display: "flex",
+                    flexDirection: "column",
                   }}
                 >
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#10b981", textTransform: "uppercase" }}>
-                    Subsequent State (After)
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 800, color: "#059669", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
+                    <span>Subsequent State (After)</span>
                   </div>
                   <div
                     style={{
-                      marginTop: 6,
-                      fontSize: 12.5,
+                      marginTop: 8,
+                      fontSize: 13,
+                      fontWeight: 600,
                       color: "var(--color-text)",
-                      fontFamily: "monospace",
+                      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                       wordBreak: "break-word",
                       whiteSpace: "pre-wrap",
                       maxHeight: 180,
                       overflowY: "auto",
+                      flex: 1,
                     }}
                   >
                     {record.new_value !== null && record.new_value !== undefined ? String(record.new_value) : "Not recorded"}
@@ -512,41 +610,74 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
             ) : (
               <div
                 style={{
-                  padding: "12px 14px",
+                  padding: "14px 16px",
                   background: "var(--color-bg)",
-                  borderRadius: 8,
+                  borderRadius: 10,
                   border: "1px dashed var(--color-border)",
                   fontSize: 12.5,
                   color: "var(--color-text-muted)",
                   fontStyle: "italic",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
                 }}
               >
-                No value modifications or before/after diffs were recorded for this operational event.
+                <Icon.Info size={15} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+                <span>No value modifications or before/after diffs were recorded for this operational event.</span>
               </div>
             )}
           </div>
 
-          {/* Audit Integrity Metadata */}
+          {/* Audit Integrity Metadata Bar */}
           <div
             style={{
               padding: "10px 14px",
               background: "var(--color-bg)",
               border: "1px solid var(--color-border)",
-              borderRadius: 8,
+              borderRadius: 10,
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              fontSize: 11,
+              fontSize: 11.5,
               color: "var(--color-text-muted)",
               flexWrap: "wrap",
-              gap: 8,
+              gap: 10,
             }}
           >
-            <div>
-              Audit Record ID: <span style={{ fontFamily: "monospace", color: "var(--color-text)" }}>{record.id || "Not recorded"}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon.ShieldCheck size={14} style={{ color: "#10b981", flexShrink: 0 }} />
+              <span>Audit Record ID:</span>
+              <span
+                onClick={copyRecordId}
+                style={{
+                  fontFamily: "monospace",
+                  color: "var(--color-text)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  background: "var(--color-surface)",
+                  padding: "2px 6px",
+                  borderRadius: 4,
+                  border: "1px solid var(--color-border)",
+                }}
+                title="Click to copy full ID"
+              >
+                {record.id || "Not recorded"}
+                {copiedId ? (
+                  <span style={{ color: "#10b981", fontSize: 10, fontWeight: 700 }}>Copied!</span>
+                ) : (
+                  <Icon.Copy size={11} style={{ opacity: 0.6 }} />
+                )}
+              </span>
             </div>
-            <div>
-              Network Trace: <span style={{ fontFamily: "monospace" }}>{record.ip ? record.ip : "Zero IP Tracking Policy"}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Icon.Globe size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
+              <span>Network Trace:</span>
+              <span style={{ fontFamily: "monospace", fontWeight: 600, color: "var(--color-text)" }}>
+                {record.ip ? record.ip : "Zero IP Tracking Policy"}
+              </span>
             </div>
           </div>
         </div>

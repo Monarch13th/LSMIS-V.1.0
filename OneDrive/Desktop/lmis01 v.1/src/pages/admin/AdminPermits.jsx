@@ -10,7 +10,8 @@ import { initials } from "../../utils/helpers";
 
 /**
  * AdminPermits
- * Strictly view-only administrative monitoring of all Meat Permit records.
+ * Unified administrative monitoring of all Meat Permit records.
+ * Mixes Pending and Permit Issued into one consolidated, real-time list.
  * Organized and grouped by issuance date & time (newest first, Asia/Manila timezone).
  * Status is strictly "Issued" or "Pending".
  */
@@ -20,7 +21,7 @@ export const AdminPermits = () => {
   const { data: carcass = [], refresh: refreshCarcass } = useSupabase(TABLES.CARCASS);
   const { data: owners = [] } = useSupabase(TABLES.OWNERS);
 
-  const [activeTab, setActiveTab] = useState("pending"); // 'pending' | 'issued'
+  const [activeTab, setActiveTab] = useState("all"); // 'all' | 'pending' | 'issued'
   const [search, setSearch] = useState("");
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [page, setPage] = useState(1);
@@ -151,7 +152,7 @@ export const AdminPermits = () => {
             owner_name: ownerClean,
             owner_avatar: ownerObj?.avatar_url || null,
             owner_contact: ownerObj?.phone || ownerObj?.contact || "—",
-            base_permit_no: "Pending Issuance",
+            base_permit_no: "Pending Clearance",
             permit_numbers: new Set(),
             items: [],
             speciesList: new Set(),
@@ -190,7 +191,7 @@ export const AdminPermits = () => {
     return result;
   }, [dbPermits, livestock, carcass, ownersMap]);
 
-  // Counts for tabs (number of batches matching Staff view)
+  // Counts for tabs (unified overview: All, Pending, Issued)
   const tabCounts = useMemo(() => {
     let issued = 0;
     let pending = 0;
@@ -199,6 +200,7 @@ export const AdminPermits = () => {
       else if (g.status === "Pending") pending++;
     });
     return {
+      all: allGroups.length,
       issued,
       pending,
     };
@@ -207,7 +209,7 @@ export const AdminPermits = () => {
   // Filtered groups based on tab, search, and species
   const filteredGroups = useMemo(() => {
     return allGroups.filter((grp) => {
-      // Tab filter
+      // Tab filter: 'all' mixes both pending and issued!
       if (activeTab === "issued" && grp.status !== "Issued") return false;
       if (activeTab === "pending" && grp.status !== "Pending") return false;
 
@@ -247,7 +249,7 @@ export const AdminPermits = () => {
 
   return (
     <div className="permits-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* MAIN CONTAINER (Matches Staff Personnel Meat Permit page layout & design) */}
+      {/* MAIN CONTAINER */}
       <div
         style={{
           background: "var(--color-surface)",
@@ -279,9 +281,10 @@ export const AdminPermits = () => {
             boxSizing: "border-box",
           }}
         >
-          {/* Left: Navigation Tabs (Matching Staff Meat Permit: Pending & Permit Issued) */}
+          {/* Left: Navigation Tabs with unified All Permits mixing both Pending & Issued */}
           <div className="adm-seg-tabs">
             {[
+              { id: "all", label: "All Permits", count: tabCounts.all, icon: <Icon.Layers size={14} /> },
               { id: "pending", label: "Pending", count: tabCounts.pending, icon: <Icon.Clock size={14} /> },
               { id: "issued", label: "Permit Issued", count: tabCounts.issued, icon: <Icon.FileText size={14} /> },
             ].map((tab) => {
@@ -406,7 +409,7 @@ export const AdminPermits = () => {
           </div>
         </div>
 
-        {/* Content: View-Only Table */}
+        {/* Content: View-Only Consolidated Table */}
         {isLoading ? (
           <div style={{ flex: 1, minHeight: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 20px", color: "var(--color-text-muted)", fontSize: 13.5 }}>
             Loading permit records...
@@ -420,7 +423,9 @@ export const AdminPermits = () => {
                   ? "No records match your search or filter criteria."
                   : activeTab === "pending"
                   ? "No pending permits awaiting clearance."
-                  : "No meat inspection permit records found."
+                  : activeTab === "issued"
+                  ? "No meat inspection permit records found."
+                  : "No meat permit records found in system."
               }
               icon={<Icon.FileText size={38} />}
             />
@@ -467,7 +472,7 @@ export const AdminPermits = () => {
                       textTransform: "uppercase",
                       letterSpacing: "0.05em",
                       color: "var(--color-text-muted)",
-                      textAlign: "center",
+                      textAlign: "left",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -487,22 +492,20 @@ export const AdminPermits = () => {
                   >
                     Date and Time
                   </th>
-                  {activeTab !== "pending" && (
-                    <th
-                      style={{
-                        padding: "12px 16px",
-                        fontSize: 11.5,
-                        fontWeight: 700,
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        color: "var(--color-text-muted)",
-                        textAlign: "left",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      Permit #
-                    </th>
-                  )}
+                  <th
+                    style={{
+                      padding: "12px 16px",
+                      fontSize: 11.5,
+                      fontWeight: 700,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                      color: "var(--color-text-muted)",
+                      textAlign: "left",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Permit #
+                  </th>
                   <th
                     style={{
                       padding: "12px 16px",
@@ -589,17 +592,15 @@ export const AdminPermits = () => {
                       </td>
 
                       {/* 2. Livestock Count */}
-                      <td style={{ padding: "13px 16px", verticalAlign: "middle", textAlign: "center" }}>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "var(--color-text)",
-                          }}
-                        >
+                      <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
+                        <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>
                           {grp.total_heads} {grp.total_heads === 1 ? "Head" : "Heads"}
-                        </span>
+                        </div>
+                        {grp.speciesList.length > 0 && (
+                          <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2, fontWeight: 500 }}>
+                            {grp.speciesList.join(", ")}
+                          </div>
+                        )}
                       </td>
 
                       {/* 3. Date and Time */}
@@ -611,34 +612,40 @@ export const AdminPermits = () => {
                       </td>
 
                       {/* 4. Permit # */}
-                      {activeTab !== "pending" && (
-                        <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
-                          {isIssued ? (
-                            <span
-                              style={{
-                                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                                fontSize: 13,
-                                fontWeight: 700,
-                                color: "#187A56",
-                              }}
-                            >
-                              {grp.base_permit_no}
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
-                          )}
-                        </td>
-                      )}
+                      <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
+                        {isIssued ? (
+                          <span
+                            style={{
+                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "#187A56",
+                            }}
+                          >
+                            {grp.base_permit_no}
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              fontSize: 12.5,
+                              color: "var(--color-text-muted)",
+                              fontStyle: "italic",
+                            }}
+                          >
+                            —
+                          </span>
+                        )}
+                      </td>
 
-                      {/* 5. Issued */}
+                      {/* 5. Status Badge */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle", textAlign: "center" }}>
                         {isIssued ? (
                           <span
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
-                              gap: 5,
-                              padding: "3px 9px",
+                              gap: 6,
+                              padding: "3px 10px",
                               borderRadius: 6,
                               fontSize: 12,
                               fontWeight: 700,
@@ -663,8 +670,8 @@ export const AdminPermits = () => {
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
-                              gap: 5,
-                              padding: "3px 9px",
+                              gap: 6,
+                              padding: "3px 10px",
                               borderRadius: 6,
                               fontSize: 12,
                               fontWeight: 700,
@@ -754,4 +761,3 @@ export const AdminPermits = () => {
     </div>
   );
 };
-
