@@ -1,5 +1,6 @@
 package ph.gov.nagacity.lsmis;
 
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.CookieManager;
@@ -12,10 +13,16 @@ import com.getcapacitor.BridgeWebViewClient;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Enforce pure white background immediately on native Android activity startup
+        try {
+            getWindow().getDecorView().setBackgroundColor(Color.WHITE);
+        } catch (Exception ignored) {}
+
         super.onCreate(savedInstanceState);
 
         if (this.bridge != null && this.bridge.getWebView() != null) {
             WebView webView = this.bridge.getWebView();
+            webView.setBackgroundColor(Color.WHITE);
             WebSettings settings = webView.getSettings();
 
             // Strip Android WebView "; wv" marker so Google OAuth allows sign-in inside the native app

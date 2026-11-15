@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import { ToastProvider } from "./components/notifications/Toast";
@@ -84,18 +84,28 @@ import { isInstalledApp } from "./utils/capacitor";
 
 /**
  * "/" entry point. Browser tabs get the public Landing Page. The installed APK / installed PWA
- * never renders it: a neutral splash is shown until Supabase confirms the session, then the user
- * is sent to their role dashboard or the Login page (no Landing Page flash).
+ * never renders it: a neutral pure white splash is shown briefly until session is confirmed, then the user
+ * is sent to their role dashboard or the Login page (no Landing Page flash, no hanging).
  */
 const LandingGate = () => {
   const { role, isAuthenticated, loading, isInitialized } = useAuth();
+  const [splashTimeout, setSplashTimeout] = useState(false);
+
+  useEffect(() => {
+    // If on installed app and loading takes > 1200ms, proceed automatically to avoid hanging
+    if (isInstalledApp() && (!isInitialized || loading)) {
+      const t = setTimeout(() => setSplashTimeout(true), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [isInitialized, loading]);
+
   if (!isInstalledApp()) return <LandingPage />;
-  if (loading || !isInitialized) {
+  if ((loading || !isInitialized) && !splashTimeout) {
     return (
       <div className="lsmis-launch-splash" role="status" aria-live="polite">
         <div className="launch-splash-content">
           <div className="launch-splash-logo-wrap">
-            <img src={logoImg} alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
+            <img src={logoImg} alt="LSMIS Official Seal" className="launch-splash-logo" width="108" height="108" />
           </div>
           <div className="launch-splash-text">
             <h1 className="launch-splash-title">LSMIS</h1>

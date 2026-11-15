@@ -95,35 +95,48 @@ self.addEventListener("fetch", (event) => {
   // Never cache service worker or version descriptor
   if (url.pathname === "/sw.js" || url.pathname === "/version.json") return;
 
-  // A. Page navigations: NETWORK FIRST, with cache fallback
+  // A. Page navigations: Fast network fetch with 1.2s timeout, immediate cache fallback for instant app launch
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
-        try {
-          // Direct network fetch with cache: "no-cache" so online requests always get the fresh deployment
-          const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
-          if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
-            // Update offline cache with the fresh response
-            const clone = fresh.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(OFFLINE_FALLBACK_URL, clone);
+        const cache = await caches.open(CACHE_NAME);
+        const cached = (await cache.match(req.url)) || (await cache.match(OFFLINE_FALLBACK_URL));
+
+        const networkFetch = (async () => {
+          try {
+            const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
+            if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
+              const clone = fresh.clone();
+              cache.put(OFFLINE_FALLBACK_URL, clone).catch(() => {});
               try {
-                cache.put(req.url, fresh.clone());
+                cache.put(req.url, fresh.clone()).catch(() => {});
               } catch (_) {}
-            }).catch(() => {});
+              return fresh;
+            }
             return fresh;
+          } catch (err) {
+            return null;
           }
-          return fresh;
-        } catch (fetchErr) {
-          // Network failed (offline): serve cached offline fallback
-          const cache = await caches.open(CACHE_NAME);
-          const cached = (await cache.match(req.url)) || (await cache.match(OFFLINE_FALLBACK_URL));
-          if (cached) return cached;
-          return new Response("LSMIS is currently offline. Please check your connection and try again.", {
-            status: 503,
-            headers: { "Content-Type": "text/plain; charset=utf-8" },
-          });
+        })();
+
+        // If cached app shell is available, race network with a 1.2s timeout for instant startup
+        if (cached) {
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 1200));
+          const fastResponse = await Promise.race([networkFetch, timeoutPromise]);
+          if (fastResponse && fastResponse.ok) {
+            return fastResponse;
+          }
+          // Network took > 1.2s or device is offline: serve cached app shell immediately!
+          return cached;
         }
+
+        // First installation (no cache yet): wait for network
+        const netRes = await networkFetch;
+        if (netRes) return netRes;
+        return new Response("LSMIS is currently offline. Please check your connection and try again.", {
+          status: 503,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
       })()
     );
     return;

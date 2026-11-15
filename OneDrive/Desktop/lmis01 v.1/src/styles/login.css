@@ -1828,18 +1828,20 @@
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background-color: #ffffff;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 1;
-  transition: opacity 0.35s ease-out, visibility 0.35s ease-out;
+  transition: opacity 0.25s ease-out, visibility 0.25s ease-out;
   padding: 24px;
 }
 
 [data-theme="dark"] .lsmis-launch-splash,
 .dark .lsmis-launch-splash {
-  background-color: #0d1a15;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
 }
 
 .lsmis-launch-splash.fade-out {
@@ -1853,18 +1855,18 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: splashScaleFade 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: splashScaleFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .launch-splash-logo-wrap {
-  width: 96px;
-  height: 96px;
+  width: clamp(100px, 28vw, 130px);
+  height: clamp(100px, 28vw, 130px);
   border-radius: 0;
   padding: 0;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  margin-bottom: 18px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin-bottom: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1873,9 +1875,9 @@
 
 [data-theme="dark"] .launch-splash-logo-wrap,
 .dark .launch-splash-logo-wrap {
-  background: transparent;
-  border: none;
-  box-shadow: none;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .launch-splash-logo {
@@ -1884,7 +1886,7 @@
   border-radius: 0;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.25));
+  filter: none !important; /* Preserves official colors and details without dark overlays or shadows */
 }
 
 .launch-splash-text {
@@ -1898,27 +1900,27 @@
   font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #187A56;
+  color: #187A56 !important;
   margin: 0 0 4px 0;
   line-height: 1.1;
 }
 
 [data-theme="dark"] .launch-splash-title,
 .dark .launch-splash-title {
-  color: #a3d9c3;
+  color: #187A56 !important;
 }
 
 .launch-splash-sub {
   font-size: 13px;
   font-weight: 600;
-  color: #4a554e;
+  color: #4a554e !important;
   margin: 0 0 6px 0;
   line-height: 1.3;
 }
 
 [data-theme="dark"] .launch-splash-sub,
 .dark .launch-splash-sub {
-  color: #C2CAC4;
+  color: #4a554e !important;
 }
 
 .launch-splash-loc {
@@ -1926,18 +1928,18 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #5D6660;
+  color: #5D6660 !important;
 }
 
 [data-theme="dark"] .launch-splash-loc,
 .dark .launch-splash-loc {
-  color: #9BA49E;
+  color: #5D6660 !important;
 }
 
 .launch-splash-loader {
   width: 110px;
   height: 3px;
-  background: rgba(24, 122, 86, 0.12);
+  background: rgba(24, 122, 86, 0.12) !important;
   border-radius: 9999px;
   overflow: hidden;
   position: relative;
@@ -1945,13 +1947,13 @@
 
 [data-theme="dark"] .launch-splash-loader,
 .dark .launch-splash-loader {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(24, 122, 86, 0.12) !important;
 }
 
 .launch-splash-loader-bar {
   width: 45%;
   height: 100%;
-  background: #187A56;
+  background: #187A56 !important;
   border-radius: 9999px;
   position: absolute;
   top: 0;
@@ -1961,7 +1963,7 @@
 
 [data-theme="dark"] .launch-splash-loader-bar,
 .dark .launch-splash-loader-bar {
-  background: #34D399;
+  background: #187A56 !important;
 }
 
 @keyframes splashScaleFade {
