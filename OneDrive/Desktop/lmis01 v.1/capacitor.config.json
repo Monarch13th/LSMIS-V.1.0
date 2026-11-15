@@ -4,8 +4,11 @@
   "webDir": "dist",
   "bundledWebRuntime": false,
   "server": {
+    "url": "https://lsmis.vercel.app",
     "androidScheme": "https",
     "allowNavigation": [
+      "lsmis.vercel.app",
+      "*.vercel.app",
       "zwuoebmkapoywkpyaahw.supabase.co",
       "*.supabase.co",
       "accounts.google.com",

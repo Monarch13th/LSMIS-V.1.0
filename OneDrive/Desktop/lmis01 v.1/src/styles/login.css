@@ -2090,6 +2090,70 @@
   border-color: #187A56;
 }
 
+/* Owner Registration & Forgot Password Top-Left Back Navigation */
+.login-reg-top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-bottom: 8px;
+  gap: 10px;
+}
+
+.login-reg-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px 6px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(24, 122, 86, 0.25);
+  background: rgba(24, 122, 86, 0.08);
+  color: #187A56;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  min-height: 36px;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.login-reg-back-btn:hover {
+  background: rgba(24, 122, 86, 0.15);
+  border-color: rgba(24, 122, 86, 0.4);
+  transform: translateX(-2px);
+}
+
+.login-reg-back-btn:active {
+  transform: scale(0.97);
+}
+
+.login-reg-badge {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6B7280;
+}
+
+[data-theme="dark"] .login-reg-back-btn,
+.dark .login-reg-back-btn {
+  background: rgba(36, 150, 109, 0.18);
+  border-color: rgba(36, 150, 109, 0.35);
+  color: #34D399;
+}
+
+[data-theme="dark"] .login-reg-back-btn:hover,
+.dark .login-reg-back-btn:hover {
+  background: rgba(36, 150, 109, 0.28);
+  border-color: rgba(36, 150, 109, 0.5);
+}
+
+[data-theme="dark"] .login-reg-badge,
+.dark .login-reg-badge {
+  color: #9CA3AF;
+}
+
 /* In installed mode, hide desktop brand panel and any link back to the landing page */
 .is-installed-app .btn-back-to-home,
 .is-installed-app a[href="/"] {

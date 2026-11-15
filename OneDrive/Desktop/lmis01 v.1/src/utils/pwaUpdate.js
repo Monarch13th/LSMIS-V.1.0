@@ -152,21 +152,38 @@ async function checkForNewVersionOnline(registration) {
     const data = await res.json();
     if (data && data.buildId && data.buildId !== RUNNING_BUILD_ID) {
       console.log("[LSMIS PWA] Detected newer build deployed on server:", data.buildId, "vs current:", RUNNING_BUILD_ID);
+
+      // 1. If worker is already waiting in background, activate immediately
+      const waiting = registration?.waiting || waitingWorkerInstance;
+      if (waiting) {
+        activateWorker(waiting);
+        if (isSafeToAutoReload()) {
+          safeReload();
+        }
+        return;
+      }
+
+      // 2. If a new worker is currently installing, wait for it to install before activating
+      if (registration?.installing) {
+        const worker = registration.installing;
+        worker.addEventListener("statechange", () => {
+          if (worker.state === "installed") {
+            activateWorker(worker);
+            if (isSafeToAutoReload()) {
+              safeReload();
+            }
+          }
+        });
+        return;
+      }
+
+      // 3. Trigger registration update or reload if no worker is controlling
       if (registration) {
         try {
           await registration.update();
         } catch (_) {}
-      }
-      if (waitingWorkerInstance) {
-        activateWorker(waitingWorkerInstance);
-      }
-      if (isSafeToAutoReload()) {
+      } else if (isSafeToAutoReload()) {
         safeReload();
-      } else {
-        showUpdateBanner(() => {
-          activateWorker(waitingWorkerInstance);
-          safeReload();
-        });
       }
     }
   } catch (_) {}

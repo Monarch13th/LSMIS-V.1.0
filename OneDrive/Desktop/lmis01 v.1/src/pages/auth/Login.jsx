@@ -212,6 +212,26 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   }, [initialView, location.pathname, location.search, location.state]);
 
+  // Support Android hardware back button and browser popstate to return to Login without getting stuck
+  useEffect(() => {
+    const handleBackButton = (e) => {
+      if (view === "register" || view === "forgot") {
+        if (e && e.preventDefault) e.preventDefault();
+        switchToSignin();
+      }
+    };
+
+    // 1. Android Capacitor / Cordova hardware back button event
+    document.addEventListener("backbutton", handleBackButton);
+    // 2. Standard Web browser back button event
+    window.addEventListener("popstate", handleBackButton);
+
+    return () => {
+      document.removeEventListener("backbutton", handleBackButton);
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, [view]);
+
   // If already authenticated with active role, redirect directly to assigned module
   useEffect(() => {
     // Prevent premature redirection while Google OAuth handshake is running or URL contains OAuth tokens
@@ -1003,21 +1023,29 @@ export const Login = ({ embedded = false, initialView }) => {
   };
 
   const switchToSignin = (e) => {
-    if (e) e.preventDefault();
-    resetOwnerRegistrationForm();
+    if (e && e.preventDefault) e.preventDefault();
+    // Clear error messages but preserve user-entered registration data
     setError("");
+    setRegError("");
     setFpSuccess(false);
     setPending2FA(null);
     setTwoFaCode("");
     setTwoFaError("");
     setView("signin");
+    if (location.pathname !== "/login") {
+      navigate("/login", { replace: false });
+    }
   };
 
   const switchToRegister = (e) => {
-    if (e) e.preventDefault();
-    resetOwnerRegistrationForm();
+    if (e && e.preventDefault) e.preventDefault();
+    // Preserve entered form data and switch to registration view
     setError("");
+    setRegError("");
     setView("register");
+    if (location.pathname !== "/register") {
+      navigate("/register", { replace: false });
+    }
   };
 
   // ---- Handle Contact Number: strict digits, 11 length max, 09/08 prefix ----
@@ -2820,6 +2848,23 @@ export const Login = ({ embedded = false, initialView }) => {
               <>
                 {/* Owner Registration View */}
                 <form onSubmit={submitOwnerRegistration} className={`login-form-body ${regShake ? "form-shake" : ""}`} noValidate autoComplete="off">
+                  {/* Top-Left Visible Back Navigation to Sign In */}
+                  <div className="login-reg-top-nav">
+                    <button
+                      type="button"
+                      onClick={switchToSignin}
+                      className="login-reg-back-btn"
+                      aria-label="Return to Sign In"
+                      title="Return to Sign In"
+                    >
+                      <Icon.ArrowLeft size={16} />
+                      <span>Back to Login</span>
+                    </button>
+                    <span className="login-reg-badge">
+                      Owner Account Setup
+                    </span>
+                  </div>
+
                   <div className="login-form-head">
                     <h1>Register as Owner</h1>
                     <p className="subtitle">Create an official abattoir account to track livestock, slaughter progress, and clearances</p>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../../components/ui/Button";
 import { AlertDialog } from "../../components/ui/Modal";
@@ -24,6 +24,20 @@ export const ForgotPassword = () => {
 
   const { showToast } = useToast();
   const navigate = useNavigate();
+
+  // Support Android hardware back button and popstate navigation
+  useEffect(() => {
+    const handleBack = (e) => {
+      if (e && e.preventDefault) e.preventDefault();
+      navigate("/login");
+    };
+    document.addEventListener("backbutton", handleBack);
+    window.addEventListener("popstate", handleBack);
+    return () => {
+      document.removeEventListener("backbutton", handleBack);
+      window.removeEventListener("popstate", handleBack);
+    };
+  }, [navigate]);
 
   const handleSendCode = async () => {
     if (!email.trim()) {
@@ -253,6 +267,23 @@ export const ForgotPassword = () => {
             </div>
             
             <form onSubmit={handleResetPassword} className="login-form-body" noValidate>
+              {/* Top-Left Visible Back Navigation to Sign In */}
+              <div className="login-reg-top-nav">
+                <button
+                  type="button"
+                  onClick={() => navigate("/login")}
+                  className="login-reg-back-btn"
+                  aria-label="Return to Sign In"
+                  title="Return to Sign In"
+                >
+                  <Icon.ArrowLeft size={16} />
+                  <span>Back to Login</span>
+                </button>
+                <span className="login-reg-badge">
+                  Password Recovery
+                </span>
+              </div>
+
               {/* Header - Unified with Sign In */}
               <div className="login-form-head">
                 <h1>Reset Password</h1>
