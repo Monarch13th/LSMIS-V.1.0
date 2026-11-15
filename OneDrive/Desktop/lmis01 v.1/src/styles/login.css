@@ -2014,29 +2014,33 @@
 .login-mobile-logo {
   width: 62px;
   height: 62px;
-  border-radius: 50%;
-  padding: 3px;
-  background: #ffffff;
-  border: 2px solid rgba(24, 122, 86, 0.2);
-  box-shadow: 0 4px 14px rgba(24, 122, 86, 0.12);
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
   margin-bottom: 10px;
-  overflow: hidden;
+  overflow: visible;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 [data-theme="dark"] .login-mobile-logo,
 .dark .login-mobile-logo {
-  background: #187A56;
-  border-color: rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  background: transparent;
+  border: none;
+  box-shadow: none;
 }
 
 .login-mobile-logo img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
+  border-radius: 0;
+  object-fit: contain;
   display: block;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.22));
 }
 
 .login-mobile-title {
@@ -2210,26 +2214,28 @@
   }
 
   .login-page.lsmis-login .login-mobile-logo {
-    width: clamp(42px, 8.5vh, 58px) !important;
-    height: clamp(42px, 8.5vh, 58px) !important;
-    border-radius: 50% !important;
-    padding: 2.5px !important;
-    margin: 0 auto 4px auto !important;
-    background: #ffffff !important;
-    border: 2px solid rgba(255, 255, 255, 0.5) !important;
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28) !important;
+    width: clamp(52px, 10vh, 72px) !important;
+    height: clamp(52px, 10vh, 72px) !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    margin: 0 auto 6px auto !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     flex-shrink: 0 !important;
+    overflow: visible !important;
   }
 
   .login-page.lsmis-login .login-mobile-logo img {
     width: 100% !important;
     height: 100% !important;
-    border-radius: 50% !important;
-    object-fit: cover !important;
+    border-radius: 0 !important;
+    object-fit: contain !important;
     display: block !important;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.32)) !important;
   }
 
   .login-page.lsmis-login .login-mobile-title {
