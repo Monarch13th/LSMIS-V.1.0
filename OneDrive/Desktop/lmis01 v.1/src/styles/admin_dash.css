@@ -1878,7 +1878,8 @@
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header select:focus {
   border-color: var(--ag-primary) !important;
   background: var(--ag-card) !important;
-  box-shadow: 0 0 0 3px rgba(24, 122, 86, 0.14) !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
 /* Primary Toolbar & Modal Action Buttons (Add Personnel, Add Species, Export, Save) */
@@ -2119,7 +2120,7 @@
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal textarea:focus {
   border-color: var(--ag-primary) !important;
   background: var(--ag-card) !important;
-  box-shadow: 0 0 0 3px rgba(24, 122, 86, 0.14) !important;
+  box-shadow: none !important;
   outline: none !important;
 }
 

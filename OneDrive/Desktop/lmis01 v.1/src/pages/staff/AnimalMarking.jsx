@@ -1324,7 +1324,7 @@ export const AnimalMarking = ({ navTabs }) => {
                 background: "var(--color-bg)",
                 border: `1px solid ${searchFocused ? "var(--color-primary, #10b981)" : "var(--color-border)"}`,
                 borderRadius: 8,
-                boxShadow: searchFocused ? "0 0 0 3px rgba(16, 185, 129, 0.14)" : "none",
+                boxShadow: "none",
                 transition: "all 0.2s ease",
                 height: 34,
               }}

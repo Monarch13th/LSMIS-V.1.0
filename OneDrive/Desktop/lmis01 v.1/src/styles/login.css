@@ -446,7 +446,7 @@
 .login-pwd-wrap .form-control:focus {
   outline: none;
   border-color: var(--gov-primary, #187A56);
-  box-shadow: 0 0 0 3.5px rgba(24, 122, 86, 0.12);
+  box-shadow: none !important;
 }
 
 .login-pwd-wrap:focus-within .login-pwd-icon {
@@ -1514,7 +1514,7 @@
 .btn-google-oauth:focus-visible {
   outline: none;
   border-color: #4285F4;
-  box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.2);
+  box-shadow: none !important;
 }
 
 .btn-google-oauth:disabled {
@@ -2448,7 +2448,7 @@
   .login-page.lsmis-login .form-control:focus {
     outline: none !important;
     border-color: #187A56 !important;
-    border-width: 2px !important;
+    border-width: 1.5px !important;
     box-shadow: none !important; /* Flat: zero glow or shadow effects on focus */
   }
 
@@ -2457,7 +2457,7 @@
   .dark .login-page.lsmis-login .login-pwd-wrap input:focus,
   .dark .login-page.lsmis-login .form-control:focus {
     border-color: #34D399 !important;
-    border-width: 2px !important;
+    border-width: 1.5px !important;
     box-shadow: none !important;
   }
 
@@ -2476,7 +2476,7 @@
   .login-page.lsmis-login .form-control.field-error-pulse:focus,
   .login-page.lsmis-login .login-pwd-wrap.has-error .form-control:focus {
     border-color: #dc2626 !important;
-    border-width: 2px !important;
+    border-width: 1.5px !important;
     box-shadow: none !important;
   }
 

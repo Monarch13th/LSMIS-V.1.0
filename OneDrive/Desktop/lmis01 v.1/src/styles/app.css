@@ -1103,7 +1103,7 @@ textarea.has-error {
 input.has-error:focus,
 select.has-error:focus,
 textarea.has-error:focus {
-  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25) !important;
+  box-shadow: none !important;
 }
 
 .form-error-msg {

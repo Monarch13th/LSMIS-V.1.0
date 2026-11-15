@@ -2143,7 +2143,7 @@
 
 .owner-profile-input:focus {
   border-color: var(--lsmis-primary);
-  box-shadow: 0 0 0 3px rgba(24, 122, 86, 0.15);
+  box-shadow: none !important;
 }
 
 .owner-profile-input:disabled {

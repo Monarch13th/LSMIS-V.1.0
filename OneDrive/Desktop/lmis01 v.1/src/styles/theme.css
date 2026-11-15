@@ -69,7 +69,7 @@
   --lsmis-accent-light: #34D399;
   --lsmis-accent-soft: #6EE7B7;
   --lsmis-focus: #187A56;
-  --lsmis-focus-ring: rgba(24, 122, 86, 0.22);
+  --lsmis-focus-ring: transparent;
 
   --lsmis-page-bg: #F7FAF9;
   --lsmis-surface: #FFFFFF;
@@ -125,7 +125,7 @@
   --lsmis-accent-light: #6EE7B7;
   --lsmis-accent-soft: #A7F3D0;
   --lsmis-focus: #34D399;
-  --lsmis-focus-ring: rgba(52, 211, 153, 0.30);
+  --lsmis-focus-ring: transparent;
 
   --lsmis-page-bg: #0C1411;
   --lsmis-surface: #13201A;
@@ -310,7 +310,7 @@
   background-color: var(--lsmis-primary-subtle) !important;
 }
 
-/* 5. Standardized Input, Select & Textarea Hover and Focus States */
+/* 5. Standardized Input, Select & Textarea Hover, Click & Focus States (Zero Shadows & Glows) */
 .form-control:hover:not(:focus):not(:disabled),
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover:not(:focus):not(:disabled),
 select:hover:not(:focus):not(:disabled),
@@ -318,12 +318,50 @@ textarea:hover:not(:focus):not(:disabled) {
   border-color: var(--lsmis-primary-muted);
 }
 
+/* Eliminate all click, focus, active, and focus-visible shadows, glows, and dark outlines across every text box and input */
 .form-control:focus,
+.form-control:active,
+.form-control:focus-visible,
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):active,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus-visible,
 select:focus,
-textarea:focus {
+select:active,
+select:focus-visible,
+textarea:focus,
+textarea:active,
+textarea:focus-visible,
+.search-input input:focus,
+.search-input input:active,
+.lid-search-input:focus,
+.lid-search-input:active,
+.owner-search-input:focus,
+.owner-search-input:active,
+.owner-profile-input:focus,
+.owner-profile-input:active,
+.auth-input-control:focus,
+.auth-input-control:active,
+.records-fixed-header input:focus,
+.records-fixed-header input:active,
+.records-fixed-header select:focus,
+.records-fixed-header select:active {
   border-color: var(--lsmis-primary) !important;
-  box-shadow: 0 0 0 3px var(--lsmis-focus-ring) !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+  outline: none !important;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-control:active,
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):active,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] select:active,
+[data-theme="dark"] textarea:focus,
+[data-theme="dark"] textarea:active {
+  border-color: var(--lsmis-primary) !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
   outline: none !important;
 }
 
