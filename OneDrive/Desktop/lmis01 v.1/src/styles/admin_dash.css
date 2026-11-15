@@ -2207,6 +2207,41 @@
   }
 }
 
+@media (max-width: 820px) {
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-layout-grid {
+    flex-direction: column !important;
+    gap: 16px !important;
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-sidebar-nav {
+    width: 100% !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    position: static !important;
+    padding: 8px !important;
+    gap: 8px !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-sidebar-nav .nav-section-title {
+    display: none !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-nav-btn {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+    width: auto !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-content-pane {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+  }
+}
+
 @media (max-width: 640px) {
   :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
     border-radius: 14px !important;

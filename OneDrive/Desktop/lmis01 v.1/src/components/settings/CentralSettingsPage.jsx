@@ -76,33 +76,57 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     }
   };
 
-  const [loading, setLoading] = useState(true);
+  const getInitialProfile = () => {
+    let s = session;
+    if (!s) {
+      try {
+        s = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION) || "null");
+      } catch {
+        s = null;
+      }
+    }
+    const email = s?.email || "";
+    let storedLocal = {};
+    if (email) {
+      try {
+        storedLocal = JSON.parse(localStorage.getItem("lmis_profile_" + email) || "{}");
+      } catch {
+        storedLocal = {};
+      }
+    }
+    return {
+      full_name: s?.name || s?.full_name || storedLocal.full_name || "",
+      email: email,
+      username: s?.username || storedLocal.username || (email ? email.split("@")[0] : "") || "",
+      role: s?.role || role,
+      phone: s?.phone || s?.contact || storedLocal.phone || "",
+      address: s?.address || storedLocal.address || "",
+      license: s?.license || storedLocal.license || "",
+      specialization: s?.specialization || storedLocal.specialization || "",
+      avatar_url: s?.avatar_url || storedLocal.avatar_url || "",
+    };
+  };
+
+  const [loading, setLoading] = useState(() => !getInitialProfile().email);
 
   // 1. Profile State
-  const [profile, setProfile] = useState({
-    full_name: "",
-    email: "",
-    username: "",
-    role: role,
-    phone: "",
-    address: "",
-    license: "",
-    specialization: "",
-    avatar_url: "",
-  });
-  const [initialProfile, setInitialProfile] = useState(null);
+  const [profile, setProfile] = useState(getInitialProfile);
+  const [initialProfile, setInitialProfile] = useState(getInitialProfile);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const fileInputRef = useRef(null);
 
   // Edit Personal Information state (matching Owner Profile design)
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [profileForm, setProfileForm] = useState({
-    full_name: "",
-    username: "",
-    phone: "",
-    address: "",
-    license: "",
-    specialization: "",
+  const [profileForm, setProfileForm] = useState(() => {
+    const init = getInitialProfile();
+    return {
+      full_name: init.full_name,
+      username: init.username,
+      phone: init.phone,
+      address: init.address,
+      license: init.license,
+      specialization: init.specialization,
+    };
   });
   const [contactError, setContactError] = useState("");
   const [personnelId, setPersonnelId] = useState("");
@@ -263,7 +287,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     return () => {
       isCurrent = false;
     };
-  }, [role, session]);
+  }, [role, session?.id, session?.email]);
 
   // Handle Photo Selection & Preview (Matching Owner Profile)
   const handlePhotoSelect = (e) => {
@@ -968,7 +992,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     session?.avatar_url ||
     "";
 
-  if (loading) {
+  if (loading && !profile.email) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: 460 }}>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>

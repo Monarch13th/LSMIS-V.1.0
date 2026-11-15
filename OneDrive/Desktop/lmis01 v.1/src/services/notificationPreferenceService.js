@@ -1,6 +1,5 @@
 import { supabase } from "./supabaseClient";
 import { TABLES } from "../utils/constants";
-import { notifyDbChange } from "./realtimeSync";
 
 export const DEFAULT_NOTIFICATION_PREFERENCES = {
   account_notifications: true,
@@ -14,14 +13,14 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = {
 const STORAGE_PREFIX = "lsmis_notif_prefs_";
 
 /**
- * Get current user notification preferences from Supabase,
- * falling back to user metadata / localStorage.
+ * Get current user notification preferences, falling back to local storage and safe defaults.
+ * Guarantees immediate resolution without hanging on remote queries.
  */
 export const getUserNotificationPreferences = async (userEmail, userId) => {
   const cleanEmail = (userEmail || "").trim().toLowerCase();
   const cleanId = (userId || "").trim();
 
-  // Check localStorage cache first
+  // 1. Check localStorage cache first for instant resolution
   const cacheKey = `${STORAGE_PREFIX}${cleanEmail || cleanId || "guest"}`;
   let cached = null;
   try {
@@ -29,47 +28,44 @@ export const getUserNotificationPreferences = async (userEmail, userId) => {
     if (raw) cached = JSON.parse(raw);
   } catch (_) {}
 
-  try {
-    let query = supabase.from(TABLES.USER_PREFERENCES).select("notification_preferences");
-    if (cleanId) {
-      query = query.or(`user_id.eq.${cleanId},email.ilike.${cleanEmail}`);
-    } else if (cleanEmail) {
-      query = query.ilike("email", cleanEmail);
-    } else {
-      return cached || { ...DEFAULT_NOTIFICATION_PREFERENCES };
-    }
-
-    const { data, error } = await query.maybeSingle();
-
-    if (!error && data?.notification_preferences) {
-      const merged = { ...DEFAULT_NOTIFICATION_PREFERENCES, ...data.notification_preferences };
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify(merged));
-      } catch (_) {}
-      return merged;
-    }
-  } catch (err) {
-    console.warn("Could not query user_preferences table:", err);
+  if (cached && typeof cached === "object") {
+    return { ...DEFAULT_NOTIFICATION_PREFERENCES, ...cached };
   }
 
-  // Fallback to auth user metadata
-  try {
-    const { data: authUser } = await supabase.auth.getUser();
-    const metaPrefs = authUser?.user?.user_metadata?.notification_preferences;
-    if (metaPrefs && typeof metaPrefs === "object") {
-      const merged = { ...DEFAULT_NOTIFICATION_PREFERENCES, ...metaPrefs };
-      try {
-        localStorage.setItem(cacheKey, JSON.stringify(merged));
-      } catch (_) {}
-      return merged;
-    }
-  } catch (_) {}
+  // 2. Safe remote query with fast catch to prevent hanging
+  if (cleanEmail || cleanId) {
+    try {
+      if (TABLES.USER_PREFERENCES) {
+        let query = supabase.from(TABLES.USER_PREFERENCES).select("notification_preferences");
+        if (cleanId) {
+          query = query.or(`user_id.eq.${cleanId},email.ilike.${cleanEmail}`);
+        } else {
+          query = query.ilike("email", cleanEmail);
+        }
 
-  return cached || { ...DEFAULT_NOTIFICATION_PREFERENCES };
+        const { data, error } = await Promise.race([
+          query.maybeSingle(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 2000)),
+        ]);
+
+        if (!error && data?.notification_preferences) {
+          const merged = { ...DEFAULT_NOTIFICATION_PREFERENCES, ...data.notification_preferences };
+          try {
+            localStorage.setItem(cacheKey, JSON.stringify(merged));
+          } catch (_) {}
+          return merged;
+        }
+      }
+    } catch (_) {
+      // Table does not exist or timed out; fall back gracefully
+    }
+  }
+
+  return { ...DEFAULT_NOTIFICATION_PREFERENCES };
 };
 
 /**
- * Save user notification preferences to Supabase and update local storage & user metadata.
+ * Save user notification preferences to localStorage and broadcast change.
  */
 export const updateUserNotificationPreferences = async ({
   email,
@@ -85,43 +81,29 @@ export const updateUserNotificationPreferences = async ({
     localStorage.setItem(cacheKey, JSON.stringify(merged));
   } catch (_) {}
 
-  // 1. Upsert into public.user_preferences table
+  // Safe background upsert if table exists
   try {
-    const payload = {
-      notification_preferences: merged,
-      updated_at: new Date().toISOString(),
-    };
-    if (cleanEmail) payload.email = cleanEmail;
-    if (cleanId) payload.user_id = cleanId;
+    if (TABLES.USER_PREFERENCES && (cleanEmail || cleanId)) {
+      const payload = {
+        notification_preferences: merged,
+        updated_at: new Date().toISOString(),
+      };
+      if (cleanEmail) payload.email = cleanEmail;
+      if (cleanId) payload.user_id = cleanId;
 
-    let res = null;
-    if (cleanId) {
-      res = await supabase
-        .from(TABLES.USER_PREFERENCES)
-        .upsert(payload, { onConflict: "user_id" })
-        .select();
-    } else if (cleanEmail) {
-      res = await supabase
-        .from(TABLES.USER_PREFERENCES)
-        .upsert(payload, { onConflict: "email" })
-        .select();
+      if (cleanId) {
+        await supabase
+          .from(TABLES.USER_PREFERENCES)
+          .upsert(payload, { onConflict: "user_id" });
+      } else {
+        await supabase
+          .from(TABLES.USER_PREFERENCES)
+          .upsert(payload, { onConflict: "email" });
+      }
     }
-
-    if (res?.error) {
-      console.warn("Upsert user_preferences error:", res.error);
-    }
-  } catch (err) {
-    console.warn("user_preferences table write exception:", err);
-  }
-
-  // 2. Also persist in supabase.auth user_metadata
-  try {
-    await supabase.auth.updateUser({
-      data: { notification_preferences: merged },
-    });
   } catch (_) {}
 
-  // 3. Dispatch broadcast events for instant live reactive sync
+  // Dispatch broadcast event for instant live reactive sync
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("lsmis_notif_prefs_updated", { detail: merged })
@@ -138,64 +120,20 @@ export const updateUserNotificationPreferences = async ({
  */
 export const classifyNotificationCategory = (title = "", message = "") => {
   const text = `${title} ${message}`.toLowerCase();
-
-  if (
-    text.includes("password") ||
-    text.includes("login") ||
-    text.includes("session") ||
-    text.includes("2fa") ||
-    text.includes("account terminated") ||
-    text.includes("account access") ||
-    text.includes("profile")
-  ) {
-    return "account_notifications";
-  }
-
-  if (
-    text.includes("registration") ||
-    text.includes("registered") ||
-    text.includes("new animal received") ||
-    text.includes("registered owner") ||
-    text.includes("intake")
-  ) {
+  if (text.includes("registered") || text.includes("intake") || text.includes("tag")) {
     return "registration_updates";
   }
-
-  if (
-    text.includes("approv") ||
-    text.includes("approved") ||
-    text.includes("reject") ||
-    text.includes("rejected") ||
-    text.includes("permit issued") ||
-    text.includes("cleared") ||
-    text.includes("verified")
-  ) {
+  if (text.includes("approv") || text.includes("reject") || text.includes("status")) {
     return "approval_updates";
   }
-
-  if (
-    text.includes("ante-mortem") ||
-    text.includes("post-mortem") ||
-    text.includes("inspection") ||
-    text.includes("condemn") ||
-    text.includes("carcass") ||
-    text.includes("branding")
-  ) {
-    return "inspection_updates";
-  }
-
-  if (
-    text.includes("slaughter") ||
-    text.includes("marking") ||
-    text.includes("schedule") ||
-    text.includes("weigh") ||
-    text.includes("payment") ||
-    text.includes("dispatch") ||
-    text.includes("timeout") ||
-    text.includes("reassign")
-  ) {
+  if (text.includes("slaughter") || text.includes("scalding") || text.includes("evisceration") || text.includes("processing") || text.includes("weighed")) {
     return "livestock_process_updates";
   }
-
-  return "system_announcements";
+  if (text.includes("inspection") || text.includes("ante-mortem") || text.includes("post-mortem") || text.includes("condemn")) {
+    return "inspection_updates";
+  }
+  if (text.includes("system") || text.includes("announcement") || text.includes("maintenance")) {
+    return "system_announcements";
+  }
+  return "account_notifications";
 };
