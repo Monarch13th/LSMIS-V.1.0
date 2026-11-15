@@ -1822,46 +1822,9 @@
 }
 
 /* =========================================================
-   INSTALLED MOBILE APP STARTUP SEQUENCE (STEP 1 & STEP 2)
-   STEP 1: Pure White Background with Centered Official Logo
-   STEP 2: Animated Green LSMIS Splash Screen
+   INSTALLED MOBILE APP SINGLE STARTUP SPLASH SCREEN
+   Official LSMIS Logo with Green Branding & Smooth Scale-Fade
    ========================================================= */
-.lsmis-startup-white-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 24px;
-  box-sizing: border-box;
-}
-
-[data-theme="dark"] .lsmis-startup-white-screen,
-.dark .lsmis-startup-white-screen {
-  background-color: #FFFFFF !important;
-  background: #FFFFFF !important;
-}
-
-.lsmis-startup-white-logo {
-  width: clamp(120px, 32vw, 152px);
-  height: clamp(120px, 32vw, 152px);
-  max-width: 152px;
-  max-height: 152px;
-  object-fit: contain;
-  display: block;
-  border: none !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  background: transparent !important;
-  filter: none !important;
-  user-select: none;
-  -webkit-user-drag: none;
-}
-
 .lsmis-launch-splash {
   position: fixed;
   inset: 0;
@@ -1875,8 +1838,7 @@
   align-items: center;
   justify-content: center;
   opacity: 1;
-  animation: splashBgFadeIn 0.2s ease-out forwards;
-  transition: opacity 0.2s ease-out, visibility 0.2s ease-out;
+  transition: opacity 0.18s ease-out, visibility 0.18s ease-out;
   padding: 24px;
   box-sizing: border-box;
 }
@@ -1891,9 +1853,9 @@
 }
 
 .lsmis-launch-splash.fade-out {
-  opacity: 0;
-  pointer-events: none;
-  visibility: hidden;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .launch-splash-content {

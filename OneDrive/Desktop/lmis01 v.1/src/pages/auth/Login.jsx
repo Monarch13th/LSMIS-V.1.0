@@ -6,7 +6,7 @@ import { Icon } from "../../components/icons";
 import { isCapacitorNativeApp, isInstalledApp } from "../../utils/capacitor";
 import { useToast } from "../../components/notifications/Toast";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
-import { authStore } from "../../store/authStore";
+import { authStore, setSessionStorageItem, removeSessionStorageItem } from "../../store/authStore";
 import { STORAGE_KEYS, TABLES, ROLE_LABELS } from "../../utils/constants";
 import { now, uuid } from "../../utils/helpers";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
@@ -645,7 +645,7 @@ export const Login = ({ embedded = false, initialView }) => {
           return;
         }
 
-        sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+        setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
         authStore.set({ session, loading: false, isInitialized: true });
         setGoogleLoginLoading(false);
 
@@ -678,7 +678,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
         // Make sure any temporary or mismatched session in authStore/sessionStorage is purged
         try {
-          sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+          removeSessionStorageItem(STORAGE_KEYS.SESSION);
         } catch (_) { }
         authStore.set({ session: null, loading: false, isInitialized: true });
 
@@ -1387,7 +1387,7 @@ export const Login = ({ embedded = false, initialView }) => {
       const termCheck = await adminService.checkUserTerminationStatus(authEmail);
       if (termCheck.isTerminated) {
         try { await supabase.auth.signOut(); } catch (e) { }
-        sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+        removeSessionStorageItem(STORAGE_KEYS.SESSION);
         sessionStorage.removeItem("lsmis_concurrent_logout_notice");
         localStorage.removeItem("lsmis_single_session_signal");
         sessionStorage.setItem("lsmis_termination_notice", JSON.stringify({
@@ -1657,7 +1657,7 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session });
 
       // DB Activity logging & Presence Registration
@@ -1759,7 +1759,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
       // MFA successfully verified: session has satisfied AAL2!
       const { session, role, name, cleanEmail } = pending2FA;
-      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
 
       try {
@@ -1824,7 +1824,7 @@ export const Login = ({ embedded = false, initialView }) => {
     try {
       await supabase.auth.signOut({ scope: "local" });
     } catch (_) { }
-    sessionStorage.removeItem(STORAGE_KEYS.SESSION);
+    removeSessionStorageItem(STORAGE_KEYS.SESSION);
     authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: false });
     setPending2FA(null);
     setTwoFaCode("");
@@ -1902,7 +1902,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
       // Complete login
       const { session, role, name } = pending2FA;
-      sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
 
       try {
@@ -2204,7 +2204,7 @@ export const Login = ({ embedded = false, initialView }) => {
                 <div className="login-brand-header-link" style={{ cursor: "default" }}>
                   <div className="logo">
                     <img
-                      src="/logo.png?v=lsmis20261116b"
+                      src="/logo.png?v=lsmis20261116c"
                       onError={(e) => {
                         if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
                       }}
@@ -2221,7 +2221,7 @@ export const Login = ({ embedded = false, initialView }) => {
                 <Link to="/" className="login-brand-header-link" title="Return to Landing Page">
                   <div className="logo">
                     <img
-                      src="/logo.png?v=lsmis20261116b"
+                      src="/logo.png?v=lsmis20261116c"
                       onError={(e) => {
                         if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
                       }}
@@ -2281,7 +2281,16 @@ export const Login = ({ embedded = false, initialView }) => {
             {/* Mobile / Installed App Brand Header */}
             <div className="login-mobile-brand">
               <div className="login-mobile-logo">
-                <img src={logoImg} alt="LSMIS Official Logo" width="62" height="62" />
+                <img
+                  src="/logo.png?v=lsmis20261116c"
+                  onError={(e) => {
+                    if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+                  }}
+                  alt="LSMIS Official Logo"
+                  width="62"
+                  height="62"
+                  decoding="sync"
+                />
               </div>
               <div className="login-mobile-title">LSMIS</div>
               <div className="login-mobile-subtitle">Livestock Slaughter &amp; Meat Inspection</div>

@@ -65,7 +65,7 @@ export const ownerAuthService = {
       } else if (!import.meta.env?.PROD) {
         resolvedBase = "http://localhost:5173";
       } else {
-        resolvedBase = envProdUrl || browserOrigin;
+        resolvedBase = "https://lsmis.vercel.app";
       }
     } else if (import.meta.env?.PROD) {
       // Production: prefer non-localhost deployed HTTPS domain from browser origin or production env

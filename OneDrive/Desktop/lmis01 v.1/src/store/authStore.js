@@ -62,9 +62,7 @@ export const removeSessionStorageItem = (key) => {
   if (typeof window === "undefined") return;
   try {
     sessionStorage.removeItem(key);
-    if (isCapacitorNativeApp()) {
-      localStorage.removeItem(key);
-    }
+    localStorage.removeItem(key);
   } catch (_) {}
 };
 

@@ -2,18 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png?v=lsmis20261116b" />
-    <link rel="shortcut icon" href="/favicon.ico?v=lsmis20261116b" />
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=lsmis20261116b" />
+    <link rel="icon" type="image/png" href="/logo.png?v=lsmis20261116c" />
+    <link rel="shortcut icon" href="/favicon.ico?v=lsmis20261116c" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=lsmis20261116c" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <link rel="manifest" href="/manifest.webmanifest?v=lsmis20261116b" />
-    <meta name="theme-color" content="#FFFFFF" />
+    <link rel="manifest" href="/manifest.webmanifest?v=lsmis20261116c" />
+    <meta name="theme-color" content="#187A56" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="LSMIS" />
     <title>Livestock Slaughter &amp; Meat Inspection Management System</title>
-    <link rel="preload" as="image" href="/logo.png?v=lsmis20261116b" fetchpriority="high" />
+    <link rel="preload" as="image" href="/logo.png?v=lsmis20261116c" fetchpriority="high" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -24,34 +24,6 @@
         padding: 0;
         min-height: 100%;
         width: 100%;
-      }
-      .lsmis-startup-white-screen {
-        position: fixed;
-        inset: 0;
-        z-index: 99999;
-        background-color: #FFFFFF !important;
-        background: #FFFFFF !important;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0;
-        padding: 24px;
-        box-sizing: border-box;
-      }
-      .lsmis-startup-white-logo {
-        width: clamp(120px, 32vw, 152px);
-        height: clamp(120px, 32vw, 152px);
-        max-width: 152px;
-        max-height: 152px;
-        object-fit: contain;
-        display: block;
-        border: none !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-        background: transparent !important;
-        filter: none !important;
-        user-select: none;
-        -webkit-user-drag: none;
       }
     </style>
     <script>
@@ -88,19 +60,7 @@
     </script>
   </head>
   <body>
-    <div id="root">
-      <div class="lsmis-startup-white-screen" role="status" aria-label="Loading LSMIS">
-        <img
-          src="/logo.png?v=lsmis20261116b"
-          alt="LSMIS Official Logo"
-          class="lsmis-startup-white-logo"
-          width="140"
-          height="140"
-          fetchpriority="high"
-          decoding="sync"
-        />
-      </div>
-    </div>
+    <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

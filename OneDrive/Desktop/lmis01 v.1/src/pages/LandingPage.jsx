@@ -393,18 +393,16 @@ export const LandingPage = () => {
         </nav>
 
         <div className="mobile-nav-bottom">
-          {!isCapacitorNativeApp() && (
-            <button
-              type="button"
-              className="mobile-nav-google-btn"
-              onClick={handleMobileGoogleSignIn}
-              disabled={googleLoading}
-              aria-label="Sign in with Google for Livestock Owners"
-            >
-              <GoogleLogo size={18} />
-              <span>{googleLoading ? "Connecting..." : "Sign in with Google"}</span>
-            </button>
-          )}
+          <button
+            type="button"
+            className="mobile-nav-google-btn"
+            onClick={handleMobileGoogleSignIn}
+            disabled={googleLoading}
+            aria-label="Sign in with Google for Livestock Owners"
+          >
+            <GoogleLogo size={18} />
+            <span>{googleLoading ? "Connecting..." : "Sign in with Google"}</span>
+          </button>
 
           <Link
             to="/login"
