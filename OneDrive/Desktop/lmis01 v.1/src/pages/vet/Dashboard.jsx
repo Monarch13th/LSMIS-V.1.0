@@ -1,19 +1,15 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, StatCard, EmptyState, Button } from "../../components/ui";
 import { Badge } from "../../components/ui/Badge";
-import { TagBadge } from "../../components/ui/TagBadge";
 import { Icon } from "../../components/icons";
-import { InspectionDecisions, CarcassWeightSpeciesBar } from "../../components/charts/VetCharts";
-import { WelcomeBanner } from "../../components/layout/WelcomeBanner";
-import { DashBanner, ListRow, DashSkeleton } from "../../components/dashboard/DashboardParts";
+import { DashSkeleton } from "../../components/dashboard/DashboardParts";
+import { InteractiveAreaChart, InteractiveRings } from "../../components/dashboard/InteractiveDashWidgets";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { formatDate } from "../../utils/helpers";
-import { formatSex, formatPhDateTime } from "../../utils/formatters";
-import { getAttributionName } from "../../utils/processHistory";
-import { pickDate, recency, INSPECTION_DATE_FIELDS, calculateInspectionCategoryCounts } from "../../utils/dashboardMetrics";
+import { recency, INSPECTION_DATE_FIELDS, calculateInspectionCategoryCounts } from "../../utils/dashboardMetrics";
 import "../../styles/dashboard.css";
+import "../../styles/admin_dash.css";
 import { getPostOutcome, isAnteCondemnedDecision } from "./condemnationStage";
 
 export const VetDashboard = () => {
@@ -23,7 +19,6 @@ export const VetDashboard = () => {
   const { data: post } = useSupabase(TABLES.POST_MORTEM);
   const { data: condemnationRecords } = useSupabase(TABLES.CONDEMNATION_RECORDS);
   const { data: processing } = useSupabase(TABLES.SLAUGHTER_PROCESSING);
-  const { data: slaughter } = useSupabase(TABLES.SLAUGHTER_RECORDS);
   const { data: carcass } = useSupabase(TABLES.CARCASS_RECORDS);
 
   const normalizedAnte = (ante || []).map((i) => ({ ...i, type: "Ante-Mortem" }));
@@ -61,7 +56,6 @@ export const VetDashboard = () => {
 
       const s = String(l.status || "").toLowerCase();
 
-      // Livestock awaiting marking or returned to marking must NEVER appear in Ante-Mortem inspection.
       if (
         s === "pending marking" ||
         s === "for marking" ||
@@ -72,7 +66,6 @@ export const VetDashboard = () => {
         Boolean(l.fallback_at)
       ) return false;
 
-      // Terminal or downstream statuses
       if (
         s.includes("condemn") ||
         s.includes("reject") ||
@@ -100,11 +93,9 @@ export const VetDashboard = () => {
         s === "permit issued"
       ) return false;
 
-      // Already inspected at Ante-Mortem
       if (l.id && anteLivestockIds.has(String(l.id).trim())) return false;
       if (anteTags.has(tag)) return false;
 
-      // Animal MUST be marked by Staff to be awaiting Ante-Mortem inspection
       const isMarked = Boolean(
         (l.marked === true || l.marked === "true" || l.marked === 1 || l.marked === "1" || l.marked === "t") &&
         l.marked !== "false" &&
@@ -174,7 +165,7 @@ export const VetDashboard = () => {
         owner_name: p.owner_name || l?.owner_name || "Unknown Owner",
         operator: p.operator || l?.operator || "Assigned Operator",
         received_date: l?.received_date || p.date,
-        status: "Slaughter Completed"
+        status: "Slaughter Completed",
       });
     });
 
@@ -194,28 +185,22 @@ export const VetDashboard = () => {
   ).length;
   const condemned = inspections.filter(isCondemnedOutcome).length;
 
-  // Newest first sorted record lists
   const sortedAnte = useMemo(() => {
     return [...(ante || [])]
       .sort((a, b) => recency(b, INSPECTION_DATE_FIELDS) - recency(a, INSPECTION_DATE_FIELDS))
-      .slice(0, 6);
+      .slice(0, 3);
   }, [ante]);
 
   const sortedPost = useMemo(() => {
     return [...(post || [])]
       .sort((a, b) => recency(b, INSPECTION_DATE_FIELDS) - recency(a, INSPECTION_DATE_FIELDS))
-      .slice(0, 6);
+      .slice(0, 2);
   }, [post]);
 
-  const sortedCarcass = useMemo(() => {
-    return [...(carcass || [])]
-      .sort((a, b) => recency(b, ["weighed_at", "date", "created_at"]) - recency(a, ["weighed_at", "date", "created_at"]))
-      .slice(0, 6);
-  }, [carcass]);
-
   const anteApprovedCount = (ante || []).filter((i) => i.decision === "Approved" || i.decision === "Passed").length;
+  const postApprovedCount = (post || []).filter((i) => i.decision === "Approved" || i.decision === "Passed").length;
   const totalAwaiting = awaitingAnteMortem.length + awaitingPostMortem.length;
-  const go = (path) => () => navigate(`/vet/${path}`);
+  const passPct = inspections.length > 0 ? Math.round((approved / inspections.length) * 100) : 100;
 
   const inspectionCounts = useMemo(() => {
     return calculateInspectionCategoryCounts({
@@ -226,220 +211,440 @@ export const VetDashboard = () => {
     });
   }, [ante, post, livestock, condemnationRecords]);
 
+  const outcomeRows = useMemo(
+    () => [
+      {
+        label: "Ante-Mortem",
+        shortLabel: "ANTE",
+        count: inspectionCounts?.antemortem ?? anteApprovedCount,
+        hint: "Click to open Ante-Mortem Inspection",
+        onClick: () => navigate("/vet/ante-mortem"),
+      },
+      {
+        label: "Post-Mortem",
+        shortLabel: "POST",
+        count: inspectionCounts?.postmortem ?? postApprovedCount,
+        hint: "Click to open Post-Mortem Inspection",
+        onClick: () => navigate("/vet/post-mortem"),
+      },
+      {
+        label: "Condemned",
+        shortLabel: "CONDEMNED",
+        count: (inspectionCounts?.partially_condemned || 0) + (inspectionCounts?.condemned || condemned),
+        hint: "Click to inspect clinical history",
+        onClick: () => navigate("/vet/history"),
+      },
+    ],
+    [inspectionCounts, anteApprovedCount, postApprovedCount, condemned, navigate]
+  );
+
+  const chartPoints = useMemo(() => {
+    const anteLen = (ante || []).length;
+    const postLen = (post || []).length;
+    const weighedLen = (carcass || []).length;
+    return [
+      {
+        label: "Awaiting",
+        v: totalAwaiting,
+        sub: awaitingAnteMortem.length,
+        primaryTag: "Total awaiting check",
+        secondaryTag: "Awaiting Ante-Mortem",
+        hint: "Click to inspect waiting queue →",
+        onClick: () => navigate(awaitingAnteMortem.length > 0 ? "/vet/ante-mortem" : "/vet/post-mortem"),
+      },
+      {
+        label: "Ante-Mortem",
+        v: anteLen,
+        sub: anteApprovedCount,
+        primaryTag: "Total Ante-Mortem",
+        secondaryTag: "Passed Ante-Mortem",
+        hint: "Click to open Ante-Mortem Inspection →",
+        onClick: () => navigate("/vet/ante-mortem"),
+      },
+      {
+        label: "Post-Mortem",
+        v: postLen,
+        sub: postApprovedCount,
+        primaryTag: "Total Post-Mortem",
+        secondaryTag: "Passed Post-Mortem",
+        hint: "Click to open Post-Mortem Inspection →",
+        onClick: () => navigate("/vet/post-mortem"),
+      },
+      {
+        label: "Weighed",
+        v: weighedLen,
+        sub: weighedLen,
+        primaryTag: "Weighed carcasses",
+        secondaryTag: "Certified weights",
+        hint: "Click to open Carcass Weighing →",
+        onClick: () => navigate("/vet/carcass-weighing"),
+      },
+    ];
+  }, [totalAwaiting, awaitingAnteMortem.length, ante, post, carcass, anteApprovedCount, postApprovedCount, navigate]);
+
+  const go = (path) => () => navigate(`/vet/${path}`);
+
   if (livestockLoading && anteLoading) return <DashSkeleton />;
 
   return (
-    <div className="dash" style={{ paddingBottom: 24 }}>
-      {/* 1. Header Banner */}
-      <WelcomeBanner icon={<Icon.Stethoscope size={28} />} />
+    <div className="ag-dash">
+      {/* Row 1: Hero Overview (Dark) + Clinical Throughput (Glass) + Inspection Outcomes (White) */}
+      <div className="ag-row ag-row-top">
+        {/* Top-Left: Overall Information Card */}
+        <section className="ag-card ag-dark ag-overview">
+          <header className="ag-card-head">
+            <h2>Overall information</h2>
+            <button
+              type="button"
+              className="ag-icon-btn"
+              onClick={go("history")}
+              data-ag-tip="Open Inspection History"
+              data-ag-tip-pos="right"
+              aria-label="View Inspection History"
+            >
+              <Icon.ExternalLink size={15} />
+            </button>
+          </header>
 
-      {/* 2. Urgent Queue Alert */}
-      {totalAwaiting > 0 && (
-        <DashBanner
-          tone="sky"
-          icon={<Icon.Stethoscope size={20} />}
-          title={`${totalAwaiting} inspection${totalAwaiting > 1 ? "s" : ""} waiting for clinical evaluation`}
-          text={`${awaitingAnteMortem.length} live animal${awaitingAnteMortem.length === 1 ? "" : "s"} awaiting ante-mortem · ${awaitingPostMortem.length} carcass${awaitingPostMortem.length === 1 ? "" : "es"} awaiting post-mortem`}
-          onClick={go(awaitingAnteMortem.length > 0 ? "ante-mortem" : "post-mortem")}
-          action={
-            <Button size="sm" onClick={(e) => { e.stopPropagation(); go(awaitingAnteMortem.length > 0 ? "ante-mortem" : "post-mortem")(); }}>
-              <Icon.Stethoscope size={15} /> Start Inspecting
-            </Button>
-          }
-        />
-      )}
-
-      {/* 3. Section: Clinical KPI Metrics */}
-      <div className="dash-grid-4">
-        <StatCard
-          label="Ante-Mortem Records"
-          value={(ante || []).length}
-          trend={`${anteApprovedCount} passed · ${(ante || []).length - anteApprovedCount} suspect/condemned`}
-          icon={<Icon.Stethoscope size={24} />}
-          color="sky"
-          onClick={go("ante-mortem/records")}
-        />
-        <StatCard
-          label="Awaiting Live Check"
-          value={awaitingAnteMortem.length}
-          trend={awaitingAnteMortem.length > 0 ? "Live animals in lairage" : "Queue clear"}
-          icon={<Icon.Clock size={24} />}
-          color="amber"
-          onClick={go("ante-mortem")}
-        />
-        <StatCard
-          label="Post-Mortem Records"
-          value={(post || []).length}
-          trend={awaitingPostMortem.length > 0 ? `${awaitingPostMortem.length} carcasses pending` : "All carcasses inspected"}
-          icon={<Icon.Activity size={24} />}
-          color="violet"
-          onClick={go("post-mortem/records")}
-        />
-        <StatCard
-          label="Carcass Scale Weights"
-          value={(carcass || []).length}
-          trend={awaitingWeighing.length > 0 ? `${awaitingWeighing.length} awaiting scale` : "All carcasses weighed"}
-          icon={<Icon.Scale size={24} />}
-          color="emerald"
-          onClick={go("carcass-weighing")}
-        />
-      </div>
-
-      {/* 4. Section: Exactly Two Graphs Per Role Requirements */}
-      <div className="dash-grid-2">
-        {/* Graph 1: Clinical Inspection Decisions & Outcomes */}
-        <Card
-          title="Clinical Inspection Outcomes"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("history")}>
-              View History →
-            </Button>
-          }
-        >
-          <InspectionDecisions counts={inspectionCounts} data={inspections} />
-        </Card>
-
-        {/* Graph 2: Verified Carcass Scale Weights by Species */}
-        <Card
-          title="Average Carcass Scale Weight by Species"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("carcass-weighing")}>
-              Scale Records →
-            </Button>
-          }
-        >
-          <CarcassWeightSpeciesBar carcass={carcass} livestock={livestock} />
-        </Card>
-      </div>
-
-      {/* 5. Section: Actual Record Lists (Role-Separated) */}
-      <div className="dash-grid-2">
-        {/* Record List 1: Recent Ante-Mortem Inspections */}
-        <Card
-          title="Recent Ante-Mortem Inspections"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("ante-mortem/records")}>
-              View All ({(ante || []).length}) →
-            </Button>
-          }
-        >
-          {sortedAnte.length === 0 ? (
-            <EmptyState
-              title="No Ante-Mortem inspections recorded"
-              message="Conducted live animal evaluations will appear here."
-              icon={<Icon.Stethoscope />}
-            />
-          ) : (
-            <div className="dash-list">
-              {sortedAnte.map((i) => (
-                <ListRow
-                  key={i.id || `${i.tag_number}-${i.date}`}
-                  gradient="linear-gradient(135deg, #0ea5e9, #0369a1)"
-                  icon={<Icon.Stethoscope size={14} />}
-                  onClick={go("ante-mortem/records")}
-                  title={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                      <TagBadge tag={i.tag_number} />
-                      <span>{i.species || "Livestock"}</span>
-                    </span>
-                  }
-                  sub={`${formatDate(i.date)} · ${i.findings || "No clinical abnormalities"} · ${i.inspector_name || "Dr. Dave"}`}
-                  end={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Badge status={i.decision || "Approved"} />
-                    </div>
-                  }
-                />
-              ))}
+          <div className="ag-overview-stats">
+            <div
+              className="ag-big interactive"
+              onClick={go("history")}
+              data-ag-tip={`${inspections.length} total clinical inspections (${(ante || []).length} Ante-Mortem · ${(post || []).length} Post-Mortem)`}
+              data-ag-tip-pos="left"
+            >
+              <strong>{inspections.length}</strong>
+              <span>
+                Inspections
+                <br />
+                for all time
+              </span>
             </div>
-          )}
-        </Card>
-
-        {/* Record List 2: Recent Post-Mortem Inspections */}
-        <Card
-          title="Recent Post-Mortem Inspections"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("post-mortem/records")}>
-              View All ({(post || []).length}) →
-            </Button>
-          }
-        >
-          {sortedPost.length === 0 ? (
-            <EmptyState
-              title="No Post-Mortem inspections recorded"
-              message="Conducted carcass and visceral evaluations will appear here."
-              icon={<Icon.Activity />}
-            />
-          ) : (
-            <div className="dash-list">
-              {sortedPost.map((i) => (
-                <ListRow
-                  key={i.id || `${i.tag_number}-${i.date}`}
-                  gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)"
-                  icon={<Icon.Activity size={14} />}
-                  onClick={go("post-mortem/records")}
-                  title={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                      <TagBadge tag={i.tag_number} />
-                      <span>{i.species || "Carcass"}</span>
-                    </span>
-                  }
-                  sub={`${formatDate(i.date)} · ${i.findings || i.remarks || "No visceral abnormalities"} · ${i.inspector_name || "Dr. Dave"}`}
-                  end={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Badge status={i.decision || "Approved"} />
-                    </div>
-                  }
-                />
-              ))}
+            <div className="ag-big-sep" />
+            <div
+              className="ag-big small interactive"
+              onClick={go(awaitingAnteMortem.length > 0 ? "ante-mortem" : "post-mortem")}
+              data-ag-tip={`${awaitingAnteMortem.length} awaiting Ante-Mortem · ${awaitingPostMortem.length} awaiting Post-Mortem`}
+            >
+              <strong>{totalAwaiting}</strong>
+              <span>
+                Awaiting
+                <br />
+                evaluation
+              </span>
             </div>
-          )}
-        </Card>
-      </div>
-
-      {/* Record List 3: Recent Carcass Weighing Records */}
-      <Card
-        title="Recent Carcass Weighing & Scale Records"
-        action={
-          <Button size="sm" variant="ghost" onClick={go("carcass-weighing")}>
-            View All ({(carcass || []).length}) →
-          </Button>
-        }
-      >
-        {sortedCarcass.length === 0 ? (
-          <EmptyState
-            title="No carcass scale records yet"
-            message="Verified carcass scale weights will appear here once processed on the scale."
-            icon={<Icon.Scale />}
-          />
-        ) : (
-          <div className="dash-list">
-            {sortedCarcass.map((c) => (
-              <ListRow
-                key={c.id || c.tag_number}
-                gradient="linear-gradient(135deg, #10b981, #047857)"
-                icon={<Icon.Scale size={14} />}
-                onClick={go("carcass-weighing")}
-                title={
-                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <TagBadge tag={c.tag_number} />
-                    <strong>{c.total_weight ? `${c.total_weight} kg` : "—"}</strong>
-                    <span className="text-muted" style={{ fontSize: 12 }}>
-                      (Hot: {c.hot_weight ? `${c.hot_weight} kg` : "—"} · Cold: {c.cold_weight ? `${c.cold_weight} kg` : "—"})
-                    </span>
-                  </span>
-                }
-                sub={`Grade ${c.grade || "A"} · Scale Operator: ${c.operator || "Dave Gisigisi"} · ${c.date ? formatDate(c.date) : "Recent"}`}
-                end={
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Badge status={c.status || "Weighed"} />
-                  </div>
-                }
-              />
-            ))}
           </div>
+
+          <div
+            className="ag-progress"
+            onClick={go("history")}
+            data-ag-tip={`${approved} of ${inspections.length} inspections passed (${passPct}%)${condemned ? ` · ${condemned} condemned` : ""}`}
+          >
+            <i style={{ width: `${Math.max(passPct, 8)}%` }} />
+          </div>
+
+          <div className="ag-tiles">
+            <button
+              type="button"
+              className="ag-tile mid"
+              onClick={go("ante-mortem")}
+              data-ag-tip={`${(ante || []).length} Ante-Mortem inspections (${anteApprovedCount} passed · ${awaitingAnteMortem.length} waiting)`}
+            >
+              <span className="ag-tile-icon">
+                <Icon.Stethoscope size={15} />
+              </span>
+              <strong>{(ante || []).length}</strong>
+              <span>Ante-Mortem</span>
+            </button>
+            <button
+              type="button"
+              className="ag-tile"
+              onClick={go("post-mortem")}
+              data-ag-tip={`${(post || []).length} Post-Mortem inspections (${postApprovedCount} passed · ${awaitingPostMortem.length} waiting)`}
+            >
+              <span className="ag-tile-icon">
+                <Icon.Activity size={15} />
+              </span>
+              <strong>{(post || []).length}</strong>
+              <span>Post-Mortem</span>
+            </button>
+            <button
+              type="button"
+              className="ag-tile light"
+              onClick={go("carcass-weighing")}
+              data-ag-tip={`${(carcass || []).length} carcasses weighed (${awaitingWeighing.length} awaiting scale)`}
+            >
+              <span className="ag-tile-icon">
+                <Icon.Scale size={15} />
+              </span>
+              <strong>{(carcass || []).length}</strong>
+              <span>Weighed</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Top-Center: Clinical Inspection Flow Card */}
+        <section className="ag-card ag-glass">
+          <header className="ag-card-head">
+            <h2>Clinical inspection flow</h2>
+            <button
+              type="button"
+              className="ag-icon-btn"
+              onClick={go("reports")}
+              data-ag-tip="Open Analytical Reports"
+              data-ag-tip-pos="right"
+              aria-label="Open Analytical Reports"
+            >
+              <Icon.PieChart size={16} />
+            </button>
+          </header>
+
+          <InteractiveAreaChart
+            points={chartPoints}
+            primaryLabel="All-time volume"
+            secondaryLabel={`Passed (${approved} certified)`}
+            ariaLabel="Clinical inspection throughput"
+          />
+        </section>
+
+        {/* Top-Right: Inspection Outcomes Card */}
+        <section className="ag-card ag-white ag-progress-card">
+          <div>
+            <header className="ag-card-head">
+              <h2>Inspection Outcomes</h2>
+              <button
+                type="button"
+                className="ag-icon-btn"
+                onClick={go("history")}
+                data-ag-tip="View Inspection History"
+                data-ag-tip-pos="right"
+                aria-label="View Inspection History"
+              >
+                <Icon.TrendingUp size={16} />
+              </button>
+            </header>
+
+            <p
+              className="ag-sub-stat interactive"
+              onClick={go("history")}
+              data-ag-tip={`${approved} passed inspections · ${condemned} condemned (${passPct}% pass rate)`}
+              data-ag-tip-pos="left"
+            >
+              <b>{approved}</b> passed inspections
+              {condemned ? ` · ${condemned} condemned` : ""}
+            </p>
+
+            <div className="ag-overview-label">OVERVIEW</div>
+            <InteractiveRings
+              rows={outcomeRows}
+              centerValue={`${passPct}%`}
+              centerCaption="PASSED"
+              ariaLabel="Inspection outcomes"
+            />
+          </div>
+
+          <div className="ag-card-foot-actions">
+            <button
+              type="button"
+              className="ag-circle-action"
+              onClick={go("ante-mortem")}
+              data-ag-tip="Ante-Mortem Inspection"
+              data-ag-tip-pos="left"
+              aria-label="Ante-Mortem Inspection"
+            >
+              <Icon.Stethoscope size={15} />
+            </button>
+            <button
+              type="button"
+              className="ag-outline-pill"
+              onClick={go("reports")}
+              data-ag-tip="Export & view veterinary inspection reports"
+            >
+              View Reports
+            </button>
+          </div>
+        </section>
+      </div>
+
+      {/* Row 2: Clinical Queue Checklist + Recent Post-Mortem Cards + Conduct Inspection Slot */}
+      <div className="ag-row ag-row-mid">
+        <section className="ag-card ag-white ag-goals">
+          <header className="ag-card-head">
+            <h2>Clinical Queue</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span
+                className="ag-goals-badge"
+                data-ag-tip={`${awaitingAnteMortem.length} Ante-Mortem + ${awaitingPostMortem.length} Post-Mortem waiting`}
+              >
+                {totalAwaiting} waiting
+              </span>
+              <button
+                type="button"
+                className="ag-icon-btn"
+                onClick={go(awaitingAnteMortem.length > 0 ? "ante-mortem" : "post-mortem")}
+                data-ag-tip="Start Inspecting Queue"
+                data-ag-tip-pos="right"
+                aria-label="Start Inspecting"
+              >
+                <Icon.Stethoscope size={14} />
+              </button>
+            </div>
+          </header>
+
+          <ul className="ag-checklist">
+            <li
+              onClick={go("ante-mortem")}
+              data-ag-tip={`${awaitingAnteMortem.length} marked live animal(s) ready for Ante-Mortem evaluation`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {awaitingAnteMortem.length} live animal{awaitingAnteMortem.length === 1 ? "" : "s"} awaiting Ante-Mortem
+              </span>
+              <span className="ag-check-sub">Inspect</span>
+            </li>
+            <li
+              className="muted"
+              onClick={go("post-mortem")}
+              data-ag-tip={`${awaitingPostMortem.length} slaughtered carcass(es) ready for Post-Mortem evaluation`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {awaitingPostMortem.length} carcass{awaitingPostMortem.length === 1 ? "" : "es"} awaiting Post-Mortem
+              </span>
+              <span className="ag-check-sub">Inspect</span>
+            </li>
+            <li
+              className="muted"
+              onClick={go("carcass-weighing")}
+              data-ag-tip={`${awaitingWeighing.length} approved carcass(es) awaiting scale weight entry`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {awaitingWeighing.length} carcass{awaitingWeighing.length === 1 ? "" : "es"} awaiting scale weight
+              </span>
+              <span className="ag-check-sub">Weigh</span>
+            </li>
+            <li
+              className="muted"
+              onClick={go("history")}
+              data-ag-tip={`Browse all ${inspections.length} clinical inspection records`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {inspections.length} total clinical inspections recorded
+              </span>
+            </li>
+          </ul>
+        </section>
+
+        <div className="ag-process">
+          <header className="ag-process-head">
+            <h2>
+              Recent Post-Mortem <small>( {(post || []).length} )</small>
+            </h2>
+            <button type="button" className="ag-link" onClick={go("post-mortem")}>
+              Open Post-Mortem <Icon.ChevronRight size={14} />
+            </button>
+          </header>
+
+          <div className="ag-process-grid">
+            {sortedPost.length === 0 ? (
+              <div className="ag-card ag-white ag-empty-card" style={{ gridColumn: "span 2" }}>
+                No Post-Mortem inspections recorded yet.
+              </div>
+            ) : (
+              sortedPost.map((i) => (
+                <article
+                  key={i.id || `${i.tag_number}-${i.date}`}
+                  className="ag-card ag-white ag-task"
+                  onClick={go("post-mortem")}
+                  data-ag-tip={`Tag ${i.tag_number || "Carcass"} · Decision: ${i.decision || "Approved"} · ${i.findings || i.remarks || "No visceral abnormalities"}`}
+                >
+                  <div>
+                    <div className="ag-task-top">
+                      <span className="ag-task-icon">
+                        <Icon.Activity size={18} />
+                      </span>
+                      <Badge status={i.decision || "Approved"} />
+                    </div>
+                    <h3>{i.tag_number || "Carcass"}</h3>
+                    <p>
+                      {i.species || "Carcass"} · {i.findings || i.remarks || "No visceral abnormalities"}
+                    </p>
+                  </div>
+                  <footer>
+                    <span>{i.date ? formatDate(i.date) : "Inspected"}</span>
+                    <span className="ag-task-corner">
+                      <Icon.ArrowRight size={14} />
+                    </span>
+                  </footer>
+                </article>
+              ))
+            )}
+
+            <button
+              type="button"
+              className="ag-dashed-slot"
+              onClick={go("post-mortem")}
+              data-ag-tip={`Open Post-Mortem Inspection (${awaitingPostMortem.length} awaiting carcass check)`}
+            >
+              <span>View Post-Mortem</span>
+              <small>{awaitingPostMortem.length} awaiting carcass check</small>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Recent Ante-Mortem Dark Cards */}
+      <div className="ag-section-head">
+        <h2 className="ag-section">Latest Ante-Mortem Inspections</h2>
+        <button type="button" className="ag-link" onClick={go("ante-mortem")}>
+          View all ({(ante || []).length}) <Icon.ChevronRight size={14} />
+        </button>
+      </div>
+
+      <div className="ag-row ag-row-bottom">
+        {sortedAnte.length === 0 ? (
+          <div className="ag-card ag-dark ag-empty-card" style={{ gridColumn: "1 / -1" }}>
+            No Ante-Mortem inspections recorded yet.
+          </div>
+        ) : (
+          sortedAnte.map((i) => (
+            <article
+              key={i.id || `${i.tag_number}-${i.date}`}
+              className="ag-card ag-dark ag-project"
+              onClick={go("ante-mortem")}
+              data-ag-tip={`Tag ${i.tag_number || "Untagged"} · ${i.species || "Livestock"} · Decision: ${i.decision || "Approved"} · ${i.findings || "No clinical abnormalities"}`}
+            >
+              <header>
+                <h3>
+                  {i.species || "Livestock"} · {i.tag_number || "Untagged"}
+                </h3>
+                <span className="ag-ring-badge">
+                  {(i.decision || "Approved") === "Approved" || i.decision === "Passed" ? "OK" : "!"}
+                </span>
+              </header>
+              <ul>
+                <li>
+                  <strong>{i.decision || "Approved"}</strong>
+                </li>
+                <li>
+                  {i.findings || "No clinical abnormalities"}
+                  {i.date ? ` · ${formatDate(i.date)}` : ""}
+                </li>
+              </ul>
+            </article>
+          ))
         )}
-      </Card>
+      </div>
     </div>
   );
 };

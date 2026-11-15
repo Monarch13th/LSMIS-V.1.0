@@ -40,7 +40,7 @@ const extractStepsFromHistory = (livestockItem) => {
 
 
 const isValidIsoTimestamp = (val) => {
-  if (!val || val === "â€”") return false;
+  if (!val || val === "—") return false;
   const str = String(val).trim();
   if (!str.includes("T") && !str.includes(":") && !str.includes("Z")) return false;
   const d = new Date(str);
@@ -123,9 +123,9 @@ const formatSpeciesList = (list) => {
 const getSpeciesStyle = (species) => {
   switch (species) {
     case "Hog":
-      return { bg: "var(--color-violet-bg)", text: "var(--color-violet)", border: "rgba(139, 92, 246, 0.35)" };
+      return { bg: "var(--color-violet-bg)", text: "var(--color-violet)", border: "rgba(24, 122, 86, 0.35)" };
     case "Cattle":
-      return { bg: "var(--color-info-bg)", text: "var(--color-info)", border: "rgba(14, 165, 233, 0.35)" };
+      return { bg: "var(--color-info-bg)", text: "var(--color-info)", border: "rgba(24, 122, 86, 0.35)" };
     case "Carabao":
       return { bg: "var(--color-success-bg)", text: "var(--color-success)", border: "rgba(16, 185, 129, 0.35)" };
     case "Goat":
@@ -162,7 +162,7 @@ const resolveSlaughterTime = (rec) => {
     rec.mark_time ||
     rec.time_marked ||
     rec.time;
-  if (raw && raw !== "â€”") {
+  if (raw && raw !== "—") {
     try {
       const d = new Date(raw);
       if (!isNaN(d.getTime()) && String(raw).includes("T")) {
@@ -175,7 +175,7 @@ const resolveSlaughterTime = (rec) => {
       }
     } catch (_) {}
     const formatted = formatTime(raw);
-    if (formatted && formatted !== "â€”") return formatted;
+    if (formatted && formatted !== "—") return formatted;
   }
   return formatTime(new Date());
 };
@@ -200,7 +200,7 @@ const CheckboxWithIndeterminate = ({ checked, indeterminate, onChange, style, id
       style={{
         width: 17,
         height: 17,
-        accentColor: "var(--color-primary, #0284c7)",
+        accentColor: "var(--color-primary, #187A56)",
         cursor: disabled ? "not-allowed" : "pointer",
         ...style,
       }}
@@ -841,7 +841,7 @@ export const SlaughterProcessing = () => {
     if (!item) return false;
     if (item.is_fallback) return false;
     const op = String(item.operator || "").trim();
-    return Boolean(op && op !== "Unassigned" && op !== "â€”");
+    return Boolean(op && op !== "Unassigned" && op !== "—");
   };
 
   // 1. Unassigned / Fallback animals awaiting team operator assignment (Tab 1: Assign Team Operator)
@@ -874,7 +874,7 @@ export const SlaughterProcessing = () => {
     );
     if (animal?.owner_id) return String(animal.owner_id).trim();
     const directName = (item.owner_name || animal?.owner_name || "").trim();
-    if (directName && directName !== "Unknown Owner" && directName !== "â€”" && Array.isArray(owners)) {
+    if (directName && directName !== "Unknown Owner" && directName !== "—" && Array.isArray(owners)) {
       const match = owners.find((o) => o.name && o.name.toLowerCase().trim() === directName.toLowerCase());
       if (match?.id) return String(match.id).trim();
     }
@@ -896,7 +896,7 @@ export const SlaughterProcessing = () => {
       if (match?.name) return match.name;
     }
     const direct = (item.owner_name || "").trim();
-    if (direct && direct !== "Unknown Owner" && direct !== "â€”") {
+    if (direct && direct !== "Unknown Owner" && direct !== "—") {
       if (Array.isArray(owners)) {
         const match = owners.find((o) => (o.name || "").trim().toLowerCase() === direct.toLowerCase());
         if (match?.name) return match.name;
@@ -915,7 +915,7 @@ export const SlaughterProcessing = () => {
       });
       if (match?.name) return match.name;
     }
-    if (animal?.owner_name && animal.owner_name !== "Unknown Owner" && animal.owner_name !== "â€”") return animal.owner_name;
+    if (animal?.owner_name && animal.owner_name !== "Unknown Owner" && animal.owner_name !== "—") return animal.owner_name;
     return "Unknown Owner";
   };
 
@@ -1973,7 +1973,7 @@ export const SlaughterProcessing = () => {
           });
         }
         showToast(
-          `ðŸŽ‰ ${record.tag_number} slaughter processing complete! Transferred to Post-Mortem Inspection.`,
+          `?? ${record.tag_number} slaughter processing complete! Transferred to Post-Mortem Inspection.`,
           "success"
         );
       }
@@ -1994,12 +1994,12 @@ export const SlaughterProcessing = () => {
     }
     const headers = "Tag #,Species,Sex,Owner Name,Assigned Operator,Date,Steps Completed,Status";
     const rows = completed.map((c) => {
-      const tag = c.tag_number || "â€”";
-      const species = c.species || "â€”";
+      const tag = c.tag_number || "—";
+      const species = c.species || "—";
       const sex = formatSex(c.sex);
-      const owner = c.owner_name ? c.owner_name.replace(/"/g, '""') : "â€”";
-      const op = c.operator ? c.operator.replace(/"/g, '""') : "â€”";
-      const date = c.date ? formatDate(c.date) : "â€”";
+      const owner = c.owner_name ? c.owner_name.replace(/"/g, '""') : "—";
+      const op = c.operator ? c.operator.replace(/"/g, '""') : "—";
+      const date = c.date ? formatDate(c.date) : "—";
       const steps = `${countDone(c.steps)}/${STEPS.length}`;
       const status = c.status || "Completed";
       return `"${tag}","${species}","${sex}","${owner}","${op}","${date}","${steps}","${status}"`;
@@ -2019,37 +2019,19 @@ export const SlaughterProcessing = () => {
   };
 
   const renderNavTabs = () => (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        background: "var(--color-bg)",
-        padding: "3px",
-        borderRadius: 9,
-        border: "1px solid var(--color-border)",
-        gap: 4,
-        flexShrink: 0,
-        whiteSpace: "nowrap",
-      }}
-    >
+    <div className="adm-seg-tabs">
       {[
         {
           id: "awaiting",
           label: "Assign Team Operator",
           count: unassignedAnimals.length,
           icon: <Icon.Users size={14} />,
-          color: "#d97706",
-          badgeBg: "rgba(217, 119, 6, 0.15)",
-          badgeColor: "#d97706",
         },
         {
           id: "active",
           label: "Ready for Slaughter",
           count: inProgress.length,
           icon: <Icon.Activity size={14} />,
-          color: "#0284c7",
-          badgeBg: "rgba(2, 132, 199, 0.15)",
-          badgeColor: "#0284c7",
         },
       ].map((tab) => {
         const isActive = activeTab === tab.id;
@@ -2057,44 +2039,17 @@ export const SlaughterProcessing = () => {
           <button
             key={tab.id}
             type="button"
+            className={`adm-seg-btn ${isActive ? "active" : ""}`}
             onClick={() => {
               setActiveTab(tab.id);
               setPage(1);
             }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "5px 10px",
-              borderRadius: 7,
-              fontSize: 12,
-              fontWeight: isActive ? 700 : 600,
-              border: isActive ? "1px solid var(--color-border)" : "1px solid transparent",
-              cursor: "pointer",
-              background: isActive ? "var(--color-surface)" : "transparent",
-              color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-              boxShadow: isActive ? "0 1px 3px rgba(0, 0, 0, 0.06)" : "none",
-              transition: "all 140ms ease",
-              whiteSpace: "nowrap",
-            }}
           >
-            <span style={{ color: isActive ? tab.color : "var(--color-text-muted)", display: "flex" }}>
+            <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>
               {tab.icon}
             </span>
             <span>{tab.label}</span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                padding: "1px 6px",
-                borderRadius: 999,
-                background: isActive ? tab.badgeBg : "var(--color-border-subtle, rgba(148, 163, 184, 0.15))",
-                color: isActive ? tab.badgeColor : "var(--color-text-muted)",
-                lineHeight: 1.1,
-                minWidth: 18,
-                textAlign: "center",
-              }}
-            >
+            <span className="adm-seg-badge">
               {tab.count}
             </span>
           </button>
@@ -2142,7 +2097,7 @@ export const SlaughterProcessing = () => {
           transition: background-color 140ms ease;
         }
         .awaiting-records-table tbody tr:hover td {
-          background-color: rgba(2, 132, 199, 0.035);
+          background-color: rgba(24, 122, 86, 0.035);
         }
         .awaiting-records-table tbody tr.fallback-row td {
           background-color: rgba(254, 243, 199, 0.32);
@@ -2362,8 +2317,8 @@ export const SlaughterProcessing = () => {
               flexWrap: "wrap",
               gap: 12,
               padding: "10px 16px",
-              background: "rgba(2, 132, 199, 0.08)",
-              borderBottom: "1px solid rgba(2, 132, 199, 0.22)",
+              background: "rgba(24, 122, 86, 0.08)",
+              borderBottom: "1px solid rgba(24, 122, 86, 0.22)",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -2376,7 +2331,7 @@ export const SlaughterProcessing = () => {
                   borderRadius: 6,
                   fontSize: 12.5,
                   fontWeight: 700,
-                  background: "var(--color-primary, #0284c7)",
+                  background: "var(--color-primary, #187A56)",
                   color: "#ffffff",
                 }}
               >
@@ -2465,7 +2420,7 @@ export const SlaughterProcessing = () => {
                           borderBottom: "1px solid var(--color-border)",
                           cursor: "pointer",
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                       >
                         <td style={{ padding: "14px 18px" }}>
@@ -2475,7 +2430,7 @@ export const SlaughterProcessing = () => {
                                 width: 34,
                                 height: 34,
                                 borderRadius: "50%",
-                                background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                                background: "#187A56",
                                 color: "#ffffff",
                                 display: "flex",
                                 alignItems: "center",
@@ -2499,7 +2454,7 @@ export const SlaughterProcessing = () => {
                         </td>
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#0284c7" }} />
+                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#187A56" }} />
                             <span>{grp.started_at ? formatPhDateTime(grp.started_at) : (grp.rawDate ? formatPhDateTime(grp.rawDate) : formatPhDate(grp.slaughter_date))}</span>
                           </div>
                         </td>
@@ -2510,13 +2465,13 @@ export const SlaughterProcessing = () => {
                         </td>
                         <td style={{ padding: "14px 18px", textAlign: "center" }}>
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
-                            <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0284c7" }}>
+                            <span style={{ fontSize: 12.5, fontWeight: 700, color: "#187A56" }}>
                               {grp.count} {grp.count === 1 ? "carcass" : "carcasses"}
                             </span>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 600 }}>
-                              <span style={{ color: "#1d4ed8" }}>â™‚ {grp.maleCount}</span>
-                              <span style={{ color: "var(--color-text-muted)" }}>â€¢</span>
-                              <span style={{ color: "#be185d" }}>â™€ {grp.femaleCount}</span>
+                              <span style={{ color: "#1d4ed8" }}>? {grp.maleCount}</span>
+                              <span style={{ color: "var(--color-text-muted)" }}>•</span>
+                              <span style={{ color: "#be185d" }}>? {grp.femaleCount}</span>
                             </div>
                           </div>
                         </td>
@@ -2528,7 +2483,7 @@ export const SlaughterProcessing = () => {
                               gap: 5,
                               fontSize: 12,
                               fontWeight: 700,
-                              color: "#0284c7",
+                              color: "#187A56",
                             }}
                           >
                             <Icon.Activity size={13} /> Ready for Slaughter ({grp.count})
@@ -2633,7 +2588,7 @@ export const SlaughterProcessing = () => {
                     width: 24,
                     height: 24,
                     borderColor: "var(--color-border)",
-                    borderTopColor: "var(--color-primary, #0284c7)",
+                    borderTopColor: "var(--color-primary, #187A56)",
                   }}
                 />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Loading livestock records...</span>
@@ -2669,13 +2624,13 @@ export const SlaughterProcessing = () => {
                       return (
                         <tr
                           key={grp.key}
-                          onClick={() => setSelectedOwnerKey(grp.key)}
+                          onClick={() => handleOpenOwnerAssign(grp)}
                           style={{
                             transition: "background 140ms ease",
                             borderBottom: "1px solid var(--color-border)",
                             cursor: "pointer",
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                         >
                           <td style={{ padding: "14px 18px" }}>
@@ -2710,7 +2665,7 @@ export const SlaughterProcessing = () => {
                           <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#d97706" }} />
-                              <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "â€”"}</span>
+                              <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "—"}</span>
                             </div>
                           </td>
                           <td style={{ padding: "14px 18px" }}>
@@ -2767,9 +2722,9 @@ export const SlaughterProcessing = () => {
                                 className="action-btn action-btn-outline"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedOwnerKey(grp.key);
+                                  handleOpenOwnerAssign(grp);
                                 }}
-                                title="View Owner Records"
+                                title="View & Assign Team Operator"
                               >
                                 <Icon.Eye size={13} />
                                 <span>View</span>
@@ -2806,8 +2761,8 @@ export const SlaughterProcessing = () => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "awaiting"
-            ? `Awaiting Team Assignment â€” ${selectedOwnerView?.owner_name || ""}`
-            : `Ready for Slaughter â€” ${selectedOwnerView?.owner_name || ""}`
+            ? `Awaiting Team Assignment — ${selectedOwnerView?.owner_name || ""}`
+            : `Ready for Slaughter — ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -2933,7 +2888,7 @@ export const SlaughterProcessing = () => {
                                 gap: 5,
                               }}
                             >
-                              {rec.tag_number || "â€”"}
+                              {rec.tag_number || "—"}
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>
@@ -3059,7 +3014,7 @@ export const SlaughterProcessing = () => {
                                 gap: 5,
                               }}
                             >
-                              {s.tag_number || "â€”"}
+                              {s.tag_number || "—"}
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{s.species}</td>
@@ -3121,9 +3076,9 @@ export const SlaughterProcessing = () => {
                                   borderRadius: 5,
                                   fontSize: 11.5,
                                   fontWeight: 700,
-                                  background: "rgba(2, 132, 199, 0.1)",
-                                  color: "var(--color-primary, #0284c7)",
-                                  border: "1px solid rgba(2, 132, 199, 0.25)",
+                                  background: "rgba(24, 122, 86, 0.1)",
+                                  color: "var(--color-primary, #187A56)",
+                                  border: "1px solid rgba(24, 122, 86, 0.25)",
                                 }}
                               >
                                 <Icon.Users size={11} />
@@ -3317,7 +3272,7 @@ export const SlaughterProcessing = () => {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                <label style={{ fontSize: 12.5, fontWeight: 700, color: "#334155", margin: 0 }}>
+                <label style={{ fontSize: 12.5, fontWeight: 700, color: "#444C47", margin: 0 }}>
                   Select Animal Tags <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <span
@@ -3326,8 +3281,8 @@ export const SlaughterProcessing = () => {
                     fontWeight: 700,
                     padding: "2px 7px",
                     borderRadius: 999,
-                    background: modalSelectedTags.size > 0 ? "#e0f2fe" : "#f1f5f9",
-                    color: modalSelectedTags.size > 0 ? "#0369a1" : "#64748b",
+                    background: modalSelectedTags.size > 0 ? "#e0f2fe" : "#EFF2F0",
+                    color: modalSelectedTags.size > 0 ? "#136647" : "#5D6660",
                   }}
                 >
                   {modalSelectedTags.size} of {allModalTags.length} Selected
@@ -3406,7 +3361,7 @@ export const SlaughterProcessing = () => {
                     <div
                       key={grp.key}
                       style={{
-                        border: selectedInGrp.length > 0 ? "1.5px solid #059669" : "1px solid #e2e8f0",
+                        border: selectedInGrp.length > 0 ? "1.5px solid #059669" : "1px solid #E2E6E3",
                         borderRadius: 10,
                         background: "#ffffff",
                         overflow: "hidden",
@@ -3451,7 +3406,7 @@ export const SlaughterProcessing = () => {
                               style={{
                                 fontSize: 13.5,
                                 fontWeight: 700,
-                                color: "#0f172a",
+                                color: "#1A201C",
                                 letterSpacing: "-0.01em",
                               }}
                             >
@@ -3491,9 +3446,9 @@ export const SlaughterProcessing = () => {
                               fontWeight: 700,
                               padding: "2px 6px",
                               borderRadius: 4,
-                              background: "#f1f5f9",
-                              color: "#334155",
-                              border: "1px solid #e2e8f0",
+                              background: "#EFF2F0",
+                              color: "#444C47",
+                              border: "1px solid #E2E6E3",
                             }}
                             title="Total eligible records for this owner"
                           >
@@ -3516,7 +3471,7 @@ export const SlaughterProcessing = () => {
                             }}
                             title="Count of male records"
                           >
-                            <span style={{ fontSize: 12 }}>â™‚</span> Male: <strong>{grp.maleCount}</strong>
+                            <span style={{ fontSize: 12 }}>?</span> Male: <strong>{grp.maleCount}</strong>
                           </span>
 
                           {/* Female Count Badge */}
@@ -3535,7 +3490,7 @@ export const SlaughterProcessing = () => {
                             }}
                             title="Count of female records"
                           >
-                            <span style={{ fontSize: 12 }}>â™€</span> Female: <strong>{grp.femaleCount}</strong>
+                            <span style={{ fontSize: 12 }}>?</span> Female: <strong>{grp.femaleCount}</strong>
                           </span>
 
                           {grp.unspecifiedCount > 0 && (
@@ -3545,9 +3500,9 @@ export const SlaughterProcessing = () => {
                                 fontWeight: 600,
                                 padding: "2px 6px",
                                 borderRadius: 4,
-                                background: "#f8fafc",
-                                color: "#64748b",
-                                border: "1px solid #cbd5e1",
+                                background: "#F9FAF8",
+                                color: "#5D6660",
+                                border: "1px solid #C2CAC4",
                               }}
                               title="Records with unspecified or unknown sex"
                             >
@@ -3559,7 +3514,7 @@ export const SlaughterProcessing = () => {
                           <span
                             onClick={() => toggleOwnerExpanded(grp.key)}
                             style={{
-                              color: "#64748b",
+                              color: "#5D6660",
                               display: "inline-flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -3578,8 +3533,8 @@ export const SlaughterProcessing = () => {
                       {isExpanded && (
                         <div
                           style={{
-                            borderTop: "1px solid #e2e8f0",
-                            background: "#f8fafc",
+                            borderTop: "1px solid #E2E6E3",
+                            background: "#F9FAF8",
                             padding: "8px 10px",
                           }}
                         >
@@ -3612,7 +3567,7 @@ export const SlaughterProcessing = () => {
                                     padding: "5px 8px",
                                     borderRadius: 6,
                                     background: isSelected ? "rgba(5, 150, 105, 0.04)" : "#ffffff",
-                                    border: isSelected ? "1.5px solid #059669" : "1px solid #cbd5e1",
+                                    border: isSelected ? "1.5px solid #059669" : "1px solid #C2CAC4",
                                     boxShadow: isSelected ? "0 1px 3px rgba(5, 150, 105, 0.1)" : "none",
                                     cursor: "pointer",
                                     transition: "all 0.12s ease",
@@ -3636,11 +3591,11 @@ export const SlaughterProcessing = () => {
                                       }}
                                     />
                                     <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                                      <span style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#0f172a", lineHeight: 1.2 }}>
+                                      <span style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 700, color: "#1A201C", lineHeight: 1.2 }}>
                                         {item.tag_number}
                                       </span>
-                                      <span style={{ fontSize: 10.5, color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
-                                        {item.species || "Livestock"}{item.breed ? ` â€¢ ${item.breed}` : ""}
+                                      <span style={{ fontSize: 10.5, color: "#5D6660", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
+                                        {item.species || "Livestock"}{item.breed ? ` • ${item.breed}` : ""}
                                       </span>
                                     </div>
                                   </div>
@@ -3659,7 +3614,7 @@ export const SlaughterProcessing = () => {
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        â™‚ Male
+                                        ? Male
                                       </span>
                                     ) : isFemale ? (
                                       <span
@@ -3674,7 +3629,7 @@ export const SlaughterProcessing = () => {
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        â™€ Female
+                                        ? Female
                                       </span>
                                     ) : (
                                       <span
@@ -3683,8 +3638,8 @@ export const SlaughterProcessing = () => {
                                           fontWeight: 500,
                                           padding: "1px 5px",
                                           borderRadius: 4,
-                                          background: "#f1f5f9",
-                                          color: "#64748b",
+                                          background: "#EFF2F0",
+                                          color: "#5D6660",
                                           lineHeight: 1.2,
                                         }}
                                       >
@@ -3757,7 +3712,7 @@ export const SlaughterProcessing = () => {
               marginBottom: 0,
               padding: "12px 20px",
               background: "var(--color-surface, #ffffff)",
-              borderTop: "1px solid var(--color-border, #e2e8f0)",
+              borderTop: "1px solid var(--color-border, #E2E6E3)",
               boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.04)",
               display: "flex",
               justifyContent: "space-between",
@@ -3774,7 +3729,7 @@ export const SlaughterProcessing = () => {
                 style={{
                   fontSize: 12.5,
                   fontWeight: 700,
-                  color: "#334155",
+                  color: "#444C47",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
@@ -3798,9 +3753,9 @@ export const SlaughterProcessing = () => {
                   fontSize: 12.5,
                   fontWeight: 600,
                   cursor: "pointer",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid #C2CAC4",
                   padding: "0 10px",
-                  color: "#0f172a",
+                  color: "#1A201C",
                 }}
               >
                 <option value="">Select Team...</option>
@@ -3841,7 +3796,7 @@ export const SlaughterProcessing = () => {
                   height: 36,
                   background:
                     modalSelectedTags.size === 0 || !startForm.operator
-                      ? "#94a3b8"
+                      ? "#9BA49E"
                       : "linear-gradient(135deg, #10b981 0%, #047857 100%)",
                   color: "#ffffff",
                   fontWeight: 700,
@@ -3982,7 +3937,7 @@ export const SlaughterProcessing = () => {
             refreshAll();
           }
         }}
-        title={active ? `Slaughter Line Execution â€” ${active.tag_number}` : ""}
+        title={active ? `Slaughter Line Execution — ${active.tag_number}` : ""}
         size="lg"
         hideCloseButton
         bodyStyle={{ overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0 }}
@@ -4020,11 +3975,11 @@ export const SlaughterProcessing = () => {
                 </div>
                 <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <span>Owner: <b style={{ color: "var(--color-text)" }}>{active.owner_name}</b></span>
-                  <span>Â·</span>
+                  <span>·</span>
                   <span>Species: <b style={{ color: "var(--color-text)" }}>{active.species}</b></span>
-                  <span>Â·</span>
+                  <span>·</span>
                   <span>Sex: <b style={{ color: "var(--color-text)" }}>{formatSex(active.sex)}</b></span>
-                  <span>Â·</span>
+                  <span>·</span>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                     <span>Operator:</span>
                     {active.operator && active.operator !== "Unassigned" ? (
@@ -4165,7 +4120,7 @@ export const SlaughterProcessing = () => {
                             justifyContent: "center"
                           }}
                         >
-                          {isUpdatingThis ? <Icon.RefreshCw className="animate-spin" size={14} /> : isChecked ? "âœ“" : i + 1}
+                          {isUpdatingThis ? <Icon.RefreshCw className="animate-spin" size={14} /> : isChecked ? "?" : i + 1}
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 14, color: isChecked ? "var(--color-success)" : "var(--color-text)" }}>

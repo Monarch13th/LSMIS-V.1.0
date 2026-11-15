@@ -9,7 +9,7 @@ import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 
 /**
- * Owner Records — view-only complete livestock history for the authenticated owner.
+ * Owner Records � view-only complete livestock history for the authenticated owner.
  * Permits and payments are intentionally not shown here.
  */
 export const OwnerRecords = () => {
@@ -146,18 +146,52 @@ export const OwnerRecords = () => {
         try {
           const [carcRes, anteRes, postRes, condRes, spRes, srRes, permRes] = await Promise.all([
             supabase.from(TABLES.CARCASS).select("*").in("tag_number", tagNumbers),
-            supabase.from(TABLES.ANTE_MORTEM).select("*").in("tag_number", tagNumbers),
-            supabase.from(TABLES.POST_MORTEM).select("*").in("tag_number", tagNumbers),
-            supabase.from(TABLES.CONDEMNATION_RECORDS).select("*").in("tag_number", tagNumbers),
+            supabase.from(TABLES.ANTE_MORTEM).select("*").in("tag_number", tagNumbers).order("date", { ascending: false }),
+            supabase.from(TABLES.POST_MORTEM).select("*").in("tag_number", tagNumbers).order("date", { ascending: false }),
+            supabase.from(TABLES.CONDEMNATION_RECORDS).select("*").in("tag_number", tagNumbers).order("date", { ascending: false }),
             supabase.from(TABLES.SLAUGHTER_PROCESSING).select("*").in("tag_number", tagNumbers),
             supabase.from(TABLES.SLAUGHTER_RECORDS).select("*").in("tag_number", tagNumbers),
             supabase.from(TABLES.PERMITS).select("*").in("tag_number", tagNumbers),
           ]);
 
-          (carcRes.data || []).forEach((c) => { if (c.tag_number) cMap[c.tag_number] = c; });
-          (anteRes.data || []).forEach((a) => { if (a.tag_number) anteMap[a.tag_number] = a; });
-          (postRes.data || []).forEach((pm) => { if (pm.tag_number) postMap[pm.tag_number] = pm; });
-          (condRes.data || []).forEach((cd) => { if (cd.tag_number) condMap[cd.tag_number] = cd; });
+          (carcRes.data || []).forEach((c) => {
+            if (c.livestock_id) cMap[c.livestock_id] = c;
+            if (c.tag_number) cMap[c.tag_number] = c;
+          });
+          (anteRes.data || []).forEach((a) => {
+            if (a.livestock_id) anteMap[a.livestock_id] = a;
+            if (a.tag_number) {
+              if (!anteMap[a.tag_number] || a.livestock_id) {
+                anteMap[a.tag_number] = a;
+                anteMap[String(a.tag_number).trim().toUpperCase()] = a;
+              }
+            }
+          });
+          (postRes.data || []).forEach((pm) => {
+            if (pm.livestock_id) postMap[pm.livestock_id] = pm;
+            if (pm.tag_number) {
+              if (!postMap[pm.tag_number] || pm.livestock_id) {
+                postMap[pm.tag_number] = pm;
+                postMap[String(pm.tag_number).trim().toUpperCase()] = pm;
+              }
+            }
+          });
+          (condRes.data || []).forEach((cd) => {
+            if (cd.livestock_id) {
+              if (!condMap[cd.livestock_id]) condMap[cd.livestock_id] = [];
+              condMap[cd.livestock_id].push(cd);
+            }
+            if (cd.tag_number) {
+              const rawTag = cd.tag_number;
+              const upperTag = String(cd.tag_number).trim().toUpperCase();
+              if (!condMap[rawTag]) condMap[rawTag] = [];
+              condMap[rawTag].push(cd);
+              if (upperTag !== rawTag) {
+                if (!condMap[upperTag]) condMap[upperTag] = [];
+                condMap[upperTag].push(cd);
+              }
+            }
+          });
           (spRes.data || []).forEach((sp) => { if (sp.tag_number) spMap[sp.tag_number] = sp; });
           (srRes.data || []).forEach((sr) => { if (sr.tag_number) srMap[sr.tag_number] = sr; });
           permList = permRes.data || [];
@@ -277,10 +311,11 @@ export const OwnerRecords = () => {
     const matchedAnimal =
       filteredLivestock.find((a) => String(a.tag_number || "").trim().toUpperCase() === tagUpper) ||
       { tag_number: tagNumber };
-    const ante = milestones.ante?.[tagNumber] || milestones.ante?.[tagUpper];
-    const post = milestones.post?.[tagNumber] || milestones.post?.[tagUpper];
-    const cond = milestones.condemnation?.[tagNumber] || milestones.condemnation?.[tagUpper];
-    const ev = milestones.evidence?.[tagNumber] || milestones.evidence?.[tagUpper] || [];
+    const aId = matchedAnimal.id;
+    const ante = (aId && milestones.ante?.[aId]) || milestones.ante?.[tagNumber] || milestones.ante?.[tagUpper];
+    const post = (aId && milestones.post?.[aId]) || milestones.post?.[tagNumber] || milestones.post?.[tagUpper];
+    const cond = (aId && milestones.condemnation?.[aId]) || milestones.condemnation?.[tagNumber] || milestones.condemnation?.[tagUpper];
+    const ev = (aId && milestones.evidence?.[aId]) || milestones.evidence?.[tagNumber] || milestones.evidence?.[tagUpper] || [];
 
     const details =
       getOwnerCondemnationDetails({
@@ -296,7 +331,7 @@ export const OwnerRecords = () => {
         resultLabel: matchedAnimal.progress?.isPartialCondemned ? "Passed with Partial Condemnation" : "Condemned",
         scope: matchedAnimal.progress?.isPartialCondemned ? "partial" : "whole",
         locationArea: "Tinaan, City of Naga, Cebu, Philippines",
-        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "—",
+        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "�",
         inspectionDateFormatted: formatPhDateTime(new Date()),
         vetName: "Official Meat Inspection Service (Veterinarian)",
         pathologyReasons: "Veterinary condemnation decision recorded.",
@@ -327,8 +362,8 @@ export const OwnerRecords = () => {
         {/* Title row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontSize: 17 }}>📜</span>
-            <h1 style={{ fontSize: 15, fontWeight: 900, margin: 0, color: "var(--color-text, #0f172a)", letterSpacing: "-0.01em" }}>
+            <span style={{ fontSize: 17 }}>??</span>
+            <h1 style={{ fontSize: 15, fontWeight: 900, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
               Records
             </h1>
             <span
@@ -337,8 +372,8 @@ export const OwnerRecords = () => {
                 fontWeight: 700,
                 padding: "2px 7px",
                 borderRadius: 999,
-                background: "rgba(2, 132, 199, 0.12)",
-                color: "#0284c7",
+                background: "rgba(24, 122, 86, 0.12)",
+                color: "#187A56",
               }}
             >
               {dateFilter || searchQuery ? `${filteredLivestock.length} / ${allLivestock.length}` : `${allLivestock.length} Total`}
@@ -350,11 +385,11 @@ export const OwnerRecords = () => {
               onClick={fetchRecordsData}
               title="Refresh records"
               style={{
-                background: "var(--color-bg, #f8fafc)",
-                border: "1px solid var(--color-border, #e2e8f0)",
+                background: "var(--color-bg, #F9FAF8)",
+                border: "1px solid var(--color-border, #E2E6E3)",
                 borderRadius: 8,
                 padding: "4px 9px",
-                color: "var(--color-text-muted, #64748b)",
+                color: "var(--color-text-muted, #5D6660)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -378,7 +413,7 @@ export const OwnerRecords = () => {
               left: 11,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#94a3b8",
+              color: "#9BA49E",
               display: "flex",
               alignItems: "center",
               pointerEvents: "none",
@@ -397,9 +432,9 @@ export const OwnerRecords = () => {
               paddingLeft: 34,
               paddingRight: searchQuery ? 32 : 12,
               borderRadius: 10,
-              border: "1px solid var(--color-border, #e2e8f0)",
-              background: "var(--color-bg, #f8fafc)",
-              color: "var(--color-text, #0f172a)",
+              border: "1px solid var(--color-border, #E2E6E3)",
+              background: "var(--color-bg, #F9FAF8)",
+              color: "var(--color-text, #1A201C)",
               fontSize: 12,
               fontWeight: 500,
               outline: "none",
@@ -418,7 +453,7 @@ export const OwnerRecords = () => {
                 transform: "translateY(-50%)",
                 background: "transparent",
                 border: "none",
-                color: "#94a3b8",
+                color: "#9BA49E",
                 cursor: "pointer",
                 padding: 4,
                 display: "flex",
@@ -440,7 +475,7 @@ export const OwnerRecords = () => {
                 left: 11,
                 top: "50%",
                 transform: "translateY(-50%)",
-                color: "#94a3b8",
+                color: "#9BA49E",
                 display: "flex",
                 alignItems: "center",
                 pointerEvents: "none",
@@ -459,9 +494,9 @@ export const OwnerRecords = () => {
                 paddingLeft: 34,
                 paddingRight: 10,
                 borderRadius: 10,
-                border: dateFilter ? "1px solid #0284c7" : "1px solid var(--color-border, #e2e8f0)",
-                background: "var(--color-bg, #f8fafc)",
-                color: "var(--color-text, #0f172a)",
+                border: dateFilter ? "1px solid #187A56" : "1px solid var(--color-border, #E2E6E3)",
+                background: "var(--color-bg, #F9FAF8)",
+                color: "var(--color-text, #1A201C)",
                 fontSize: 12,
                 fontWeight: 600,
                 outline: "none",
@@ -478,9 +513,9 @@ export const OwnerRecords = () => {
               height: 35,
               padding: "0 12px",
               borderRadius: 10,
-              border: dateFilter === getManilaTodayStr() ? "1px solid #0284c7" : "1px solid var(--color-border, #e2e8f0)",
-              background: dateFilter === getManilaTodayStr() ? "rgba(2, 132, 199, 0.12)" : "var(--color-bg, #f8fafc)",
-              color: dateFilter === getManilaTodayStr() ? "#0284c7" : "var(--color-text, #0f172a)",
+              border: dateFilter === getManilaTodayStr() ? "1px solid #187A56" : "1px solid var(--color-border, #E2E6E3)",
+              background: dateFilter === getManilaTodayStr() ? "rgba(24, 122, 86, 0.12)" : "var(--color-bg, #F9FAF8)",
+              color: dateFilter === getManilaTodayStr() ? "#187A56" : "var(--color-text, #1A201C)",
               fontSize: 11.5,
               fontWeight: 700,
               cursor: "pointer",
@@ -499,9 +534,9 @@ export const OwnerRecords = () => {
                 height: 35,
                 padding: "0 10px",
                 borderRadius: 10,
-                border: "1px solid var(--color-border, #e2e8f0)",
-                background: "var(--color-bg, #f8fafc)",
-                color: "#64748b",
+                border: "1px solid var(--color-border, #E2E6E3)",
+                background: "var(--color-bg, #F9FAF8)",
+                color: "#5D6660",
                 fontSize: 11.5,
                 fontWeight: 600,
                 cursor: "pointer",
@@ -554,9 +589,9 @@ export const OwnerRecords = () => {
                     marginTop: 10,
                     fontSize: 11,
                     fontWeight: 700,
-                    color: "#0284c7",
-                    background: "rgba(2, 132, 199, 0.1)",
-                    border: "1px solid rgba(2, 132, 199, 0.25)",
+                    color: "#187A56",
+                    background: "rgba(24, 122, 86, 0.1)",
+                    border: "1px solid rgba(24, 122, 86, 0.25)",
                     padding: "4px 12px",
                     borderRadius: 8,
                     cursor: "pointer",
@@ -572,23 +607,24 @@ export const OwnerRecords = () => {
               const isCleared = progress.statusCategory === "cleared";
               const isProcessing = progress.statusCategory === "processing";
               const isCondemnedOrRejected = progress.statusCategory === "condemned" || progress.statusCategory === "rejected";
-              const isPartial = progress.isPartialCondemned || /partial/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`);
+              const isPartial = Boolean(progress.isPartialCondemned);
               const isActuallyCondemned = !isPartial && (isCondemnedOrRejected || /condemn|reject/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`));
 
               const regTimeFormatted = formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date);
               const tag = animal.tag_number;
               const tagUpper = String(tag || "").trim().toUpperCase();
-              const condRec = milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
-              const postRec = milestones.post?.[tag] || milestones.post?.[tagUpper];
-              const anteRec = milestones.ante?.[tag] || milestones.ante?.[tagUpper];
+              const aId = animal.id;
+              const condRec = (aId && milestones.condemnation?.[aId]) || milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
+              const postRec = (aId && milestones.post?.[aId]) || milestones.post?.[tag] || milestones.post?.[tagUpper];
+              const anteRec = (aId && milestones.ante?.[aId]) || milestones.ante?.[tag] || milestones.ante?.[tagUpper];
               const rejectedPartsStr =
                 Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
-                  ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+                  ? postRec.condemned_parts.filter(p => p && (p.part || p.specific_part)).map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : (p.part || "Cut")}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
                   : Array.isArray(condRec) && condRec.length > 0
-                  ? condRec.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
-                  : condRec?.part
+                  ? condRec.filter(c => c && c.part && !/whole|entire|live animal/i.test(c.part)).map((c) => `${c.part}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+                  : condRec?.part && !/whole|entire|live animal/i.test(condRec.part)
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
-                  : "Specific carcass cuts";
+                  : "Pathological cuts removed";
 
               // 2. FULLY CONDEMNED CARD (Mobile Records)
               if (isActuallyCondemned) {
@@ -615,10 +651,10 @@ export const OwnerRecords = () => {
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#1A201C", fontFamily: "monospace" }}>
                           {animal.tag_number}
                         </span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#5D6660" }}>
                           {animal.species}
                         </span>
                       </div>
@@ -647,7 +683,7 @@ export const OwnerRecords = () => {
                     {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ color: "#64748b", fontWeight: 600 }}>Stage:</span>
+                        <span style={{ color: "#5D6660", fontWeight: 600 }}>Stage:</span>
                         <span
                           style={{
                             fontWeight: 800,
@@ -661,7 +697,7 @@ export const OwnerRecords = () => {
                           {condStageName}
                         </span>
                       </div>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#64748b" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#5D6660" }}>
                         <Icon.Clock size={12} style={{ color: "#dc2626" }} />
                         <span>{condTimeFormatted}</span>
                       </div>
@@ -715,7 +751,7 @@ export const OwnerRecords = () => {
                         fontWeight: 800,
                         whiteSpace: "nowrap",
                         letterSpacing: "0.02em",
-                        color: "var(--color-text, #0f172a)",
+                        color: "var(--color-text, #1A201C)",
                       }}
                     >
                       {animal.tag_number}
@@ -743,7 +779,7 @@ export const OwnerRecords = () => {
                             : isCleared
                             ? "#10b981"
                             : isProcessing
-                            ? "#0ea5e9"
+                            ? "#24966D"
                             : "#f59e0b",
                         }}
                       />
@@ -759,21 +795,21 @@ export const OwnerRecords = () => {
                       gap: 10,
                       marginTop: 8,
                       fontSize: 12,
-                      color: "var(--color-text-muted, #64748b)",
+                      color: "var(--color-text-muted, #5D6660)",
                       flexWrap: "wrap",
                     }}
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ color: "var(--color-text-muted, #94a3b8)", fontWeight: 500 }}>Sex:</span>
-                      <strong style={{ color: "var(--color-text, #334155)", fontWeight: 700 }}>
+                      <span style={{ color: "var(--color-text-muted, #9BA49E)", fontWeight: 500 }}>Sex:</span>
+                      <strong style={{ color: "var(--color-text, #444C47)", fontWeight: 700 }}>
                         {formatSex(animal.sex || animal.gender)}
                       </strong>
                     </span>
 
-                    <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
+                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>�</span>
 
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Icon.Clock size={12} style={{ color: "#0ea5e9", flexShrink: 0 }} />
+                      <Icon.Clock size={12} style={{ color: "#24966D", flexShrink: 0 }} />
                       <span style={{ fontWeight: 600 }}>
                         {formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}
                       </span>
@@ -781,7 +817,7 @@ export const OwnerRecords = () => {
 
                     {progress.markTimestampFormatted && (
                       <>
-                        <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
+                        <span style={{ color: "var(--color-border, #C2CAC4)" }}>�</span>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                           <Icon.Tag size={12} style={{ color: progress.isReturnedToMarking ? "#f59e0b" : "#10b981", flexShrink: 0 }} />
                           <span style={{ fontWeight: 600 }}>
@@ -850,7 +886,7 @@ export const OwnerRecords = () => {
                       style={{
                         marginTop: 10,
                         paddingTop: 8,
-                        borderTop: "1px dashed var(--color-border, #e2e8f0)",
+                        borderTop: "1px dashed var(--color-border, #E2E6E3)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "space-between",
@@ -890,18 +926,18 @@ export const OwnerRecords = () => {
                                   : isRejected
                                   ? "#ef4444"
                                   : isCurrent
-                                  ? "#0ea5e9"
-                                  : "var(--color-border, #e2e8f0)",
-                                color: isCompleted || isRejected || isCurrent ? "#ffffff" : "#94a3b8",
+                                  ? "#24966D"
+                                  : "var(--color-border, #E2E6E3)",
+                                color: isCompleted || isRejected || isCurrent ? "#ffffff" : "#9BA49E",
                               }}
                             >
-                              {isCompleted ? "✓" : isRejected ? "✕" : stg.id}
+                              {isCompleted ? "?" : isRejected ? "?" : stg.id}
                             </div>
                             <span
                               style={{
                                 fontSize: 9,
                                 fontWeight: isCurrent ? 800 : 600,
-                                color: isCurrent ? "#0ea5e9" : isCompleted ? "#10b981" : isRejected ? "#ef4444" : "#94a3b8",
+                                color: isCurrent ? "#24966D" : isCompleted ? "#10b981" : isRejected ? "#ef4444" : "#9BA49E",
                                 marginTop: 3,
                                 whiteSpace: "nowrap",
                               }}
@@ -919,13 +955,13 @@ export const OwnerRecords = () => {
                     style={{
                       marginTop: 10,
                       paddingTop: 8,
-                      borderTop: "1px dashed var(--color-border, #e2e8f0)",
+                      borderTop: "1px dashed var(--color-border, #E2E6E3)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
                       fontSize: 12.5,
                       fontWeight: 700,
-                      color: "#0284c7",
+                      color: "#187A56",
                     }}
                   >
                     <span>View Details</span>
@@ -946,24 +982,25 @@ export const OwnerRecords = () => {
         const isCondemned = prog.statusCategory === "condemned" || prog.statusCategory === "rejected";
 
         const carcassRec = milestones.carcass?.[selTag] || milestones.carcass?.[selTagUpper];
-        const anteRec = milestones.ante?.[selTag] || milestones.ante?.[selTagUpper];
-        const postRec = milestones.post?.[selTag] || milestones.post?.[selTagUpper];
-        const condRec = milestones.condemnation?.[selTag] || milestones.condemnation?.[selTagUpper];
+        const selId = selectedLivestock.id;
+        const anteRec = (selId && milestones.ante?.[selId]) || milestones.ante?.[selTag] || milestones.ante?.[selTagUpper];
+        const postRec = (selId && milestones.post?.[selId]) || milestones.post?.[selTag] || milestones.post?.[selTagUpper];
+        const condRec = (selId && milestones.condemnation?.[selId]) || milestones.condemnation?.[selTag] || milestones.condemnation?.[selTagUpper];
         const permitRec =
+          (selId && milestones.permits?.[selId]) ||
           milestones.permits?.[selTag] ||
-          milestones.permits?.[selTagUpper] ||
-          milestones.permits?.[selectedLivestock.id];
+          milestones.permits?.[selTagUpper];
 
         const steps = prog.steps || [];
 
         const modalRejectedPartsStr =
           Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
-            ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+            ? postRec.condemned_parts.filter(p => p && (p.part || p.specific_part)).map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : (p.part || "Cut")}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
             : Array.isArray(condRec) && condRec.length > 0
-            ? condRec.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
-            : condRec?.part
+            ? condRec.filter(c => c && c.part && !/whole|entire|live animal/i.test(c.part)).map((c) => `${c.part}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+            : condRec?.part && !/whole|entire|live animal/i.test(condRec.part)
             ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
-            : "Specific carcass cuts";
+            : "Pathological cuts removed";
 
         return (
           <div
@@ -975,7 +1012,7 @@ export const OwnerRecords = () => {
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backgroundColor: "rgba(26, 32, 28, 0.75)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
               zIndex: 10000,
@@ -1010,7 +1047,7 @@ export const OwnerRecords = () => {
                       fontSize: 11,
                       fontWeight: 800,
                       textTransform: "uppercase",
-                      color: "#0284c7",
+                      color: "#187A56",
                       letterSpacing: "0.06em",
                       display: "inline-flex",
                       alignItems: "center",
@@ -1026,7 +1063,7 @@ export const OwnerRecords = () => {
                       fontWeight: 900,
                       margin: "4px 0 0",
                       fontFamily: "monospace",
-                      color: "var(--color-text, #0f172a)",
+                      color: "var(--color-text, #1A201C)",
                       letterSpacing: "0.02em",
                     }}
                   >
@@ -1041,12 +1078,12 @@ export const OwnerRecords = () => {
                     width: 34,
                     height: 34,
                     borderRadius: "50%",
-                    background: "var(--color-bg, #f1f5f9)",
+                    background: "var(--color-bg, #EFF2F0)",
                     border: "none",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#64748b",
+                    color: "#5D6660",
                     cursor: "pointer",
                     flexShrink: 0,
                     transition: "all 0.15s",
@@ -1066,13 +1103,13 @@ export const OwnerRecords = () => {
                     ? "linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%)"
                     : isPermitIssued
                     ? "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(5, 150, 105, 0.06) 100%)"
-                    : "linear-gradient(135deg, rgba(14, 165, 233, 0.14) 0%, rgba(2, 132, 199, 0.06) 100%)",
+                    : "linear-gradient(135deg, rgba(24, 122, 86, 0.14) 0%, rgba(24, 122, 86, 0.06) 100%)",
                   border: `1.5px solid ${
                     isCondemned
                       ? "rgba(239, 68, 68, 0.3)"
                       : isPermitIssued
                       ? "rgba(16, 185, 129, 0.35)"
-                      : "rgba(14, 165, 233, 0.3)"
+                      : "rgba(24, 122, 86, 0.3)"
                   }`,
                 }}
               >
@@ -1083,7 +1120,7 @@ export const OwnerRecords = () => {
                         width: 8,
                         height: 8,
                         borderRadius: "50%",
-                        backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#0ea5e9",
+                        backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#24966D",
                       }}
                     />
                     <span
@@ -1091,7 +1128,7 @@ export const OwnerRecords = () => {
                         fontSize: 13,
                         fontWeight: 900,
                         textTransform: "uppercase",
-                        color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#0284c7",
+                        color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#187A56",
                         letterSpacing: "0.03em",
                       }}
                     >
@@ -1116,7 +1153,7 @@ export const OwnerRecords = () => {
                     style={{
                       fontSize: 11,
                       fontWeight: 800,
-                      color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#0284c7",
+                      color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#187A56",
                       background: "rgba(255, 255, 255, 0.8)",
                       padding: "2px 8px",
                       borderRadius: 6,
@@ -1140,7 +1177,7 @@ export const OwnerRecords = () => {
                     style={{
                       height: "100%",
                       width: `${Math.min(100, (prog.currentStageIndex / 7) * 100)}%`,
-                      backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#0284c7",
+                      backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#187A56",
                       borderRadius: 999,
                       transition: "width 0.4s ease",
                     }}
@@ -1210,16 +1247,16 @@ export const OwnerRecords = () => {
                   style={{
                     padding: "10px 12px",
                     borderRadius: 10,
-                    background: "var(--color-bg, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-bg, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                   }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
                     Species &amp; Breed
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #0f172a)", marginTop: 2 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #1A201C)", marginTop: 2 }}>
                     {selectedLivestock.species}
-                    {selectedLivestock.breed && selectedLivestock.breed !== "Standard" ? ` · ${selectedLivestock.breed}` : ""}
+                    {selectedLivestock.breed && selectedLivestock.breed !== "Standard" ? ` � ${selectedLivestock.breed}` : ""}
                   </div>
                 </div>
 
@@ -1227,14 +1264,14 @@ export const OwnerRecords = () => {
                   style={{
                     padding: "10px 12px",
                     borderRadius: 10,
-                    background: "var(--color-bg, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-bg, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                   }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
                     Sex
                   </div>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #0f172a)", marginTop: 2 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #1A201C)", marginTop: 2 }}>
                     {formatSex(selectedLivestock.sex || selectedLivestock.gender)}
                   </div>
                 </div>
@@ -1243,11 +1280,11 @@ export const OwnerRecords = () => {
                   style={{
                     padding: "10px 12px",
                     borderRadius: 10,
-                    background: "var(--color-bg, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-bg, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                   }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
                     Carcass Weight
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#059669", marginTop: 2 }}>
@@ -1274,17 +1311,17 @@ export const OwnerRecords = () => {
                       fontSize: 12.5,
                       fontWeight: 800,
                       textTransform: "uppercase",
-                      color: "var(--color-text, #0f172a)",
+                      color: "var(--color-text, #1A201C)",
                       margin: 0,
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
                     }}
                   >
-                    <Icon.Clock size={14} style={{ color: "#0284c7" }} />
+                    <Icon.Clock size={14} style={{ color: "#187A56" }} />
                     Lifecycle Milestones
                   </h3>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-muted, #64748b)" }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-muted, #5D6660)" }}>
                     7-Stage Abattoir Flow
                   </span>
                 </div>
@@ -1305,18 +1342,18 @@ export const OwnerRecords = () => {
                           background: isDone
                             ? "rgba(16, 185, 129, 0.05)"
                             : isCurr
-                            ? "rgba(14, 165, 233, 0.07)"
+                            ? "rgba(24, 122, 86, 0.07)"
                             : isRej
                             ? "rgba(239, 68, 68, 0.07)"
-                            : "var(--color-bg, #f8fafc)",
+                            : "var(--color-bg, #F9FAF8)",
                           border: `1px solid ${
                             isDone
                               ? "rgba(16, 185, 129, 0.22)"
                               : isCurr
-                              ? "rgba(14, 165, 233, 0.3)"
+                              ? "rgba(24, 122, 86, 0.3)"
                               : isRej
                               ? "rgba(239, 68, 68, 0.3)"
-                              : "var(--color-border, #e2e8f0)"
+                              : "var(--color-border, #E2E6E3)"
                           }`,
                           display: "flex",
                           alignItems: "center",
@@ -1340,19 +1377,19 @@ export const OwnerRecords = () => {
                                 : isRej
                                 ? "#ef4444"
                                 : isCurr
-                                ? "#0ea5e9"
-                                : "var(--color-border, #cbd5e1)",
+                                ? "#24966D"
+                                : "var(--color-border, #C2CAC4)",
                               color: "#ffffff",
                               flexShrink: 0,
                             }}
                           >
-                            {isDone ? "✓" : isRej ? "✕" : st.id}
+                            {isDone ? "?" : isRej ? "?" : st.id}
                           </span>
                           <div>
-                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+                            <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                               {st.label}
                             </div>
-                            <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", marginTop: 1 }}>
+                            <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", marginTop: 1 }}>
                               {st.sublabel || (isDone ? "Completed" : isCurr ? "In Progress" : "Pending")}
                             </div>
                           </div>
@@ -1371,9 +1408,9 @@ export const OwnerRecords = () => {
                                   : isRej
                                   ? "rgba(239, 68, 68, 0.12)"
                                   : isCurr
-                                  ? "rgba(14, 165, 233, 0.12)"
+                                  ? "rgba(24, 122, 86, 0.12)"
                                   : "rgba(148, 163, 184, 0.12)",
-                                color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#0ea5e9" : "#64748b",
+                                color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#24966D" : "#5D6660",
                                 border: isRej ? "1px solid rgba(239, 68, 68, 0.28)" : "none",
                               }}
                             >
@@ -1455,7 +1492,7 @@ export const OwnerRecords = () => {
                           </div>
 
                           {st.timestampFormatted ? (
-                            <div style={{ fontSize: 10.5, color: isRej ? "#dc2626" : "#0284c7", fontWeight: 600, marginTop: 3 }}>
+                            <div style={{ fontSize: 10.5, color: isRej ? "#dc2626" : "#187A56", fontWeight: 600, marginTop: 3 }}>
                               {st.timestampFormatted}
                             </div>
                           ) : null}
@@ -1474,7 +1511,7 @@ export const OwnerRecords = () => {
                   width: "100%",
                   padding: "11px 16px",
                   borderRadius: 12,
-                  background: "#0284c7",
+                  background: "#187A56",
                   color: "#ffffff",
                   border: "none",
                   fontWeight: 800,
@@ -1485,7 +1522,7 @@ export const OwnerRecords = () => {
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 6,
-                  boxShadow: "0 2px 8px rgba(2, 132, 199, 0.25)",
+                  boxShadow: "0 2px 8px rgba(24, 122, 86, 0.25)",
                 }}
               >
                 <span>Close Details</span>

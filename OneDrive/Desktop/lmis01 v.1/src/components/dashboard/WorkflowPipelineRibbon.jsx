@@ -32,7 +32,7 @@ export const WorkflowPipelineRibbon = ({ stages = [] }) => {
               >
                 <div className="finscope-step-top">
                   <span className="finscope-step-dot" style={{ backgroundColor: color }} />
-                  <span className="finscope-step-count" style={{ color: count > 0 ? "#0f172a" : "#94a3b8" }}>
+                  <span className="finscope-step-count" style={{ color: count > 0 ? "#1A201C" : "#9BA49E" }}>
                     {count}
                   </span>
                 </div>

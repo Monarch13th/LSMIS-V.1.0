@@ -20,7 +20,7 @@ const BELL_TYPE_META = {
   dispatch:    { icon: <Icon.Truck size={15} />, color: "#f59e0b", label: "Dispatch" },
   account:     { icon: <Icon.User size={15} />, color: "#10b981", label: "Account" },
   warning:     { icon: <Icon.AlertTriangle size={15} />, color: "#ef4444", label: "Alert" },
-  system:      { icon: <Icon.Bell size={15} />, color: "#64748b", label: "System" },
+  system:      { icon: <Icon.Bell size={15} />, color: "#5D6660", label: "System" },
 };
 
 /**
@@ -254,7 +254,7 @@ function resolveCategory(n) {
   if (text.includes("permit") || text.includes("dispatch")) return "permit";
   if (text.includes("payment")) return "payment";
   if (text.includes("account") || text.includes("registered")) return "account";
-  if (type === "warning" || type === "danger" || text.includes("⚠️")) return "warning";
+  if (type === "warning" || type === "danger" || text.includes("??")) return "warning";
   return n.category || "system";
 }
 
@@ -299,7 +299,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
       message: n.message || "",
       date: n.date || n.created_at || new Date().toISOString(),
       read: Boolean(n.read),
-      urgent: Boolean(n.urgent) || String(n.type).toLowerCase() === "warning" || (n.title || "").includes("⚠️"),
+      urgent: Boolean(n.urgent) || String(n.type).toLowerCase() === "warning" || (n.title || "").includes("??"),
       tag_number: tagMatch ? tagMatch[0].toUpperCase() : undefined,
       owner_id: n.owner_id,
       role: notifRole,
@@ -323,8 +323,8 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           id: `staff-marking-pending-${l.id || l.tag_number}`,
           tag_number: l.tag_number,
           category: "marking",
-          title: `🏷️ Intake Awaiting Marking: ${l.tag_number}`,
-          message: `${l.tag_number} (${l.species}) received from ${l.owner_name || "Owner"} — ready for animal marking`,
+          title: `??? Intake Awaiting Marking: ${l.tag_number}`,
+          message: `${l.tag_number} (${l.species}) received from ${l.owner_name || "Owner"} � ready for animal marking`,
           urgent: false,
           date: l.received_date || l.registered_at || l.created_at || new Date().toISOString(),
           read: false,
@@ -348,7 +348,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
             id,
             tag_number: l.tag_number,
             category: "marking",
-            title: `⚠️ 24h Timeout: ${l.tag_number || "Animal"}`,
+            title: `?? 24h Timeout: ${l.tag_number || "Animal"}`,
             message: `${l.tag_number} returned to Animal Marking (slaughter limit expired)`,
             urgent: true,
             date: l.fallback_at || l.updated_at || l.created_at || new Date().toISOString(),
@@ -381,7 +381,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         items.push({
           id: `sched-${s.id}`,
           category: "schedule",
-          title: `📅 Slaughter Schedule — ${urgency}`,
+          title: `?? Slaughter Schedule � ${urgency}`,
           message: `${s.tag_number || "Batch"} (${s.species || "Livestock"}) on ${formatDate(schedDate)}`,
           date: schedDate,
           tag_number: s.tag_number,
@@ -406,7 +406,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         items.push({
           id: `vet-ante-queue-${l.id || l.tag_number}`,
           category: "inspection",
-          title: "🩺 Pending Ante-Mortem Inspection",
+          title: "?? Pending Ante-Mortem Inspection",
           message: `${l.tag_number} (${l.species}) marked and awaiting ante-mortem clearance`,
           tag_number: l.tag_number,
           date: l.mark_date || l.updated_at || l.created_at || new Date().toISOString(),
@@ -424,7 +424,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           items.push({
             id,
             category: "vetapproval",
-            title: "✅ Ante-Mortem Approved",
+            title: "? Ante-Mortem Approved",
             message: `${a.tag_number || "Livestock"} passed ante-mortem inspection`,
             tag_number: a.tag_number,
             date: a.date || a.created_at || new Date().toISOString(),
@@ -443,7 +443,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           items.push({
             id,
             category: "vetapproval",
-            title: "✅ Post-Mortem Approved",
+            title: "? Post-Mortem Approved",
             message: `${p.tag_number || "Carcass"} approved for release`,
             tag_number: p.tag_number,
             date: p.date || p.created_at || new Date().toISOString(),
@@ -461,8 +461,8 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           items.push({
             id,
             category: "inspection",
-            title: "⚠️ Meat Condemned",
-            message: `${p.tag_number || "Carcass"} — condemnation recorded`,
+            title: "?? Meat Condemned",
+            message: `${p.tag_number || "Carcass"} � condemnation recorded`,
             tag_number: p.tag_number,
             urgent: true,
             date: p.date || p.created_at || new Date().toISOString(),
@@ -662,8 +662,8 @@ export const NotificationBell = () => {
           height: 38,
           borderRadius: 9,
           border: "none",
-          background: open ? "var(--color-bg, #f1f5f9)" : "transparent",
-          color: "var(--color-text, #0f172a)",
+          background: open ? "var(--color-bg, #EFF2F0)" : "transparent",
+          color: "var(--color-text, #1A201C)",
           cursor: "pointer",
           transition: "all 0.15s ease",
         }}
@@ -699,7 +699,7 @@ export const NotificationBell = () => {
             borderRadius: 14,
             overflow: "hidden",
             background: "var(--color-surface, #ffffff)",
-            border: "1px solid var(--color-border, #e2e8f0)",
+            border: "1px solid var(--color-border, #E2E6E3)",
             boxShadow: "0 20px 40px -10px rgba(0, 0, 0, 0.2), 0 1px 3px rgba(0,0,0,0.06)",
             animation: "fadeIn 140ms ease-out",
           }}
@@ -709,12 +709,12 @@ export const NotificationBell = () => {
             style={{
               padding: "14px 18px",
               background: "var(--color-surface, #ffffff)",
-              borderBottom: "1px solid var(--color-border, #e2e8f0)",
+              borderBottom: "1px solid var(--color-border, #E2E6E3)",
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <h4 style={{ fontSize: 14.5, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)", letterSpacing: "-0.01em" }}>
+                <h4 style={{ fontSize: 14.5, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
                   Notifications
                 </h4>
                 {unreadCount > 0 ? (
@@ -736,8 +736,8 @@ export const NotificationBell = () => {
                     style={{
                       fontSize: 11,
                       fontWeight: 600,
-                      color: "var(--color-text-muted, #64748b)",
-                      background: "var(--color-bg, #f1f5f9)",
+                      color: "var(--color-text-muted, #5D6660)",
+                      background: "var(--color-bg, #EFF2F0)",
                       padding: "2px 7px",
                       borderRadius: 999,
                     }}
@@ -754,7 +754,7 @@ export const NotificationBell = () => {
                   style={{
                     fontSize: 11.5,
                     fontWeight: 700,
-                    color: "var(--color-primary, #0284c7)",
+                    color: "var(--color-primary, #187A56)",
                     background: "none",
                     border: "none",
                     cursor: "pointer",
@@ -785,8 +785,8 @@ export const NotificationBell = () => {
                   borderRadius: 6,
                   border: "none",
                   cursor: "pointer",
-                  background: filter === "all" ? "var(--color-primary, #0284c7)" : "var(--color-bg, #f1f5f9)",
-                  color: filter === "all" ? "#ffffff" : "var(--color-text-muted, #64748b)",
+                  background: filter === "all" ? "var(--color-primary, #187A56)" : "var(--color-bg, #EFF2F0)",
+                  color: filter === "all" ? "#ffffff" : "var(--color-text-muted, #5D6660)",
                   transition: "all 0.15s ease",
                 }}
               >
@@ -802,8 +802,8 @@ export const NotificationBell = () => {
                   borderRadius: 6,
                   border: "none",
                   cursor: "pointer",
-                  background: filter === "unread" ? "var(--color-primary, #0284c7)" : "var(--color-bg, #f1f5f9)",
-                  color: filter === "unread" ? "#ffffff" : "var(--color-text-muted, #64748b)",
+                  background: filter === "unread" ? "var(--color-primary, #187A56)" : "var(--color-bg, #EFF2F0)",
+                  color: filter === "unread" ? "#ffffff" : "var(--color-text-muted, #5D6660)",
                   transition: "all 0.15s ease",
                 }}
               >
@@ -815,23 +815,23 @@ export const NotificationBell = () => {
           {/* Scrollable Notification List */}
           <div style={{ maxHeight: 380, overflowY: "auto", background: "var(--color-surface, #ffffff)" }}>
             {displayedItems.length === 0 ? (
-              <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--color-text-muted, #64748b)" }}>
+              <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--color-text-muted, #5D6660)" }}>
                 <div
                   style={{
                     display: "inline-flex",
                     padding: 12,
                     borderRadius: "50%",
-                    background: "var(--color-bg, #f1f5f9)",
+                    background: "var(--color-bg, #EFF2F0)",
                     marginBottom: 10,
-                    color: "var(--color-text-muted, #94a3b8)",
+                    color: "var(--color-text-muted, #9BA49E)",
                   }}
                 >
                   <Icon.Bell size={24} />
                 </div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                   {filter === "unread" ? "No unread alerts" : "No notifications"}
                 </div>
-                <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-text-muted, #64748b)" }}>
+                <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--color-text-muted, #5D6660)" }}>
                   {filter === "unread" ? "You have read all recent alerts." : "Activity and process updates will appear here."}
                 </p>
               </div>
@@ -858,7 +858,7 @@ export const NotificationBell = () => {
                       alignItems: "flex-start",
                       gap: 12,
                       padding: "12px 18px",
-                      borderBottom: "1px solid var(--color-border, #f1f5f9)",
+                      borderBottom: "1px solid var(--color-border, #EFF2F0)",
                       borderLeft: !read ? `3px solid ${meta.color}` : "3px solid transparent",
                       background: !read ? `${meta.color}08` : "transparent",
                       cursor: "pointer",
@@ -866,7 +866,7 @@ export const NotificationBell = () => {
                       textAlign: "left",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "var(--color-bg, #f8fafc)";
+                      e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.background = !read ? `${meta.color}08` : "transparent";
@@ -897,7 +897,7 @@ export const NotificationBell = () => {
                           style={{
                             fontSize: 12.5,
                             fontWeight: !read ? 800 : 600,
-                            color: !read ? "var(--color-text, #0f172a)" : "var(--color-text-muted, #475569)",
+                            color: !read ? "var(--color-text, #1A201C)" : "var(--color-text-muted, #5D6660)",
                             lineHeight: 1.3,
                             overflow: "hidden",
                             textOverflow: "ellipsis",
@@ -926,7 +926,7 @@ export const NotificationBell = () => {
                       <p
                         style={{
                           fontSize: 12,
-                          color: !read ? "var(--color-text, #334155)" : "var(--color-text-muted, #64748b)",
+                          color: !read ? "var(--color-text, #444C47)" : "var(--color-text-muted, #5D6660)",
                           lineHeight: 1.4,
                           margin: "2px 0 4px",
                           display: "-webkit-box",
@@ -946,9 +946,9 @@ export const NotificationBell = () => {
                               fontFamily: "monospace",
                               fontSize: 10.5,
                               fontWeight: 700,
-                              background: "var(--color-bg, #f1f5f9)",
-                              border: "1px solid var(--color-border, #e2e8f0)",
-                              color: "var(--color-text, #0f172a)",
+                              background: "var(--color-bg, #EFF2F0)",
+                              border: "1px solid var(--color-border, #E2E6E3)",
+                              color: "var(--color-text, #1A201C)",
                               padding: "1px 5px",
                               borderRadius: 4,
                             }}
@@ -958,7 +958,7 @@ export const NotificationBell = () => {
                         )}
 
                         {timeString && (
-                          <span style={{ fontSize: 11, color: "var(--color-text-muted, #94a3b8)" }}>
+                          <span style={{ fontSize: 11, color: "var(--color-text-muted, #9BA49E)" }}>
                             {timeString}
                           </span>
                         )}
@@ -990,9 +990,9 @@ export const NotificationBell = () => {
           <div
             style={{
               padding: "10px 18px",
-              borderTop: "1px solid var(--color-border, #e2e8f0)",
+              borderTop: "1px solid var(--color-border, #E2E6E3)",
               textAlign: "center",
-              background: "var(--color-bg, #f8fafc)",
+              background: "var(--color-bg, #F9FAF8)",
             }}
           >
             <button
@@ -1004,7 +1004,7 @@ export const NotificationBell = () => {
               style={{
                 fontSize: 12,
                 fontWeight: 700,
-                color: "var(--color-primary, #0284c7)",
+                color: "var(--color-primary, #187A56)",
                 background: "none",
                 border: "none",
                 cursor: "pointer",

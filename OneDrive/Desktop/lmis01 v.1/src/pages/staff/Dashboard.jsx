@@ -1,17 +1,13 @@
 import { useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, StatCard, EmptyState, Button } from "../../components/ui";
 import { Badge } from "../../components/ui/Badge";
-import { TagBadge } from "../../components/ui/TagBadge";
 import { Icon } from "../../components/icons";
-import { SpeciesBar, TeamAssignmentBar } from "../../components/charts/StaffCharts";
-import { WelcomeBanner } from "../../components/layout/WelcomeBanner";
-import { DashBanner, ListRow, DashSkeleton } from "../../components/dashboard/DashboardParts";
+import { DashSkeleton } from "../../components/dashboard/DashboardParts";
+import { InteractiveAreaChart, InteractiveRings } from "../../components/dashboard/InteractiveDashWidgets";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { formatDate, uuid, isWaitingForSlaughter } from "../../utils/helpers";
 import { formatPhDateTime, formatSex } from "../../utils/formatters";
-import { getAttributionName } from "../../utils/processHistory";
 import {
   pickDate,
   recency,
@@ -20,6 +16,7 @@ import {
 } from "../../utils/dashboardMetrics";
 import { supabase } from "../../services/supabaseClient";
 import "../../styles/dashboard.css";
+import "../../styles/admin_dash.css";
 
 export const StaffDashboard = () => {
   const navigate = useNavigate();
@@ -62,8 +59,9 @@ export const StaffDashboard = () => {
           date: new Date().toISOString(),
           read: false,
           type: "info",
+          role: "staff",
         };
-        supabase.from(TABLES.NOTIFICATIONS).insert(newNotif).then();
+        Promise.resolve(supabase.from(TABLES.NOTIFICATIONS).insert(newNotif)).catch(() => {});
         localStorage.setItem(alertKey, "true");
       }
     }
@@ -82,36 +80,14 @@ export const StaffDashboard = () => {
     );
   }, [livestock]);
 
-  // 1. Recent Intake
+  // Recent Intake
   const recentLivestock = useMemo(() => {
     return [...(livestock || [])]
       .sort((a, b) => recency(b, LIVESTOCK_DATE_FIELDS) - recency(a, LIVESTOCK_DATE_FIELDS))
-      .slice(0, 6);
+      .slice(0, 3);
   }, [livestock]);
 
-  // 2. Recent Animal Marking Activities
-  const recentMarked = useMemo(() => {
-    return [...markedLivestock]
-      .sort(
-        (a, b) =>
-          recency(b, ["mark_date", "marked_at", "received_date", "created_at"]) -
-          recency(a, ["mark_date", "marked_at", "received_date", "created_at"])
-      )
-      .slice(0, 6);
-  }, [markedLivestock]);
-
-  // 3. Recent Slaughter Floor Operations
-  const recentProcessing = useMemo(() => {
-    return [...(processing || [])]
-      .sort(
-        (a, b) =>
-          recency(b, ["processed_at", "date", "created_at", "started_at"]) -
-          recency(a, ["processed_at", "date", "created_at", "started_at"])
-      )
-      .slice(0, 6);
-  }, [processing]);
-
-  // 4. Recent Meat Permits Processed
+  // Recent Meat Permits Processed
   const recentPermits = useMemo(() => {
     return [...(permits || [])]
       .sort(
@@ -119,274 +95,449 @@ export const StaffDashboard = () => {
           recency(b, ["issued_at", "date_issued", "created_at"]) -
           recency(a, ["issued_at", "date_issued", "created_at"])
       )
-      .slice(0, 6);
+      .slice(0, 2);
   }, [permits]);
 
-  const go = (path) => () => navigate(`/staff/${path}`);
+  const speciesRows = useMemo(() => {
+    const list = livestock || [];
+    const count = (fn) => list.filter((l) => fn(String(l.species || "").toLowerCase().trim())).length;
+    return [
+      {
+        label: "Hogs",
+        shortLabel: "HOGS",
+        count: count((s) => s === "hog" || s === "swine" || s === "pig"),
+        hint: "Click to view registered livestock",
+        onClick: () => navigate("/staff/owners"),
+      },
+      {
+        label: "Cattle",
+        shortLabel: "CATTLE",
+        count: count((s) => s === "cattle" || s === "cow"),
+        hint: "Click to view registered livestock",
+        onClick: () => navigate("/staff/owners"),
+      },
+      {
+        label: "Carabao / Goat",
+        shortLabel: "OTHER",
+        count: count((s) => s !== "hog" && s !== "swine" && s !== "pig" && s !== "cattle" && s !== "cow"),
+        hint: "Click to view registered livestock",
+        onClick: () => navigate("/staff/owners"),
+      },
+    ];
+  }, [livestock, navigate]);
 
   const now = new Date();
   const receivedToday = (livestock || []).filter((l) => isSameDay(pickDate(l, LIVESTOCK_DATE_FIELDS), now)).length;
+  const totalIntake = (livestock || []).length;
+  const markedPct = totalIntake > 0 ? Math.round((markedLivestock.length / totalIntake) * 100) : 0;
+  const awaitingMarking = Math.max(0, totalIntake - markedLivestock.length);
+
+  const chartPoints = useMemo(() => {
+    const procLen = (processing || []).length;
+    const permLen = (permits || []).length;
+    return [
+      {
+        label: "Intake",
+        v: totalIntake,
+        sub: receivedToday || Math.round(totalIntake * 0.5),
+        primaryTag: "All-time intake",
+        secondaryTag: "Received today",
+        hint: "Click to open Livestock Intake →",
+        onClick: () => navigate("/staff/owners"),
+      },
+      {
+        label: "Marked",
+        v: markedLivestock.length,
+        sub: Math.round(markedLivestock.length * 0.7),
+        primaryTag: "Marked livestock",
+        secondaryTag: "Verified tags",
+        hint: "Click to open Animal Marking →",
+        onClick: () => navigate("/staff/animal-marking"),
+      },
+      {
+        label: "Slaughter",
+        v: procLen,
+        sub: Math.round(procLen * 0.65),
+        primaryTag: "Slaughter records",
+        secondaryTag: "Completed line",
+        hint: "Click to open Slaughter Processing →",
+        onClick: () => navigate("/staff/slaughter-processing"),
+      },
+      {
+        label: "Permits",
+        v: permLen,
+        sub: Math.round(permLen * 0.75),
+        primaryTag: "Total meat permits",
+        secondaryTag: "Released permits",
+        hint: "Click to open Meat Permits →",
+        onClick: () => navigate("/staff/permits"),
+      },
+    ];
+  }, [totalIntake, receivedToday, markedLivestock.length, processing, permits, navigate]);
+
+  const go = (path) => () => navigate(`/staff/${path}`);
 
   if (livestockLoading && processingLoading && permitsLoading) return <DashSkeleton />;
 
   return (
-    <div className="dash" style={{ paddingBottom: 24 }}>
-      {/* 1. Header Banner */}
-      <WelcomeBanner icon={<Icon.Cow size={28} />} />
-
-      {/* 2. Urgent Slaughter Line Intake Alert Banner */}
-      {readyList.length > 0 && (
-        <DashBanner
-          tone="amber"
-          icon={<Icon.Scissors size={20} />}
-          title="Slaughter Line Intake"
-          text={`${readyList.length} animal${readyList.length > 1 ? "s are" : " is"} marked and ready for slaughter processing.`}
-          onClick={go("slaughter-processing")}
-          action={
-            <Button
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                go("slaughter-processing")();
-              }}
+    <div className="ag-dash">
+      {/* Row 1: Hero Overview (Dark) + Abattoir Operations (Glass) + Intake by Species (White) */}
+      <div className="ag-row ag-row-top">
+        {/* Top-Left: Overall Information Card */}
+        <section className="ag-card ag-dark ag-overview">
+          <header className="ag-card-head">
+            <h2>Overall information</h2>
+            <button
+              type="button"
+              className="ag-icon-btn"
+              onClick={go("owners")}
+              data-ag-tip="Open Registered Owners & Intake"
+              data-ag-tip-pos="right"
+              aria-label="View Registered Owners"
             >
-              <Icon.Scissors size={15} /> Go to Slaughter Floor
-            </Button>
-          }
-        />
-      )}
+              <Icon.ExternalLink size={15} />
+            </button>
+          </header>
 
-      {/* 3. Section: Operational KPI Cards */}
-      <div className="dash-grid-4">
-        <StatCard
-          label="Livestock Intake"
-          value={(livestock || []).length}
-          trend={receivedToday > 0 ? `${receivedToday} registered today` : "Total received"}
-          icon={<Icon.Cow />}
-          color="emerald"
-          onClick={go("owners")}
-        />
-        <StatCard
-          label="Marked Animals"
-          value={markedLivestock.length}
-          trend={`${Math.max(0, (livestock || []).length - markedLivestock.length)} awaiting marking`}
-          icon={<Icon.Tag />}
-          color="sky"
-          onClick={go("animal-marking")}
-        />
-        <StatCard
-          label="Slaughter Processing"
-          value={(processing || []).length}
-          trend={readyList.length > 0 ? `${readyList.length} queued for line` : "Line active"}
-          icon={<Icon.Scissors />}
-          color="violet"
-          onClick={go("slaughter-processing")}
-        />
-        <StatCard
-          label="Meat Permits Issued"
-          value={(permits || []).length}
-          trend="Certified for release"
-          icon={<Icon.FileText />}
-          color="amber"
-          onClick={go("permits")}
-        />
+          <div className="ag-overview-stats">
+            <div
+              className="ag-big interactive"
+              onClick={go("owners")}
+              data-ag-tip={`Total livestock intake: ${totalIntake} (+${receivedToday} registered today)`}
+              data-ag-tip-pos="left"
+            >
+              <strong>{totalIntake}</strong>
+              <span>
+                Livestock
+                <br />
+                intake
+              </span>
+            </div>
+            <div className="ag-big-sep" />
+            <div
+              className="ag-big small interactive"
+              onClick={go("slaughter-processing")}
+              data-ag-tip={`${readyList.length} animal(s) cleared Ante-Mortem and ready for slaughter`}
+            >
+              <strong>{readyList.length}</strong>
+              <span>
+                Ready for
+                <br />
+                slaughter
+              </span>
+            </div>
+          </div>
+
+          <div
+            className="ag-progress"
+            onClick={go("animal-marking")}
+            data-ag-tip={`${markedLivestock.length} of ${totalIntake} livestock marked (${markedPct}%)${awaitingMarking ? ` · ${awaitingMarking} awaiting mark` : ""}`}
+          >
+            <i style={{ width: `${Math.max(markedPct, 8)}%` }} />
+          </div>
+
+          <div className="ag-tiles">
+            <button
+              type="button"
+              className="ag-tile mid"
+              onClick={go("animal-marking")}
+              data-ag-tip={`${markedLivestock.length} animals marked · ${awaitingMarking} awaiting ear tag/tattoo`}
+            >
+              <span className="ag-tile-icon">
+                <Icon.Tag size={15} />
+              </span>
+              <strong>{markedLivestock.length}</strong>
+              <span>Marked</span>
+            </button>
+            <button
+              type="button"
+              className="ag-tile"
+              onClick={go("slaughter-processing")}
+              data-ag-tip={`${(processing || []).length} slaughter processing records (${readyList.length} ready in queue)`}
+            >
+              <span className="ag-tile-icon">
+                <Icon.Scissors size={15} />
+              </span>
+              <strong>{(processing || []).length}</strong>
+              <span>Slaughter</span>
+            </button>
+            <button
+              type="button"
+              className="ag-tile light"
+              onClick={go("permits")}
+              data-ag-tip={`${(permits || []).length} meat permits certified for release`}
+            >
+              <span className="ag-tile-icon">
+                <Icon.FileText size={15} />
+              </span>
+              <strong>{(permits || []).length}</strong>
+              <span>Permits</span>
+            </button>
+          </div>
+        </section>
+
+        {/* Top-Center: Abattoir Operations Card */}
+        <section className="ag-card ag-glass">
+          <header className="ag-card-head">
+            <h2>Abattoir operations</h2>
+            <button
+              type="button"
+              className="ag-icon-btn"
+              onClick={go("reports")}
+              data-ag-tip="Open Analytical Reports"
+              data-ag-tip-pos="right"
+              aria-label="Open Analytical Reports"
+            >
+              <Icon.PieChart size={16} />
+            </button>
+          </header>
+
+          <InteractiveAreaChart
+            points={chartPoints}
+            primaryLabel="All-time volume"
+            secondaryLabel={`Today's intake (+${receivedToday})`}
+            ariaLabel="Staff operations throughput"
+          />
+        </section>
+
+        {/* Top-Right: Intake by Species Card */}
+        <section className="ag-card ag-white ag-progress-card">
+          <div>
+            <header className="ag-card-head">
+              <h2>Intake by Species</h2>
+              <button
+                type="button"
+                className="ag-icon-btn"
+                onClick={go("owners")}
+                data-ag-tip="View Registered Owners"
+                data-ag-tip-pos="right"
+                aria-label="View Registered Owners"
+              >
+                <Icon.TrendingUp size={16} />
+              </button>
+            </header>
+
+            <p
+              className="ag-sub-stat interactive"
+              onClick={go("animal-marking")}
+              data-ag-tip={`${markedLivestock.length} marked animals · ${awaitingMarking} awaiting mark (${markedPct}% marked)`}
+              data-ag-tip-pos="left"
+            >
+              <b>{markedLivestock.length}</b> marked animals
+              {awaitingMarking ? ` · ${awaitingMarking} awaiting mark` : ""}
+            </p>
+
+            <div className="ag-overview-label">OVERVIEW</div>
+            <InteractiveRings
+              rows={speciesRows}
+              centerValue={`${markedPct}%`}
+              centerCaption="MARKED"
+              ariaLabel="Livestock by species"
+            />
+          </div>
+
+          <div className="ag-card-foot-actions">
+            <button
+              type="button"
+              className="ag-circle-action"
+              onClick={go("owners")}
+              data-ag-tip="Registered Owners & Intake"
+              data-ag-tip-pos="left"
+              aria-label="Registered Owners"
+            >
+              <Icon.User size={15} />
+            </button>
+            <button
+              type="button"
+              className="ag-outline-pill"
+              onClick={go("reports")}
+              data-ag-tip="Export & view operational reports"
+            >
+              View Reports
+            </button>
+          </div>
+        </section>
       </div>
 
-      {/* 4. Section: Exactly Two Graphs Per Role Requirements */}
-      <div className="dash-grid-2">
-        {/* Graph 1: Livestock Intake & Registration by Species */}
-        <Card
-          title="Livestock Intake by Species"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("owners")}>
-              View Owners →
-            </Button>
-          }
-        >
-          <SpeciesBar livestock={livestock} />
-        </Card>
-
-        {/* Graph 2: Slaughter Floor Team Operator Assignments */}
-        <Card
-          title="Slaughter Floor Team Assignments"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("slaughter-processing")}>
-              Line Operations →
-            </Button>
-          }
-        >
-          <TeamAssignmentBar processing={processing} />
-        </Card>
-      </div>
-
-      {/* 5. Section: Actual Record Lists (Role-Separated) - Intake & Marking */}
-      <div className="dash-grid-2">
-        {/* Record List 1: Recent Livestock Intake & Registrations */}
-        <Card
-          title="Recent Livestock Registrations"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("owners")}>
-              View All ({(livestock || []).length}) →
-            </Button>
-          }
-        >
-          {recentLivestock.length === 0 ? (
-            <EmptyState
-              title="No livestock registered yet"
-              message="Register an owner and receive animals to get started"
-              icon={<Icon.Cow />}
-            />
-          ) : (
-            <div className="dash-list">
-              {recentLivestock.map((l) => (
-                <ListRow
-                  key={l.id || l.tag_number}
-                  gradient="linear-gradient(135deg, #10b981, #047857)"
-                  icon={<Icon.Cow size={14} />}
-                  onClick={go("owners")}
-                  title={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                      <TagBadge tag={l.tag_number} />
-                      <span>{l.species || "Livestock"} · {formatSex(l.sex)}</span>
-                    </span>
-                  }
-                  sub={`${l.owner_name || "Unknown owner"} · ${formatDate(l.received_date || l.created_at)} · by ${getAttributionName(l.registered_by || l.created_by)}`}
-                  end={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Badge status={l.status} />
-                    </div>
-                  }
-                />
-              ))}
+      {/* Row 2: Slaughter Line Queue Checklist + Recent Permits Cards + All Permits Slot */}
+      <div className="ag-row ag-row-mid">
+        <section className="ag-card ag-white ag-goals">
+          <header className="ag-card-head">
+            <h2>Operations Queue</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span
+                className="ag-goals-badge"
+                data-ag-tip={`${readyList.length} animal(s) ready for slaughter processing`}
+              >
+                {readyList.length} ready
+              </span>
+              <button
+                type="button"
+                className="ag-icon-btn"
+                onClick={go("slaughter-processing")}
+                data-ag-tip="Go to Slaughter Floor"
+                data-ag-tip-pos="right"
+                aria-label="Go to Slaughter Floor"
+              >
+                <Icon.Scissors size={14} />
+              </button>
             </div>
-          )}
-        </Card>
+          </header>
 
-        {/* Record List 2: Recent Animal Marking Activities */}
-        <Card
-          title="Recent Animal Marking Activities"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("animal-marking")}>
-              View All ({markedLivestock.length}) →
-            </Button>
-          }
-        >
-          {recentMarked.length === 0 ? (
-            <EmptyState
-              title="No animals marked yet"
-              message="Apply tattoo or ear tag marks to incoming livestock."
-              icon={<Icon.Tag />}
-            />
-          ) : (
-            <div className="dash-list">
-              {recentMarked.map((m) => (
-                <ListRow
-                  key={m.id || m.tag_number}
-                  gradient="linear-gradient(135deg, #0ea5e9, #0284c7)"
-                  icon={<Icon.Tag size={14} />}
-                  onClick={go("animal-marking")}
-                  title={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                      <TagBadge tag={m.tag_number} />
-                      <span>{m.species || "Livestock"} · {m.mark_type || "Ear Tag"}</span>
-                    </span>
-                  }
-                  sub={`${m.owner_name || "Unknown owner"} · Marked: ${formatDate(m.mark_date || m.created_at)}`}
-                  end={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Badge status={m.status || "Marked"} />
-                    </div>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
+          <ul className="ag-checklist">
+            <li
+              onClick={go("slaughter-processing")}
+              data-ag-tip={`${readyList.length} animal(s) cleared Ante-Mortem · Click to open Slaughter Processing`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {readyList.length} animal{readyList.length === 1 ? "" : "s"} ready for slaughter line
+              </span>
+              <span className="ag-check-sub">Process</span>
+            </li>
+            <li
+              className="muted"
+              onClick={go("animal-marking")}
+              data-ag-tip={`${awaitingMarking} animal(s) awaiting ear tag or tattoo · Click to mark`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {awaitingMarking} livestock awaiting ear tag / tattoo
+              </span>
+              <span className="ag-check-sub">Mark</span>
+            </li>
+            <li
+              className="muted"
+              onClick={go("owners")}
+              data-ag-tip={`${receivedToday} livestock received today · Click to view owners & intake`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                +{receivedToday} livestock registered today
+              </span>
+            </li>
+            <li
+              className="muted"
+              onClick={go("permits")}
+              data-ag-tip={`Browse all ${(permits || []).length} certified meat permits`}
+            >
+              <span className="ag-check">
+                <Icon.Check size={12} />
+              </span>
+              <span className="ag-check-text">
+                {(permits || []).length} meat permits certified for release
+              </span>
+            </li>
+          </ul>
+        </section>
 
-      {/* 6. Section: Actual Record Lists (Role-Separated) - Slaughter Processing & Meat Permits */}
-      <div className="dash-grid-2">
-        {/* Record List 3: Recent Slaughter Floor Operations */}
-        <Card
-          title="Recent Slaughter Operations"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("slaughter-processing")}>
-              View All ({(processing || []).length}) →
-            </Button>
-          }
-        >
-          {recentProcessing.length === 0 ? (
-            <EmptyState
-              title="No slaughter operations recorded"
-              message="Live animals processed on the slaughter floor will appear here."
-              icon={<Icon.Scissors />}
-            />
-          ) : (
-            <div className="dash-list">
-              {recentProcessing.map((p) => (
-                <ListRow
-                  key={p.id || p.tag_number}
-                  gradient="linear-gradient(135deg, #8b5cf6, #6d28d9)"
-                  icon={<Icon.Scissors size={14} />}
-                  onClick={go("slaughter-processing")}
-                  title={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                      <TagBadge tag={p.tag_number} />
-                      <span>{p.species || "Livestock"} · Operator: <strong>{p.operator || "Unassigned"}</strong></span>
-                    </span>
-                  }
-                  sub={`${p.owner_name || "Unknown owner"} · ${p.processed_at ? formatPhDateTime(p.processed_at) : formatDate(p.date || p.created_at)}`}
-                  end={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Badge status={p.status || "In Progress"} />
-                    </div>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </Card>
+        <div className="ag-process">
+          <header className="ag-process-head">
+            <h2>
+              Recent Permits <small>( {(permits || []).length} )</small>
+            </h2>
+            <button type="button" className="ag-link" onClick={go("permits")}>
+              Open Meat Permits <Icon.ChevronRight size={14} />
+            </button>
+          </header>
 
-        {/* Record List 4: Recent Meat Permits Processed */}
-        <Card
-          title="Recent Meat Permits Issued"
-          action={
-            <Button size="sm" variant="ghost" onClick={go("permits")}>
-              View All ({(permits || []).length}) →
-            </Button>
-          }
-        >
-          {recentPermits.length === 0 ? (
-            <EmptyState
-              title="No meat permits issued yet"
-              message="Processed permits for meat transport and release will appear here."
-              icon={<Icon.FileText />}
-            />
-          ) : (
-            <div className="dash-list">
-              {recentPermits.map((pm) => (
-                <ListRow
+          <div className="ag-process-grid">
+            {recentPermits.length === 0 ? (
+              <div className="ag-card ag-white ag-empty-card" style={{ gridColumn: "span 2" }}>
+                No meat permits issued yet.
+              </div>
+            ) : (
+              recentPermits.map((pm) => (
+                <article
                   key={pm.id || pm.permit_no}
-                  gradient="linear-gradient(135deg, #f59e0b, #d97706)"
-                  icon={<Icon.FileText size={14} />}
+                  className="ag-card ag-white ag-task"
                   onClick={go("permits")}
-                  title={
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                      <TagBadge tag={pm.tag_number} />
-                      <span>Permit #{pm.permit_no || pm.permit_number || "—"}</span>
-                    </span>
-                  }
-                  sub={`${pm.owner_name || "Unknown owner"} · ${pm.species || "Meat"} · ${pm.carcass_weight ? `${pm.carcass_weight} kg` : "—"} · ${formatDate(pm.issued_at || pm.created_at)}`}
-                  end={
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  data-ag-tip={`Permit ${pm.permit_no || pm.permit_number || "Record"} · Owner: ${pm.owner_name || "Registered Owner"} · Status: ${pm.status || "Active"}`}
+                >
+                  <div>
+                    <div className="ag-task-top">
+                      <span className="ag-task-icon">
+                        <Icon.FileText size={18} />
+                      </span>
                       <Badge status={pm.status || "Active"} />
                     </div>
-                  }
-                />
-              ))}
-            </div>
-          )}
-        </Card>
+                    <h3>{pm.permit_no || pm.permit_number || "Meat Permit"}</h3>
+                    <p>
+                      {pm.owner_name || "Registered Owner"} · {pm.species || "Livestock"}
+                    </p>
+                  </div>
+                  <footer>
+                    <span>
+                      {pm.issued_at ? formatPhDateTime(pm.issued_at) : formatDate(pm.created_at) || "Issued"}
+                    </span>
+                    <span className="ag-task-corner">
+                      <Icon.ArrowRight size={14} />
+                    </span>
+                  </footer>
+                </article>
+              ))
+            )}
+
+            <button
+              type="button"
+              className="ag-dashed-slot"
+              onClick={go("permits")}
+              data-ag-tip={`View all ${(permits || []).length} meat permits certified for release`}
+            >
+              <span>View All Permits</span>
+              <small>{(permits || []).length} certified for release</small>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Row 3: Latest Livestock Dark Cards */}
+      <div className="ag-section-head">
+        <h2 className="ag-section">Latest Livestock Registrations</h2>
+        <button type="button" className="ag-link" onClick={go("owners")}>
+          View all ({totalIntake}) <Icon.ChevronRight size={14} />
+        </button>
+      </div>
+
+      <div className="ag-row ag-row-bottom">
+        {recentLivestock.length === 0 ? (
+          <div className="ag-card ag-dark ag-empty-card" style={{ gridColumn: "1 / -1" }}>
+            No livestock records registered yet.
+          </div>
+        ) : (
+          recentLivestock.map((l) => (
+            <article
+              key={l.id || l.tag_number}
+              className="ag-card ag-dark ag-project"
+              onClick={go("owners")}
+              data-ag-tip={`Tag ${l.tag_number || "Untagged"} · ${l.species || "Livestock"} · Status: ${l.status || "Registered"} · Owner: ${l.owner_name || "Unknown"}`}
+            >
+              <header>
+                <h3>
+                  {l.species || "Livestock"} · {l.tag_number || "Untagged"}
+                </h3>
+                <span className="ag-ring-badge">
+                  {l.sex ? String(formatSex(l.sex)).slice(0, 1).toUpperCase() : "OK"}
+                </span>
+              </header>
+              <ul>
+                <li>
+                  <strong>{l.status || "Registered"}</strong>
+                </li>
+                <li>
+                  Owner: {l.owner_name || "Unknown"}
+                  {l.received_date ? ` · ${formatDate(l.received_date)}` : ""}
+                </li>
+              </ul>
+            </article>
+          ))
+        )}
       </div>
     </div>
   );

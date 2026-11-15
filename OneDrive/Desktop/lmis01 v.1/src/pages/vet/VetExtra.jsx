@@ -148,7 +148,7 @@ export const AnimalInspectionHistory = () => {
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16, marginBottom: 24 }}>
         {[
-          { label: "Total Animals", value: animals.length, color: "#6366f1", icon: <Icon.Users /> },
+          { label: "Total Animals", value: animals.length, color: "#187A56", icon: <Icon.Users /> },
           { label: "Healthy", value: healthy, color: "#10b981", icon: <Icon.Check /> },
           { label: "Condemned", value: condemned, color: "#ef4444", icon: <Icon.X /> },
           { label: "Partially Condemned", value: partiallyCondemned, color: "#f59e0b", icon: <Icon.AlertTriangle /> },
@@ -168,7 +168,7 @@ export const AnimalInspectionHistory = () => {
         <div style={{ position: "relative", flex: "1 1 220px" }}>
           <input
             value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search tag, owner, species‚Ä¶"
+            placeholder="Search tag, owner, speciesÖ"
             style={{ width: "100%", paddingLeft: 36, paddingRight: 12, height: 38, border: "1px solid var(--color-border)", borderRadius: 10, background: "var(--color-surface)", color: "var(--color-text)", fontSize: 13, boxSizing: "border-box", outline: "none" }}
           />
           <Icon.Search
@@ -178,7 +178,7 @@ export const AnimalInspectionHistory = () => {
               left: 12,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "var(--color-text-muted, #94a3b8)",
+              color: "var(--color-text-muted, #9BA49E)",
               pointerEvents: "none",
               zIndex: 10
             }}
@@ -202,7 +202,7 @@ export const AnimalInspectionHistory = () => {
       {/* Animal Cards */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--color-text-muted)" }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>üêæ</div>
+          <div style={{ fontSize: 40, marginBottom: 12 }}>??</div>
           <div style={{ fontSize: 15 }}>No animals found</div>
         </div>
       ) : (
@@ -226,7 +226,7 @@ export const AnimalInspectionHistory = () => {
                       <span style={{ fontSize: 12.5, fontWeight: 600, color: statusColor(a.overallStatus) }}>{a.overallStatus}</span>
                     </div>
                     <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 4 }}>
-                      <span>Owner: <strong style={{ color: "var(--color-text-secondary)" }}>{a.owner_name || "‚Äî"}</strong></span>
+                      <span>Owner: <strong style={{ color: "var(--color-text-secondary)" }}>{a.owner_name || "ó"}</strong></span>
                       {a.sex && <span style={{ marginLeft: 12 }}>Sex: <strong style={{ color: "var(--color-text-secondary)" }}>{formatSex(a.sex)}</strong></span>}
                       {a.age_months && <span style={{ marginLeft: 12 }}>Age: {formatLivestockAge(a)}</span>}
                     </div>
@@ -251,9 +251,9 @@ export const AnimalInspectionHistory = () => {
                         {/* Ante-Mortem */}
                         {a.ante.map((ev, i) => (
                           <TimelineEvent key={`ante-${i}`}
-                            icon={<Icon.Eye />} color="#6366f1"
+                            icon={<Icon.Eye />} color="#24966D"
                             title="Ante-Mortem Inspection"
-                            detail={ev.findings || ev.notes || "‚Äî"}
+                            detail={ev.findings || ev.notes || "ó"}
                             date={ev.created_at}
                             badge={decisionBadge(ev.decision)}
                           />
@@ -261,9 +261,9 @@ export const AnimalInspectionHistory = () => {
                         {/* Post-Mortem */}
                         {a.post.map((ev, i) => (
                           <TimelineEvent key={`post-${i}`}
-                            icon={<Icon.Layers />} color="#0ea5e9"
+                            icon={<Icon.Layers />} color="#24966D"
                             title="Carcass Post-Mortem Inspection"
-                            detail={ev.findings || ev.notes || "‚Äî"}
+                            detail={ev.findings || ev.notes || "ó"}
                             date={ev.created_at}
                             badge={decisionBadge(ev.decision)}
                           />
@@ -273,7 +273,7 @@ export const AnimalInspectionHistory = () => {
                           <TimelineEvent key={`dis-${i}`}
                             icon={<Icon.AlertTriangle />} color="#f59e0b"
                             title={`Disease: ${ev.disease || "Unknown"}`}
-                            detail={`Severity: ${ev.severity || "‚Äî"} ¬∑ Status: ${ev.status || "‚Äî"}`}
+                            detail={`Severity: ${ev.severity || "ó"} ∑ Status: ${ev.status || "ó"}`}
                             date={ev.created_at}
                             badge={<span style={{
                               fontSize: 12, fontWeight: 600,
@@ -286,7 +286,7 @@ export const AnimalInspectionHistory = () => {
                           <TimelineEvent
                             icon={<Icon.Scale />} color="#10b981"
                             title="Carcass Weight Recorded"
-                            detail={`Total: ${a.car.total_weight ?? "‚Äî"} kg ¬∑ Dressed: ${a.car.dressed_weight ?? "‚Äî"} kg ¬∑ Grade: ${a.car.quality_grade || "‚Äî"}`}
+                            detail={`Total: ${a.car.total_weight ?? "ó"} kg ∑ Dressed: ${a.car.dressed_weight ?? "ó"} kg ∑ Grade: ${a.car.quality_grade || "ó"}`}
                             date={a.car.created_at}
                             badge={decisionBadge(a.car.decision || "Approved")}
                           />
@@ -705,7 +705,7 @@ export const resolveCondemningPersonnel = ({ record, livestock, inspection, cut,
   const isRealName = (name) => {
     if (!name || typeof name !== "string") return false;
     const n = name.trim();
-    if (!n || n === "‚Äî" || n === "-" || n.toLowerCase() === "not recorded" || n.toLowerCase() === "unknown") return false;
+    if (!n || n === "ó" || n === "-" || n.toLowerCase() === "not recorded" || n.toLowerCase() === "unknown") return false;
     return true;
   };
 
@@ -1204,8 +1204,8 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     if (!rawReason) return "Unfit for human consumption";
     let str = String(rawReason).trim();
 
-    // Remove "¬∑ Condemned cuts: ..." and anything after it
-    str = str.split(/¬∑\s*Condemned cuts:/i)[0].trim();
+    // Remove "∑ Condemned cuts: ..." and anything after it
+    str = str.split(/∑\s*Condemned cuts:/i)[0].trim();
     // Remove any "(undefined kg)" or "(undefined"
     str = str.replace(/\(undefined\s*kg\)/gi, "").replace(/\(undefined\)/gi, "").trim();
 
@@ -1286,7 +1286,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
 
     // Parse weight from reason text if e.g. "Left Foreleg - 1 kg; Right Foreleg - 2 kg"
     const text = `${r.reason || ""} ${r.notes || ""}`;
-    const cleanText = text.split(/¬∑\s*Condemned cuts:/i)[0];
+    const cleanText = text.split(/∑\s*Condemned cuts:/i)[0];
     const matches = Array.from(cleanText.matchAll(/([\d.]+)\s*kg/gi));
     if (matches.length > 0) {
       const totalW = matches.reduce((sum, m) => sum + (parseFloat(m[1]) || 0), 0);
@@ -1763,7 +1763,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     acc[cleaned] = (acc[cleaned] || 0) + 1;
     return acc;
   }, {});
-  const topReason = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "‚Äî";
+  const topReason = Object.entries(reasonCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "ó";
 
   const getRecordTimestamp = useCallback(
     (r) =>
@@ -2047,8 +2047,8 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                       }}
                     >
                       <option value="all">All Condemnations ({filteredCondemned.length})</option>
-                      <option value="partial">‚úÇÔ∏è Partial Condemned ({partialRecords.length} cuts)</option>
-                      <option value="whole">üö´ Whole Carcass ({wholeRecords.length} carcasses)</option>
+                      <option value="partial">?? Partial Condemned ({partialRecords.length} cuts)</option>
+                      <option value="whole">?? Whole Carcass ({wholeRecords.length} carcasses)</option>
                     </select>
                     <span
                       style={{
@@ -2168,7 +2168,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                           onMouseEnter={(e) => {
                             e.currentTarget.style.background = isNew
                               ? "rgba(245, 158, 11, 0.14)"
-                              : "var(--color-surface-hover, rgba(255,255,255,0.04))";
+                              : "var(--lsmis-primary-subtle)";
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.style.background = isNew ? "rgba(245, 158, 11, 0.08)" : "transparent";
@@ -2219,7 +2219,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
 
                           {/* SPECIES */}
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {r.species || "‚Äî"}
+                            {r.species || "ó"}
                           </td>
 
                           {/* SEX */}
@@ -2359,7 +2359,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                                     whiteSpace: "nowrap",
                                   }}
                                 >
-                                  ‚úï Full Carcass Disposed
+                                  ? Full Carcass Disposed
                                 </span>
                               ) : (
                                 <span
@@ -2377,7 +2377,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                                     whiteSpace: "nowrap",
                                   }}
                                 >
-                                  ‚úì Passed to Weighing
+                                  ? Passed to Weighing
                                 </span>
                               )}
                             </td>
@@ -2495,7 +2495,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       <Modal
         open={addOpen}
         onClose={() => { setAddOpen(false); setEditingRecord(null); }}
-        title={editingRecord ? `Edit Condemnation Record ‚Äî Tag #${form.tag_number}` : (type === "Ante-Mortem" ? "Record Condemned Animal" : "Record Condemned Meat / Parts")}
+        title={editingRecord ? `Edit Condemnation Record ó Tag #${form.tag_number}` : (type === "Ante-Mortem" ? "Record Condemned Animal" : "Record Condemned Meat / Parts")}
         size="lg"
         footer={
           <>
@@ -2518,7 +2518,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 <option value="">-- Select animal --</option>
                 {eligibleAnimals.map((l) => (
                   <option key={l.id || l.tag_number} value={l.tag_number}>
-                    {l.tag_number} ‚Äî {l.species} ({l.owner_name || "Unknown Owner"})
+                    {l.tag_number} ó {l.species} ({l.owner_name || "Unknown Owner"})
                   </option>
                 ))}
               </Select>
@@ -2554,7 +2554,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <Icon.Layers size={15} /> <span>‚úÇÔ∏è Partial Condemnation</span>
+                    <Icon.Layers size={15} /> <span>?? Partial Condemnation</span>
                   </div>
                   <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-secondary)" }}>
                     Condemn specific organs or cuts. Remainder of carcass passes to weighing.
@@ -2579,7 +2579,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <Icon.AlertTriangle size={15} /> <span>üö´ Whole Carcass Condemnation</span>
+                    <Icon.AlertTriangle size={15} /> <span>?? Whole Carcass Condemnation</span>
                   </div>
                   <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-secondary)" }}>
                     Condemn entire carcass. Carcass is disposed (0 kg proceeds to weighing).
@@ -2749,7 +2749,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
               />
               {attemptedSave && (!form.weight_kg || parseFloat(form.weight_kg) <= 0) && (
                 <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 4, display: "block" }}>
-                  ‚ö†Ô∏è Weight (kg) is required and must be &gt; 0.
+                  ?? Weight (kg) is required and must be &gt; 0.
                 </span>
               )}
             </div>
@@ -2802,7 +2802,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 style={{
                   fontSize: 11.5,
                   fontWeight: 700,
-                  color: formPhotos.length >= 3 ? "#059669" : formPhotos.length > 0 ? "#0284c7" : "#64748b",
+                  color: formPhotos.length >= 3 ? "#059669" : formPhotos.length > 0 ? "#187A56" : "#5D6660",
                 }}
               >
                 {formPhotos.length}/3 Photos
@@ -2831,7 +2831,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                       borderRadius: 8,
                       overflow: "hidden",
                       border: "1px solid var(--color-border)",
-                      background: "#0f172a",
+                      background: "#1A201C",
                       aspectRatio: "1/1",
                       height: 96,
                       minHeight: 96,
@@ -2878,7 +2878,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        background: "rgba(15, 23, 42, 0.75)",
+                        background: "rgba(26, 32, 28, 0.75)",
                         color: "white",
                         fontSize: 9,
                         fontWeight: 700,
@@ -2908,18 +2908,18 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 onClick={() => recordFileInputRef.current?.click()}
                 style={{
                   cursor: "pointer",
-                  border: formPhotos.length === 0 ? "2px dashed #fca5a5" : "2px dashed var(--color-primary, #0284c7)",
+                  border: formPhotos.length === 0 ? "2px dashed #fca5a5" : "2px dashed var(--color-primary, #187A56)",
                   borderRadius: 10,
                   padding: "12px",
                   textAlign: "center",
-                  background: formPhotos.length === 0 ? "#fff5f5" : "rgba(2, 132, 199, 0.04)",
+                  background: formPhotos.length === 0 ? "#fff5f5" : "rgba(24, 122, 86, 0.04)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 8,
                   fontSize: 12.5,
                   fontWeight: 600,
-                  color: formPhotos.length === 0 ? "#dc2626" : "var(--color-primary, #0284c7)",
+                  color: formPhotos.length === 0 ? "#dc2626" : "var(--color-primary, #187A56)",
                 }}
               >
                 <input
@@ -3038,7 +3038,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                     <>
                       <Icon.AlertTriangle size={18} style={{ color: "var(--color-danger, #ef4444)", flexShrink: 0 }} />
                       <div>
-                        <div>üö´ Whole Carcass Condemnation</div>
+                        <div>?? Whole Carcass Condemnation</div>
                         <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-secondary)" }}>
                           Entire carcass declared unfit for human consumption. Full carcass sent for disposal (0 kg to weighing).
                         </div>
@@ -3048,7 +3048,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                     <>
                       <Icon.Layers size={18} style={{ color: "var(--color-warning, #f59e0b)", flexShrink: 0 }} />
                       <div>
-                        <div>‚úÇÔ∏è Partial Condemnation ({recParts.join(", ")})</div>
+                        <div>?? Partial Condemnation ({recParts.join(", ")})</div>
                         <div style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-secondary)" }}>
                           Specific cut/organ excised and condemned. Remainder of carcass passed to weighing.
                         </div>
@@ -3066,7 +3066,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px", border: "1px solid var(--color-border)" }}>
                   <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Species</div>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700, fontSize: 13, color: "var(--color-primary, #10b981)" }}>
-                    {viewRec.species || "‚Äî"}
+                    {viewRec.species || "ó"}
                   </div>
                 </div>
                 {[
@@ -3101,7 +3101,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
               <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--color-border)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 6 }}>
-                    <Icon.Camera size={13} style={{ color: "#0284c7" }} /> Attached Evidence Photos ({recPhotos.length})
+                    <Icon.Camera size={13} style={{ color: "#187A56" }} /> Attached Evidence Photos ({recPhotos.length})
                   </div>
                   {recPhotos.length > 0 && (
                     <span style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Click image to enlarge</span>
@@ -3122,7 +3122,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                           borderRadius: 8,
                           overflow: "hidden",
                           border: "1.5px solid var(--color-border)",
-                          background: "#0f172a",
+                          background: "#1A201C",
                           aspectRatio: "1/1",
                           cursor: "pointer",
                           position: "relative",
@@ -3151,7 +3151,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                               background: "rgba(239, 68, 68, 0.12)",
                             }}
                           >
-                            <span style={{ fontSize: 14 }}>‚ö†Ô∏è</span>
+                            <span style={{ fontSize: 14 }}>??</span>
                             <span>Load Failed</span>
                             <button
                               type="button"
@@ -3192,7 +3192,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             bottom: 0,
                             left: 0,
                             right: 0,
-                            background: "rgba(15, 23, 42, 0.75)",
+                            background: "rgba(26, 32, 28, 0.75)",
                             color: "white",
                             fontSize: 9.5,
                             fontWeight: 700,
@@ -3252,13 +3252,13 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   alignItems: "center",
                   justifyContent: "center",
                   gap: 6,
-                  color: "#e2e8f0",
+                  color: "#E2E6E3",
                   fontWeight: 700,
-                  background: "#0f172a",
+                  background: "#1A201C",
                   borderRadius: 8,
                 }}
               >
-                <span style={{ fontSize: 28 }}>üñºÔ∏è</span>
+                <span style={{ fontSize: 28 }}>???</span>
                 Photo unavailable
               </div>
             )}
@@ -3440,8 +3440,8 @@ export const DisposalRecords = ({ type }) => {
                     <td className="mono font-semibold">{r.tag_number}</td>
                     <td>{r.method}</td>
                     <td>{r.quantity}</td>
-                    <td>{r.disposed_by || "‚Äî"}</td>
-                    <td>{r.witness || "‚Äî"}</td>
+                    <td>{r.disposed_by || "ó"}</td>
+                    <td>{r.witness || "ó"}</td>
                     <td className="text-muted">{formatDate(r.date)}</td>
                     <td>
                       <span className={`badge ${r.status === "Completed" ? "badge-approved" : "badge-pending"}`}>{r.status}</span>
@@ -3480,7 +3480,7 @@ export const DisposalRecords = ({ type }) => {
             <option value="">-- Select condemned animal --</option>
             {uniqueCondemnedTags.map((tag) => (
               <option key={tag} value={tag}>
-                {tag}{alreadyDisposed.has(tag) ? " (already disposed)" : " ‚ö† Awaiting disposal"}
+                {tag}{alreadyDisposed.has(tag) ? " (already disposed)" : " ? Awaiting disposal"}
               </option>
             ))}
           </Select>
@@ -3514,9 +3514,9 @@ export const DisposalRecords = ({ type }) => {
               {[
                 ["Tag Number", viewRec.tag_number],
                 ["Disposal Method", viewRec.method],
-                ["Quantity", viewRec.quantity || "‚Äî"],
-                ["Disposed By", viewRec.disposed_by || "‚Äî"],
-                ["Witness", viewRec.witness || "‚Äî"],
+                ["Quantity", viewRec.quantity || "ó"],
+                ["Disposed By", viewRec.disposed_by || "ó"],
+                ["Witness", viewRec.witness || "ó"],
                 ["Date", formatDate(viewRec.date)],
               ].map(([label, value]) => (
                 <div key={label} style={{ background: "var(--color-surface)", borderRadius: 8, padding: "10px 14px" }}>
@@ -3921,7 +3921,7 @@ export const EvidenceUpload = ({
     const clean = name.trim();
     return (
       clean !== "" &&
-      clean !== "‚Äî" &&
+      clean !== "ó" &&
       clean !== "-" &&
       clean.toLowerCase() !== "unknown" &&
       clean.toLowerCase() !== "unknown owner" &&
@@ -3932,7 +3932,7 @@ export const EvidenceUpload = ({
   // Traces condemnation record -> inspection -> livestock -> registered owner
   // using existing relations only (livestock.owner_id -> owners.id is the FK).
   const getEvidenceOwner = (ev) => {
-    if (!ev) return "‚Äî";
+    if (!ev) return "ó";
 
     const cleanTag = String(ev.tag_number || "").trim().toLowerCase();
     const cleanId = String(ev.livestock_id || "").trim();
@@ -3978,7 +3978,7 @@ export const EvidenceUpload = ({
     if (isValidOwnerName(ev.owner_name)) return ev.owner_name.trim();
     if (inspection && isValidOwnerName(inspection.owner_name)) return inspection.owner_name.trim();
 
-    return "‚Äî";
+    return "ó";
   };
 
   const getEvidenceOwnerId = useCallback(
@@ -4020,7 +4020,7 @@ export const EvidenceUpload = ({
 
   const getEvidenceSex = useCallback(
     (ev) => {
-      if (!ev) return "‚Äî";
+      if (!ev) return "ó";
       const cleanTag = String(ev.tag_number || "").trim().toLowerCase();
       const cleanId = String(ev.livestock_id || "").trim();
 
@@ -4042,7 +4042,7 @@ export const EvidenceUpload = ({
       const postRec = (post || []).find((p) => String(p.tag_number || "").trim().toLowerCase() === cleanTag);
       if (postRec?.sex) return formatSex(postRec.sex);
 
-      return "‚Äî";
+      return "ó";
     },
     [livestock, allCondemnedList, ante, post]
   );
@@ -4068,7 +4068,7 @@ export const EvidenceUpload = ({
 
     (sortedEvidence || []).forEach((ev) => {
       const rawOwnerName = getEvidenceOwner(ev);
-      const ownerName = rawOwnerName && rawOwnerName !== "‚Äî" ? rawOwnerName : "Unassigned Owner";
+      const ownerName = rawOwnerName && rawOwnerName !== "ó" ? rawOwnerName : "Unassigned Owner";
       const ownerId = getEvidenceOwnerId(ev);
       const key = ownerId ? `owner_id_${ownerId.toLowerCase()}` : `owner_name_${ownerName.toLowerCase().trim()}`;
 
@@ -4092,7 +4092,7 @@ export const EvidenceUpload = ({
 
       const grp = map.get(key);
       grp.items.push(ev);
-      if (sp && sp !== "‚Äî" && sp !== "Not recorded") {
+      if (sp && sp !== "ó" && sp !== "Not recorded") {
         grp.speciesSet.add(sp);
       }
       if (scope === "whole") {
@@ -4150,7 +4150,7 @@ export const EvidenceUpload = ({
     let whole = 0;
     (groupedEvidenceByContext || []).forEach((ev) => {
       const rawOwnerName = getEvidenceOwner(ev);
-      const ownerName = rawOwnerName && rawOwnerName !== "‚Äî" ? rawOwnerName : "Unassigned Owner";
+      const ownerName = rawOwnerName && rawOwnerName !== "ó" ? rawOwnerName : "Unassigned Owner";
       const ownerId = getEvidenceOwnerId(ev);
       const key = ownerId ? `owner_id_${ownerId.toLowerCase()}` : `owner_name_${ownerName.toLowerCase().trim()}`;
       if (key === selectedOwnerKey) {
@@ -4265,7 +4265,7 @@ export const EvidenceUpload = ({
       if (seenPartKeys.has(partKey)) {
         const existing = partsList.find((p) => p._key === partKey);
         if (existing) {
-          if ((!existing.location || existing.location === "‚Äî") && locStr) existing.location = locStr;
+          if ((!existing.location || existing.location === "ó") && locStr) existing.location = locStr;
           if ((!existing.weight_kg || existing.weight_kg === 0) && (pData.weight_kg || pData.weight)) {
             existing.weight_kg = parseFloat(pData.weight_kg) || parseFloat(pData.weight) || 0;
           }
@@ -4292,9 +4292,9 @@ export const EvidenceUpload = ({
         _key: partKey,
         id: pData.id || `part-${partsList.length + 1}`,
         part: partName,
-        location: locStr || "‚Äî",
+        location: locStr || "ó",
         weight_kg: w > 0 ? (w % 1 === 0 ? w : parseFloat(w.toFixed(2))) : null,
-        quantity: pData.quantity || (w > 0 ? `${w} kg` : "‚Äî"),
+        quantity: pData.quantity || (w > 0 ? `${w} kg` : "ó"),
         reason: pData.reason || pData.pathology || pData.findings || "Condemned",
         disposition: pData.disposition || "Condemned / Rendered",
         notes: pData.notes || pData.findings || "",
@@ -4317,7 +4317,7 @@ export const EvidenceUpload = ({
           } else if (p.part && p.part !== "None") {
             addPart({
               part: p.part,
-              location: p.location || "‚Äî",
+              location: p.location || "ó",
               weight_kg: parseFloat(p.weight_kg) || parseFloat(p.weight) || 0,
               reason: p.findings || p.remarks || "Partial Condemnation",
               disposition: p.disposition || "Condemned / Rendered",
@@ -4334,7 +4334,7 @@ export const EvidenceUpload = ({
       if (matchesStage(c, type) && String(c.tag_number || "").trim().toLowerCase() === cleanTag) {
         addPart({
           ...c,
-          location: c.location || "‚Äî",
+          location: c.location || "ó",
           disposition: c.disposition || "Condemned / Rendered",
         });
       }
@@ -4367,7 +4367,7 @@ export const EvidenceUpload = ({
       } else if (targetEv.part) {
         addPart({
           part: targetEv.part,
-          location: targetEv.location || "‚Äî",
+          location: targetEv.location || "ó",
           weight_kg: targetEv.weight_kg,
           reason: targetEv.reason || targetEv.notes,
           disposition: targetEv.disposition || "Condemned / Rendered",
@@ -4377,7 +4377,7 @@ export const EvidenceUpload = ({
         const partLabel = getEvidencePartLabel(targetEv);
         addPart({
           part: partLabel || (type === "Ante-Mortem" ? "Live Animal" : "Condemned Cut"),
-          location: "‚Äî",
+          location: "ó",
           weight_kg: targetEv.weight_kg || null,
           reason: cleanEvidenceNotes(targetEv.notes) || "Condemnation",
           disposition: "Condemned / Rendered",
@@ -4494,7 +4494,7 @@ export const EvidenceUpload = ({
             <StatCard
               label="Pending Meat Evidence"
               value={statPendingEvidenceCount}
-              trend={`${statWithEvidence} completed ¬∑ ${statCondemnedCount} condemned`}
+              trend={`${statWithEvidence} completed ∑ ${statCondemnedCount} condemned`}
               icon={<Icon.Clock size={24} />}
               color={statPendingEvidenceCount > 0 ? "rose" : "emerald"}
             />
@@ -4504,7 +4504,7 @@ export const EvidenceUpload = ({
             <StatCard
               label="Missing Evidence"
               value={statPendingEvidenceCount}
-              trend={`${statWithEvidence} completed ¬∑ ${statCondemnedCount} condemned total`}
+              trend={`${statWithEvidence} completed ∑ ${statCondemnedCount} condemned total`}
               icon={<Icon.AlertTriangle size={24} />}
               color={statPendingEvidenceCount > 0 ? "rose" : "emerald"}
             />
@@ -4533,7 +4533,7 @@ export const EvidenceUpload = ({
         )
       )}
 
-      {/* ‚îÄ‚îÄ EVIDENCE REPOSITORY ‚îÄ‚îÄ */}
+      {/* -- EVIDENCE REPOSITORY -- */}
       <div id="evidence-repository-card" style={{ width: "100%" }}>
         {hideHeader ? (
           <div style={{ width: "100%", background: "transparent", border: "none", boxShadow: "none" }}>
@@ -4628,7 +4628,7 @@ export const EvidenceUpload = ({
                             transition: "background 140ms ease",
                             borderBottom: "1px solid var(--color-border)",
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(2, 132, 199, 0.04)")}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           {/* Owner Name */}
@@ -4641,8 +4641,8 @@ export const EvidenceUpload = ({
                                   borderRadius: "50%",
                                   background:
                                     type === "Ante-Mortem"
-                                      ? "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
-                                      : "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                                      ? "#187A56"
+                                      : "linear-gradient(135deg, #24966D 0%, #136647 100%)",
                                   color: "#ffffff",
                                   display: "flex",
                                   alignItems: "center",
@@ -4668,7 +4668,7 @@ export const EvidenceUpload = ({
                           {/* Date Condemned */}
                           <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                              <Icon.Calendar size={13} style={{ opacity: 0.7, color: type === "Ante-Mortem" ? "#0284c7" : "#8b5cf6" }} />
+                              <Icon.Calendar size={13} style={{ opacity: 0.7, color: type === "Ante-Mortem" ? "#187A56" : "#24966D" }} />
                               <span>{grp.latestTimestamp ? formatManilaDateTime(grp.latestTimestamp) : "Date not recorded"}</span>
                             </div>
                           </td>
@@ -4686,7 +4686,7 @@ export const EvidenceUpload = ({
                               style={{
                                 fontSize: 12.5,
                                 fontWeight: 600,
-                                color: type === "Ante-Mortem" ? "#0284c7" : "#7c3aed",
+                                color: type === "Ante-Mortem" ? "#187A56" : "#187A56",
                               }}
                             >
                               {grp.count} {type === "Ante-Mortem" ? (grp.count === 1 ? "head" : "heads") : (grp.count === 1 ? "carcass" : "carcasses")}
@@ -4836,7 +4836,7 @@ export const EvidenceUpload = ({
                     {newEvidenceCount} New (12h)
                   </span>
                 )}
-                <span style={{ color: "#0369a1", fontSize: 12, fontWeight: 700 }}>
+                <span style={{ color: "#136647", fontSize: 12, fontWeight: 700 }}>
                   {sortedEvidence.length} File{sortedEvidence.length !== 1 ? "s" : ""}
                 </span>
               </div>
@@ -5001,7 +5001,7 @@ export const EvidenceUpload = ({
                             transition: "background 140ms ease",
                             borderBottom: "1px solid var(--color-border)",
                           }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(2, 132, 199, 0.04)")}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           {/* Owner Name */}
@@ -5014,8 +5014,8 @@ export const EvidenceUpload = ({
                                   borderRadius: "50%",
                                   background:
                                     type === "Ante-Mortem"
-                                      ? "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
-                                      : "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                                      ? "#187A56"
+                                      : "linear-gradient(135deg, #24966D 0%, #136647 100%)",
                                   color: "#ffffff",
                                   display: "flex",
                                   alignItems: "center",
@@ -5041,7 +5041,7 @@ export const EvidenceUpload = ({
                           {/* Date Condemned */}
                           <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                              <Icon.Calendar size={13} style={{ opacity: 0.7, color: type === "Ante-Mortem" ? "#0284c7" : "#8b5cf6" }} />
+                              <Icon.Calendar size={13} style={{ opacity: 0.7, color: type === "Ante-Mortem" ? "#187A56" : "#24966D" }} />
                               <span>{grp.latestTimestamp ? formatManilaDateTime(grp.latestTimestamp) : "Date not recorded"}</span>
                             </div>
                           </td>
@@ -5059,7 +5059,7 @@ export const EvidenceUpload = ({
                               style={{
                                 fontSize: 12.5,
                                 fontWeight: 600,
-                                color: type === "Ante-Mortem" ? "#0284c7" : "#7c3aed",
+                                color: type === "Ante-Mortem" ? "#187A56" : "#187A56",
                               }}
                             >
                               {grp.count} {type === "Ante-Mortem" ? (grp.count === 1 ? "head" : "heads") : (grp.count === 1 ? "carcass" : "carcasses")}
@@ -5193,7 +5193,7 @@ export const EvidenceUpload = ({
           setFilterSpecies("all");
           setEvidenceScopeFilter("all");
         }}
-        title={`Condemnation Records ‚Äî ${selectedOwnerView?.owner_name || ""}`}
+        title={`Condemnation Records ó ${selectedOwnerView?.owner_name || ""}`}
         headerRight={
           selectedOwnerView && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -5255,8 +5255,8 @@ export const EvidenceUpload = ({
                     }}
                   >
                     <option value="all">All Evidence ({ownerScopeCounts.all})</option>
-                    <option value="partial">‚úÇÔ∏è Partial ({ownerScopeCounts.partial})</option>
-                    <option value="whole">üö´ Whole Carcass ({ownerScopeCounts.whole})</option>
+                    <option value="partial">?? Partial ({ownerScopeCounts.partial})</option>
+                    <option value="whole">?? Whole Carcass ({ownerScopeCounts.whole})</option>
                   </select>
                 </div>
               )}
@@ -5367,7 +5367,7 @@ export const EvidenceUpload = ({
                         position: "relative",
                         width: "100%",
                         height: "135px",
-                        background: "#0f172a",
+                        background: "#1A201C",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
@@ -5377,7 +5377,7 @@ export const EvidenceUpload = ({
                       {thumbPhoto?.url ? (
                         <img src={thumbPhoto.url} alt={thumbPhoto.name || "Evidence"} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       ) : (
-                        <Icon.FileText size={32} style={{ color: "#94a3b8" }} />
+                        <Icon.FileText size={32} style={{ color: "#9BA49E" }} />
                       )}
                       <span
                         style={{
@@ -5401,7 +5401,7 @@ export const EvidenceUpload = ({
                             position: "absolute",
                             bottom: 8,
                             right: 8,
-                            background: "rgba(15, 23, 42, 0.8)",
+                            background: "rgba(26, 32, 28, 0.8)",
                             color: "#ffffff",
                             fontSize: 10.5,
                             fontWeight: 700,
@@ -5426,7 +5426,7 @@ export const EvidenceUpload = ({
                           {ev.tag_number || "Not recorded"}
                         </span>
                         <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-primary, #10b981)" }}>
-                          {resolvedSpecies} {resolvedSex && resolvedSex !== "‚Äî" ? `¬∑ ${resolvedSex}` : ""}
+                          {resolvedSpecies} {resolvedSex && resolvedSex !== "ó" ? `∑ ${resolvedSex}` : ""}
                         </span>
                       </div>
                       <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -5478,7 +5478,7 @@ export const EvidenceUpload = ({
                             }}
                           >
                             <span style={{ fontWeight: 600, color: "var(--color-text)", fontSize: 11.5, wordBreak: "break-word" }}>
-                              ‚Ä¢ {p.part}
+                              ï {p.part}
                               {p.location ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> ({p.location})</span> : null}
                             </span>
                             <span
@@ -5519,13 +5519,13 @@ export const EvidenceUpload = ({
                           {formatPhDateTime(rawTimestamp)}
                         </span>
                         <span
-                          style={{ fontSize: 11, fontWeight: 700, color: "var(--color-primary, #0284c7)", cursor: "pointer" }}
+                          style={{ fontSize: 11, fontWeight: 700, color: "var(--color-primary, #187A56)", cursor: "pointer" }}
                           onClick={(e) => {
                             e.stopPropagation();
                             setViewingEv(ev);
                           }}
                         >
-                          View Details ‚Üí
+                          View Details ?
                         </span>
                       </div>
                     </div>
@@ -5619,7 +5619,7 @@ export const EvidenceUpload = ({
           const isRealSpecies = (val) => {
             if (!val || typeof val !== "string") return false;
             const s = val.trim().toLowerCase();
-            return s !== "" && s !== "‚Äî" && s !== "-" && s !== "livestock" && s !== "carcass" && s !== "unknown" && s !== "n/a";
+            return s !== "" && s !== "ó" && s !== "-" && s !== "livestock" && s !== "carcass" && s !== "unknown" && s !== "n/a";
           };
           const speciesCandidates = [
             matchedAnimal?.species,
@@ -5643,7 +5643,7 @@ export const EvidenceUpload = ({
           const fallbackRecordNotes = cleanEvidenceNotes(displayRecord?.notes);
           const findingsCandidates = [rawPhotoNotes, rawInspFindings, rawCondReason, fallbackRecordNotes]
             .map((s) => String(s || "").trim())
-            .filter((s) => s && s !== "‚Äî" && s !== "-");
+            .filter((s) => s && s !== "ó" && s !== "-");
           const findingsDisplay = findingsCandidates[0] || "Not recorded";
 
           // 6. Condemnation Date & Time & Inspector
@@ -5689,7 +5689,7 @@ export const EvidenceUpload = ({
           return (
             <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               <div className="vet-evidence-viewer-grid">
-                {/* ‚îÄ‚îÄ LEFT / TOP: PRIMARY PHOTO & FILE VIEWER ‚îÄ‚îÄ */}
+                {/* -- LEFT / TOP: PRIMARY PHOTO & FILE VIEWER -- */}
                 <div className="vet-evidence-viewer-media-col">
                   {/* Viewer Top Bar: Photo Counter & Zoom/Action Controls */}
                   <div
@@ -5700,9 +5700,9 @@ export const EvidenceUpload = ({
                       flexWrap: "wrap",
                       gap: 6,
                       padding: "6px 10px",
-                      background: "#1e293b",
-                      borderBottom: "1px solid #334155",
-                      color: "#f8fafc",
+                      background: "#2D332F",
+                      borderBottom: "1px solid #444C47",
+                      color: "#F9FAF8",
                       fontSize: 11.5,
                     }}
                   >
@@ -5710,11 +5710,11 @@ export const EvidenceUpload = ({
                       <span
                         style={{
                           fontWeight: 700,
-                          color: "#e2e8f0",
-                          background: "#0f172a",
+                          color: "#E2E6E3",
+                          background: "#1A201C",
                           padding: "2px 7px",
                           borderRadius: 5,
-                          border: "1px solid #334155",
+                          border: "1px solid #444C47",
                           fontSize: 11,
                         }}
                         data-testid="evidence-photo-counter"
@@ -5724,13 +5724,13 @@ export const EvidenceUpload = ({
                           : "0 of 0"}
                       </span>
                       {currentPhoto?.part && (
-                        <span style={{ color: "#94a3b8", fontSize: 11, fontWeight: 600 }}>
-                          Part: <strong style={{ color: "#f1f5f9" }}>{currentPhoto.part}</strong>
+                        <span style={{ color: "#9BA49E", fontSize: 11, fontWeight: 600 }}>
+                          Part: <strong style={{ color: "#EFF2F0" }}>{currentPhoto.part}</strong>
                         </span>
                       )}
                       {tagPhotos.length > 1 && (
-                        <span style={{ color: "#64748b", fontSize: 10.5 }} className="vet-ev-kbd-hint">
-                          Use ‚Üê / ‚Üí keys
+                        <span style={{ color: "#5D6660", fontSize: 10.5 }} className="vet-ev-kbd-hint">
+                          Use ? / ? keys
                         </span>
                       )}
                     </div>
@@ -5748,15 +5748,15 @@ export const EvidenceUpload = ({
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: zoomLevel <= 1 ? "#0f172a" : "#334155",
-                            color: zoomLevel <= 1 ? "#475569" : "#f8fafc",
+                            border: "1px solid #5D6660",
+                            background: zoomLevel <= 1 ? "#1A201C" : "#444C47",
+                            color: zoomLevel <= 1 ? "#5D6660" : "#F9FAF8",
                             fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel <= 1 ? "not-allowed" : "pointer",
                           }}
                         >
-                          ‚àí
+                          -
                         </button>
                         <button
                           type="button"
@@ -5766,9 +5766,9 @@ export const EvidenceUpload = ({
                             height: 24,
                             padding: "0 6px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: "#0f172a",
-                            color: "#e2e8f0",
+                            border: "1px solid #5D6660",
+                            background: "#1A201C",
+                            color: "#E2E6E3",
                             fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
@@ -5787,9 +5787,9 @@ export const EvidenceUpload = ({
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: zoomLevel >= 2.5 ? "#0f172a" : "#334155",
-                            color: zoomLevel >= 2.5 ? "#475569" : "#f8fafc",
+                            border: "1px solid #5D6660",
+                            background: zoomLevel >= 2.5 ? "#1A201C" : "#444C47",
+                            color: zoomLevel >= 2.5 ? "#5D6660" : "#F9FAF8",
                             fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel >= 2.5 ? "not-allowed" : "pointer",
@@ -5805,8 +5805,8 @@ export const EvidenceUpload = ({
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #0284c7",
-                            background: "#0284c7",
+                            border: "1px solid #187A56",
+                            background: "#187A56",
                             color: "#ffffff",
                             fontSize: 10.5,
                             fontWeight: 700,
@@ -5826,9 +5826,9 @@ export const EvidenceUpload = ({
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: "#334155",
-                            color: "#f8fafc",
+                            border: "1px solid #5D6660",
+                            background: "#444C47",
+                            color: "#F9FAF8",
                             fontSize: 10.5,
                             fontWeight: 600,
                             cursor: "pointer",
@@ -5850,7 +5850,7 @@ export const EvidenceUpload = ({
                       flex: 1,
                       minHeight: 200,
                       maxHeight: "270px",
-                      background: "#0f172a",
+                      background: "#1A201C",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -5865,7 +5865,7 @@ export const EvidenceUpload = ({
                         style={{
                           padding: "24px 16px",
                           textAlign: "center",
-                          color: "#cbd5e1",
+                          color: "#C2CAC4",
                           maxWidth: 340,
                         }}
                       >
@@ -5879,15 +5879,15 @@ export const EvidenceUpload = ({
                             alignItems: "center",
                             justifyContent: "center",
                             margin: "0 auto 8px",
-                            color: "#94a3b8",
+                            color: "#9BA49E",
                           }}
                         >
                           <Icon.FileText size={22} />
                         </div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#f8fafc" }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#F9FAF8" }}>
                           No evidence file attached
                         </div>
-                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 11.5, color: "#9BA49E", marginTop: 4, lineHeight: 1.4 }}>
                           No photo is recorded for this condemnation entry.
                         </div>
                       </div>
@@ -5898,7 +5898,7 @@ export const EvidenceUpload = ({
                         style={{
                           padding: "24px 16px",
                           textAlign: "center",
-                          color: "#e2e8f0",
+                          color: "#E2E6E3",
                           maxWidth: 360,
                         }}
                       >
@@ -5907,22 +5907,22 @@ export const EvidenceUpload = ({
                             width: 46,
                             height: 46,
                             borderRadius: 10,
-                            background: "rgba(2, 132, 199, 0.16)",
-                            border: "1px solid rgba(2, 132, 199, 0.35)",
+                            background: "rgba(24, 122, 86, 0.16)",
+                            border: "1px solid rgba(24, 122, 86, 0.35)",
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
                             margin: "0 auto 8px",
-                            color: "#38bdf8",
+                            color: "#24966D",
                           }}
                         >
                           <Icon.FileText size={24} />
                         </div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#f8fafc", wordBreak: "break-word" }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#F9FAF8", wordBreak: "break-word" }}>
                           {currentPhoto.name || displayRecord.file_name || "Evidence Document"}
                         </div>
-                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 3 }}>
-                          {displayRecord.type || "Document"} ¬∑ Non-image file
+                        <div style={{ fontSize: 11.5, color: "#9BA49E", marginTop: 3 }}>
+                          {displayRecord.type || "Document"} ∑ Non-image file
                         </div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginTop: 12 }}>
                           <Button
@@ -5940,7 +5940,7 @@ export const EvidenceUpload = ({
                         style={{
                           padding: "20px 16px",
                           textAlign: "center",
-                          color: "#cbd5e1",
+                          color: "#C2CAC4",
                           maxWidth: 360,
                         }}
                       >
@@ -5959,10 +5959,10 @@ export const EvidenceUpload = ({
                         >
                           <Icon.AlertTriangle size={22} />
                         </div>
-                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#f8fafc" }}>
+                        <div style={{ fontSize: 13.5, fontWeight: 700, color: "#F9FAF8" }}>
                           Photo unavailable
                         </div>
-                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 11.5, color: "#9BA49E", marginTop: 4, lineHeight: 1.4 }}>
                           The image file could not be loaded from storage.
                         </div>
                         <div style={{ display: "flex", gap: 6, justifyContent: "center", flexWrap: "wrap", marginTop: 10 }}>
@@ -5984,14 +5984,14 @@ export const EvidenceUpload = ({
                               flexDirection: "column",
                               alignItems: "center",
                               justifyContent: "center",
-                              background: "rgba(15, 23, 42, 0.82)",
-                              color: "#e2e8f0",
+                              background: "rgba(26, 32, 28, 0.82)",
+                              color: "#E2E6E3",
                               zIndex: 3,
                               gap: 8,
                             }}
                           >
                             <span className="spinner" style={{ width: 24, height: 24 }} />
-                            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#cbd5e1" }}>
+                            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#C2CAC4" }}>
                               Loading photo...
                             </span>
                           </div>
@@ -6043,7 +6043,7 @@ export const EvidenceUpload = ({
                             left: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            background: "rgba(15, 23, 42, 0.82)",
+                            background: "rgba(26, 32, 28, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
@@ -6071,7 +6071,7 @@ export const EvidenceUpload = ({
                             right: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            background: "rgba(15, 23, 42, 0.82)",
+                            background: "rgba(26, 32, 28, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
@@ -6099,8 +6099,8 @@ export const EvidenceUpload = ({
                         alignItems: "center",
                         gap: 6,
                         padding: "6px 10px",
-                        background: "#1e293b",
-                        borderTop: "1px solid #334155",
+                        background: "#2D332F",
+                        borderTop: "1px solid #444C47",
                         overflowX: "auto",
                       }}
                     >
@@ -6119,8 +6119,8 @@ export const EvidenceUpload = ({
                               padding: 0,
                               borderRadius: 4,
                               overflow: "hidden",
-                              border: isSelected ? "2px solid #38bdf8" : "1px solid #475569",
-                              background: "#0f172a",
+                              border: isSelected ? "2px solid #24966D" : "1px solid #5D6660",
+                              background: "#1A201C",
                               cursor: "pointer",
                               flexShrink: 0,
                               position: "relative",
@@ -6157,7 +6157,7 @@ export const EvidenceUpload = ({
                   )}
                 </div>
 
-                {/* ‚îÄ‚îÄ RIGHT / BOTTOM: TWO-LINE LABELED EVIDENCE DETAILS ‚îÄ‚îÄ */}
+                {/* -- RIGHT / BOTTOM: TWO-LINE LABELED EVIDENCE DETAILS -- */}
                 <div className="vet-evidence-viewer-details-col">
                   <div
                     className="vet-evidence-viewer-details-header"
@@ -6269,7 +6269,7 @@ export const EvidenceUpload = ({
                             }}
                           >
                             <span style={{ fontWeight: 700, color: "#dc2626", fontSize: 12.5 }}>
-                              ‚Ä¢ {condPartsInfo.parts[0].part}
+                              ï {condPartsInfo.parts[0].part}
                             </span>
                             <span style={{ fontWeight: 800, color: "#dc2626", fontSize: 12.5 }}>
                               {condPartsInfo.parts[0].quantity}
@@ -6441,7 +6441,7 @@ export const EvidenceUpload = ({
                         display: "flex",
                         alignItems: "center",
                         gap: 12,
-                        color: "#f8fafc",
+                        color: "#F9FAF8",
                         fontSize: 12.5,
                       }}
                     >
@@ -6589,7 +6589,7 @@ export const EvidenceUpload = ({
           border: 1px solid var(--color-border);
           border-radius: 10px;
           overflow: hidden;
-          background: #0f172a;
+          background: #1A201C;
           flex-shrink: 0;
         }
         .vet-evidence-viewer-details-col {
@@ -6676,7 +6676,7 @@ export const MeatApprovalRecords = () => {
 const SPECIES_CONFIG = {
   Hog: { label: "Hog", bg: "#fdf2f8", text: "#be185d", border: "#fbcfe8" },
   Cattle: { label: "Cattle", bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
-  Carabao: { label: "Carabao", bg: "#f5f3ff", text: "#6d28d9", border: "#ddd6fe" },
+  Carabao: { label: "Carabao", bg: "#f5f3ff", text: "#136647", border: "#ddd6fe" },
   Goat: { label: "Goat", bg: "#ecfdf5", text: "#047857", border: "#a7f3d0" },
 };
 
@@ -6716,8 +6716,8 @@ export const VetSlaughterHistory = () => {
   };
 
   const resolveOwnerName = (item, animal) => {
-    if (item?.owner_name && item.owner_name !== "Unknown" && item.owner_name !== "‚Äî") return item.owner_name;
-    if (animal?.owner_name && animal.owner_name !== "Unknown" && animal.owner_name !== "‚Äî") return animal.owner_name;
+    if (item?.owner_name && item.owner_name !== "Unknown" && item.owner_name !== "ó") return item.owner_name;
+    if (animal?.owner_name && animal.owner_name !== "Unknown" && animal.owner_name !== "ó") return animal.owner_name;
     const ownerId = item?.owner_id || animal?.owner_id;
     if (ownerId) {
       const o = (owners || []).find(
@@ -6725,12 +6725,12 @@ export const VetSlaughterHistory = () => {
       );
       if (o?.name) return o.name;
     }
-    return item?.owner_name || animal?.owner_name || "‚Äî";
+    return item?.owner_name || animal?.owner_name || "ó";
   };
 
   const resolveSpecies = (item, animal) => {
-    if (item?.species && item.species !== "Unknown" && item.species !== "‚Äî") return item.species;
-    if (animal?.species && animal.species !== "Unknown" && animal.species !== "‚Äî") return animal.species;
+    if (item?.species && item.species !== "Unknown" && item.species !== "ó") return item.species;
+    if (animal?.species && animal.species !== "Unknown" && animal.species !== "ó") return animal.species;
     const tag = (item?.tag_number || "").toUpperCase();
     if (tag.includes("HOG") || tag.includes("PIG") || tag.includes("SWINE")) return "Hog";
     if (tag.includes("CAT") || tag.includes("COW")) return "Cattle";
@@ -6884,8 +6884,8 @@ export const VetSlaughterHistory = () => {
     }
     const headers = "Tag #,Species,Owner,Slaughter Date,Operator,Carcass Weight (kg),Status";
     const rows = filtered.map((r) => {
-      return `"${r.tag_number}","${r.species || "‚Äî"}","${(r.owner_name || "‚Äî").replace(/"/g, '""')}","${r.slaughter_date ? formatDate(r.slaughter_date) : "‚Äî"
-        }","${r.operator || "‚Äî"}","${r.carcass_weight || "‚Äî"}","${r.status || "Completed"}"`;
+      return `"${r.tag_number}","${r.species || "ó"}","${(r.owner_name || "ó").replace(/"/g, '""')}","${r.slaughter_date ? formatDate(r.slaughter_date) : "ó"
+        }","${r.operator || "ó"}","${r.carcass_weight || "ó"}","${r.status || "Completed"}"`;
     });
     const csvContent = [headers, ...rows].join("\n");
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -6934,7 +6934,7 @@ export const VetSlaughterHistory = () => {
 
         <StatCard
           label="Avg Carcass Weight"
-          value={Number(avgCarcassWeight) > 0 ? `${avgCarcassWeight} kg` : "‚Äî"}
+          value={Number(avgCarcassWeight) > 0 ? `${avgCarcassWeight} kg` : "ó"}
           trend="Per slaughtered head"
           icon={<Icon.Activity size={22} />}
           color="amber"
@@ -6980,21 +6980,21 @@ export const VetSlaughterHistory = () => {
                 height: 40,
                 paddingLeft: 38,
                 paddingRight: search ? 34 : 12,
-                border: "1.5px solid #cbd5e1",
+                border: "1.5px solid #C2CAC4",
                 borderRadius: 10,
                 fontSize: 13,
                 outline: "none",
-                background: "#f8fafc",
+                background: "#F9FAF8",
                 transition: "all 0.18s ease",
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = "#8b5cf6";
+                e.target.style.borderColor = "#24966D";
                 e.target.style.background = "#ffffff";
-                e.target.style.boxShadow = "0 0 0 3px rgba(139, 92, 246, 0.14)";
+                e.target.style.boxShadow = "0 0 0 3px rgba(24, 122, 86, 0.14)";
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = "#cbd5e1";
-                e.target.style.background = "#f8fafc";
+                e.target.style.borderColor = "#C2CAC4";
+                e.target.style.background = "#F9FAF8";
                 e.target.style.boxShadow = "none";
               }}
             />
@@ -7005,7 +7005,7 @@ export const VetSlaughterHistory = () => {
                 left: 13,
                 top: "50%",
                 transform: "translateY(-50%)",
-                color: "var(--color-text-muted, #94a3b8)",
+                color: "var(--color-text-muted, #9BA49E)",
                 pointerEvents: "none",
                 zIndex: 10
               }}
@@ -7021,7 +7021,7 @@ export const VetSlaughterHistory = () => {
                   transform: "translateY(-50%)",
                   background: "transparent",
                   border: "none",
-                  color: "#94a3b8",
+                  color: "#9BA49E",
                   cursor: "pointer",
                   padding: 4,
                   display: "flex",
@@ -7047,9 +7047,9 @@ export const VetSlaughterHistory = () => {
                   fontSize: 13,
                   fontWeight: 600,
                   borderRadius: 10,
-                  border: "1.5px solid #cbd5e1",
+                  border: "1.5px solid #C2CAC4",
                   background: "#ffffff",
-                  color: "#334155",
+                  color: "#444C47",
                   padding: "0 32px 0 12px",
                   cursor: "pointer",
                   outline: "none",
@@ -7060,8 +7060,8 @@ export const VetSlaughterHistory = () => {
                   backgroundSize: "14px",
                   transition: "all 0.15s ease",
                 }}
-                onFocus={(e) => { e.target.style.borderColor = "#8b5cf6"; }}
-                onBlur={(e) => { e.target.style.borderColor = "#cbd5e1"; }}
+                onFocus={(e) => { e.target.style.borderColor = "#24966D"; }}
+                onBlur={(e) => { e.target.style.borderColor = "#C2CAC4"; }}
               >
                 <option value="all">All Species ({unifiedRecords.length})</option>
                 <option value="Hog">Hog ({hogsCount})</option>
@@ -7075,10 +7075,10 @@ export const VetSlaughterHistory = () => {
             <div
               style={{
                 display: "inline-flex",
-                background: "#f1f5f9",
+                background: "#EFF2F0",
                 padding: "3px",
                 borderRadius: 10,
-                border: "1px solid #e2e8f0",
+                border: "1px solid #E2E6E3",
                 gap: 2,
               }}
             >
@@ -7100,11 +7100,11 @@ export const VetSlaughterHistory = () => {
                       fontSize: 12,
                       fontWeight: isSel ? 700 : 600,
                       border: "none",
-                      background: isSel ? "#8b5cf6" : "transparent",
-                      color: isSel ? "#ffffff" : "#475569",
+                      background: isSel ? "#24966D" : "transparent",
+                      color: isSel ? "#ffffff" : "#5D6660",
                       cursor: "pointer",
                       transition: "all 0.15s ease",
-                      boxShadow: isSel ? "0 2px 5px rgba(139, 92, 246, 0.25)" : "none",
+                      boxShadow: isSel ? "0 2px 5px rgba(24, 122, 86, 0.25)" : "none",
                       whiteSpace: "nowrap",
                     }}
                   >
@@ -7120,7 +7120,7 @@ export const VetSlaughterHistory = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => { setSearch(""); setFilterSpecies("all"); setDateRange("all"); setPage(1); }}
-                style={{ height: 40, color: "#64748b", fontWeight: 700, gap: 4 }}
+                style={{ height: 40, color: "#5D6660", fontWeight: 700, gap: 4 }}
               >
                 <Icon.X size={14} /> Clear
               </Button>
@@ -7165,9 +7165,9 @@ export const VetSlaughterHistory = () => {
                 {paginated.map((r) => {
                   const spTheme = SPECIES_CONFIG[r.species] || {
                     label: r.species || "Livestock",
-                    bg: "#f1f5f9",
-                    text: "#334155",
-                    border: "#cbd5e1",
+                    bg: "#EFF2F0",
+                    text: "#444C47",
+                    border: "#C2CAC4",
                   };
 
                   return (
@@ -7179,22 +7179,22 @@ export const VetSlaughterHistory = () => {
                             fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                             fontWeight: 800,
                             fontSize: 12.5,
-                            color: "#7c3aed",
-                            background: "#f5f3ff",
+                            color: "#187A56",
+                            background: "#F2F7F4",
                             padding: "3px 8px",
                             borderRadius: 6,
-                            border: "1px solid #ddd6fe",
+                            border: "1px solid #D3E0D8",
                             display: "inline-block",
                             whiteSpace: "nowrap",
                           }}
                         >
-                          {r.tag_number || "‚Äî"}
+                          {r.tag_number || "ó"}
                         </span>
                       </td>
 
                       {/* Species */}
                       <td style={{ padding: "8px 12px", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                        {r.species || "‚Äî"}
+                        {r.species || "ó"}
                       </td>
 
                       {/* Owner Name */}
@@ -7215,7 +7215,7 @@ export const VetSlaughterHistory = () => {
                               height: 28,
                               borderRadius: "50%",
                               background: "#f3e8ff",
-                              color: "#7c3aed",
+                              color: "#187A56",
                               fontSize: 12,
                               fontWeight: 800,
                               display: "inline-flex",
@@ -7230,7 +7230,7 @@ export const VetSlaughterHistory = () => {
                             title={r.owner_name}
                             style={{
                               fontWeight: 700,
-                              color: "#0f172a",
+                              color: "#1A201C",
                               fontSize: 13,
                               overflow: "hidden",
                               textOverflow: "ellipsis",
@@ -7243,8 +7243,8 @@ export const VetSlaughterHistory = () => {
                       </td>
 
                       {/* Slaughter Date */}
-                      <td style={{ padding: "8px 12px", color: "#64748b", fontSize: 12.5, whiteSpace: "nowrap" }}>
-                        {r.slaughter_date ? formatDate(r.slaughter_date) : "‚Äî"}
+                      <td style={{ padding: "8px 12px", color: "#5D6660", fontSize: 12.5, whiteSpace: "nowrap" }}>
+                        {r.slaughter_date ? formatDate(r.slaughter_date) : "ó"}
                       </td>
 
                       {/* Operator */}
@@ -7255,9 +7255,9 @@ export const VetSlaughterHistory = () => {
                             borderRadius: 6,
                             fontSize: 11.5,
                             fontWeight: 700,
-                            background: "#f8fafc",
-                            color: "#334155",
-                            border: "1px solid #e2e8f0",
+                            background: "#F9FAF8",
+                            color: "#444C47",
+                            border: "1px solid #E2E6E3",
                             whiteSpace: "nowrap",
                           }}
                         >
@@ -7284,7 +7284,7 @@ export const VetSlaughterHistory = () => {
                             {r.carcass_weight} kg
                           </span>
                         ) : (
-                          <span style={{ color: "#94a3b8", fontSize: 12 }}>Pending</span>
+                          <span style={{ color: "#9BA49E", fontSize: 12 }}>Pending</span>
                         )}
                       </td>
 
@@ -7320,7 +7320,7 @@ export const VetSlaughterHistory = () => {
               padding: "14px 18px",
               borderTop: "1px solid var(--color-border)",
               fontSize: 13,
-              color: "#64748b",
+              color: "#5D6660",
               background: "#ffffff",
               flexWrap: "wrap",
               gap: 12,
@@ -7341,9 +7341,9 @@ export const VetSlaughterHistory = () => {
                   fontWeight: 600,
                   borderRadius: 8,
                   padding: "0 22px 0 10px",
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid #C2CAC4",
                   background: "#ffffff",
-                  color: "#334155",
+                  color: "#444C47",
                   cursor: "pointer",
                   appearance: "none",
                   backgroundImage: "url(\"data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e\")",
@@ -7366,9 +7366,9 @@ export const VetSlaughterHistory = () => {
                   borderRadius: 7,
                   fontSize: 12,
                   fontWeight: 600,
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid #C2CAC4",
                   background: "#ffffff",
-                  color: page === 1 ? "#94a3b8" : "#334155",
+                  color: page === 1 ? "#9BA49E" : "#444C47",
                   cursor: page === 1 ? "not-allowed" : "pointer",
                   display: "inline-flex",
                   alignItems: "center",
@@ -7392,9 +7392,9 @@ export const VetSlaughterHistory = () => {
                   borderRadius: 7,
                   fontSize: 12,
                   fontWeight: 600,
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid #C2CAC4",
                   background: "#ffffff",
-                  color: page === totalPages ? "#94a3b8" : "#334155",
+                  color: page === totalPages ? "#9BA49E" : "#444C47",
                   cursor: page === totalPages ? "not-allowed" : "pointer",
                   display: "inline-flex",
                   alignItems: "center",
@@ -7422,9 +7422,9 @@ export const VetSlaughterHistory = () => {
           const post = r.postMortemRecord;
           const spTheme = SPECIES_CONFIG[r.species] || {
             label: r.species || "Livestock",
-            bg: "#f1f5f9",
-            text: "#334155",
-            border: "#cbd5e1",
+            bg: "#EFF2F0",
+            text: "#444C47",
+            border: "#C2CAC4",
           };
 
           return (
@@ -7439,9 +7439,9 @@ export const VetSlaughterHistory = () => {
                   gap: 12,
                   marginBottom: 16,
                   padding: "14px 18px",
-                  background: "linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%)",
+                  background: "linear-gradient(135deg, #F2F7F4 0%, #E6EFEA 100%)",
                   borderRadius: 12,
-                  border: "1px solid #ddd6fe",
+                  border: "1px solid #D3E0D8",
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -7454,8 +7454,8 @@ export const VetSlaughterHistory = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      boxShadow: "0 2px 8px rgba(124, 58, 237, 0.15)",
-                      color: "#7c3aed",
+                      boxShadow: "0 2px 8px rgba(24, 122, 86, 0.15)",
+                      color: "#187A56",
                     }}
                   >
                     <Icon.Activity size={24} />
@@ -7467,11 +7467,11 @@ export const VetSlaughterHistory = () => {
                           fontSize: 19,
                           fontWeight: 800,
                           margin: 0,
-                          color: "#5b21b6",
+                          color: "#0C3627",
                           fontFamily: "ui-monospace, monospace",
                         }}
                       >
-                        {r.tag_number || "‚Äî"}
+                        {r.tag_number || "ó"}
                       </h3>
                       <span
                         style={{
@@ -7483,8 +7483,8 @@ export const VetSlaughterHistory = () => {
                         {r.species}
                       </span>
                     </div>
-                    <div style={{ fontSize: 12.5, color: "#6d28d9", marginTop: 3 }}>
-                      Slaughter Date: <b>{r.slaughter_date ? formatDate(r.slaughter_date) : "‚Äî"}</b> ¬∑ Operator:{" "}
+                    <div style={{ fontSize: 12.5, color: "#136647", marginTop: 3 }}>
+                      Slaughter Date: <b>{r.slaughter_date ? formatDate(r.slaughter_date) : "ó"}</b> ∑ Operator:{" "}
                       <b>{r.operator}</b>
                     </div>
                   </div>
@@ -7502,14 +7502,14 @@ export const VetSlaughterHistory = () => {
                       border: "1px solid #a7f3d0",
                     }}
                   >
-                    ‚óè {r.status || "Completed"}
+                    ? {r.status || "Completed"}
                   </span>
                 </div>
               </div>
 
               {/* Carcass Dressing & Yield Analytics Grid */}
-              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <Icon.Scale size={15} /> Carcass Yield &amp; Scale Metrics
                 </div>
 
@@ -7517,34 +7517,34 @@ export const VetSlaughterHistory = () => {
                   <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, padding: "10px 12px" }}>
                     <div style={{ fontSize: 11, fontWeight: 700, color: "#15803d", textTransform: "uppercase" }}>Total Carcass Weight</div>
                     <div style={{ fontSize: 18, fontWeight: 900, color: "#166534", marginTop: 2 }}>
-                      {r.carcass_weight ? `${r.carcass_weight} kg` : "‚Äî"}
+                      {r.carcass_weight ? `${r.carcass_weight} kg` : "ó"}
                     </div>
                   </div>
 
-                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Hot Dressed Weight</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginTop: 2 }}>
-                      {car?.hot_weight ? `${car.hot_weight} kg` : r.carcass_weight ? `${r.carcass_weight} kg` : "‚Äî"}
+                  <div style={{ background: "#F9FAF8", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Hot Dressed Weight</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#1A201C", marginTop: 2 }}>
+                      {car?.hot_weight ? `${car.hot_weight} kg` : r.carcass_weight ? `${r.carcass_weight} kg` : "ó"}
                     </div>
                   </div>
 
-                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Cold Chilled Weight</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginTop: 2 }}>
-                      {car?.cold_weight ? `${car.cold_weight} kg` : r.carcass_weight ? `${r.carcass_weight} kg` : "‚Äî"}
+                  <div style={{ background: "#F9FAF8", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Cold Chilled Weight</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#1A201C", marginTop: 2 }}>
+                      {car?.cold_weight ? `${car.cold_weight} kg` : r.carcass_weight ? `${r.carcass_weight} kg` : "ó"}
                     </div>
                   </div>
 
-                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Offal / Organ Weight</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0f172a", marginTop: 2 }}>
-                      {car?.organ_weight ? `${car.organ_weight} kg` : "‚Äî"}
+                  <div style={{ background: "#F9FAF8", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Offal / Organ Weight</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#1A201C", marginTop: 2 }}>
+                      {car?.organ_weight ? `${car.organ_weight} kg` : "ó"}
                     </div>
                   </div>
 
-                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Meat Quality Grade</div>
-                    <div style={{ fontSize: 15, fontWeight: 800, color: "#0284c7", marginTop: 2 }}>
+                  <div style={{ background: "#F9FAF8", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Meat Quality Grade</div>
+                    <div style={{ fontSize: 15, fontWeight: 800, color: "#187A56", marginTop: 2 }}>
                       {car?.grade || "Grade A"}
                     </div>
                   </div>
@@ -7560,34 +7560,34 @@ export const VetSlaughterHistory = () => {
                   marginBottom: 16,
                 }}
               >
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Consignment Owner</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", marginTop: 3 }}>{r.owner_name}</div>
+                <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Consignment Owner</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#1A201C", marginTop: 3 }}>{r.owner_name}</div>
                 </div>
 
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Species &amp; Classification</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", marginTop: 3 }}>
+                <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Species &amp; Classification</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#1A201C", marginTop: 3 }}>
                     {spTheme.emoji} {r.species}
                   </div>
                 </div>
 
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Slaughter Operator Team</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", marginTop: 3 }}>{r.operator}</div>
+                <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Slaughter Operator Team</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#1A201C", marginTop: 3 }}>{r.operator}</div>
                 </div>
 
-                <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 12px" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#64748b", textTransform: "uppercase" }}>Slaughter Run Date</div>
-                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#0f172a", marginTop: 3 }}>
-                    {r.slaughter_date ? formatDate(r.slaughter_date) : "‚Äî"}
+                <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 8, padding: "10px 12px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", textTransform: "uppercase" }}>Slaughter Run Date</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 800, color: "#1A201C", marginTop: 3 }}>
+                    {r.slaughter_date ? formatDate(r.slaughter_date) : "ó"}
                   </div>
                 </div>
               </div>
 
               {/* 8-Step Abattoir Process Pipeline Status */}
-              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
-                <div style={{ fontSize: 12, fontWeight: 800, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <Icon.CheckCircle size={15} /> 8-Step Abattoir Protocol Execution
                 </div>
 
@@ -7612,15 +7612,15 @@ export const VetSlaughterHistory = () => {
                           gap: 6,
                           padding: "6px 10px",
                           borderRadius: 6,
-                          background: isDone ? "#f0fdf4" : "#f8fafc",
-                          border: `1px solid ${isDone ? "#bbf7d0" : "#e2e8f0"}`,
+                          background: isDone ? "#f0fdf4" : "#F9FAF8",
+                          border: `1px solid ${isDone ? "#bbf7d0" : "#E2E6E3"}`,
                           fontSize: 11.5,
                           fontWeight: 700,
-                          color: isDone ? "#166534" : "#64748b",
+                          color: isDone ? "#166534" : "#5D6660",
                         }}
                       >
-                        <span style={{ color: isDone ? "#16a34a" : "#94a3b8" }}>
-                          {isDone ? <Icon.Check size={13} /> : "‚óã"}
+                        <span style={{ color: isDone ? "#16a34a" : "#9BA49E" }}>
+                          {isDone ? <Icon.Check size={13} /> : "?"}
                         </span>
                         <span>{st.label}</span>
                       </div>
@@ -7630,9 +7630,9 @@ export const VetSlaughterHistory = () => {
               </div>
 
               {/* Veterinary Post-Mortem Clearance Note */}
-              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
+              <div style={{ background: "#F9FAF8", border: "1px solid #E2E6E3", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-                  <span style={{ fontSize: 12, fontWeight: 800, color: "#334155", display: "flex", alignItems: "center", gap: 6 }}>
+                  <span style={{ fontSize: 12, fontWeight: 800, color: "#444C47", display: "flex", alignItems: "center", gap: 6 }}>
                     <Icon.Stethoscope size={14} /> Post-Mortem Clinical Outcome
                   </span>
                   <span
@@ -7649,8 +7649,8 @@ export const VetSlaughterHistory = () => {
                     {post?.decision || "Passed & Certified"}
                   </span>
                 </div>
-                <div style={{ fontSize: 12, color: "#475569" }}>
-                  <b>Examining Inspector:</b> {post?.inspector_name || "Dr. Dave"} ¬∑{" "}
+                <div style={{ fontSize: 12, color: "#5D6660" }}>
+                  <b>Examining Inspector:</b> {post?.inspector_name || "Dr. Dave"} ∑{" "}
                   <b>Findings:</b> {post?.findings || "Wholesome and passed for consumption"}
                 </div>
               </div>
@@ -7683,7 +7683,7 @@ export const VetCondemnationReport = () => (
 );
 
 const inspCols = () => [
-  { key: "_seq", label: "ID", mono: true, render: (r, ri) => (ri !== undefined ? ri + 1 : "‚Äî") },
+  { key: "_seq", label: "ID", mono: true, render: (r, ri) => (ri !== undefined ? ri + 1 : "ó") },
   { key: "tag_number", label: "Tag #", bold: true },
   { key: "species", label: "Species" },
   { key: "sex", label: "Sex", render: (r) => formatSex(r.sex) },

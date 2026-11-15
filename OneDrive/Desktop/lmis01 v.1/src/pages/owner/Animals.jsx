@@ -85,29 +85,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
   const tagUpper = String(tag || "").trim().toUpperCase();
   const id = animal?.id;
 
-  const ante = (milestones.ante && (milestones.ante[tag] || milestones.ante[tagUpper])) || null;
-  const post = (milestones.post && (milestones.post[tag] || milestones.post[tagUpper])) || null;
-  const cond = (milestones.condemnation && (milestones.condemnation[tag] || milestones.condemnation[tagUpper])) || null;
-  const slaughterProc = (milestones.slaughterProc && (milestones.slaughterProc[tag] || milestones.slaughterProc[tagUpper])) || null;
-  const slaughterRec = (milestones.slaughterRec && (milestones.slaughterRec[tag] || milestones.slaughterRec[tagUpper])) || null;
-  const carcass = (milestones.carcass && (milestones.carcass[tag] || milestones.carcass[tagUpper])) || null;
-  const dispatch =
-    (milestones.dispatch && (milestones.dispatch[id] || milestones.dispatch[tag] || milestones.dispatch[tagUpper])) || null;
-  const permit =
-    (milestones.permits &&
-      (milestones.permits[id] || milestones.permits[tag] || milestones.permits[tagUpper])) || null;
-
   const history = parseAnimalHistory(animal);
-  const rawStatus = (animal?.status || "").trim();
-  const rawStatusLower = rawStatus.toLowerCase();
-
-  const anteDecision = String(ante?.decision || ante?.result || "").toLowerCase();
-  const postDecision = String(post?.decision || post?.result || "").toLowerCase();
-  const condListForAnimal = Array.isArray(cond) ? cond : cond ? [cond] : [];
-  const firstCond = condListForAnimal[0] || null;
-  const condStage = String(firstCond?.stage || firstCond?.inspection_type || "").toLowerCase();
-
-  // Extract accurate timestamps & actors for all 7 workflow stages
   const regTimestamp =
     findHistoryTimestamp(history, ["registration", "registered", "receiving"]) ||
     animal?.registered_at ||
@@ -115,6 +93,69 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     animal?.received_at ||
     animal?.received_date ||
     null;
+  const regTimeMs = regTimestamp ? new Date(regTimestamp).getTime() : null;
+
+  // Strict milestone resolution: prioritize matching by unique livestock_id (id) first!
+  let ante = (milestones.ante && id && milestones.ante[id]) ||
+    (milestones.ante && tag && (milestones.ante[tag] || milestones.ante[tagUpper])) || null;
+  if (ante) {
+    if (ante.livestock_id && id && String(ante.livestock_id).trim() !== String(id).trim()) {
+      ante = null;
+    } else if (regTimeMs && (ante.inspected_at || ante.date)) {
+      const anteTimeMs = new Date(ante.inspected_at || ante.date).getTime();
+      if (!isNaN(anteTimeMs) && anteTimeMs < regTimeMs - 86400000) {
+        ante = null;
+      }
+    }
+  }
+
+  let post = (milestones.post && id && milestones.post[id]) ||
+    (milestones.post && tag && (milestones.post[tag] || milestones.post[tagUpper])) || null;
+  if (post) {
+    if (post.livestock_id && id && String(post.livestock_id).trim() !== String(id).trim()) {
+      post = null;
+    } else if (regTimeMs && (post.inspected_at || post.date)) {
+      const postTimeMs = new Date(post.inspected_at || post.date).getTime();
+      if (!isNaN(postTimeMs) && postTimeMs < regTimeMs - 86400000) {
+        post = null;
+      }
+    }
+  }
+
+  const rawCond = (milestones.condemnation && id && milestones.condemnation[id]) ||
+    (milestones.condemnation && tag && (milestones.condemnation[tag] || milestones.condemnation[tagUpper])) || null;
+  const rawCondList = Array.isArray(rawCond) ? rawCond : rawCond ? [rawCond] : [];
+  const condListForAnimal = rawCondList.filter((c) => {
+    if (c.livestock_id && id && String(c.livestock_id).trim() !== String(id).trim()) {
+      return false;
+    }
+    if (regTimeMs && (c.created_at || c.date)) {
+      const cTimeMs = new Date(c.created_at || c.date).getTime();
+      if (!isNaN(cTimeMs) && cTimeMs < regTimeMs - 86400000) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  const slaughterProc = (milestones.slaughterProc && (milestones.slaughterProc[id] || (tag && (milestones.slaughterProc[tag] || milestones.slaughterProc[tagUpper])))) || null;
+  const slaughterRec = (milestones.slaughterRec && (milestones.slaughterRec[id] || (tag && (milestones.slaughterRec[tag] || milestones.slaughterRec[tagUpper])))) || null;
+  const carcass = (milestones.carcass && (milestones.carcass[id] || (tag && (milestones.carcass[tag] || milestones.carcass[tagUpper])))) || null;
+  const dispatch =
+    (milestones.dispatch && (milestones.dispatch[id] || (tag && (milestones.dispatch[tag] || milestones.dispatch[tagUpper])))) || null;
+  const permit =
+    (milestones.permits &&
+      (milestones.permits[id] || (tag && (milestones.permits[tag] || milestones.permits[tagUpper])))) || null;
+
+  const rawStatus = (animal?.status || "").trim();
+  const rawStatusLower = rawStatus.toLowerCase();
+
+  const anteDecision = String(ante?.decision || ante?.result || "").toLowerCase();
+  const postDecision = String(post?.decision || post?.result || "").toLowerCase();
+  const firstCond = condListForAnimal[0] || null;
+  const condStage = String(firstCond?.stage || firstCond?.inspection_type || "").toLowerCase();
+
+  // Extract accurate timestamps & actors for all 7 workflow stages
   const regActor =
     animal?.registered_by ||
     animal?.created_by ||
@@ -324,17 +365,53 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     rawStatusLower === "rejected" ||
     anteDecision.includes("reject");
 
-  // Check Partial Condemnation first so it is NEVER conflated with whole carcass condemnation
-  const hasPartialCondRecord = condListForAnimal.some(
-    (c) => c.type === "Partial" || (c.part && c.part !== "Whole Carcass" && c.part !== "Live Animal")
+  // Post-Mortem stage reached check (must have reached slaughter/post-mortem to receive partial condemnation)
+  const isPostMortemReached =
+    Boolean(carcass) ||
+    Boolean(permit) ||
+    Boolean(dispatch) ||
+    rawStatusLower === "completed" ||
+    rawStatusLower === "weighed" ||
+    rawStatusLower === "slaughtered" ||
+    rawStatusLower === "partially condemned" ||
+    slaughterProc?.status === "Completed" ||
+    slaughterRec?.status === "Completed" ||
+    Boolean(post);
+
+  // Check if post-mortem inspection for THIS animal confirmed partial condemnation
+  const hasValidCondemnedCutsInPost =
+    Boolean(post) &&
+    Array.isArray(post.condemned_parts) &&
+    post.condemned_parts.some(
+      (p) => p && (p.part || p.carcass_area || p.specific_part) && !/whole|entire|live animal/i.test(String(p.part || ""))
+    );
+
+  const hasConfirmedPartialPostDecision =
+    Boolean(post) &&
+    (postDecision === "partial" ||
+      postDecision === "partially condemned" ||
+      postDecision === "passed with partial condemnation" ||
+      postDecision.includes("partial") ||
+      String(post.raw_decision || "").toLowerCase() === "partial");
+
+  const hasConfirmedPartialCondRecord = condListForAnimal.some(
+    (c) =>
+      (c.type === "Partial" || (c.part && !/whole|entire|live animal/i.test(String(c.part)))) &&
+      String(c.stage || c.inspection_type || "Post-Mortem").toLowerCase().includes("post")
   );
 
+  // Post-Mortem Partial Condemned: ONLY if Post-Mortem was reached and confirmed!
+  // Never inferred from text findings, empty arrays, null fields, or unrelated records.
   const isPartialCondemned =
-    rawStatusLower.includes("partial") ||
-    postDecision.includes("partial") ||
-    String(post?.findings || "").toLowerCase().includes("partial") ||
-    (Array.isArray(post?.condemned_parts) && post.condemned_parts.length > 0) ||
-    hasPartialCondRecord;
+    isPostMortemReached &&
+    !postDecision.includes("whole") &&
+    !postDecision.includes("total") &&
+    (
+      (hasConfirmedPartialPostDecision && (hasValidCondemnedCutsInPost || hasConfirmedPartialCondRecord || rawStatusLower.includes("partial"))) ||
+      hasValidCondemnedCutsInPost ||
+      hasConfirmedPartialCondRecord ||
+      (rawStatusLower === "partially condemned" && Boolean(post) && !postDecision.includes("approv") && !postDecision.includes("pass"))
+    );
 
   // Post-Mortem Whole Condemned: ONLY if NOT partial condemnation!
   const isPostCondemned =
@@ -577,9 +654,9 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     statusCategory = "cleared";
     currentStageIndex = 6;
   } else if (isPostMortemPassed) {
-    statusLabel = "Completed";
-    statusCategory = "cleared";
-    currentStageIndex = isPartialCondemned ? 7 : 5;
+    statusLabel = isPartialCondemned ? "Partially Condemned" : "Completed";
+    statusCategory = isPartialCondemned ? "inspection" : "cleared";
+    currentStageIndex = 5;
   } else if (isPendingPostMortem) {
     statusLabel = "Pending Post-Mortem Inspection";
     statusCategory = "processing";
@@ -891,9 +968,9 @@ export const OwnerAnimals = () => {
             dispRes,
             permitsRes,
           ] = await Promise.all([
-            supabase.from(TABLES.ANTE_MORTEM).select("*").in("tag_number", expandedTagList),
-            supabase.from(TABLES.POST_MORTEM).select("*").in("tag_number", expandedTagList),
-            supabase.from(TABLES.CONDEMNATION_RECORDS).select("*").in("tag_number", expandedTagList),
+            supabase.from(TABLES.ANTE_MORTEM).select("*").in("tag_number", expandedTagList).order("date", { ascending: false }),
+            supabase.from(TABLES.POST_MORTEM).select("*").in("tag_number", expandedTagList).order("date", { ascending: false }),
+            supabase.from(TABLES.CONDEMNATION_RECORDS).select("*").in("tag_number", expandedTagList).order("date", { ascending: false }),
             supabase.from(TABLES.EVIDENCE_RECORDS || "evidence_records").select("*").in("tag_number", expandedTagList),
             supabase.from(TABLES.SLAUGHTER_PROCESSING).select("*").in("tag_number", expandedTagList),
             supabase.from(TABLES.SLAUGHTER_RECORDS).select("*").in("tag_number", expandedTagList),
@@ -999,25 +1076,35 @@ export const OwnerAnimals = () => {
       const mergedCarcassList = carcassList;
 
 
-      // Build fast lookup maps with case-insensitive tag keys
+      // Build fast lookup maps with case-insensitive tag keys and unique livestock_id
       const anteMap = {};
       mergedAnteList.forEach((x) => {
+        if (x.livestock_id) anteMap[x.livestock_id] = x;
         if (x.tag_number) {
-          anteMap[x.tag_number] = x;
-          anteMap[String(x.tag_number).trim().toUpperCase()] = x;
+          if (!anteMap[x.tag_number] || x.livestock_id) {
+            anteMap[x.tag_number] = x;
+            anteMap[String(x.tag_number).trim().toUpperCase()] = x;
+          }
         }
       });
 
       const postMap = {};
       mergedPostList.forEach((x) => {
+        if (x.livestock_id) postMap[x.livestock_id] = x;
         if (x.tag_number) {
-          postMap[x.tag_number] = x;
-          postMap[String(x.tag_number).trim().toUpperCase()] = x;
+          if (!postMap[x.tag_number] || x.livestock_id) {
+            postMap[x.tag_number] = x;
+            postMap[String(x.tag_number).trim().toUpperCase()] = x;
+          }
         }
       });
 
       const condMap = {};
       mergedCondList.forEach((x) => {
+        if (x.livestock_id) {
+          if (!condMap[x.livestock_id]) condMap[x.livestock_id] = [];
+          condMap[x.livestock_id].push(x);
+        }
         if (x.tag_number) {
           const rawTag = x.tag_number;
           const upperTag = String(x.tag_number).trim().toUpperCase();
@@ -1032,6 +1119,10 @@ export const OwnerAnimals = () => {
 
       const evidenceMap = {};
       mergedEvidenceList.forEach((x) => {
+        if (x.livestock_id) {
+          if (!evidenceMap[x.livestock_id]) evidenceMap[x.livestock_id] = [];
+          evidenceMap[x.livestock_id].push(x);
+        }
         if (x.tag_number) {
           const rawTag = x.tag_number;
           const upperTag = String(x.tag_number).trim().toUpperCase();
@@ -1165,12 +1256,13 @@ export const OwnerAnimals = () => {
 
     const tag = animal.tag_number;
     const tagUpper = String(tag || "").trim().toUpperCase();
+    const aId = animal.id;
     const details = getOwnerCondemnationDetails({
       animal,
-      ante: milestones.ante[tag] || milestones.ante[tagUpper],
-      post: milestones.post[tag] || milestones.post[tagUpper],
-      condemnation: milestones.condemnation[tag] || milestones.condemnation[tagUpper],
-      evidence: milestones.evidence[tag] || milestones.evidence[tagUpper] || [],
+      ante: (aId && milestones.ante[aId]) || milestones.ante[tag] || milestones.ante[tagUpper],
+      post: (aId && milestones.post[aId]) || milestones.post[tag] || milestones.post[tagUpper],
+      condemnation: (aId && milestones.condemnation[aId]) || milestones.condemnation[tag] || milestones.condemnation[tagUpper],
+      evidence: (aId && milestones.evidence[aId]) || milestones.evidence[tag] || milestones.evidence[tagUpper] || [],
     });
     setCondemnationModalDetails(details);
   };
@@ -1181,6 +1273,7 @@ export const OwnerAnimals = () => {
       const progress = calculateLivestockProgress(a, milestones);
       const tag = a.tag_number;
       const tagUpper = String(tag || "").trim().toUpperCase();
+      const aId = a.id;
       const hasCondemnationState =
         progress.isTerminated ||
         progress.isPartialCondemned ||
@@ -1190,10 +1283,10 @@ export const OwnerAnimals = () => {
       const condemnationDetails = hasCondemnationState
         ? getOwnerCondemnationDetails({
             animal: a,
-            ante: milestones.ante[tag] || milestones.ante[tagUpper],
-            post: milestones.post[tag] || milestones.post[tagUpper],
-            condemnation: milestones.condemnation[tag] || milestones.condemnation[tagUpper],
-            evidence: milestones.evidence[tag] || milestones.evidence[tagUpper] || [],
+            ante: (aId && milestones.ante[aId]) || milestones.ante[tag] || milestones.ante[tagUpper],
+            post: (aId && milestones.post[aId]) || milestones.post[tag] || milestones.post[tagUpper],
+            condemnation: (aId && milestones.condemnation[aId]) || milestones.condemnation[tag] || milestones.condemnation[tagUpper],
+            evidence: (aId && milestones.evidence[aId]) || milestones.evidence[tag] || milestones.evidence[tagUpper] || [],
           })
         : null;
 
@@ -1393,8 +1486,8 @@ export const OwnerAnimals = () => {
       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, paddingBottom: 2 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontSize: 16 }}>🏷️</span>
-            <h1 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)", letterSpacing: "-0.01em" }}>
+            <span style={{ fontSize: 16 }}>???</span>
+            <h1 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
               Today's Livestock
             </h1>
             <span
@@ -1403,8 +1496,8 @@ export const OwnerAnimals = () => {
                 fontWeight: 700,
                 padding: "2px 7px",
                 borderRadius: 999,
-                background: "rgba(2, 132, 199, 0.12)",
-                color: "#0284c7",
+                background: "rgba(24, 122, 86, 0.12)",
+                color: "#187A56",
               }}
             >
               {todayEnrichedAnimals.length} Today
@@ -1416,11 +1509,11 @@ export const OwnerAnimals = () => {
               onClick={fetchData}
               title="Refresh today's database records"
               style={{
-                background: "var(--color-bg, #f8fafc)",
-                border: "1px solid var(--color-border, #e2e8f0)",
+                background: "var(--color-bg, #F9FAF8)",
+                border: "1px solid var(--color-border, #E2E6E3)",
                 borderRadius: 8,
                 padding: "4px 9px",
-                color: "var(--color-text-muted, #64748b)",
+                color: "var(--color-text-muted, #5D6660)",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -1444,7 +1537,7 @@ export const OwnerAnimals = () => {
               left: 11,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#94a3b8",
+              color: "#9BA49E",
               display: "flex",
               alignItems: "center",
               pointerEvents: "none",
@@ -1463,9 +1556,9 @@ export const OwnerAnimals = () => {
               paddingLeft: 34,
               paddingRight: query ? 32 : 12,
               borderRadius: 10,
-              border: "1px solid var(--color-border, #e2e8f0)",
-              background: "var(--color-bg, #f8fafc)",
-              color: "var(--color-text, #0f172a)",
+              border: "1px solid var(--color-border, #E2E6E3)",
+              background: "var(--color-bg, #F9FAF8)",
+              color: "var(--color-text, #1A201C)",
               fontSize: 12,
               fontWeight: 500,
               outline: "none",
@@ -1484,7 +1577,7 @@ export const OwnerAnimals = () => {
                 transform: "translateY(-50%)",
                 background: "transparent",
                 border: "none",
-                color: "#94a3b8",
+                color: "#9BA49E",
                 cursor: "pointer",
                 padding: 4,
                 display: "flex",
@@ -1515,11 +1608,11 @@ export const OwnerAnimals = () => {
         {dbError ? (
           /* Database Loading Error State */
           <div className="owner-error-card">
-            <div style={{ fontSize: 32, marginBottom: 8, color: "#ef4444" }}>⚠️</div>
+            <div style={{ fontSize: 32, marginBottom: 8, color: "#ef4444" }}>??</div>
             <h3 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 4px 0", color: "#dc2626" }}>
               Unable to load livestock records.
             </h3>
-            <p style={{ fontSize: 12, color: "#94a3b8", margin: 0 }}>
+            <p style={{ fontSize: 12, color: "#9BA49E", margin: 0 }}>
               An unexpected error occurred while communicating with the server. Please try again.
             </p>
             <button type="button" onClick={fetchData} className="owner-btn-retry">
@@ -1529,22 +1622,22 @@ export const OwnerAnimals = () => {
         ) : loading ? (
           /* Loading State */
           <div className="owner-section-card" style={{ textAlign: "center", padding: 36 }}>
-            <div style={{ fontSize: 28, marginBottom: 10 }}>⏳</div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+            <div style={{ fontSize: 28, marginBottom: 10 }}>?</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
               Loading livestock records...
             </div>
-            <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
+            <div style={{ fontSize: 11, color: "#9BA49E", marginTop: 4 }}>
               Retrieving today's registrations from database
             </div>
           </div>
         ) : filteredAnimals.length === 0 ? (
           /* Empty State (Requirement 5) */
           <div className="owner-section-card" style={{ textAlign: "center", padding: "40px 16px" }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>📋</div>
-            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px 0", color: "var(--color-text, #0f172a)" }}>
+            <div style={{ fontSize: 36, marginBottom: 10 }}>??</div>
+            <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px 0", color: "var(--color-text, #1A201C)" }}>
               No livestock registered today.
             </h3>
-            <p style={{ fontSize: 12, color: "#64748b", margin: 0, maxWidth: 320, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
+            <p style={{ fontSize: 12, color: "#5D6660", margin: 0, maxWidth: 320, marginLeft: "auto", marginRight: "auto", lineHeight: 1.5 }}>
               Newly registered livestock by abattoir receiving staff will appear here.
             </p>
             {hasActiveFilters && (
@@ -1555,9 +1648,9 @@ export const OwnerAnimals = () => {
                   marginTop: 14,
                   fontSize: 12,
                   fontWeight: 700,
-                  color: "#0284c7",
-                  background: "rgba(14, 165, 233, 0.1)",
-                  border: "1px solid rgba(14, 165, 233, 0.25)",
+                  color: "#187A56",
+                  background: "rgba(24, 122, 86, 0.1)",
+                  border: "1px solid rgba(24, 122, 86, 0.25)",
                   padding: "6px 14px",
                   borderRadius: 10,
                   cursor: "pointer",
@@ -1575,24 +1668,25 @@ export const OwnerAnimals = () => {
               const isCleared = progress.statusCategory === "cleared";
               const isProcessing = progress.statusCategory === "processing";
               const isCondemnedOrRejected = progress.statusCategory === "condemned" || progress.statusCategory === "rejected";
-              const isPartial = progress.isPartialCondemned || /partial/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`);
+              const isPartial = Boolean(progress.isPartialCondemned);
               const isCondemned = !isPartial && (isCondemnedOrRejected || /condemn|reject/i.test(`${progress.statusLabel || ""} ${animal.status || ""}`));
 
               const tag = animal.tag_number;
               const tagUpper = String(tag || "").trim().toUpperCase();
-              const condRec = milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
-              const postRec = milestones.post?.[tag] || milestones.post?.[tagUpper];
-              const anteRec = milestones.ante?.[tag] || milestones.ante?.[tagUpper];
+              const aId = animal.id;
+              const condRec = (aId && milestones.condemnation?.[aId]) || milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
+              const postRec = (aId && milestones.post?.[aId]) || milestones.post?.[tag] || milestones.post?.[tagUpper];
+              const anteRec = (aId && milestones.ante?.[aId]) || milestones.ante?.[tag] || milestones.ante?.[tagUpper];
               const rejectedPartsStr =
                 Array.isArray(animal.condemnationDetails?.condemnedParts) && animal.condemnationDetails.condemnedParts.length > 0
                   ? animal.condemnationDetails.condemnedParts.map(p => `${p.part}${p.quantityWeight ? ` (${p.quantityWeight})` : ''}`).join(", ")
                   : Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
-                  ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+                  ? postRec.condemned_parts.filter(p => p && (p.part || p.specific_part)).map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : (p.part || "Cut")}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
                   : Array.isArray(condRec) && condRec.length > 0
-                  ? condRec.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
-                  : condRec?.part
+                  ? condRec.filter(c => c && c.part && !/whole|entire|live animal/i.test(c.part)).map((c) => `${c.part}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+                  : condRec?.part && !/whole|entire|live animal/i.test(condRec.part)
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
-                  : "Specific carcass cuts";
+                  : "Pathological cuts removed";
 
               // 2. FULLY CONDEMNED CARD (Mobile Owner UI)
               if (isCondemned) {
@@ -1620,10 +1714,10 @@ export const OwnerAnimals = () => {
                     {/* Livestock ID + Species & Condemned Status Badge */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#1A201C", fontFamily: "monospace" }}>
                           {animal.tag_number}
                         </span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#5D6660" }}>
                           {animal.species}
                         </span>
                       </div>
@@ -1652,7 +1746,7 @@ export const OwnerAnimals = () => {
                     {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ color: "#64748b", fontWeight: 600 }}>Stage:</span>
+                        <span style={{ color: "#5D6660", fontWeight: 600 }}>Stage:</span>
                         <span
                           style={{
                             fontWeight: 800,
@@ -1666,7 +1760,7 @@ export const OwnerAnimals = () => {
                           {condStageName}
                         </span>
                       </div>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#64748b" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, color: "#5D6660" }}>
                         <Icon.Clock size={12} style={{ color: "#dc2626" }} />
                         <span>{condTimeFormatted}</span>
                       </div>
@@ -1721,7 +1815,7 @@ export const OwnerAnimals = () => {
                         fontWeight: 800,
                         whiteSpace: "nowrap",
                         letterSpacing: "0.02em",
-                        color: "var(--color-text, #0f172a)",
+                        color: "var(--color-text, #1A201C)",
                       }}
                     >
                       {animal.tag_number}
@@ -1749,7 +1843,7 @@ export const OwnerAnimals = () => {
                             : isCleared
                             ? "#10b981"
                             : isProcessing
-                            ? "#0ea5e9"
+                            ? "#24966D"
                             : "#f59e0b",
                         }}
                       />
@@ -1765,21 +1859,21 @@ export const OwnerAnimals = () => {
                       gap: 10,
                       marginTop: 8,
                       fontSize: 12,
-                      color: "var(--color-text-muted, #64748b)",
+                      color: "var(--color-text-muted, #5D6660)",
                       flexWrap: "wrap",
                     }}
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ color: "var(--color-text-muted, #94a3b8)", fontWeight: 500 }}>Sex:</span>
-                      <strong style={{ color: "var(--color-text, #334155)", fontWeight: 700 }}>
+                      <span style={{ color: "var(--color-text-muted, #9BA49E)", fontWeight: 500 }}>Sex:</span>
+                      <strong style={{ color: "var(--color-text, #444C47)", fontWeight: 700 }}>
                         {formatSex(animal.sex || animal.gender)}
                       </strong>
                     </span>
 
-                    <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
+                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>�</span>
 
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Icon.Clock size={12} style={{ color: "#0ea5e9", flexShrink: 0 }} />
+                      <Icon.Clock size={12} style={{ color: "#24966D", flexShrink: 0 }} />
                       <span style={{ fontWeight: 600 }}>
                         {formatPhDateTime(animal.registered_at || animal.created_at || animal.received_date)}
                       </span>
@@ -1855,22 +1949,22 @@ export const OwnerAnimals = () => {
                       <div
                         key={st.id}
                         className={`owner-tracker-step ${st.state}`}
-                        title={`${st.label}: ${st.sublabel}${st.timestampFormatted && st.timestampFormatted !== "—" ? ` (${st.timestampFormatted})` : ""}`}
+                        title={`${st.label}: ${st.sublabel}${st.timestampFormatted && st.timestampFormatted !== "�" ? ` (${st.timestampFormatted})` : ""}`}
                       >
                         <div className="owner-tracker-dot">
                           {isDone ? (
                             <Icon.Check size={13} strokeWidth={3} />
                           ) : isCurr ? (
-                            <span style={{ fontSize: 8 }}>●</span>
+                            <span style={{ fontSize: 8 }}>?</span>
                           ) : isRej ? (
                             <Icon.X size={12} strokeWidth={3} />
                           ) : (
-                            <span style={{ fontSize: 9 }}>○</span>
+                            <span style={{ fontSize: 9 }}>?</span>
                           )}
                         </div>
                         <span className="owner-tracker-title">{st.label}</span>
                         <span className="owner-tracker-sub">{st.sublabel}</span>
-                        {st.timestampFormatted && st.timestampFormatted !== "—" && (
+                        {st.timestampFormatted && st.timestampFormatted !== "�" && (
                           <span className="owner-tracker-time">{st.timestampFormatted}</span>
                         )}
                       </div>
@@ -1901,7 +1995,7 @@ export const OwnerAnimals = () => {
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(15, 23, 42, 0.75)",
+            backgroundColor: "rgba(26, 32, 28, 0.75)",
             backdropFilter: "blur(6px)",
             WebkitBackdropFilter: "blur(6px)",
             zIndex: 10000,
@@ -1918,10 +2012,10 @@ export const OwnerAnimals = () => {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div>
-                  <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", color: "#0284c7", letterSpacing: "0.04em" }}>
+                  <span style={{ fontSize: 10.5, fontWeight: 800, textTransform: "uppercase", color: "#187A56", letterSpacing: "0.04em" }}>
                     Verified Abattoir Record
                   </span>
-                  <h2 style={{ fontSize: 18, fontWeight: 900, margin: 0, fontFamily: "monospace", color: "var(--color-text, #0f172a)" }}>
+                  <h2 style={{ fontSize: 18, fontWeight: 900, margin: 0, fontFamily: "monospace", color: "var(--color-text, #1A201C)" }}>
                     {selectedAnimal.tag_number}
                   </h2>
                 </div>
@@ -1934,12 +2028,12 @@ export const OwnerAnimals = () => {
                   width: 34,
                   height: 34,
                   borderRadius: "50%",
-                  background: "#f1f5f9",
+                  background: "#EFF2F0",
                   border: "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  color: "#64748b",
+                  color: "#5D6660",
                   cursor: "pointer",
                 }}
                 title="Close"
@@ -1970,7 +2064,7 @@ export const OwnerAnimals = () => {
                         style={{
                           fontSize: 11.5,
                           fontWeight: 800,
-                          color: isCondemned ? "#dc2626" : isCleared ? "#059669" : "#0369a1",
+                          color: isCondemned ? "#dc2626" : isCleared ? "#059669" : "#136647",
                           textTransform: "uppercase",
                         }}
                       >
@@ -1991,7 +2085,7 @@ export const OwnerAnimals = () => {
                         </span>
                       )}
                     </div>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: isCondemned ? "#dc2626" : "#0284c7" }}>
+                    <span style={{ fontSize: 11, fontWeight: 800, color: isCondemned ? "#dc2626" : "#187A56" }}>
                       Stage {prog.currentStageIndex} of 7
                     </span>
                   </div>
@@ -2010,7 +2104,7 @@ export const OwnerAnimals = () => {
                       style={{
                         height: "100%",
                         width: `${(prog.currentStageIndex / 7) * 100}%`,
-                        backgroundColor: isCondemned ? "#ef4444" : isCleared ? "#10b981" : "#0284c7",
+                        backgroundColor: isCondemned ? "#ef4444" : isCleared ? "#10b981" : "#187A56",
                         borderRadius: 3,
                         transition: "width 0.3s ease",
                       }}
@@ -2024,22 +2118,23 @@ export const OwnerAnimals = () => {
             {(() => {
               const selTag = selectedAnimal.tag_number;
               const selTagUpper = String(selTag || "").trim().toUpperCase();
+              const selId = selectedAnimal.id;
               const prog = calculateLivestockProgress(selectedAnimal, milestones);
               if (!prog.isPartialCondemned) return null;
 
-              const postRec = milestones.post[selTag] || milestones.post[selTagUpper] || null;
-              const condRecList = milestones.condemnation[selTag] || milestones.condemnation[selTagUpper] || [];
+              const postRec = (selId && milestones.post[selId]) || milestones.post[selTag] || milestones.post[selTagUpper] || null;
+              const condRecList = (selId && milestones.condemnation[selId]) || milestones.condemnation[selTag] || milestones.condemnation[selTagUpper] || [];
               const condRec = Array.isArray(condRecList) ? condRecList[0] : condRecList;
               const modalRejectedPartsStr =
                 Array.isArray(selectedAnimal.condemnationDetails?.condemnedParts) && selectedAnimal.condemnationDetails.condemnedParts.length > 0
                   ? selectedAnimal.condemnationDetails.condemnedParts.map(p => `${p.part}${p.quantityWeight ? ` (${p.quantityWeight})` : ''}`).join(", ")
                   : Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
-                  ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+                  ? postRec.condemned_parts.filter(p => p && (p.part || p.specific_part)).map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : (p.part || "Cut")}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
                   : Array.isArray(condRecList) && condRecList.length > 0
-                  ? condRecList.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
-                  : condRec?.part
+                  ? condRecList.filter(c => c && c.part && !/whole|entire|live animal/i.test(c.part)).map((c) => `${c.part}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+                  : condRec?.part && !/whole|entire|live animal/i.test(condRec.part)
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
-                  : "Specific carcass cuts";
+                  : "Pathological cuts removed";
 
               return (
                 <div
@@ -2125,11 +2220,11 @@ export const OwnerAnimals = () => {
                   {/* COMPLETE WORKFLOW TIMELINE (ACCURATE DATE & TIME PER STAGE) */}
                   <div className="owner-section-card" style={{ padding: 14 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 800, color: "var(--color-text, #0f172a)" }}>
-                        <Icon.Clock size={15} style={{ color: "#0284c7" }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 800, color: "var(--color-text, #1A201C)" }}>
+                        <Icon.Clock size={15} style={{ color: "#187A56" }} />
                         <span>Official Workflow Timeline</span>
                       </div>
-                      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#64748b" }}>
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#5D6660" }}>
                         Date &amp; Time (PH)
                       </span>
                     </div>
@@ -2139,7 +2234,7 @@ export const OwnerAnimals = () => {
                         const isDone = st.state === "completed";
                         const isCurr = st.state === "current";
                         const isRej = st.state === "rejected" || st.state === "condemned";
-                        const hasTime = Boolean(st.timestampFormatted && st.timestampFormatted !== "—");
+                        const hasTime = Boolean(st.timestampFormatted && st.timestampFormatted !== "�");
 
                         return (
                           <div
@@ -2154,7 +2249,7 @@ export const OwnerAnimals = () => {
                               backgroundColor: isDone
                                 ? "rgba(16, 185, 129, 0.06)"
                                 : isCurr
-                                ? "rgba(14, 165, 233, 0.08)"
+                                ? "rgba(24, 122, 86, 0.08)"
                                 : isRej
                                 ? "rgba(239, 68, 68, 0.08)"
                                 : "rgba(148, 163, 184, 0.06)",
@@ -2162,7 +2257,7 @@ export const OwnerAnimals = () => {
                                 isDone
                                   ? "rgba(16, 185, 129, 0.22)"
                                   : isCurr
-                                  ? "rgba(14, 165, 233, 0.28)"
+                                  ? "rgba(24, 122, 86, 0.28)"
                                   : isRej
                                   ? "rgba(239, 68, 68, 0.28)"
                                   : "rgba(148, 163, 184, 0.16)"
@@ -2184,11 +2279,11 @@ export const OwnerAnimals = () => {
                                   backgroundColor: isDone
                                     ? "#10b981"
                                     : isCurr
-                                    ? "#0284c7"
+                                    ? "#187A56"
                                     : isRej
                                     ? "#ef4444"
-                                    : "#e2e8f0",
-                                  color: isDone || isCurr || isRej ? "#ffffff" : "#64748b",
+                                    : "#E2E6E3",
+                                  color: isDone || isCurr || isRej ? "#ffffff" : "#5D6660",
                                 }}
                               >
                                 {isDone ? (
@@ -2200,7 +2295,7 @@ export const OwnerAnimals = () => {
                                 )}
                               </div>
                               <div style={{ minWidth: 0 }}>
-                                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text, #0f172a)" }}>
+                                <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text, #1A201C)" }}>
                                   {st.id}. {st.label}
                                 </div>
                                 <div
@@ -2210,14 +2305,14 @@ export const OwnerAnimals = () => {
                                     color: isDone
                                       ? "#059669"
                                       : isCurr
-                                      ? "#0284c7"
+                                      ? "#187A56"
                                       : isRej
                                       ? "#dc2626"
-                                      : "#94a3b8",
+                                      : "#9BA49E",
                                   }}
                                 >
                                   {st.sublabel}
-                                  {st.actor ? ` · ${st.actor}` : ""}
+                                  {st.actor ? ` � ${st.actor}` : ""}
                                 </div>
                               </div>
                             </div>
@@ -2235,9 +2330,9 @@ export const OwnerAnimals = () => {
                                       : isRej
                                       ? "rgba(239, 68, 68, 0.12)"
                                       : isCurr
-                                      ? "rgba(14, 165, 233, 0.12)"
+                                      ? "rgba(24, 122, 86, 0.12)"
                                       : "rgba(148, 163, 184, 0.12)",
-                                    color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#0ea5e9" : "#64748b",
+                                    color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#24966D" : "#5D6660",
                                     border: isRej ? "1px solid rgba(239, 68, 68, 0.28)" : "none",
                                   }}
                                 >
@@ -2308,7 +2403,7 @@ export const OwnerAnimals = () => {
                                   style={{
                                     fontSize: 10,
                                     fontWeight: 600,
-                                    color: isRej ? "#dc2626" : "var(--color-text, #334155)",
+                                    color: isRej ? "#dc2626" : "var(--color-text, #444C47)",
                                     display: "flex",
                                     alignItems: "center",
                                     gap: 4,
@@ -2316,11 +2411,11 @@ export const OwnerAnimals = () => {
                                     marginTop: 2,
                                   }}
                                 >
-                                  <Icon.Clock size={10} style={{ color: isRej ? "#dc2626" : "#0284c7" }} />
+                                  <Icon.Clock size={10} style={{ color: isRej ? "#dc2626" : "#187A56" }} />
                                   <span>{st.timestampFormatted}</span>
                                 </div>
                               ) : (
-                                <div style={{ fontSize: 10, fontWeight: 600, color: "#94a3b8", fontStyle: "italic", marginTop: 2 }}>
+                                <div style={{ fontSize: 10, fontWeight: 600, color: "#9BA49E", fontStyle: "italic", marginTop: 2 }}>
                                   {st.sublabel === "Stopped" ? "Stopped" : "Pending"}
                                 </div>
                               )}
@@ -2340,7 +2435,7 @@ export const OwnerAnimals = () => {
               onClick={handleCloseDetails}
               style={{
                 width: "100%",
-                background: "#0284c7",
+                background: "#187A56",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: 14,

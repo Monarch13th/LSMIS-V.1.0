@@ -546,7 +546,7 @@ DROP POLICY IF EXISTS audit_logs_role_scoped_select_policy ON public.audit_logs;
 
 CREATE POLICY audit_logs_role_scoped_select_policy ON public.audit_logs
 FOR SELECT TO authenticated USING (
-  (public.get_auth_role() IN ('admin', 'administrator') AND LOWER(TRIM(COALESCE(role, ''))) IN ('admin', 'administrator'))
+  (public.get_auth_role() IN ('admin', 'administrator') AND LOWER(TRIM(COALESCE(role, ''))) IN ('admin', 'administrator', 'vet', 'veterinarian', 'staff', 'operator', 'system', 'unknown', ''))
   OR
   (public.get_auth_role() IN ('vet', 'veterinarian') AND LOWER(TRIM(COALESCE(role, ''))) IN ('vet', 'veterinarian'))
   OR

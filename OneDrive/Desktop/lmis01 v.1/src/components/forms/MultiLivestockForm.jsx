@@ -172,7 +172,7 @@ export const MultiLivestockForm = ({
       const species = item.species || "Unspecified";
       const sex = item.sex && item.sex !== "Unspecified" ? ` (${item.sex})` : "";
       const category = `${species}${sex}`;
-      const ageStr = item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "—");
+      const ageStr = item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "�");
       const key = `${category}|||${ageStr}`;
       const qty = parseInt(item.quantity, 10) || 0;
       if (map.has(key)) {
@@ -490,13 +490,13 @@ export const MultiLivestockForm = ({
         }
         .sex-toggle-btn:hover {
           background: var(--color-surface);
-          border-color: #94a3b8;
+          border-color: #9BA49E;
         }
         .sex-toggle-btn.active-male {
-          background: rgba(2, 132, 199, 0.12);
-          border-color: #0284c7;
-          color: #0284c7;
-          box-shadow: 0 0 0 1px #0284c7;
+          background: rgba(24, 122, 86, 0.12);
+          border-color: #187A56;
+          color: #187A56;
+          box-shadow: 0 0 0 1px #187A56;
         }
         .sex-toggle-btn.active-female {
           background: rgba(236, 72, 153, 0.12);
@@ -520,7 +520,7 @@ export const MultiLivestockForm = ({
           transition: transform 0.15s ease, border-color 0.15s ease;
         }
         .species-thumb-box:hover {
-          border-color: #94a3b8;
+          border-color: #9BA49E;
         }
       `}</style>
 
@@ -699,7 +699,7 @@ export const MultiLivestockForm = ({
                         borderColor: errors[`sex_${entry.id}`] && !entry.sex ? "#ef4444" : undefined,
                       }}
                     >
-                      <span style={{ fontSize: 14 }}>♂</span>
+                      <span style={{ fontSize: 14 }}>?</span>
                       <span>Male</span>
                     </button>
                     <button
@@ -710,7 +710,7 @@ export const MultiLivestockForm = ({
                         borderColor: errors[`sex_${entry.id}`] && !entry.sex ? "#ef4444" : undefined,
                       }}
                     >
-                      <span style={{ fontSize: 14 }}>♀</span>
+                      <span style={{ fontSize: 14 }}>?</span>
                       <span>Female</span>
                     </button>
                   </div>
@@ -829,12 +829,12 @@ export const MultiLivestockForm = ({
               boxSizing: "border-box",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(16, 185, 129, 0.12)";
-              e.currentTarget.style.borderColor = "#059669";
+              e.currentTarget.style.background = "var(--lsmis-primary-soft)";
+              e.currentTarget.style.borderColor = "var(--lsmis-primary-hover)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "rgba(16, 185, 129, 0.05)";
-              e.currentTarget.style.borderColor = "#10b981";
+              e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
+              e.currentTarget.style.borderColor = "var(--lsmis-secondary)";
             }}
           >
             <Icon.Plus size={15} />
@@ -852,7 +852,7 @@ export const MultiLivestockForm = ({
           marginBottom: 0,
           padding: "12px 20px",
           background: "var(--color-surface, #ffffff)",
-          borderTop: "1px solid var(--color-border, #e2e8f0)",
+          borderTop: "1px solid var(--color-border, #E2E6E3)",
           boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.04)",
           display: "flex",
           justifyContent: "flex-end",
@@ -915,7 +915,7 @@ export const MultiLivestockForm = ({
             position: "fixed",
             inset: 0,
             zIndex: 1200,
-            background: "rgba(15, 23, 42, 0.55)",
+            background: "rgba(26, 32, 28, 0.55)",
             backdropFilter: "blur(2px)",
             display: "flex",
             alignItems: "center",
@@ -937,7 +937,7 @@ export const MultiLivestockForm = ({
               maxWidth: 490,
               background: "var(--color-surface, #ffffff)",
               borderRadius: 14,
-              border: "1px solid var(--color-border, #e2e8f0)",
+              border: "1px solid var(--color-border, #E2E6E3)",
               boxShadow: "0 20px 45px -10px rgba(0, 0, 0, 0.35)",
               padding: "20px 22px 20px 22px",
               boxSizing: "border-box",
@@ -975,7 +975,7 @@ export const MultiLivestockForm = ({
                     margin: 0,
                     fontSize: 16.5,
                     fontWeight: 700,
-                    color: "var(--color-text, #0f172a)",
+                    color: "var(--color-text, #1A201C)",
                     letterSpacing: "-0.01em",
                   }}
                 >
@@ -991,7 +991,7 @@ export const MultiLivestockForm = ({
                 style={{
                   border: "none",
                   background: "transparent",
-                  color: "var(--color-text-muted, #64748b)",
+                  color: "var(--color-text-muted, #5D6660)",
                   cursor: submitting ? "not-allowed" : "pointer",
                   padding: 4,
                   display: "inline-flex",
@@ -1010,18 +1010,18 @@ export const MultiLivestockForm = ({
                 margin: "14px 0 14px 0",
                 fontSize: 13.5,
                 lineHeight: 1.5,
-                color: "var(--color-text-secondary, #334155)",
+                color: "var(--color-text-secondary, #444C47)",
                 textAlign: "left",
               }}
             >
               Are you sure you want to register incoming livestock for{" "}
-              <strong style={{ color: "var(--color-text, #0f172a)" }}>{ownerName}</strong>?
+              <strong style={{ color: "var(--color-text, #1A201C)" }}>{ownerName}</strong>?
             </p>
 
             {/* Scrollable details table container */}
             <div
               style={{
-                border: "1px solid var(--color-border, #e2e8f0)",
+                border: "1px solid var(--color-border, #E2E6E3)",
                 borderRadius: 9,
                 overflow: "hidden",
                 background: "var(--color-bg, #ffffff)",
@@ -1046,16 +1046,16 @@ export const MultiLivestockForm = ({
                     style={{
                       position: "sticky",
                       top: 0,
-                      background: "var(--color-surface-subtle, #f8fafc)",
+                      background: "var(--color-surface-subtle, #F9FAF8)",
                       zIndex: 3,
                     }}
                   >
-                    <tr style={{ borderBottom: "1px solid var(--color-border, #e2e8f0)" }}>
+                    <tr style={{ borderBottom: "1px solid var(--color-border, #E2E6E3)" }}>
                       <th
                         style={{
                           padding: "10px 14px",
                           fontWeight: 700,
-                          color: "var(--color-text, #1e293b)",
+                          color: "var(--color-text, #2D332F)",
                           fontSize: 12.5,
                           textAlign: "left",
                         }}
@@ -1066,7 +1066,7 @@ export const MultiLivestockForm = ({
                         style={{
                           padding: "10px 14px",
                           fontWeight: 700,
-                          color: "var(--color-text, #1e293b)",
+                          color: "var(--color-text, #2D332F)",
                           fontSize: 12.5,
                           textAlign: "left",
                         }}
@@ -1077,7 +1077,7 @@ export const MultiLivestockForm = ({
                         style={{
                           padding: "10px 14px",
                           fontWeight: 700,
-                          color: "var(--color-text, #1e293b)",
+                          color: "var(--color-text, #2D332F)",
                           fontSize: 12.5,
                           textAlign: "right",
                         }}
@@ -1093,7 +1093,7 @@ export const MultiLivestockForm = ({
                         style={{
                           borderBottom:
                             i < aggregatedEntries.length - 1
-                              ? "1px solid var(--color-border, #f1f5f9)"
+                              ? "1px solid var(--color-border, #EFF2F0)"
                               : "none",
                           background:
                             i % 2 === 0
@@ -1105,7 +1105,7 @@ export const MultiLivestockForm = ({
                           style={{
                             padding: "10px 14px",
                             fontWeight: 500,
-                            color: "var(--color-text, #0f172a)",
+                            color: "var(--color-text, #1A201C)",
                           }}
                         >
                           {item.category}
@@ -1113,7 +1113,7 @@ export const MultiLivestockForm = ({
                         <td
                           style={{
                             padding: "10px 14px",
-                            color: "var(--color-text-secondary, #334155)",
+                            color: "var(--color-text-secondary, #444C47)",
                           }}
                         >
                           {item.age}
@@ -1122,7 +1122,7 @@ export const MultiLivestockForm = ({
                           style={{
                             padding: "10px 14px",
                             fontWeight: 500,
-                            color: "var(--color-text, #0f172a)",
+                            color: "var(--color-text, #1A201C)",
                             textAlign: "right",
                           }}
                         >
@@ -1167,9 +1167,9 @@ export const MultiLivestockForm = ({
                   height: 40,
                   padding: "0 16px",
                   borderRadius: 8,
-                  border: "1.5px solid var(--color-border, #cbd5e1)",
+                  border: "1.5px solid var(--color-border, #C2CAC4)",
                   background: "var(--color-bg, #ffffff)",
-                  color: "var(--color-text, #334155)",
+                  color: "var(--color-text, #444C47)",
                   fontWeight: 600,
                   fontSize: 13.5,
                   cursor: submitting ? "not-allowed" : "pointer",

@@ -44,17 +44,16 @@ export const authService = {
           }
         }
 
-        if (session.role !== "admin") {
-          await logActivity({
-            action: `User logged out (Session Duration: ${durationStr})`,
-            module: "Auth",
-            user: session.name || session.email || session.username,
-            role: session.role || "staff",
-            old_value: "Active Session",
-            new_value: `Logged Out (${durationStr})`,
-            field_changed: "session_state",
-          });
-        }
+        await logActivity({
+          action: `User logged out (Session Duration: ${durationStr})`,
+          module: "Auth",
+          user_id: session.user_id || session.id || null,
+          user: session.name || session.email || session.username,
+          role: session.role || "staff",
+          old_value: "Active Session",
+          new_value: `Logged Out (${durationStr})`,
+          field_changed: "session_state",
+        });
 
         removeActiveSession(session.email);
 

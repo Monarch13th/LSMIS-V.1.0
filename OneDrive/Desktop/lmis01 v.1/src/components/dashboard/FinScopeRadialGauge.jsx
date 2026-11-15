@@ -20,8 +20,8 @@ export const FinScopeRadialGauge = ({
 }) => {
   // Semicircle dimensions:
   // Center (cx, cy) = (100, 95), Radius = 76
-  // Angle spans from 180Â° to 0Â° (PI radians)
-  // Arc length = PI * 76 â‰ˆ 238.76
+  // Angle spans from 180° to 0° (PI radians)
+  // Arc length = PI * 76 ˜ 238.76
   const cx = 100;
   const cy = 95;
   const r = 76;
@@ -37,7 +37,7 @@ export const FinScopeRadialGauge = ({
       <div className="finscope-gauge-header">
         <span className="finscope-gauge-title">{title}</span>
         <button type="button" className="finscope-more-btn" title="View breakdown">
-          â€¢â€¢â€¢
+          •••
         </button>
       </div>
 
@@ -46,7 +46,7 @@ export const FinScopeRadialGauge = ({
           <defs>
             {/* Linear gradient matching FinScope vibrant blue/emerald */}
             <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#0284c7" />
+              <stop offset="0%" stopColor="#187A56" />
               <stop offset="50%" stopColor="#10b981" />
               <stop offset="85%" stopColor="#f59e0b" />
               <stop offset="100%" stopColor="#f43f5e" />
@@ -54,7 +54,7 @@ export const FinScopeRadialGauge = ({
 
             {/* Subtle drop shadow */}
             <filter id="gaugeShadow" x="-10%" y="-10%" width="120%" height="120%">
-              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#0f172a" floodOpacity="0.08" />
+              <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#1A201C" floodOpacity="0.08" />
             </filter>
           </defs>
 
@@ -62,7 +62,7 @@ export const FinScopeRadialGauge = ({
           <path
             d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
-            stroke="#f1f5f9"
+            stroke="#EFF2F0"
             strokeWidth="12"
             strokeLinecap="round"
           />
@@ -71,7 +71,7 @@ export const FinScopeRadialGauge = ({
           <path
             d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
-            stroke="#e2e8f0"
+            stroke="#E2E6E3"
             strokeWidth="12"
             strokeDasharray="2 6"
             strokeLinecap="round"
@@ -100,7 +100,7 @@ export const FinScopeRadialGauge = ({
                 cy={py}
                 r="6"
                 fill="#ffffff"
-                stroke="#0284c7"
+                stroke="#187A56"
                 strokeWidth="3.5"
                 filter="url(#gaugeShadow)"
               />
@@ -108,8 +108,8 @@ export const FinScopeRadialGauge = ({
           })()}
 
           {/* Semicircle Labels: High / Medium / Low or Safe / Condemned */}
-          <text x="18" y="108" fill="#94a3b8" fontSize="8" fontWeight="700">Safe</text>
-          <text x="175" y="108" fill="#94a3b8" fontSize="8" fontWeight="700" textAnchor="end">Barred</text>
+          <text x="18" y="108" fill="#9BA49E" fontSize="8" fontWeight="700">Safe</text>
+          <text x="175" y="108" fill="#9BA49E" fontSize="8" fontWeight="700" textAnchor="end">Barred</text>
         </svg>
 
         {/* Center Overlay Metric */}
@@ -121,7 +121,7 @@ export const FinScopeRadialGauge = ({
           <div className="finscope-gauge-sub">{subtitle}</div>
           {trend && (
             <div className="finscope-gauge-trend">
-              <span className="trend-arrow">â–²</span> {trend}
+              <span className="trend-arrow">?</span> {trend}
             </div>
           )}
         </div>

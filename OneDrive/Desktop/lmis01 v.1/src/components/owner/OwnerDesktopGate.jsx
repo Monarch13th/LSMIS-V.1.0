@@ -44,7 +44,7 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
             alt="LSMIS"
             style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "contain" }}
           />
-          <span>City Veterinary Abattoir â€¢ Mobile Portal</span>
+          <span>City Veterinary Abattoir • Mobile Portal</span>
         </div>
 
         {/* Device Restriction Icon */}
@@ -90,23 +90,23 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
                 flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "#f8fafc",
+                backgroundColor: "#F9FAF8",
                 borderRadius: 8,
-                color: "#64748b",
+                color: "#5D6660",
                 textAlign: "center",
                 padding: 10,
                 fontSize: 11,
               }}
             >
-              <Icon.Smartphone size={32} style={{ color: "#0284c7", marginBottom: 6 }} />
+              <Icon.Smartphone size={32} style={{ color: "#187A56", marginBottom: 6 }} />
               <strong>Open on Mobile</strong>
-              <span style={{ fontSize: 10, color: "#94a3b8" }}>Use your phone browser</span>
+              <span style={{ fontSize: 10, color: "#9BA49E" }}>Use your phone browser</span>
             </div>
           </div>
 
           {/* Copyable Link Chip */}
           <div className="owner-gate-url-chip">
-            <Icon.Globe size={13} style={{ color: "#38bdf8", flexShrink: 0 }} />
+            <Icon.Globe size={13} style={{ color: "#24966D", flexShrink: 0 }} />
             <span className="owner-gate-url-text" title={mobileUrl}>
               {mobileUrl}
             </span>

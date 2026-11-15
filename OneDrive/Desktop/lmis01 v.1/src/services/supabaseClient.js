@@ -1,8 +1,21 @@
 import { createClient } from "@supabase/supabase-js";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
 
-const supabaseUrl = import.meta.env?.VITE_SUPABASE_URL || (typeof process !== "undefined" ? process.env?.VITE_SUPABASE_URL : "");
-const supabaseKey = import.meta.env?.VITE_SUPABASE_ANON_KEY || (typeof process !== "undefined" ? process.env?.VITE_SUPABASE_ANON_KEY : "");
+const DEFAULT_SUPABASE_URL = "https://zwuoebmkapoywkpyaahw.supabase.co";
+const DEFAULT_SUPABASE_ANON_KEY = "sb_publishable_59ktqE4W2Qfk6PuSwxLrvA_0IuyMEBR";
+
+export const SUPABASE_URL =
+  import.meta.env?.VITE_SUPABASE_URL ||
+  (typeof process !== "undefined" ? process.env?.VITE_SUPABASE_URL : "") ||
+  DEFAULT_SUPABASE_URL;
+
+export const SUPABASE_ANON_KEY =
+  import.meta.env?.VITE_SUPABASE_ANON_KEY ||
+  (typeof process !== "undefined" ? process.env?.VITE_SUPABASE_ANON_KEY : "") ||
+  DEFAULT_SUPABASE_ANON_KEY;
+
+const supabaseUrl = SUPABASE_URL;
+const supabaseKey = SUPABASE_ANON_KEY;
 
 /**
  * Returns a stable, tab-scoped identifier for the current browsing context.

@@ -3,25 +3,23 @@ import { Icon } from "../components/icons";
 
 /* ============ ADMIN ============ */
 const admin = [
-  { header: "GENERAL" },
+  { header: "MAIN" },
   { path: "/admin", label: "Dashboard", icon: <Icon.Dashboard /> },
 
   { header: "MANAGEMENT" },
   { path: "/admin/users", label: "Personnel Management", icon: <Icon.Users /> },
   { path: "/admin/owners", label: "Owner Management", icon: <Icon.User /> },
-  { path: "/admin/species", label: "Species Management", icon: <Icon.Cow /> },
+  { path: "/admin/species", label: "Species Management", icon: <Icon.Tag /> },
 
-  { header: "OPERATIONS MONITORING" },
+  { header: "MONITORING" },
   { path: "/admin/livestock", label: "Livestock Records", icon: <Icon.Cow /> },
   { path: "/admin/slaughter/records", label: "Slaughter Records", icon: <Icon.Scissors /> },
   { path: "/admin/inspection/records", label: "Inspection Records", icon: <Icon.Stethoscope /> },
   { path: "/admin/permits", label: "Permit Records", icon: <Icon.FileText /> },
   { path: "/admin/audit-logs", label: "Audit Logs", icon: <Icon.Clock /> },
 
-  { header: "REPORTS" },
+  { header: "SYSTEM" },
   { path: "/admin/reports", label: "Reports", icon: <Icon.PieChart /> },
-
-  { header: "ACCOUNT & SETTINGS" },
   { path: "/admin/settings", label: "Settings", icon: <Icon.Settings /> },
 ];
 

@@ -1045,7 +1045,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         animalStatus === "weighed" ||
         animalWfStatus === "WEIGHED" ||
         Boolean(animal?.weighed_at);
-      const brandCode = carc?.brand_code || (carc ? `CAR-${displayTag}` : "â€”");
+      const brandCode = carc?.brand_code || (carc ? `CAR-${displayTag}` : "—");
 
       // Post-mortem clearance check
       const pmDecision = String(pm?.decision || animal?.post_mortem_decision || "Passed").toLowerCase();
@@ -1162,7 +1162,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       grp.items.push(itemRecord);
       if (!grp.tags.includes(displayTag)) grp.tags.push(displayTag);
       if (!grp.speciesList.includes(species)) grp.speciesList.push(species);
-      if (brandCode && brandCode !== "â€”" && !grp.receipts.includes(brandCode)) grp.receipts.push(brandCode);
+      if (brandCode && brandCode !== "—" && !grp.receipts.includes(brandCode)) grp.receipts.push(brandCode);
       if (perm?.permit_no && !grp.receipts.includes(perm.permit_no)) grp.receipts.push(perm.permit_no);
       if (perm) {
         if (!grp.permit) grp.permit = perm;
@@ -1260,7 +1260,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
   }, [carcass, payments, dbPermits, slaughterRecords, slaughterProcessing, livestock, dispatches, fees]);
 
-  const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "â€”";
+  const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "—";
 
   const resolvedPermit = useMemo(() => {
     if (!selectedGroup) return null;
@@ -1347,7 +1347,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         const ownerKey = (batchGrp.owner_id || batchGrp.owner_name || "unknown_owner").trim().toLowerCase();
         const groupKey = `issued_${ownerKey}_${weighingKey}`;
 
-        const itemPermitNo = it.permit_no || perm?.permit_no || animal?.permit_no || batchGrp.permit_no || "â€”";
+        const itemPermitNo = it.permit_no || perm?.permit_no || animal?.permit_no || batchGrp.permit_no || "—";
         const itemPermitIssuedAt = it.permit_issued_at || perm?.issued_at || perm?.created_at || animal?.permit_issued_at || null;
         const itemPermitIssuedBy = it.permit_issued_by || perm?.issued_by || animal?.permit_issued_by || "Jenel Selgas";
 
@@ -1393,9 +1393,9 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
             species: it.species || batchGrp.species || "Hog",
             amount: 0,
             totalAmount: 0,
-            receipt_no: itemPermitNo !== "â€”" ? itemPermitNo : batchGrp.receipt_no,
+            receipt_no: itemPermitNo !== "—" ? itemPermitNo : batchGrp.receipt_no,
             receipts: [],
-            permit_no: itemPermitNo !== "â€”" ? itemPermitNo : batchGrp.permit_no,
+            permit_no: itemPermitNo !== "—" ? itemPermitNo : batchGrp.permit_no,
             permit_id: perm?.id || batchGrp.permit_id || null,
             permit_issued: true,
             isIssued: true,
@@ -1407,8 +1407,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         grp.items.push(enrichedItem);
         if (!grp.tags.includes(it.tag_number)) grp.tags.push(it.tag_number);
         if (it.species && !grp.speciesList.includes(it.species)) grp.speciesList.push(it.species);
-        if (it.brand_code && it.brand_code !== "â€”" && !grp.receipts.includes(it.brand_code)) grp.receipts.push(it.brand_code);
-        if (itemPermitNo && itemPermitNo !== "â€”" && !grp.receipts.includes(itemPermitNo)) grp.receipts.push(itemPermitNo);
+        if (it.brand_code && it.brand_code !== "—" && !grp.receipts.includes(it.brand_code)) grp.receipts.push(it.brand_code);
+        if (itemPermitNo && itemPermitNo !== "—" && !grp.receipts.includes(itemPermitNo)) grp.receipts.push(itemPermitNo);
         grp.amount += (it.feeAmount || 0);
         grp.totalAmount += (it.feeAmount || 0);
 
@@ -1583,66 +1583,27 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
   );
 
   const renderNavTabs = () => (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        background: "var(--color-bg)",
-        padding: "3px",
-        borderRadius: 9,
-        border: "1px solid var(--color-border)",
-        gap: 4,
-        flexShrink: 0,
-        whiteSpace: "nowrap",
-      }}
-    >
+    <div className="adm-seg-tabs">
       {[
-        { id: "pending", label: "Pending", count: pendingBatches, icon: <Icon.Clock size={14} />, color: "#d97706", badgeBg: "rgba(217, 119, 6, 0.15)", badgeColor: "#d97706" },
-        { id: "issued", label: "Permit Issued", count: issuedBatches, icon: <Icon.FileText size={14} />, color: "#8b5cf6", badgeBg: "rgba(139, 92, 246, 0.15)", badgeColor: "#8b5cf6" },
+        { id: "pending", label: "Pending", count: pendingBatches, icon: <Icon.Clock size={14} /> },
+        { id: "issued", label: "Permit Issued", count: issuedBatches, icon: <Icon.FileText size={14} /> },
       ].map((tab) => {
         const isActive = activeTab === tab.id;
         return (
           <button
             key={tab.id}
             type="button"
+            className={`adm-seg-btn ${isActive ? "active" : ""}`}
             onClick={() => {
               setActiveTab(tab.id);
               setPage(1);
             }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "5px 10px",
-              borderRadius: 7,
-              fontSize: 12,
-              fontWeight: isActive ? 700 : 600,
-              border: isActive ? "1px solid var(--color-border)" : "1px solid transparent",
-              cursor: "pointer",
-              background: isActive ? "var(--color-surface)" : "transparent",
-              color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-              boxShadow: isActive ? "0 1px 3px rgba(0, 0, 0, 0.06)" : "none",
-              transition: "all 140ms ease",
-              whiteSpace: "nowrap",
-            }}
           >
-            <span style={{ color: isActive ? tab.color : "var(--color-text-muted)", display: "flex" }}>
+            <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>
               {tab.icon}
             </span>
             <span>{tab.label}</span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                padding: "1px 6px",
-                borderRadius: 999,
-                background: isActive ? tab.badgeBg : "var(--color-border-subtle, rgba(148, 163, 184, 0.15))",
-                color: isActive ? tab.badgeColor : "var(--color-text-muted)",
-                lineHeight: 1.1,
-                minWidth: 18,
-                textAlign: "center",
-              }}
-            >
+            <span className="adm-seg-badge">
               {tab.count}
             </span>
           </button>
@@ -1874,7 +1835,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
               className="table"
               style={{
                 width: "100%",
-                tableLayout: "fixed",
+                minWidth: 860,
+                tableLayout: "auto",
                 borderCollapse: "separate",
                 borderSpacing: 0,
               }}
@@ -1888,7 +1850,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                 >
                   <th
                     style={{
-                      width: "24%",
+                      width: "20%",
                       padding: "12px 14px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -1902,7 +1864,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   </th>
                   <th
                     style={{
-                      width: "14%",
+                      width: "12%",
                       padding: "12px 14px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -1916,7 +1878,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   </th>
                   <th
                     style={{
-                      width: "20%",
+                      width: "18%",
                       padding: "12px 14px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -1930,7 +1892,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   </th>
                   <th
                     style={{
-                      width: "16%",
+                      width: "14%",
                       padding: "12px 14px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -1958,7 +1920,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   </th>
                   <th
                     style={{
-                      width: "14%",
+                      width: "24%",
+                      minWidth: 210,
                       padding: "12px 14px",
                       fontSize: 11.5,
                       fontWeight: 700,
@@ -1980,10 +1943,10 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                         ? formatPhDateTime(grp.weighing_date_time)
                         : (grp.permit_issued_at
                             ? formatPhDateTime(grp.permit_issued_at)
-                            : (grp.rawTimestamp ? formatPhDateTime(grp.rawTimestamp) : "â€”")))
+                            : (grp.rawTimestamp ? formatPhDateTime(grp.rawTimestamp) : "—")))
                     : (grp.slaughter_date_time
                         ? formatPhDateTime(grp.slaughter_date_time)
-                        : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "â€”"));
+                        : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "—"));
                   const rawPermitNo = grp.permit_no || (grp.receipts || []).find((r) => String(r).startsWith("MIC-")) || "";
                   const basePermitNo = rawPermitNo ? rawPermitNo.split("-").slice(0, 3).join("-") : "";
 
@@ -2085,7 +2048,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                         {/* 3. Date & Time */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--color-text)", fontSize: 13 }}>
-                            <Icon.Calendar size={13} style={{ color: "#0284c7", flexShrink: 0, opacity: 0.8 }} />
+                            <Icon.Calendar size={13} style={{ color: "#187A56", flexShrink: 0, opacity: 0.8 }} />
                             <span>{displayDateTime}</span>
                           </div>
                         </td>
@@ -2098,13 +2061,13 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                                 fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                                 fontSize: 13,
                                 fontWeight: 700,
-                                color: "#0284c7",
+                                color: "#187A56",
                               }}
                             >
                               {basePermitNo}
                             </span>
                           ) : (
-                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>â€”</span>
+                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
                           )}
                         </td>
 
@@ -2166,7 +2129,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                         </td>
 
                         {/* 6. Action */}
-                        <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "right" }}>
+                        <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "right", whiteSpace: "nowrap" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: 6, flexWrap: "nowrap" }}>
                             <Button
                               size="sm"
@@ -2296,7 +2259,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       <Modal
         open={Boolean(viewingBatch)}
         onClose={() => setViewingBatch(null)}
-        title={`Meat Permit Records â€” ${viewingBatch?.owner_name || ""}`}
+        title={`Meat Permit Records — ${viewingBatch?.owner_name || ""}`}
         size="xl"
         footer={
           viewingBatch && (() => {
@@ -2441,9 +2404,9 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {it.brand_code || "â€”"}
+                            {it.brand_code || "—"}
                           </td>
-                          <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{it.species || "â€”"}</td>
+                          <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{it.species || "—"}</td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{sexLabel}</td>
                           <td style={{ padding: "12px 14px", textAlign: "right", fontSize: 12.5, fontWeight: 700, color: "var(--color-text)" }}>
                             {it.hasCarcassWeight ? `${Number(it.carcass_weight).toFixed(2)} kg` : <span style={{ color: "#ef4444" }}>Unweighed</span>}
@@ -2505,7 +2468,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       })()}
 
 
-      <Modal open={!!selectedGroup} onClose={() => setSelectedGroup(null)} title={permitModalMode === "print" ? "Print Preview â€” Meat Permit" : "Official Meat Permit"} size="lg"
+      <Modal open={!!selectedGroup} onClose={() => setSelectedGroup(null)} title={permitModalMode === "print" ? "Print Preview — Meat Permit" : "Official Meat Permit"} size="lg"
         footer={
           <div className="no-print" style={{ display: "flex", gap: 10, justifyContent: "flex-end", alignItems: "center", width: "100%", flexWrap: "wrap" }}>
             <Button variant="outline" onClick={() => setSelectedGroup(null)}>Close</Button>
@@ -2745,7 +2708,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                     <div style={{ borderBottom: "1.5px solid #000", fontWeight: "bold", fontSize: "12px", textTransform: "uppercase", paddingBottom: "2px", minWidth: "260px" }}>
                       {veterinarian}
                     </div>
-                    <div style={{ fontSize: "9.5px", fontWeight: "bold", marginTop: "3px", textTransform: "uppercase", color: "#475569" }}>
+                    <div style={{ fontSize: "9.5px", fontWeight: "bold", marginTop: "3px", textTransform: "uppercase", color: "#5D6660" }}>
                       CITY VETERINARIAN
                     </div>
                   </div>

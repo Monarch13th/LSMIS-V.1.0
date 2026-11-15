@@ -1,19 +1,24 @@
-/* Design tokens for the LSMIS system */
+/* Design tokens for the LSMIS system
+   All brand & neutral values resolve to the centralized Landing Page
+   theme defined in theme.css (Dark Forest Green identity). */
+@import "./theme.css";
+
 :root {
-  /* Brand */
-  --color-primary: #059669;
-  --color-primary-dark: #047857;
-  --color-primary-light: #d1fae5;
+  /* Brand (Landing Page primary) */
+  --color-primary: var(--lsmis-primary);
+  --color-primary-dark: var(--lsmis-primary-hover);
+  --color-primary-light: var(--lsmis-primary-soft);
+  --color-primary-bg: var(--lsmis-primary-soft);
 
-  /* Neutrals */
-  --color-bg: #f1f5f9;
-  --color-surface: #ffffff;
-  --color-border: #e2e8f0;
-  --color-text: #0f172a;
-  --color-text-muted: #64748b;
-  --color-text-subtle: #94a3b8;
+  /* Neutrals (Landing Page charcoal scale) */
+  --color-bg: var(--lsmis-page-bg);
+  --color-surface: var(--lsmis-surface);
+  --color-border: var(--lsmis-border);
+  --color-text: var(--lsmis-text);
+  --color-text-muted: var(--lsmis-text-secondary);
+  --color-text-subtle: var(--lsmis-text-subtle);
 
-  /* Status */
+  /* Status (kept distinct from brand so meaning is preserved) */
   --color-success: #10b981;
   --color-success-bg: #d1fae5;
   --color-warning: #f59e0b;
@@ -27,22 +32,24 @@
   --color-indigo: #6366f1;
   --color-indigo-bg: #e0e7ff;
 
-  /* Role palette */
-  --role-admin-from: #7c3aed;
-  --role-admin-to: #4f46e5;
-  --role-vet-from: #0284c7;
-  --role-vet-to: #0891b2;
-  --role-staff-from: #059669;
-  --role-staff-to: #0d9488;
+  /* Role palette — every role now shares the single LSMIS identity */
+  --role-admin-from: var(--lsmis-primary);
+  --role-admin-to: var(--lsmis-primary);
+  --role-vet-from: var(--lsmis-primary);
+  --role-vet-to: var(--lsmis-primary);
+  --role-staff-from: var(--lsmis-primary);
+  --role-staff-to: var(--lsmis-primary);
+  --role-owner-from: var(--lsmis-primary);
+  --role-owner-to: var(--lsmis-primary);
 
   /* Sizing */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.10);
+  --shadow-sm: var(--lsmis-shadow-sm);
+  --shadow-md: var(--lsmis-shadow-md);
+  --shadow-lg: var(--lsmis-shadow-lg);
 
   --sidebar-width: 264px;
   --header-height: 68px;
@@ -63,15 +70,16 @@
 }
 
 [data-theme="dark"] {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-border: #334155;
-  --color-text: #f1f5f9;
-  --color-text-muted: #94a3b8;
-  --color-text-subtle: #64748b;
-  --color-primary: #10b981;
-  --color-primary-dark: #6ee7b7;
-  --color-primary-light: rgba(16, 185, 129, 0.2);
+  --color-primary: var(--lsmis-primary);
+  --color-primary-dark: var(--lsmis-primary-text);
+  --color-primary-light: var(--lsmis-primary-soft);
+  --color-primary-bg: var(--lsmis-primary-soft);
+  --color-bg: var(--lsmis-page-bg);
+  --color-surface: var(--lsmis-surface);
+  --color-border: var(--lsmis-border);
+  --color-text: var(--lsmis-text);
+  --color-text-muted: var(--lsmis-text-muted);
+  --color-text-subtle: var(--lsmis-text-subtle);
   --color-success: #34d399;
   --color-success-bg: rgba(16, 185, 129, 0.15);
   --color-warning-bg: rgba(245, 158, 11, 0.15);

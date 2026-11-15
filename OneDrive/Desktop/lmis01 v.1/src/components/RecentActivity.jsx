@@ -17,19 +17,19 @@ const getRoleStyle = (role) => {
   const label = formatRoleLabel(role);
   if (label === "Admin") {
     return {
-      bg: "rgba(139, 92, 246, 0.12)",
-      color: "#8b5cf6",
-      border: "rgba(139, 92, 246, 0.28)",
-      gradient: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+      bg: "rgba(24, 122, 86, 0.12)",
+      color: "#24966D",
+      border: "rgba(24, 122, 86, 0.28)",
+      gradient: "linear-gradient(135deg, #24966D, #136647)",
       label: "Admin",
     };
   }
   if (label === "Veterinarian") {
     return {
-      bg: "rgba(14, 165, 233, 0.12)",
-      color: "#0284c7",
-      border: "rgba(14, 165, 233, 0.28)",
-      gradient: "linear-gradient(135deg, #0ea5e9, #0369a1)",
+      bg: "rgba(24, 122, 86, 0.12)",
+      color: "#187A56",
+      border: "rgba(24, 122, 86, 0.28)",
+      gradient: "linear-gradient(135deg, #24966D, #136647)",
       label: "Veterinarian",
     };
   }
@@ -52,12 +52,12 @@ const getActionBadgeStyle = (actionCategory) => {
       return { bg: "rgba(34, 197, 94, 0.12)", color: "#16a34a", border: "rgba(34, 197, 94, 0.28)" };
     case "Updated":
     case "Assigned":
-      return { bg: "rgba(14, 165, 233, 0.12)", color: "#0284c7", border: "rgba(14, 165, 233, 0.28)" };
+      return { bg: "rgba(24, 122, 86, 0.12)", color: "#187A56", border: "rgba(24, 122, 86, 0.28)" };
     case "Rejected":
     case "Deleted":
       return { bg: "rgba(239, 68, 68, 0.12)", color: "#ef4444", border: "rgba(239, 68, 68, 0.28)" };
     case "Logged In":
-      return { bg: "rgba(139, 92, 246, 0.12)", color: "#8b5cf6", border: "rgba(139, 92, 246, 0.28)" };
+      return { bg: "rgba(24, 122, 86, 0.12)", color: "#24966D", border: "rgba(24, 122, 86, 0.28)" };
     case "Logged Out":
       return { bg: "rgba(245, 158, 11, 0.12)", color: "#d97706", border: "rgba(245, 158, 11, 0.28)" };
     default:
@@ -108,7 +108,7 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
             Live
           </span>
           <Button size="sm" variant="ghost" onClick={() => navigate("/admin/audit-logs")}>
-            Audit Logs â†’
+            Audit Logs ?
           </Button>
         </div>
       }
@@ -172,7 +172,7 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                         <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", lineHeight: 1.35 }}>
                           {r.action || "Activity recorded"}
                         </span>
-                        {r.tag_number && r.tag_number !== "â€”" && r.tag_number !== "null" && (
+                        {r.tag_number && r.tag_number !== "—" && r.tag_number !== "null" && (
                           <TagBadge tag={r.tag_number} />
                         )}
                       </div>
@@ -227,7 +227,7 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                                 ? dt.time
                                 : "";
                           if (dt?.date && dt.date !== "undefined" && dt.date !== "null" && dt.full !== "Not recorded") {
-                            return validTime ? `${dt.date} â€¢ ${validTime}` : dt.date;
+                            return validTime ? `${dt.date} • ${validTime}` : dt.date;
                           }
                           return formatManilaDateTime(r.timestamp || r.created_at);
                         })()}

@@ -1,0 +1,337 @@
+/* =====================================================================
+   LSMIS CENTRALIZED THEME SYSTEM — LIVELY VETERINARY & CLINICAL EDITION
+   ---------------------------------------------------------------------
+   Single source of truth for the LSMIS visual identity.
+   Refined to deliver a bright, lively, clean, and professional veterinary
+   and public health management system while preserving the authoritative
+   City Government of Naga & NMIS green brand identity.
+
+   Core Brand Palette:
+     Primary ............. #187A56  (Vibrant botanical/veterinary emerald)
+     Primary Hover ....... #1D8E64  (Energetic interactive hover state)
+     Primary Active ...... #136647  (Grounded clinical active depth)
+     Secondary ........... #24966D  (Fresh mid-tone veterinary green)
+     Accent .............. #10B981  (Lively modern emerald highlight)
+     Focus ring .......... #187A56  (Crisp medical focus indicator)
+     Light accent ........ #34D399  (Luminous mint highlight)
+     Soft accent ......... #6EE7B7  (Airy mint text / badge tone)
+     Page background ..... #F7FAF9  (Daylight-bright, pristine clinic canvas)
+     Surface ............. #FFFFFF  (Pure clinical white card & panel surface)
+     Surface subtle ...... #F9FBFA  (Subtle clean surface accent)
+     Text primary ........ #192420  (Sharp, high-contrast deep slate-forest)
+     Text secondary ...... #475B51  (Clean, legible medium slate-forest)
+     Border .............. #E4EDE8  (Delicate, crisp slate-mint divider)
+   ===================================================================== */
+
+:root {
+  /* ---- Botanical & Veterinary Emerald Scale ---- */
+  --lsmis-green-950: #0C3627;
+  --lsmis-green-900: #12543C;
+  --lsmis-green-800: #146B4D;
+  --lsmis-green-700: #187A56;
+  --lsmis-green-600: #1FA072;
+  --lsmis-green-500: #26B682;
+  --lsmis-green-400: #34D399;
+  --lsmis-green-300: #6EE7B7;
+  --lsmis-green-200: #A7F3D0;
+  --lsmis-green-100: #E6F7F0;
+  --lsmis-green-50:  #F2FAF6;
+
+  --lsmis-accent: #10B981;
+  --lsmis-accent-muted: #C5E8D8;
+  --lsmis-accent-subtle: #EBF7F2;
+
+  --lsmis-white: #FFFFFF;
+  --lsmis-bg-alt: #F7FAF9;
+  --lsmis-bg-subtle: #F9FBFA;
+
+  --lsmis-charcoal-900: #192420;
+  --lsmis-charcoal-800: #2A3832;
+  --lsmis-charcoal-700: #3E4E46;
+  --lsmis-charcoal-600: #475B51;
+  --lsmis-charcoal-500: #687D73;
+  --lsmis-charcoal-400: #94A79E;
+  --lsmis-charcoal-300: #CADCD4;
+  --lsmis-charcoal-200: #E4EDE8;
+  --lsmis-charcoal-100: #EFF5F2;
+
+  /* ---- Semantic Theme Tokens ---- */
+  --lsmis-primary: #187A56;
+  --lsmis-primary-hover: #1D8E64;
+  --lsmis-primary-active: #136647;
+  --lsmis-primary-contrast: #FFFFFF;
+  --lsmis-primary-text: #14684A;          /* brand-colored text & icons */
+  --lsmis-primary-soft: #E6F7F0;          /* soft luminous clinical mint fill */
+  --lsmis-primary-subtle: #F2FAF6;        /* hover rows, active soft pills */
+  --lsmis-primary-muted: #C5E8D8;         /* clean delicate borders */
+  --lsmis-secondary: #24966D;
+  --lsmis-accent-color: #10B981;
+  --lsmis-accent-light: #34D399;
+  --lsmis-accent-soft: #6EE7B7;
+  --lsmis-focus: #187A56;
+  --lsmis-focus-ring: rgba(24, 122, 86, 0.22);
+
+  --lsmis-page-bg: #F7FAF9;
+  --lsmis-surface: #FFFFFF;
+  --lsmis-surface-alt: #F9FBFA;
+  --lsmis-surface-sunken: #EFF5F2;
+  --lsmis-text: #192420;
+  --lsmis-text-secondary: #475B51;
+  --lsmis-text-muted: #687D73;
+  --lsmis-text-subtle: #94A79E;
+  --lsmis-border: #E4EDE8;
+  --lsmis-border-strong: #CADCD4;
+  --lsmis-overlay: rgba(18, 43, 33, 0.40);
+
+  /* Status colors — intentionally distinct and lively */
+  --lsmis-success: #10b981;
+  --lsmis-success-strong: #047857;
+  --lsmis-warning: #f59e0b;
+  --lsmis-warning-strong: #b45309;
+  --lsmis-danger: #ef4444;
+  --lsmis-danger-strong: #dc2626;
+  --lsmis-info: #0ea5e9;
+  --lsmis-info-strong: #0369a1;
+
+  /* ---- Standardized Control Metrics ---- */
+  --lsmis-btn-height: 38px;
+  --lsmis-btn-height-sm: 32px;
+  --lsmis-btn-height-lg: 44px;
+  --lsmis-btn-radius: 10px;
+  --lsmis-btn-padding-x: 16px;
+  --lsmis-btn-font-size: 13px;
+  --lsmis-btn-font-weight: 600;
+  --lsmis-input-radius: 10px;
+
+  /* Airier, softer, modern clinical elevation */
+  --lsmis-shadow-sm: 0 1px 2px rgba(18, 43, 33, 0.04);
+  --lsmis-shadow-md: 0 4px 16px -2px rgba(18, 43, 33, 0.06);
+  --lsmis-shadow-lg: 0 12px 32px -4px rgba(18, 43, 33, 0.08);
+  --lsmis-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 18px -2px rgba(24, 122, 86, 0.04);
+}
+
+/* ---- Modern Sleek Dark Mode ---- */
+[data-theme="dark"] {
+  --lsmis-primary: #1EA072;
+  --lsmis-primary-hover: #26B682;
+  --lsmis-primary-active: #18865F;
+  --lsmis-primary-contrast: #FFFFFF;
+  --lsmis-primary-text: #34D399;
+  --lsmis-primary-soft: rgba(30, 160, 114, 0.16);
+  --lsmis-primary-subtle: rgba(30, 160, 114, 0.08);
+  --lsmis-primary-muted: rgba(30, 160, 114, 0.28);
+  --lsmis-secondary: #26B682;
+  --lsmis-accent-color: #34D399;
+  --lsmis-accent-light: #6EE7B7;
+  --lsmis-accent-soft: #A7F3D0;
+  --lsmis-focus: #34D399;
+  --lsmis-focus-ring: rgba(52, 211, 153, 0.30);
+
+  --lsmis-page-bg: #0C1411;
+  --lsmis-surface: #13201A;
+  --lsmis-surface-alt: #101B16;
+  --lsmis-surface-sunken: #172720;
+  --lsmis-text: #F1F7F4;
+  --lsmis-text-secondary: #BAC9C1;
+  --lsmis-text-muted: #8B9F94;
+  --lsmis-text-subtle: #63776D;
+  --lsmis-border: #1E3329;
+  --lsmis-border-strong: #2A4739;
+  --lsmis-overlay: rgba(0, 0, 0, 0.65);
+
+  --lsmis-shadow-card: 0 2px 14px rgba(0, 0, 0, 0.40);
+}
+
+/* =====================================================================
+   GLOBAL LSMIS HOVER, FOCUS, BUTTON, NAVIGATION & INPUT STANDARDIZATION
+   Lively, bright, clean, and professional veterinary aesthetics
+   ===================================================================== */
+
+/* 1. Standardized Primary Buttons across Login, Admin, Vet, Staff, Owner */
+.login-brand {
+  background: 
+    radial-gradient(circle at 12% 14%, rgba(52, 211, 153, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 88% 85%, rgba(12, 54, 39, 0.40) 0%, transparent 50%),
+    linear-gradient(160deg, var(--lsmis-primary) 0%, var(--lsmis-primary-active) 55%, var(--lsmis-green-950) 100%) !important;
+}
+
+.login-mobile-brand {
+  background: radial-gradient(circle at 18% 12%, rgba(52, 211, 153, 0.25) 0%, transparent 55%), 
+    linear-gradient(165deg, var(--lsmis-primary) 0%, var(--lsmis-primary-active) 50%, var(--lsmis-green-950) 100%) !important;
+}
+
+.btn-primary,
+.adm-toolbar-primary-btn,
+.action-btn-primary,
+.action-btn-brand-green,
+.action-btn-purple,
+.confirm-btn-action.btn-primary,
+.owner-profile-action-btn.primary,
+.owner-btn-permit-view,
+.owner-btn-retry,
+.ag-create-pill {
+  background: linear-gradient(135deg, var(--lsmis-primary) 0%, var(--lsmis-secondary) 100%) !important;
+  border: 1px solid var(--lsmis-primary) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 6px rgba(24, 122, 86, 0.22) !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn-primary:hover:not(:disabled),
+.adm-toolbar-primary-btn:hover:not(:disabled),
+.action-btn-primary:hover:not(:disabled),
+.action-btn-brand-green:hover:not(:disabled),
+.action-btn-purple:hover:not(:disabled),
+.confirm-btn-action.btn-primary:hover:not(:disabled),
+.owner-profile-action-btn.primary:hover:not(:disabled),
+.owner-btn-permit-view:hover:not(:disabled),
+.owner-btn-retry:hover:not(:disabled),
+.ag-create-pill:hover:not(:disabled) {
+  background: linear-gradient(135deg, var(--lsmis-primary-hover) 0%, var(--lsmis-primary) 100%) !important;
+  border-color: var(--lsmis-primary-hover) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 14px rgba(24, 122, 86, 0.32) !important;
+  transform: translateY(-1px);
+}
+
+.btn-primary:active:not(:disabled),
+.adm-toolbar-primary-btn:active:not(:disabled),
+.action-btn-primary:active:not(:disabled),
+.confirm-btn-action.btn-primary:active:not(:disabled),
+.ag-create-pill:active:not(:disabled) {
+  background: var(--lsmis-primary-active) !important;
+  border-color: var(--lsmis-primary-active) !important;
+  box-shadow: 0 2px 4px rgba(24, 122, 86, 0.25) !important;
+  transform: translateY(0);
+}
+
+/* 2. Standardized Secondary, Outline, Ghost, Cancel & Pagination Buttons */
+.btn-secondary,
+.btn-outline,
+.action-btn-outline,
+.confirm-btn-cancel {
+  background: var(--lsmis-surface) !important;
+  border: 1px solid var(--lsmis-border-strong) !important;
+  color: var(--lsmis-text) !important;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.btn-secondary:hover:not(:disabled),
+.btn-outline:hover:not(:disabled),
+.btn-ghost:hover:not(:disabled),
+.confirm-btn-cancel:hover:not(:disabled),
+.action-btn-outline:hover:not(:disabled),
+.lid-action-btn:hover:not(:disabled),
+.adm-pagination-bar button:hover:not(:disabled),
+.records-fixed-footer button:hover:not(:disabled),
+.owner-header-btn:hover:not(:disabled),
+.icon-btn-header:hover:not(:disabled) {
+  background-color: var(--lsmis-primary-subtle) !important;
+  border-color: var(--lsmis-primary-muted) !important;
+  color: var(--lsmis-primary-text) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover:not(:disabled),
+[data-theme="dark"] .btn-outline:hover:not(:disabled),
+[data-theme="dark"] .btn-ghost:hover:not(:disabled),
+[data-theme="dark"] .confirm-btn-cancel:hover:not(:disabled),
+[data-theme="dark"] .action-btn-outline:hover:not(:disabled),
+[data-theme="dark"] .lid-action-btn:hover:not(:disabled),
+[data-theme="dark"] .adm-pagination-bar button:hover:not(:disabled),
+[data-theme="dark"] .records-fixed-footer button:hover:not(:disabled),
+[data-theme="dark"] .owner-header-btn:hover:not(:disabled),
+[data-theme="dark"] .icon-btn-header:hover:not(:disabled) {
+  background-color: var(--lsmis-primary-subtle) !important;
+  border-color: var(--lsmis-primary) !important;
+  color: var(--lsmis-accent-soft) !important;
+}
+
+/* 3. Standardized Navigation & Dropdown Hover States */
+.nav-item:not(.active):hover,
+.nav-group-head:hover,
+.nav-sub-item:not(.active):hover,
+.dropdown-item:not(.danger):hover,
+.adm-seg-btn:hover:not(.active),
+.lid-tab-btn:hover:not(.active) {
+  background-color: var(--lsmis-primary-subtle) !important;
+  color: var(--lsmis-primary-text) !important;
+}
+
+.nav-item:not(.active):hover svg,
+.nav-group-head:hover svg,
+.nav-sub-item:not(.active):hover svg,
+.dropdown-item:not(.danger):hover svg {
+  color: var(--lsmis-primary-text) !important;
+}
+
+[data-theme="dark"] .nav-item:not(.active):hover,
+[data-theme="dark"] .nav-group-head:hover,
+[data-theme="dark"] .nav-sub-item:not(.active):hover,
+[data-theme="dark"] .dropdown-item:not(.danger):hover,
+[data-theme="dark"] .adm-seg-btn:hover:not(.active),
+[data-theme="dark"] .lid-tab-btn:hover:not(.active) {
+  background-color: var(--lsmis-primary-subtle) !important;
+  color: var(--lsmis-accent-soft) !important;
+}
+
+[data-theme="dark"] .nav-item:not(.active):hover svg,
+[data-theme="dark"] .nav-group-head:hover svg,
+[data-theme="dark"] .nav-sub-item:not(.active):hover svg,
+[data-theme="dark"] .dropdown-item:not(.danger):hover svg {
+  color: var(--lsmis-accent-soft) !important;
+}
+
+/* Active Sidebar Navigation Pill */
+.nav-item.active,
+.settings-nav-btn.active {
+  background: linear-gradient(135deg, var(--lsmis-primary) 0%, var(--lsmis-secondary) 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(24, 122, 86, 0.25) !important;
+}
+
+.nav-item.active svg,
+.settings-nav-btn.active svg {
+  color: #FFFFFF !important;
+}
+
+.nav-item.active:hover,
+.settings-nav-btn.active:hover {
+  background: linear-gradient(135deg, var(--lsmis-primary-hover) 0%, var(--lsmis-primary) 100%) !important;
+  color: #FFFFFF !important;
+}
+
+/* 4. Standardized Table Row & Interactive List Hover States */
+.table tbody tr:hover,
+.table tbody tr:hover td,
+.personnel-table-row:hover,
+.lid-table tbody tr:hover,
+.activity-item:hover,
+.dash-list-item.clickable:hover {
+  background-color: var(--lsmis-primary-subtle) !important;
+}
+
+/* 5. Standardized Input, Select & Textarea Hover and Focus States */
+.form-control:hover:not(:focus):not(:disabled),
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover:not(:focus):not(:disabled),
+select:hover:not(:focus):not(:disabled),
+textarea:hover:not(:focus):not(:disabled) {
+  border-color: var(--lsmis-primary-muted);
+}
+
+.form-control:focus,
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+select:focus,
+textarea:focus {
+  border-color: var(--lsmis-primary) !important;
+  box-shadow: 0 0 0 3px var(--lsmis-focus-ring) !important;
+  outline: none !important;
+}
+
+/* 6. Standardized Card & Interactive Tile Hover States */
+.owner-animal-card:not(.owner-condemned-card):hover,
+.stat-card:hover,
+.qa-tile:hover,
+.lid-kpi-card:hover {
+  border-color: var(--lsmis-primary-muted) !important;
+  box-shadow: var(--lsmis-shadow-card) !important;
+}

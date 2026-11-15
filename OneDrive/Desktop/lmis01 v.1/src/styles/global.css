@@ -5,7 +5,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html {
   min-height: 100%;
-  background-color: var(--color-bg, #f1f5f9);
+  background-color: var(--color-bg, #EFF2F0);
   color-scheme: light;
   overflow-x: hidden;
   overflow-y: auto;
@@ -14,8 +14,8 @@ html {
 body {
   min-height: 100%;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif;
-  background-color: var(--color-bg, #f1f5f9);
-  color: var(--color-text, #0f172a);
+  background-color: var(--color-bg, #EFF2F0);
+  color: var(--color-text, #1A201C);
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
@@ -26,13 +26,13 @@ body {
 
 #root {
   min-height: 100%;
-  background-color: var(--color-bg, #f1f5f9);
+  background-color: var(--color-bg, #EFF2F0);
 }
 
 [data-theme="dark"] html,
 [data-theme="dark"] body,
 [data-theme="dark"] #root {
-  background-color: #0f172a;
+  background-color: #1A201C;
   color-scheme: dark;
 }
 

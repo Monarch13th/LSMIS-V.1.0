@@ -125,10 +125,10 @@ export const vetService = {
     await adminService.assertActiveSession();
     const table = type === "Ante-Mortem" ? TABLES.ANTE_MORTEM : TABLES.POST_MORTEM;
     
-    // Ensure the inspector is a Veterinarian (never staff), falling back to Vet name 'Dr. Dave'
+    // Ensure the inspector is a Veterinarian (never staff)
     const session = authService.getSession();
     const actor = getCurrentActor();
-    const inspector = (session && session.role === "vet") ? session.name : (actor.role === "vet" ? actor.name : (payload.inspector_name || "Dr. Dave"));
+    const inspector = (session && session.role === "vet") ? session.name : (actor.role === "vet" ? actor.name : (payload.inspector_name || actor.name || "Veterinarian"));
     const inspectorId = actor.id || session?.id || session?.user_id || null;
     
     // Generate sequential unique ID padded to 5 digits (e.g. 00001)
@@ -532,7 +532,7 @@ export const vetService = {
     const table = type === "Ante-Mortem" ? TABLES.ANTE_MORTEM : TABLES.POST_MORTEM;
     const session = authService.getSession();
     const actor = getCurrentActor();
-    const inspector = (session && session.role === "vet") ? session.name : (actor.role === "vet" ? actor.name : (records[0]?.inspector_name || "Dr. Dave"));
+    const inspector = (session && session.role === "vet") ? session.name : (actor.role === "vet" ? actor.name : (records[0]?.inspector_name || actor.name || "Veterinarian"));
     const inspectorId = actor.id || session?.id || session?.user_id || null;
 
     // 1. Fetch next sequential base ID ONCE
@@ -994,7 +994,8 @@ export const vetService = {
           animal = livestock?.[0];
         }
         const session = authService.getSession();
-        const inspector = (session && session.role === "vet") ? session.name : "Dr. Dave";
+        const actor = getCurrentActor();
+        const inspector = (session && session.role === "vet") ? session.name : (actor.name || "Veterinarian");
 
         const resolvedTag = tag || animal?.tag_number;
         if (resolvedTag) {
@@ -1032,7 +1033,8 @@ export const vetService = {
           animal = livestock?.[0];
         }
         const session = authService.getSession();
-        const inspector = (session && session.role === "vet") ? session.name : "Dr. Dave";
+        const actor = getCurrentActor();
+        const inspector = (session && session.role === "vet") ? session.name : (actor.name || "Veterinarian");
 
         await vetService.createCondemnationRecord({
           tag_number: tag || animal?.tag_number,
@@ -1136,7 +1138,7 @@ export const vetService = {
     const firstPhotoUrl = attachedPhotos[0]?.url || attachedPhotos[0]?.preview || payload.photo_url || payload.file_url || null;
 
     const actor = getCurrentActor();
-    const inspectorName = payload.inspector || actor.name || "Dr. Dave";
+    const inspectorName = payload.inspector || actor.name || "Veterinarian";
     const inspectorId = actor.id || null;
 
     const record = {

@@ -24,7 +24,7 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(15, 23, 42, 0.94)",
+        backgroundColor: "rgba(26, 32, 28, 0.94)",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         zIndex: 12000,
@@ -45,7 +45,7 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
           position: "relative",
           maxWidth: 680,
           width: "100%",
-          backgroundColor: "#0f172a",
+          backgroundColor: "#1A201C",
           borderRadius: 20,
           overflow: "hidden",
           border: "1px solid rgba(255, 255, 255, 0.15)",
@@ -61,14 +61,14 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
             justifyContent: "space-between",
             padding: "14px 18px",
             borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-            backgroundColor: "#1e293b",
+            backgroundColor: "#2D332F",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 800, color: "#38bdf8", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+            <span style={{ fontSize: 13, fontWeight: 800, color: "#24966D", letterSpacing: "0.04em", textTransform: "uppercase" }}>
               Evidence Photo
             </span>
-            <span style={{ fontSize: 12, color: "#94a3b8" }}>· {photo.part || "Carcass Part"}</span>
+            <span style={{ fontSize: 12, color: "#9BA49E" }}>� {photo.part || "Carcass Part"}</span>
           </div>
 
           <button
@@ -103,15 +103,15 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
             style={{ maxWidth: "100%", maxHeight: "60vh", objectFit: "contain", borderRadius: 8 }}
             onError={(e) => {
               e.target.style.display = "none";
-              e.target.parentNode.innerHTML = `<div style="color: #94a3b8; font-size: 13px; text-align: center; padding: 40px;">⚠️ Evidence photo file is unavailable or no longer accessible.</div>`;
+              e.target.parentNode.innerHTML = `<div style="color: #9BA49E; font-size: 13px; text-align: center; padding: 40px;">?? Evidence photo file is unavailable or no longer accessible.</div>`;
             }}
           />
         </div>
 
         {/* Footer info */}
-        <div style={{ padding: "12px 18px", backgroundColor: "#1e293b", color: "#f8fafc", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <strong style={{ color: "#38bdf8" }}>{photo.part}</strong>
-          {photo.date && <span style={{ color: "#94a3b8", fontSize: 11.5 }}>{photo.date}</span>}
+        <div style={{ padding: "12px 18px", backgroundColor: "#2D332F", color: "#F9FAF8", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <strong style={{ color: "#24966D" }}>{photo.part}</strong>
+          {photo.date && <span style={{ color: "#9BA49E", fontSize: 11.5 }}>{photo.date}</span>}
         </div>
       </div>
     </div>
@@ -175,7 +175,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
         style={{
           position: "fixed",
           inset: 0,
-          backgroundColor: "rgba(15, 23, 42, 0.75)",
+          backgroundColor: "rgba(26, 32, 28, 0.75)",
           backdropFilter: "blur(6px)",
           WebkitBackdropFilter: "blur(6px)",
           zIndex: 11000,
@@ -200,7 +200,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
             maxHeight: "calc(100dvh - 32px)",
             overflowY: "auto",
             boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.4)",
-            border: "1px solid #e2e8f0",
+            border: "1px solid #E2E6E3",
             position: "relative",
             display: "flex",
             flexDirection: "column",
@@ -212,7 +212,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
             className="owner-condemnation-modal-header"
             style={{
               padding: "16px 18px 12px 18px",
-              borderBottom: "1px solid #e2e8f0",
+              borderBottom: "1px solid #E2E6E3",
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
@@ -228,7 +228,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                   style={{
                     fontSize: 16,
                     fontWeight: 900,
-                    color: "var(--color-text, #0f172a)",
+                    color: "var(--color-text, #1A201C)",
                     fontFamily: "monospace",
                   }}
                 >
@@ -238,8 +238,8 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                   style={{
                     fontSize: 12,
                     fontWeight: 700,
-                    color: "#0284c7",
-                    background: "rgba(2, 132, 199, 0.08)",
+                    color: "#187A56",
+                    background: "rgba(24, 122, 86, 0.08)",
                     padding: "2px 8px",
                     borderRadius: 6,
                   }}
@@ -247,7 +247,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                   {details.species}
                 </span>
               </div>
-              <div style={{ fontSize: 11, color: "#64748b", marginTop: 3 }}>
+              <div style={{ fontSize: 11, color: "#5D6660", marginTop: 3 }}>
                 {details.inspectionDateFormatted || "Date recorded"}
               </div>
             </div>
@@ -262,12 +262,12 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                 width: 32,
                 height: 32,
                 borderRadius: "50%",
-                backgroundColor: "#f1f5f9",
+                backgroundColor: "#EFF2F0",
                 border: "none",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: "#64748b",
+                color: "#5D6660",
                 cursor: "pointer",
                 flexShrink: 0,
               }}
@@ -319,11 +319,11 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               style={{
                 padding: "12px 14px",
                 borderRadius: 12,
-                backgroundColor: "#f8fafc",
-                border: "1px solid #e2e8f0",
+                backgroundColor: "#F9FAF8",
+                border: "1px solid #E2E6E3",
               }}
             >
-              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.04em", marginBottom: 3 }}>
+              <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", color: "#5D6660", letterSpacing: "0.04em", marginBottom: 3 }}>
                 Reason
               </div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#991b1b" }}>
@@ -350,7 +350,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                 <span style={{ fontSize: 13.5, fontWeight: 800, color: "#dc2626" }}>
                   {(() => {
                     const raw = details.totalWeightQty || details.condemnedParts?.[0]?.quantityWeight || details.weight;
-                    if (!raw || raw === "N/A" || raw === "—") return "Whole Animal";
+                    if (!raw || raw === "N/A" || raw === "�") return "Whole Animal";
                     const clean = String(raw).trim();
                     return clean.toLowerCase().includes("kg") ? clean : `${clean} kg`;
                   })()}
@@ -407,12 +407,12 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
             {/* Evidence Photos Gallery */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#64748b", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
-                  <Icon.Camera size={13} style={{ color: "#0284c7" }} />
+                <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#5D6660", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Icon.Camera size={13} style={{ color: "#187A56" }} />
                   Evidence Photos {details.hasPhotos ? `(${details.evidencePhotos.length})` : ""}
                 </span>
                 {details.hasPhotos && (
-                  <span style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 700 }}>
+                  <span style={{ fontSize: 10.5, color: "#187A56", fontWeight: 700 }}>
                     Tap to enlarge
                   </span>
                 )}
@@ -433,7 +433,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                       onClick={() => setSelectedPhoto(photo)}
                       style={{
                         borderRadius: 12,
-                        border: "1px solid #cbd5e1",
+                        border: "1px solid #C2CAC4",
                         overflow: "hidden",
                         backgroundColor: "#020617",
                         cursor: "pointer",
@@ -467,14 +467,14 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          borderTop: "1px solid #e2e8f0",
+                          borderTop: "1px solid #E2E6E3",
                         }}
                       >
-                        <span style={{ fontWeight: 700, color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                        <span style={{ fontWeight: 700, color: "#1A201C", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                           {photo.part || "Evidence"}
                         </span>
-                        <span style={{ color: "#0284c7", fontWeight: 700, fontSize: 10.5 }}>
-                          🔍 Enlarge
+                        <span style={{ color: "#187A56", fontWeight: 700, fontSize: 10.5 }}>
+                          ?? Enlarge
                         </span>
                       </div>
                     </div>
@@ -485,16 +485,16 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                   style={{
                     padding: "14px 16px",
                     borderRadius: 12,
-                    backgroundColor: "#f8fafc",
-                    border: "1.5px dashed #cbd5e1",
-                    color: "#64748b",
+                    backgroundColor: "#F9FAF8",
+                    border: "1.5px dashed #C2CAC4",
+                    color: "#5D6660",
                     fontSize: 12,
                     display: "flex",
                     alignItems: "center",
                     gap: 8,
                   }}
                 >
-                  <Icon.Info size={16} color="#94a3b8" />
+                  <Icon.Info size={16} color="#9BA49E" />
                   <span>No evidence photo uploaded for this record.</span>
                 </div>
               )}
@@ -511,9 +511,9 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                 width: "100%",
                 padding: "10px 16px",
                 borderRadius: 12,
-                backgroundColor: "#f1f5f9",
-                color: "#334155",
-                border: "1px solid #cbd5e1",
+                backgroundColor: "#EFF2F0",
+                color: "#444C47",
+                border: "1px solid #C2CAC4",
                 fontSize: 13,
                 fontWeight: 700,
                 cursor: "pointer",

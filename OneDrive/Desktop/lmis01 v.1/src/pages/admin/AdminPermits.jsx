@@ -80,7 +80,7 @@ export const AdminPermits = () => {
           timestamp: rawIssuedAt ? new Date(rawIssuedAt).getTime() : 0,
           owner_name: ownerClean,
           owner_avatar: ownerObj?.avatar_url || p.owner_avatar || null,
-          owner_contact: ownerObj?.phone || ownerObj?.contact || "â€”",
+          owner_contact: ownerObj?.phone || ownerObj?.contact || "—",
           base_permit_no: basePermitNo,
           permit_numbers: new Set(),
           items: [],
@@ -150,7 +150,7 @@ export const AdminPermits = () => {
             timestamp: rawDate ? new Date(rawDate).getTime() : 0,
             owner_name: ownerClean,
             owner_avatar: ownerObj?.avatar_url || null,
-            owner_contact: ownerObj?.phone || ownerObj?.contact || "â€”",
+            owner_contact: ownerObj?.phone || ownerObj?.contact || "—",
             base_permit_no: "Pending Issuance",
             permit_numbers: new Set(),
             items: [],
@@ -280,69 +280,25 @@ export const AdminPermits = () => {
           }}
         >
           {/* Left: Navigation Tabs (Matching Staff Meat Permit: Pending & Permit Issued) */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              background: "var(--color-bg)",
-              padding: "3px",
-              borderRadius: 9,
-              border: "1px solid var(--color-border)",
-              gap: 4,
-              flexShrink: 0,
-              whiteSpace: "nowrap",
-            }}
-          >
+          <div className="adm-seg-tabs">
             {[
-              { id: "pending", label: "Pending", count: tabCounts.pending, icon: <Icon.Clock size={14} />, color: "#d97706", badgeBg: "rgba(217, 119, 6, 0.15)", badgeColor: "#d97706" },
-              { id: "issued", label: "Permit Issued", count: tabCounts.issued, icon: <Icon.FileText size={14} />, color: "#8b5cf6", badgeBg: "rgba(139, 92, 246, 0.15)", badgeColor: "#8b5cf6" },
+              { id: "pending", label: "Pending", count: tabCounts.pending, icon: <Icon.Clock size={14} /> },
+              { id: "issued", label: "Permit Issued", count: tabCounts.issued, icon: <Icon.FileText size={14} /> },
             ].map((tab) => {
               const isActive = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
                   type="button"
+                  className={`adm-seg-btn ${isActive ? "active" : ""}`}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setPage(1);
                   }}
-                  style={{
-                    height: 32,
-                    padding: "0 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: isActive ? 700 : 600,
-                    border: isActive ? "1px solid var(--color-border)" : "1px solid transparent",
-                    cursor: "pointer",
-                    background: isActive ? "var(--color-surface)" : "transparent",
-                    color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-                    boxShadow: isActive ? "0 1px 3px rgba(0, 0, 0, 0.08)" : "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 140ms ease",
-                    whiteSpace: "nowrap",
-                  }}
                 >
-                  <span style={{ color: isActive ? tab.color : "var(--color-text-muted)", display: "flex" }}>
-                    {tab.icon}
-                  </span>
+                  {tab.icon}
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      minWidth: 18,
-                      height: 18,
-                      padding: "0 5px",
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 800,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: isActive ? tab.badgeBg : "var(--color-border)",
-                      color: isActive ? tab.badgeColor : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {tab.count}
                   </span>
                 </button>
@@ -574,7 +530,7 @@ export const AdminPermits = () => {
                         borderBottom: "1px solid var(--color-border)",
                         transition: "background 140ms ease",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--color-bg)")}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "var(--lsmis-primary-subtle)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
                       {/* 1. Owner */}
@@ -649,8 +605,8 @@ export const AdminPermits = () => {
                       {/* 3. Date and Time */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--color-text)", fontSize: 13 }}>
-                          <Icon.Calendar size={13} style={{ color: "#0284c7", flexShrink: 0, opacity: 0.8 }} />
-                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "â€”"}</span>
+                          <Icon.Calendar size={13} style={{ color: "#187A56", flexShrink: 0, opacity: 0.8 }} />
+                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "—"}</span>
                         </div>
                       </td>
 
@@ -663,13 +619,13 @@ export const AdminPermits = () => {
                                 fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                                 fontSize: 13,
                                 fontWeight: 700,
-                                color: "#0284c7",
+                                color: "#187A56",
                               }}
                             >
                               {grp.base_permit_no}
                             </span>
                           ) : (
-                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>â€”</span>
+                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
                           )}
                         </td>
                       )}
@@ -741,8 +697,9 @@ export const AdminPermits = () => {
         {/* Footer / Pagination */}
         {filteredGroups.length > pageSize && (
           <div
+            className="adm-pagination-bar"
             style={{
-              padding: "10px 16px",
+              padding: "12px 20px",
               borderTop: "1px solid var(--color-border)",
               display: "flex",
               justifyContent: "space-between",

@@ -8,11 +8,11 @@ import { formatPhDateTime } from "./helpers";
 export const getCurrentActor = () => {
   const session = authService.getSession();
   const role = session?.role || "staff";
-  let fallbackName = "Jenel Selgas";
-  if (role === "vet") fallbackName = "Dr. Dave";
-  else if (role === "admin") fallbackName = "System Administrator";
+  let fallbackName = "Staff";
+  if (role === "vet") fallbackName = "Veterinarian";
+  else if (role === "admin") fallbackName = "Administrator";
 
-  const name = session?.name || session?.full_name || fallbackName;
+  const name = session?.name || session?.full_name || session?.username || session?.email || fallbackName;
   const id = session?.user_id || session?.id || session?.user?.id || null;
   const email = session?.email || null;
 

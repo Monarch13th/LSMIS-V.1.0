@@ -66,7 +66,7 @@
 .dash-stage.amber .dash-stage-bar > span { background: #f59e0b; }
 .dash-stage.violet .dash-stage-bar > span { background: #8b5cf6; }
 .dash-stage.rose .dash-stage-bar > span { background: #f43f5e; }
-.dash-stage.slate .dash-stage-bar > span { background: #64748b; }
+.dash-stage.slate .dash-stage-bar > span { background: #5D6660; }
 
 /* Lists */
 .dash-list { display: flex; flex-direction: column; gap: 2px; }
@@ -77,7 +77,7 @@
 }
 .dash-list-item:last-child { border-bottom: none; }
 .dash-list-item.clickable:hover {
-  background: var(--color-bg);
+  background: var(--lsmis-primary-subtle);
 }
 .dash-list-item.clickable:focus-visible {
   outline: 2px solid var(--color-primary);
@@ -127,3 +127,23 @@
 
 /* Card action buttons should never wrap awkwardly on narrow cards */
 .dash .card-header { flex-wrap: wrap; gap: 8px; }
+
+/* Admin dashboard � single-frame, no page scroll (desktop) */
+.adm-dash { display: flex; flex-direction: column; gap: 14px; min-width: 0; height: calc(100vh - var(--header-height, 68px) - 48px); min-height: 460px; }
+.adm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
+.adm-title { margin: 0; font-size: 20px; font-weight: 800; color: var(--color-text); }
+.adm-pending { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; color: #b45309; background: rgba(245, 158, 11, 0.14); border: 1px solid rgba(245, 158, 11, 0.4); }
+.adm-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; flex-shrink: 0; }
+.adm-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 1.3fr 1fr 1.4fr; gap: 14px; }
+.adm-main > .card { height: 100%; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.adm-main > .card > .card-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.adm-fill { position: relative; flex: 1; min-height: 0; }
+.adm-fill .chart-container { height: 100%; }
+.adm-list { overflow: hidden; }
+.adm-list .dash-list-item { padding: 7px 6px; }
+@media (max-width: 1100px) {
+  .adm-dash { height: auto; }
+  .adm-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .adm-main { grid-template-columns: 1fr; }
+  .adm-fill { height: 240px; flex: none; }
+}

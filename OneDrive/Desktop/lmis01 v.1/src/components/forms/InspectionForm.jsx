@@ -28,7 +28,7 @@ const CheckboxWithIndeterminate = ({ checked, indeterminate, onChange, style, id
       style={{
         width: 17,
         height: 17,
-        accentColor: "var(--color-primary, #0284c7)",
+        accentColor: "var(--color-primary, #187A56)",
         cursor: disabled ? "not-allowed" : "pointer",
         ...style,
       }}
@@ -167,7 +167,7 @@ const ANTE_APPROVED_PRESETS = [
 const ANTE_APPROVED_PRESET_CARDS = [
   {
     title: "Normal & Active",
-    subtitle: "Active behavior, normal vitals, no gait defects — fit for slaughter",
+    subtitle: "Active behavior, normal vitals, no gait defects � fit for slaughter",
     value: ANTE_APPROVED_PRESETS[0],
     iconName: "Check",
   },
@@ -301,10 +301,10 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
   };
 
   return (
-    <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: showError ? "#fff5f5" : "#f8fafc", border: isFull ? "1px solid #cbd5e1" : showError ? "1.5px dashed #fca5a5" : "1px dashed #cbd5e1" }}>
+    <div style={{ marginTop: 10, padding: 12, borderRadius: 10, background: showError ? "#fff5f5" : "#F9FAF8", border: isFull ? "1px solid #C2CAC4" : showError ? "1.5px dashed #fca5a5" : "1px dashed #C2CAC4" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
-        <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "flex", alignItems: "center", gap: 6 }}>
-          <Icon.Camera size={14} style={{ color: isFull ? "#059669" : showError ? "#dc2626" : "#0284c7" }} />
+        <label style={{ fontSize: 12, fontWeight: 700, color: "#444C47", display: "flex", alignItems: "center", gap: 6 }}>
+          <Icon.Camera size={14} style={{ color: isFull ? "#059669" : showError ? "#dc2626" : "#187A56" }} />
           <span>{label}</span>
           <span style={{ color: "#ef4444" }}>*</span>
           <span
@@ -313,9 +313,9 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
               fontWeight: 800,
               padding: "2px 8px",
               borderRadius: 999,
-              background: isFull ? "#ecfdf5" : currentCount > 0 ? "#e0f2fe" : showError ? "#fee2e2" : "#f1f5f9",
-              color: isFull ? "#059669" : currentCount > 0 ? "#0284c7" : showError ? "#dc2626" : "#64748b",
-              border: isFull ? "1px solid #a7f3d0" : currentCount > 0 ? "1px solid #bae6fd" : showError ? "1px solid #fca5a5" : "1px solid #e2e8f0",
+              background: isFull ? "#ecfdf5" : currentCount > 0 ? "#e0f2fe" : showError ? "#fee2e2" : "#EFF2F0",
+              color: isFull ? "#059669" : currentCount > 0 ? "#187A56" : showError ? "#dc2626" : "#5D6660",
+              border: isFull ? "1px solid #a7f3d0" : currentCount > 0 ? "1px solid #D3E0D8" : showError ? "1px solid #fca5a5" : "1px solid #E2E6E3",
             }}
           >
             {currentCount}/{MAX_PHOTOS} Photos
@@ -329,12 +329,12 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
             gap: 6,
             padding: "5px 12px",
             borderRadius: 6,
-            background: isFull ? "#94a3b8" : showError ? "#dc2626" : "#0284c7",
+            background: isFull ? "#9BA49E" : showError ? "#dc2626" : "#187A56",
             color: "#ffffff",
             fontSize: 11.5,
             fontWeight: 700,
             cursor: isFull ? "not-allowed" : "pointer",
-            boxShadow: isFull ? "none" : "0 1px 3px rgba(2, 132, 199, 0.2)",
+            boxShadow: isFull ? "none" : "0 1px 3px rgba(24, 122, 86, 0.2)",
             opacity: isFull ? 0.75 : 1,
             pointerEvents: isFull ? "none" : "auto",
           }}
@@ -368,8 +368,8 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                 position: "relative",
                 borderRadius: 8,
                 overflow: "hidden",
-                border: "1px solid #cbd5e1",
-                background: "#0f172a",
+                border: "1px solid #C2CAC4",
+                background: "#1A201C",
                 height: 96,
                 minHeight: 96,
                 maxHeight: 96,
@@ -388,8 +388,8 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
               <div
                 style={{
                   padding: "2px 6px",
-                  background: "#1e293b",
-                  color: "#cbd5e1",
+                  background: "#2D332F",
+                  color: "#C2CAC4",
                   fontSize: 9.5,
                   display: "flex",
                   alignItems: "center",
@@ -399,7 +399,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                 }}
               >
                 <span style={{ textOverflow: "ellipsis", overflow: "hidden" }}>{photo.name}</span>
-                {photo.size ? <span style={{ color: "#94a3b8", marginLeft: 4 }}>{formatSize(photo.size)}</span> : null}
+                {photo.size ? <span style={{ color: "#9BA49E", marginLeft: 4 }}>{formatSize(photo.size)}</span> : null}
               </div>
               <button
                 type="button"
@@ -432,7 +432,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
           ))}
         </div>
       ) : (
-        <div style={{ fontSize: 11.5, color: "#94a3b8", textAlign: "center", padding: "6px 0" }}>
+        <div style={{ fontSize: 11.5, color: "#9BA49E", textAlign: "center", padding: "6px 0" }}>
           No evidence photos attached (0/3). You can upload 1, 2, or up to 3 photos.
         </div>
       )}
@@ -450,7 +450,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(15, 23, 42, 0.85)",
+            backgroundColor: "rgba(26, 32, 28, 0.85)",
             backdropFilter: "blur(6px)",
             zIndex: 9999,
             display: "flex",
@@ -465,7 +465,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
               position: "relative",
               maxWidth: 700,
               width: "100%",
-              backgroundColor: "#0f172a",
+              backgroundColor: "#1A201C",
               borderRadius: 16,
               overflow: "hidden",
               border: "1px solid rgba(255, 255, 255, 0.15)",
@@ -473,8 +473,8 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#1e293b", color: "#ffffff" }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#38bdf8" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "#2D332F", color: "#ffffff" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#24966D" }}>
                 {previewPhoto.name} {photos && photos.length > 1 ? `(Photo ${photos.findIndex((p) => (p.id || p.name) === (previewPhoto.id || previewPhoto.name)) + 1} of ${photos.length})` : ""}
               </span>
               <button
@@ -491,7 +491,7 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
 
             {/* Thumbnail selector gallery if multiple photos */}
             {photos && photos.length > 1 && (
-              <div style={{ display: "flex", gap: 10, justifyContent: "center", padding: "10px 16px", background: "#0f172a", borderTop: "1px solid #1e293b" }}>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center", padding: "10px 16px", background: "#1A201C", borderTop: "1px solid #2D332F" }}>
                 {photos.map((p, idx) => {
                   const isSelected = (p.id || p.name) === (previewPhoto.id || previewPhoto.name);
                   return (
@@ -503,15 +503,15 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
                         height: 52,
                         borderRadius: 6,
                         overflow: "hidden",
-                        border: isSelected ? "2.5px solid #38bdf8" : "1px solid #334155",
+                        border: isSelected ? "2.5px solid #24966D" : "1px solid #444C47",
                         cursor: "pointer",
                         position: "relative",
                         background: "#020617",
-                        boxShadow: isSelected ? "0 0 8px rgba(56, 189, 248, 0.5)" : "none",
+                        boxShadow: isSelected ? "0 0 8px rgba(24, 122, 86, 0.5)" : "none",
                       }}
                     >
                       <img src={p.preview || p.url} alt={p.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: isSelected ? "#0284c7" : "rgba(15,23,42,0.8)", color: "#fff", fontSize: 8.5, fontWeight: 700, textAlign: "center", padding: "1px 0" }}>
+                      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: isSelected ? "#187A56" : "rgba(26, 32, 28,0.8)", color: "#fff", fontSize: 8.5, fontWeight: 700, textAlign: "center", padding: "1px 0" }}>
                         Photo {idx + 1}
                       </div>
                     </div>
@@ -795,7 +795,7 @@ export const InspectionForm = ({
   };
 
   const getOwnerInitials = (name) => {
-    if (!name || name === "—" || name === "Unknown Owner") return "?";
+    if (!name || name === "�" || name === "Unknown Owner") return "?";
     return name
       .split(" ")
       .filter(Boolean)
@@ -1470,7 +1470,7 @@ export const InspectionForm = ({
   };
 
   const getAnimalDetails = (tag) => {
-    if (!tag) return { tag_number: "—", species: "—", sex: "—", owner_name: "—" };
+    if (!tag) return { tag_number: "�", species: "�", sex: "�", owner_name: "�" };
     const animal = (livestock || []).find(
       (l) => (l.tag_number || "").trim().toLowerCase() === String(tag).trim().toLowerCase()
     );
@@ -1640,7 +1640,7 @@ export const InspectionForm = ({
           species: details?.species && details.species !== "Unknown Species" ? details.species : "Livestock",
           heads: 1,
           reason: finalReason,
-          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "—",
+          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "�",
         };
       });
 
@@ -1788,7 +1788,7 @@ export const InspectionForm = ({
               missing.push({
                 category: "Photo Evidence",
                 fieldId: `cut-photos-${cut.id}`,
-                label: `Cut Evidence Photo (Tag #${entry.tag_number || `#${i + 1}`} · ${cut.specificPart || area || "Cut"})`,
+                label: `Cut Evidence Photo (Tag #${entry.tag_number || `#${i + 1}`} � ${cut.specificPart || area || "Cut"})`,
                 message: "Please upload at least one evidence photo for each condemned cut.",
               });
               errors[`cut-photos-${cut.id}`] = "Evidence photo is required.";
@@ -1905,7 +1905,7 @@ export const InspectionForm = ({
             photos: p.photos || (p.photo ? [{ preview: p.photo, name: p.photoName }] : []),
             disposition: "Condemned / Rendered",
             quantity: `${weightVal} kg`,
-            notes: `Part: ${partDisplay} · Reason: ${reasonName}`,
+            notes: `Part: ${partDisplay} � Reason: ${reasonName}`,
           };
         });
 
@@ -1935,7 +1935,7 @@ export const InspectionForm = ({
         records.push({
           tag_number: tag,
           decision: "Approved",
-          findings: findings || POST_APPROVED_PRESETS[0],
+          findings: (decision === "Partial" || partialAnimals.length > 0) ? POST_APPROVED_PRESETS[0] : (findings || POST_APPROVED_PRESETS[0]),
           remarks: remarks || "",
           owner_name: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "",
           species: details?.species && details.species !== "Unknown Species" ? details.species : "",
@@ -1981,7 +1981,7 @@ export const InspectionForm = ({
           species: details?.species && details.species !== "Unknown Species" ? details.species : "Livestock",
           heads: 1,
           reason: finalReason,
-          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "—",
+          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "�",
         };
       });
 
@@ -2108,7 +2108,7 @@ export const InspectionForm = ({
             background: "var(--color-surface, #ffffff)",
             margin: "-24px -24px 0 -24px",
             padding: "16px 24px 14px 24px",
-            borderBottom: "1px solid var(--color-border, #e2e8f0)",
+            borderBottom: "1px solid var(--color-border, #E2E6E3)",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
             display: "flex",
             flexDirection: "column",
@@ -2123,8 +2123,8 @@ export const InspectionForm = ({
               gap: 12,
               padding: "10px 14px",
               borderRadius: 8,
-              background: type === "Ante-Mortem" ? "rgba(2, 132, 199, 0.08)" : "rgba(139, 92, 246, 0.08)",
-              border: `1px solid ${type === "Ante-Mortem" ? "#bae6fd" : "#ddd6fe"}`,
+              background: type === "Ante-Mortem" ? "rgba(24, 122, 86, 0.08)" : "rgba(24, 122, 86, 0.08)",
+              border: `1px solid ${type === "Ante-Mortem" ? "#bae6fd" : "#D3E0D8"}`,
             }}
           >
             <div
@@ -2132,7 +2132,7 @@ export const InspectionForm = ({
                 width: 32,
                 height: 32,
                 borderRadius: 8,
-                background: type === "Ante-Mortem" ? "#0284c7" : "#8b5cf6",
+                background: type === "Ante-Mortem" ? "#187A56" : "#24966D",
                 color: "#ffffff",
                 display: "flex",
                 alignItems: "center",
@@ -2143,10 +2143,10 @@ export const InspectionForm = ({
               {type === "Ante-Mortem" ? <Icon.Stethoscope size={16} /> : <Icon.Activity size={16} />}
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 800, fontSize: 13.5, color: "#0f172a" }}>
+              <div style={{ fontWeight: 800, fontSize: 13.5, color: "#1A201C" }}>
                 {type === "Ante-Mortem" ? "Live Animal Ante-Mortem Inspection" : "Carcass & Viscera Post-Mortem Inspection"}
               </div>
-              <div style={{ fontSize: 11.5, color: "#64748b" }}>
+              <div style={{ fontSize: 11.5, color: "#5D6660" }}>
                 {type === "Ante-Mortem"
                   ? "Examine animal behavior, posture, vital signs, and general health before slaughter"
                   : "Examine meat, visceral organs, lymph nodes, and carcass quality after slaughter"}
@@ -2156,14 +2156,14 @@ export const InspectionForm = ({
 
           {/* Decision Radio Pills */}
           <div>
-            <label style={{ fontSize: 12.5, fontWeight: 700, color: "#334155", display: "block", marginBottom: 6 }}>
+            <label style={{ fontSize: 12.5, fontWeight: 700, color: "#444C47", display: "block", marginBottom: 6 }}>
               Veterinary Decision <span style={{ color: "#ef4444" }}>*</span>
             </label>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
               {(type === "Ante-Mortem"
                 ? [
                     { value: "Approved", label: "Fit for Slaughter", sub: "Animal healthy; proceed to slaughter queue", color: "#10b981", bg: "#f0fdf4", border: "#86efac", icon: <Icon.Check size={16} /> },
-                    { value: "Condemned", label: "Condemned", sub: "Live animal unfit — rejected before slaughter", color: "#ef4444", bg: "#fef2f2", border: "#fca5a5", icon: <Icon.AlertTriangle size={16} /> },
+                    { value: "Condemned", label: "Condemned", sub: "Live animal unfit � rejected before slaughter", color: "#ef4444", bg: "#fef2f2", border: "#fca5a5", icon: <Icon.AlertTriangle size={16} /> },
                   ]
                 : [
                     { value: "Approved", label: "Fit for Consumption", sub: "Carcass sound; proceed to carcass weighing", color: "#10b981", bg: "#f0fdf4", border: "#86efac", icon: <Icon.Check size={16} /> },
@@ -2180,7 +2180,7 @@ export const InspectionForm = ({
                       padding: "10px 14px",
                       borderRadius: 10,
                       cursor: "pointer",
-                      border: isSel ? `2px solid ${opt.color}` : "1px solid #e2e8f0",
+                      border: isSel ? `2px solid ${opt.color}` : "1px solid #E2E6E3",
                       background: isSel ? opt.bg : "#ffffff",
                       boxShadow: isSel ? `0 2px 10px ${opt.color}22` : "none",
                       transition: "all 0.14s ease",
@@ -2193,7 +2193,7 @@ export const InspectionForm = ({
                       {opt.icon}
                       {opt.label}
                     </div>
-                    <div style={{ fontSize: 11, color: "#64748b" }}>{opt.sub}</div>
+                    <div style={{ fontSize: 11, color: "#5D6660" }}>{opt.sub}</div>
                   </div>
                 );
               })}
@@ -2235,7 +2235,7 @@ export const InspectionForm = ({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-              <label style={{ fontSize: 12.5, fontWeight: 700, color: "#334155", margin: 0 }}>
+              <label style={{ fontSize: 12.5, fontWeight: 700, color: "#444C47", margin: 0 }}>
                 {decision === "Condemned"
                   ? (type === "Ante-Mortem" ? "Select Animal Tags to Reject / Condemn" : "Select Carcass Tags to Condemn")
                   : (type === "Ante-Mortem" ? "Select Animal Tags" : "Select Carcass Tags")
@@ -2248,11 +2248,11 @@ export const InspectionForm = ({
                   padding: "2px 7px",
                   borderRadius: 999,
                   background: decision === "Condemned"
-                    ? (anteCondemned.length > 0 ? "#fee2e2" : "#f1f5f9")
-                    : (approvedTags.length > 0 ? "#e0f2fe" : "#f1f5f9"),
+                    ? (anteCondemned.length > 0 ? "#fee2e2" : "#EFF2F0")
+                    : (approvedTags.length > 0 ? "#e0f2fe" : "#EFF2F0"),
                   color: decision === "Condemned"
-                    ? (anteCondemned.length > 0 ? "#991b1b" : "#64748b")
-                    : (approvedTags.length > 0 ? "#0369a1" : "#64748b"),
+                    ? (anteCondemned.length > 0 ? "#991b1b" : "#5D6660")
+                    : (approvedTags.length > 0 ? "#136647" : "#5D6660"),
                 }}
               >
                 {decision === "Condemned" ? anteCondemned.length : approvedTags.length} of {(decision === "Condemned" ? displayedCondemnedLivestock : displayedApprovedLivestock).length} Selected
@@ -2273,7 +2273,7 @@ export const InspectionForm = ({
                     cursor: "pointer",
                     fontSize: 11.5,
                     fontWeight: 700,
-                    color: decision === "Condemned" ? "#ef4444" : (type === "Ante-Mortem" ? "#0284c7" : "#10b981"),
+                    color: decision === "Condemned" ? "#ef4444" : (type === "Ante-Mortem" ? "#187A56" : "#10b981"),
                     userSelect: "none",
                   }}
                   title={isAllSel ? "Deselect all" : "Select all eligible"}
@@ -2291,7 +2291,7 @@ export const InspectionForm = ({
                       cursor: "pointer",
                       accentColor: decision === "Condemned"
                         ? "#ef4444"
-                        : (type === "Ante-Mortem" ? "#0284c7" : "#10b981"),
+                        : (type === "Ante-Mortem" ? "#187A56" : "#10b981"),
                     }}
                   />
                   <span>Select All</span>
@@ -2356,7 +2356,7 @@ export const InspectionForm = ({
                       style={{
                         border: selectedCount > 0
                           ? (isCondemned ? "1.5px solid var(--color-danger, #ef4444)" : "1.5px solid var(--color-primary, #059669)")
-                          : "1px solid var(--color-border, #cbd5e1)",
+                          : "1px solid var(--color-border, #C2CAC4)",
                         borderRadius: 10,
                         background: "var(--color-surface, #ffffff)",
                         overflow: "hidden",
@@ -2412,7 +2412,7 @@ export const InspectionForm = ({
                               style={{
                                 fontSize: 14.5,
                                 fontWeight: 700,
-                                color: "var(--color-text, #0f172a)",
+                                color: "var(--color-text, #1A201C)",
                                 letterSpacing: "-0.01em",
                               }}
                             >
@@ -2433,9 +2433,9 @@ export const InspectionForm = ({
                               fontWeight: 700,
                               padding: "3px 8px",
                               borderRadius: 6,
-                              background: "var(--color-bg, #f1f5f9)",
-                              color: "var(--color-text-muted, #334155)",
-                              border: "1px solid var(--color-border, #e2e8f0)",
+                              background: "var(--color-bg, #EFF2F0)",
+                              color: "var(--color-text-muted, #444C47)",
+                              border: "1px solid var(--color-border, #E2E6E3)",
                             }}
                             title="Total eligible records for this owner"
                           >
@@ -2458,7 +2458,7 @@ export const InspectionForm = ({
                             }}
                             title="Count of male records"
                           >
-                            <span style={{ fontSize: 13 }}>♂</span> Male: <strong>{grp.maleCount || 0}</strong>
+                            <span style={{ fontSize: 13 }}>?</span> Male: <strong>{grp.maleCount || 0}</strong>
                           </span>
 
                           {/* Female Count Badge */}
@@ -2477,7 +2477,7 @@ export const InspectionForm = ({
                             }}
                             title="Count of female records"
                           >
-                            <span style={{ fontSize: 13 }}>♀</span> Female: <strong>{grp.femaleCount || 0}</strong>
+                            <span style={{ fontSize: 13 }}>?</span> Female: <strong>{grp.femaleCount || 0}</strong>
                           </span>
 
                           {grp.unspecifiedCount > 0 && (
@@ -2487,9 +2487,9 @@ export const InspectionForm = ({
                                 fontWeight: 600,
                                 padding: "3px 8px",
                                 borderRadius: 6,
-                                background: "#f8fafc",
-                                color: "#64748b",
-                                border: "1px solid #cbd5e1",
+                                background: "#F9FAF8",
+                                color: "#5D6660",
+                                border: "1px solid #C2CAC4",
                               }}
                               title="Records with unspecified or unknown sex"
                             >
@@ -2503,12 +2503,12 @@ export const InspectionForm = ({
                             onClick={() => toggleOwnerExpand(grp.owner_name)}
                             style={{
                               background: "transparent",
-                              border: "1px solid var(--color-border, #cbd5e1)",
+                              border: "1px solid var(--color-border, #C2CAC4)",
                               borderRadius: 6,
                               padding: "3px 8px",
                               fontSize: 11.5,
                               fontWeight: 600,
-                              color: "var(--color-text-muted, #475569)",
+                              color: "var(--color-text-muted, #5D6660)",
                               display: "inline-flex",
                               alignItems: "center",
                               gap: 4,
@@ -2533,8 +2533,8 @@ export const InspectionForm = ({
                       {isExpanded && (
                         <div
                           style={{
-                            borderTop: "1px solid var(--color-border, #e2e8f0)",
-                            background: "var(--color-bg, #f8fafc)",
+                            borderTop: "1px solid var(--color-border, #E2E6E3)",
+                            background: "var(--color-bg, #F9FAF8)",
                             padding: "10px 16px 12px",
                           }}
                         >
@@ -2546,7 +2546,7 @@ export const InspectionForm = ({
                               marginBottom: 8,
                             }}
                           >
-                            <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-text-muted, #64748b)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                            <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-text-muted, #5D6660)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
                               {type === "Ante-Mortem" ? "LIVESTOCK RECORDS" : "CARCASS RECORDS"} ({selectedCount} OF {grp.items.length} SELECTED)
                             </span>
                             <div style={{ display: "flex", gap: 6 }}>
@@ -2555,12 +2555,12 @@ export const InspectionForm = ({
                                 onClick={() => selectAllForOwner(grp, isCondemned)}
                                 style={{
                                   background: "var(--color-surface, #ffffff)",
-                                  border: "1px solid var(--color-border, #cbd5e1)",
+                                  border: "1px solid var(--color-border, #C2CAC4)",
                                   borderRadius: 4,
                                   padding: "2px 8px",
                                   fontSize: 11,
                                   fontWeight: 600,
-                                  color: isCondemned ? "#ef4444" : "#0369a1",
+                                  color: isCondemned ? "#ef4444" : "#136647",
                                   cursor: "pointer",
                                 }}
                               >
@@ -2571,12 +2571,12 @@ export const InspectionForm = ({
                                 onClick={() => deselectAllForOwner(grp, isCondemned)}
                                 style={{
                                   background: "var(--color-surface, #ffffff)",
-                                  border: "1px solid var(--color-border, #cbd5e1)",
+                                  border: "1px solid var(--color-border, #C2CAC4)",
                                   borderRadius: 4,
                                   padding: "2px 8px",
                                   fontSize: 11,
                                   fontWeight: 600,
-                                  color: "var(--color-text-muted, #64748b)",
+                                  color: "var(--color-text-muted, #5D6660)",
                                   cursor: "pointer",
                                 }}
                               >
@@ -2606,7 +2606,7 @@ export const InspectionForm = ({
                               const rawSex = String(animal.sex || getAnimalSex(animal) || "").trim().toLowerCase();
                               const isMale = rawSex === "male" || rawSex === "m";
                               const isFemale = rawSex === "female" || rawSex === "f";
-                              const cardActiveBorder = isCondemned ? "#ef4444" : "#0284c7";
+                              const cardActiveBorder = isCondemned ? "#ef4444" : "#187A56";
 
                               return (
                                 <div
@@ -2627,7 +2627,7 @@ export const InspectionForm = ({
                                     background: "var(--color-surface, #ffffff)",
                                     border: isChecked
                                       ? `1.5px solid ${cardActiveBorder}`
-                                      : "1px solid var(--color-border, #cbd5e1)",
+                                      : "1px solid var(--color-border, #C2CAC4)",
                                     boxShadow: isChecked ? `0 1px 3px ${cardActiveBorder}20` : "none",
                                     cursor: "pointer",
                                     transition: "all 0.12s ease",
@@ -2654,11 +2654,11 @@ export const InspectionForm = ({
                                       }}
                                     />
                                     <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                                      <span style={{ fontFamily: "monospace", fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #0f172a)", lineHeight: 1.2 }}>
+                                      <span style={{ fontFamily: "monospace", fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #1A201C)", lineHeight: 1.2 }}>
                                         {tag}
                                       </span>
-                                      <span style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
-                                        {animal.species || (type === "Ante-Mortem" ? "Livestock" : "Carcass")}{animal.breed ? ` • ${animal.breed}` : ""}
+                                      <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
+                                        {animal.species || (type === "Ante-Mortem" ? "Livestock" : "Carcass")}{animal.breed ? ` � ${animal.breed}` : ""}
                                       </span>
                                     </div>
                                   </div>
@@ -2677,7 +2677,7 @@ export const InspectionForm = ({
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        ♂ Male
+                                        ? Male
                                       </span>
                                     ) : isFemale ? (
                                       <span
@@ -2692,7 +2692,7 @@ export const InspectionForm = ({
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        ♀ Female
+                                        ? Female
                                       </span>
                                     ) : (
                                       <span
@@ -2701,8 +2701,8 @@ export const InspectionForm = ({
                                           fontWeight: 500,
                                           padding: "1px 6px",
                                           borderRadius: 4,
-                                          background: "var(--color-bg, #f1f5f9)",
-                                          color: "var(--color-text-muted, #64748b)",
+                                          background: "var(--color-bg, #EFF2F0)",
+                                          color: "var(--color-text-muted, #5D6660)",
                                           lineHeight: 1.2,
                                         }}
                                       >
@@ -2733,9 +2733,9 @@ export const InspectionForm = ({
                                           fontWeight: 700,
                                           padding: "1px 5px",
                                           borderRadius: 4,
-                                          background: "#e0f2fe",
-                                          color: "#0369a1",
-                                          border: "1px solid #bae6fd",
+                                          background: "#E6EFEA",
+                                          color: "#136647",
+                                          border: "1px solid #D3E0D8",
                                           lineHeight: 1.2,
                                         }}
                                       >
@@ -2835,7 +2835,7 @@ export const InspectionForm = ({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <label style={{ fontSize: 13, fontWeight: 700, color: "#334155", margin: 0 }}>
+                <label style={{ fontSize: 13, fontWeight: 700, color: "#444C47", margin: 0 }}>
                   Select Carcass Tags for Partial Condemnation <span style={{ color: "#ef4444" }}>*</span>
                 </label>
                 <span
@@ -2844,8 +2844,8 @@ export const InspectionForm = ({
                     fontWeight: 700,
                     padding: "2px 8px",
                     borderRadius: 999,
-                    background: partialAnimals.length > 0 ? "#fef3c7" : "#f1f5f9",
-                    color: partialAnimals.length > 0 ? "#92400e" : "#64748b",
+                    background: partialAnimals.length > 0 ? "#fef3c7" : "#EFF2F0",
+                    color: partialAnimals.length > 0 ? "#92400e" : "#5D6660",
                   }}
                 >
                   {partialAnimals.length} of {displayedPartialLivestock.length} Selected
@@ -2922,7 +2922,7 @@ export const InspectionForm = ({
                       <div
                         key={grp.owner_name}
                         style={{
-                          border: selectedCount > 0 ? "1.5px solid #d97706" : "1px solid var(--color-border, #cbd5e1)",
+                          border: selectedCount > 0 ? "1.5px solid #d97706" : "1px solid var(--color-border, #C2CAC4)",
                           borderRadius: 10,
                           background: "var(--color-surface, #ffffff)",
                           overflow: "hidden",
@@ -2963,7 +2963,7 @@ export const InspectionForm = ({
                                 style={{
                                   fontSize: 14.5,
                                   fontWeight: 700,
-                                  color: "var(--color-text, #0f172a)",
+                                  color: "var(--color-text, #1A201C)",
                                   letterSpacing: "-0.01em",
                                 }}
                               >
@@ -2984,9 +2984,9 @@ export const InspectionForm = ({
                                 fontWeight: 700,
                                 padding: "3px 8px",
                                 borderRadius: 6,
-                                background: "var(--color-bg, #f1f5f9)",
-                                color: "var(--color-text-muted, #334155)",
-                                border: "1px solid var(--color-border, #e2e8f0)",
+                                background: "var(--color-bg, #EFF2F0)",
+                                color: "var(--color-text-muted, #444C47)",
+                                border: "1px solid var(--color-border, #E2E6E3)",
                               }}
                               title="Total carcasses for this owner"
                             >
@@ -3009,7 +3009,7 @@ export const InspectionForm = ({
                               }}
                               title="Count of male carcasses"
                             >
-                              <span style={{ fontSize: 13 }}>♂</span> Male: <strong>{grp.maleCount || 0}</strong>
+                              <span style={{ fontSize: 13 }}>?</span> Male: <strong>{grp.maleCount || 0}</strong>
                             </span>
 
                             {/* Female Count Badge */}
@@ -3028,7 +3028,7 @@ export const InspectionForm = ({
                               }}
                               title="Count of female carcasses"
                             >
-                              <span style={{ fontSize: 13 }}>♀</span> Female: <strong>{grp.femaleCount || 0}</strong>
+                              <span style={{ fontSize: 13 }}>?</span> Female: <strong>{grp.femaleCount || 0}</strong>
                             </span>
 
                             {grp.unspecifiedCount > 0 && (
@@ -3038,9 +3038,9 @@ export const InspectionForm = ({
                                   fontWeight: 600,
                                   padding: "3px 8px",
                                   borderRadius: 6,
-                                  background: "#f8fafc",
-                                  color: "#64748b",
-                                  border: "1px solid #cbd5e1",
+                                  background: "#F9FAF8",
+                                  color: "#5D6660",
+                                  border: "1px solid #C2CAC4",
                                 }}
                               >
                                 Unspecified: <strong>{grp.unspecifiedCount}</strong>
@@ -3053,12 +3053,12 @@ export const InspectionForm = ({
                               onClick={() => toggleOwnerExpand(grp.owner_name)}
                               style={{
                                 background: "transparent",
-                                border: "1px solid var(--color-border, #cbd5e1)",
+                                border: "1px solid var(--color-border, #C2CAC4)",
                                 borderRadius: 6,
                                 padding: "3px 8px",
                                 fontSize: 11.5,
                                 fontWeight: 600,
-                                color: "var(--color-text-muted, #475569)",
+                                color: "var(--color-text-muted, #5D6660)",
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 4,
@@ -3079,8 +3079,8 @@ export const InspectionForm = ({
                         {isExpanded && (
                           <div
                             style={{
-                              borderTop: "1px solid var(--color-border, #e2e8f0)",
-                              background: "var(--color-bg, #f8fafc)",
+                              borderTop: "1px solid var(--color-border, #E2E6E3)",
+                              background: "var(--color-bg, #F9FAF8)",
                               padding: "10px 16px 12px",
                             }}
                           >
@@ -3092,7 +3092,7 @@ export const InspectionForm = ({
                                 marginBottom: 8,
                               }}
                             >
-                              <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-text-muted, #64748b)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
+                              <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-text-muted, #5D6660)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
                                 CARCASS RECORDS ({selectedCount} OF {grp.items.length} SELECTED)
                               </span>
                               <div style={{ display: "flex", gap: 6 }}>
@@ -3101,7 +3101,7 @@ export const InspectionForm = ({
                                   onClick={() => selectAllPartialForOwner(grp)}
                                   style={{
                                     background: "var(--color-surface, #ffffff)",
-                                    border: "1px solid var(--color-border, #cbd5e1)",
+                                    border: "1px solid var(--color-border, #C2CAC4)",
                                     borderRadius: 4,
                                     padding: "2px 8px",
                                     fontSize: 11,
@@ -3117,12 +3117,12 @@ export const InspectionForm = ({
                                   onClick={() => deselectAllPartialForOwner(grp)}
                                   style={{
                                     background: "var(--color-surface, #ffffff)",
-                                    border: "1px solid var(--color-border, #cbd5e1)",
+                                    border: "1px solid var(--color-border, #C2CAC4)",
                                     borderRadius: 4,
                                     padding: "2px 8px",
                                     fontSize: 11,
                                     fontWeight: 600,
-                                    color: "var(--color-text-muted, #64748b)",
+                                    color: "var(--color-text-muted, #5D6660)",
                                     cursor: "pointer",
                                   }}
                                 >
@@ -3164,7 +3164,7 @@ export const InspectionForm = ({
                                       borderRadius: 8,
                                       border: isPartialSelected
                                         ? "1.5px solid #d97706"
-                                        : "1px solid var(--color-border, #cbd5e1)",
+                                        : "1px solid var(--color-border, #C2CAC4)",
                                       background: "var(--color-surface, #ffffff)",
                                       boxShadow: isPartialSelected ? "0 1px 3px rgba(217, 119, 6, 0.12)" : "0 1px 2px rgba(0,0,0,0.03)",
                                       cursor: "pointer",
@@ -3193,15 +3193,15 @@ export const InspectionForm = ({
                                           style={{
                                             fontWeight: 800,
                                             fontSize: 13,
-                                            color: "var(--color-text, #0f172a)",
+                                            color: "var(--color-text, #1A201C)",
                                             lineHeight: 1.25,
                                             letterSpacing: "0.01em",
                                           }}
                                         >
                                           {tag}
                                         </span>
-                                        <span style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.25, marginTop: 1 }}>
-                                          {animal.species || "Carcass"}{animal.breed ? ` • ${animal.breed}` : ""}
+                                        <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.25, marginTop: 1 }}>
+                                          {animal.species || "Carcass"}{animal.breed ? ` � ${animal.breed}` : ""}
                                         </span>
                                       </div>
                                     </div>
@@ -3223,7 +3223,7 @@ export const InspectionForm = ({
                                             gap: 3,
                                           }}
                                         >
-                                          <span>♂</span> Male
+                                          <span>?</span> Male
                                         </span>
                                       ) : isFemale ? (
                                         <span
@@ -3241,7 +3241,7 @@ export const InspectionForm = ({
                                             gap: 3,
                                           }}
                                         >
-                                          <span>♀</span> Female
+                                          <span>?</span> Female
                                         </span>
                                       ) : (
                                         <span
@@ -3250,9 +3250,9 @@ export const InspectionForm = ({
                                             fontWeight: 600,
                                             padding: "2px 8px",
                                             borderRadius: 9999,
-                                            background: "#f1f5f9",
-                                            color: "#64748b",
-                                            border: "1px solid #e2e8f0",
+                                            background: "#EFF2F0",
+                                            color: "#5D6660",
+                                            border: "1px solid #E2E6E3",
                                             lineHeight: 1.2,
                                           }}
                                         >
@@ -3340,7 +3340,7 @@ export const InspectionForm = ({
                   <div
                     key={animal.id}
                     style={{
-                      borderTop: animalIdx > 0 ? "1px solid var(--color-border, #e2e8f0)" : "none",
+                      borderTop: animalIdx > 0 ? "1px solid var(--color-border, #E2E6E3)" : "none",
                       paddingTop: animalIdx > 0 ? 14 : 0,
                       display: "flex",
                       flexDirection: "column",
@@ -3374,8 +3374,8 @@ export const InspectionForm = ({
                             (Select Tag Below)
                           </span>
                         )}
-                        <span style={{ fontSize: 12, color: "#64748b" }}>
-                          ({details.sex} · Owner: {details.owner_name})
+                        <span style={{ fontSize: 12, color: "#5D6660" }}>
+                          ({details.sex} � Owner: {details.owner_name})
                         </span>
                       </div>
 
@@ -3404,7 +3404,7 @@ export const InspectionForm = ({
                     {/* Tag Dropdown (shown if unassigned or if user wants to reassign) */}
                     {!animal.tag_number && (
                       <div>
-                        <label style={{ fontSize: 12, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 4 }}>
                           Select Carcass Tag <span style={{ color: "#ef4444" }}>*</span>
                         </label>
                         <select
@@ -3418,7 +3418,7 @@ export const InspectionForm = ({
                           <option value="">-- Choose Carcass Tag --</option>
                           {availableTags.map((l) => (
                             <option key={l.id || l.tag_number} value={l.tag_number}>
-                              Tag #{l.tag_number} — {getAnimalSex(l)} (Owner: {l.owner_name || "Unknown"})
+                              Tag #{l.tag_number} � {getAnimalSex(l)} (Owner: {l.owner_name || "Unknown"})
                             </option>
                           ))}
                         </select>
@@ -3436,7 +3436,7 @@ export const InspectionForm = ({
                               flexDirection: "column",
                               gap: 12,
                               paddingTop: partIdx > 0 ? 12 : 0,
-                              borderTop: partIdx > 0 ? "1px solid var(--color-border, #e2e8f0)" : "none",
+                              borderTop: partIdx > 0 ? "1px solid var(--color-border, #E2E6E3)" : "none",
                             }}
                           >
                             {/* Grid Row 1: Carcass Area, Specific Part, Weight (kg), Pathology/Reason, Remove Button */}
@@ -3450,7 +3450,7 @@ export const InspectionForm = ({
                             >
                               {/* 1. Main Carcass Area */}
                               <div>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
+                                <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Carcass Area <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <select
@@ -3468,7 +3468,7 @@ export const InspectionForm = ({
 
                               {/* 2. Specific Condemned Part */}
                               <div>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
+                                <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Specific Part <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <select
@@ -3512,7 +3512,7 @@ export const InspectionForm = ({
                                     />
                                     {attemptedSubmit && !(part.customSpecificPart || "").trim() && (
                                       <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", marginTop: 2, display: "block" }}>
-                                        ⚠️ Please specify the condemned part.
+                                        ?? Please specify the condemned part.
                                       </span>
                                     )}
                                   </div>
@@ -3521,7 +3521,7 @@ export const InspectionForm = ({
 
                               {/* 3. Weight (kg) */}
                               <div>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
+                                <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Weight (kg) <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <div style={{ position: "relative" }}>
@@ -3546,20 +3546,20 @@ export const InspectionForm = ({
                                       boxShadow: attemptedSubmit && (!part.weight || isNaN(parseFloat(part.weight)) || parseFloat(part.weight) <= 0) ? "0 0 0 3px rgba(239, 68, 68, 0.15)" : undefined,
                                     }}
                                   />
-                                  <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#64748b", fontWeight: 700, pointerEvents: "none" }}>
+                                  <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", fontSize: 11, color: "#5D6660", fontWeight: 700, pointerEvents: "none" }}>
                                     kg
                                   </span>
                                 </div>
                                 {attemptedSubmit && (!part.weight || isNaN(parseFloat(part.weight)) || parseFloat(part.weight) <= 0) && (
                                   <span style={{ fontSize: 10.5, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                                    ⚠️ Weight (kg) is required and must be &gt; 0 kg.
+                                    ?? Weight (kg) is required and must be &gt; 0 kg.
                                   </span>
                                 )}
                               </div>
 
                               {/* 4. Pathology / Reason */}
                               <div>
-                                <label style={{ fontSize: 11, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 3 }}>
+                                <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Pathology / Reason <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <select
@@ -3689,10 +3689,10 @@ export const InspectionForm = ({
               style={{
                 textAlign: "center",
                 padding: "14px 16px",
-                color: "#64748b",
+                color: "#5D6660",
                 fontSize: 13,
-                background: "#f8fafc",
-                border: "1px dashed #cbd5e1",
+                background: "#F9FAF8",
+                border: "1px dashed #C2CAC4",
                 borderRadius: 10,
               }}
             >
@@ -3715,11 +3715,11 @@ export const InspectionForm = ({
                       display: "flex",
                       flexDirection: "column",
                       gap: 12,
-                      boxShadow: "0 1px 3px rgba(15, 23, 42, 0.04)",
+                      boxShadow: "0 1px 3px rgba(26, 32, 28, 0.04)",
                     }}
                   >
                     {/* Minimalist Card Header: Tag + Animal Info + Remove Icon */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #f1f5f9", paddingBottom: 10 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #EFF2F0", paddingBottom: 10 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                         <span
                           style={{
@@ -3736,10 +3736,10 @@ export const InspectionForm = ({
                           {entry.tag_number || "Select Tag"}
                         </span>
                         {entry.tag_number && (
-                          <span style={{ fontSize: 12.5, color: "#64748b", fontWeight: 500 }}>
-                            {details.species !== "—" ? details.species : ""}
-                            {details.sex && details.sex !== "—" ? ` · ${details.sex}` : ""}
-                            {details.owner_name && details.owner_name !== "—" ? ` · ${details.owner_name}` : ""}
+                          <span style={{ fontSize: 12.5, color: "#5D6660", fontWeight: 500 }}>
+                            {details.species !== "�" ? details.species : ""}
+                            {details.sex && details.sex !== "�" ? ` � ${details.sex}` : ""}
+                            {details.owner_name && details.owner_name !== "�" ? ` � ${details.owner_name}` : ""}
                           </span>
                         )}
                       </div>
@@ -3756,7 +3756,7 @@ export const InspectionForm = ({
                           borderRadius: 6,
                           border: "none",
                           background: "transparent",
-                          color: "#94a3b8",
+                          color: "#9BA49E",
                           cursor: "pointer",
                         }}
                         title="Remove from condemnation"
@@ -3769,7 +3769,7 @@ export const InspectionForm = ({
                     {/* Fallback Tag Selector only if entry has no tag_number */}
                     {!entry.tag_number && (
                       <div>
-                        <label style={{ fontSize: 11.5, fontWeight: 700, color: "#64748b", display: "block", marginBottom: 4 }}>
+                        <label style={{ fontSize: 11.5, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 4 }}>
                           {type === "Ante-Mortem" ? "Animal Tag Number" : "Carcass Tag Number"} <span style={{ color: "#ef4444" }}>*</span>
                         </label>
                         <select
@@ -3797,13 +3797,13 @@ export const InspectionForm = ({
                           <option value="">-- Choose Animal Tag --</option>
                           {availableTags.map((l) => (
                             <option key={l.tag_number} value={l.tag_number}>
-                              {l.tag_number} ({getAnimalSex(l)} · Owner: {l.owner_name || "Unknown"})
+                              {l.tag_number} ({getAnimalSex(l)} � Owner: {l.owner_name || "Unknown"})
                             </option>
                           ))}
                         </select>
                         {validationErrors[`condemned-tag-${entry.id}`] && (
                           <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                            ⚠️ {validationErrors[`condemned-tag-${entry.id}`]}
+                            ?? {validationErrors[`condemned-tag-${entry.id}`]}
                           </span>
                         )}
                       </div>
@@ -3811,7 +3811,7 @@ export const InspectionForm = ({
 
                     {/* Condemnation Reason */}
                     <div>
-                      <label style={{ fontSize: 12, fontWeight: 700, color: "#334155", display: "block", marginBottom: 5 }}>
+                      <label style={{ fontSize: 12, fontWeight: 700, color: "#444C47", display: "block", marginBottom: 5 }}>
                         Condemnation Reason <span style={{ color: "#ef4444" }}>*</span>
                       </label>
                       <select
@@ -3842,7 +3842,7 @@ export const InspectionForm = ({
                       </select>
                       {validationErrors[`condemned-reason-${entry.id}`] && (
                         <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                          ⚠️ {validationErrors[`condemned-reason-${entry.id}`]}
+                          ?? {validationErrors[`condemned-reason-${entry.id}`]}
                         </span>
                       )}
                       {isOtherReason(entry.reason) && (
@@ -3873,7 +3873,7 @@ export const InspectionForm = ({
                           />
                           {validationErrors[`condemned-custom-reason-${entry.id}`] && (
                             <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                              ⚠️ {validationErrors[`condemned-custom-reason-${entry.id}`]}
+                              ?? {validationErrors[`condemned-custom-reason-${entry.id}`]}
                             </span>
                           )}
                         </>
@@ -3899,7 +3899,7 @@ export const InspectionForm = ({
                       />
                       {validationErrors[`condemned-photos-${entry.id}`] && (
                         <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", marginTop: 3, display: "block" }}>
-                          ⚠️ {validationErrors[`condemned-photos-${entry.id}`]}
+                          ?? {validationErrors[`condemned-photos-${entry.id}`]}
                         </span>
                       )}
                     </div>
@@ -3925,7 +3925,7 @@ export const InspectionForm = ({
           marginBottom: 0,
           padding: "12px 20px",
           background: "var(--color-surface, #ffffff)",
-          borderTop: "1px solid var(--color-border, #e2e8f0)",
+          borderTop: "1px solid var(--color-border, #E2E6E3)",
           boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.04)",
           display: "flex",
           justifyContent: "flex-end",
@@ -3957,7 +3957,7 @@ export const InspectionForm = ({
           style={{
             height: 36,
             background: isSaved
-              ? "#94a3b8"
+              ? "#9BA49E"
               : "linear-gradient(135deg, #10b981 0%, #047857 100%)",
             color: "#ffffff",
             fontWeight: 700,
@@ -4025,8 +4025,8 @@ export const InspectionForm = ({
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", flexDirection: "column", gap: 6, border: "1px solid #e2e8f0", borderRadius: 8, padding: 10, background: "#ffffff" }}>
-                    <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr 1.5fr", fontWeight: 700, fontSize: 11, color: "#64748b", borderBottom: "1px solid #f1f5f9", paddingBottom: 6 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6, border: "1px solid #E2E6E3", borderRadius: 8, padding: 10, background: "#ffffff" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr 1.5fr", fontWeight: 700, fontSize: 11, color: "#5D6660", borderBottom: "1px solid #EFF2F0", paddingBottom: 6 }}>
                       <span>Tag Number</span>
                       <span>Sex</span>
                       <span>Heads</span>
@@ -4035,21 +4035,21 @@ export const InspectionForm = ({
                     {(pendingConfirm.summary.condemnedList || []).map((item, idx) => (
                       <div key={idx} style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 0.8fr 1.5fr", fontSize: 12, alignItems: "center", padding: "4px 0" }}>
                         <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#991b1b" }}>{item.tag}</span>
-                        <span style={{ color: "#334155" }}>{getAnimalSex(item.animal || item.tag) || item.sex || item.species}</span>
-                        <span style={{ color: "#334155", fontWeight: 600 }}>{item.heads} head</span>
+                        <span style={{ color: "#444C47" }}>{getAnimalSex(item.animal || item.tag) || item.sex || item.species}</span>
+                        <span style={{ color: "#444C47", fontWeight: 600 }}>{item.heads} head</span>
                         <span style={{ color: "#b91c1c", fontWeight: 600 }}>{item.reason}</span>
                       </div>
                     ))}
                   </div>
 
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#475569", paddingTop: 4 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12, color: "#5D6660", paddingTop: 4 }}>
                     <div><strong>Inspecting Officer:</strong> {pendingConfirm.summary.officer || "Dr. Dave"}</div>
                     <div><strong>Total Condemned:</strong> {pendingConfirm.summary.heads || pendingConfirm.summary.condemnedCount} head(s)</div>
                   </div>
                 </div>
               ) : (
                 <>
-                  <p style={{ margin: 0, fontSize: 13.5, color: "#334155", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: 13.5, color: "#444C47", textAlign: "center" }}>
                     {pendingConfirm.summary.approvedCount > 0 && pendingConfirm.summary.condemnedCount === 0 && (pendingConfirm.summary.partialCount || 0) === 0
                       ? (type === "Ante-Mortem"
                           ? "Are you sure you want to approve this livestock for slaughter?"
@@ -4058,8 +4058,8 @@ export const InspectionForm = ({
                   </p>
                   <div
                     style={{
-                      background: "#f8fafc",
-                      border: "1px solid #e2e8f0",
+                      background: "#F9FAF8",
+                      border: "1px solid #E2E6E3",
                       borderRadius: 8,
                       padding: "12px 14px",
                       fontSize: 12.5,
@@ -4069,28 +4069,28 @@ export const InspectionForm = ({
                     }}
                   >
                     <div>
-                      <strong style={{ color: "#475569" }}>Inspection Stage:</strong> {pendingConfirm.summary.type}
+                      <strong style={{ color: "#5D6660" }}>Inspection Stage:</strong> {pendingConfirm.summary.type}
                     </div>
                     {pendingConfirm.summary.approvedCount > 0 && (
                       <div style={{ color: "#166534", fontWeight: 600 }}>
-                        ✓ Approved: {pendingConfirm.summary.approvedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.approvedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.approvedCount === 1 ? "carcass" : "carcasses")}
+                        ? Approved: {pendingConfirm.summary.approvedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.approvedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.approvedCount === 1 ? "carcass" : "carcasses")}
                       </div>
                     )}
                     {pendingConfirm.summary.condemnedCount > 0 && (
                       <div style={{ color: "#991b1b", fontWeight: 600 }}>
-                        ✕ Condemned: {pendingConfirm.summary.condemnedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.condemnedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.condemnedCount === 1 ? "carcass" : "carcasses")}
+                        ? Condemned: {pendingConfirm.summary.condemnedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.condemnedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.condemnedCount === 1 ? "carcass" : "carcasses")}
                       </div>
                     )}
                     {pendingConfirm.summary.partialCount > 0 && (
                       <div style={{ color: "#92400e", fontWeight: 600 }}>
-                        ⚠ Partial Condemnation: {pendingConfirm.summary.partialCount} {pendingConfirm.summary.partialCount === 1 ? "carcass" : "carcasses"} ({pendingConfirm.summary.totalCuts} {pendingConfirm.summary.totalCuts === 1 ? "condemned cut" : "condemned cuts"})
+                        ? Partial Condemnation: {pendingConfirm.summary.partialCount} {pendingConfirm.summary.partialCount === 1 ? "carcass" : "carcasses"} ({pendingConfirm.summary.totalCuts} {pendingConfirm.summary.totalCuts === 1 ? "condemned cut" : "condemned cuts"})
                       </div>
                     )}
-                    <div style={{ paddingTop: 4, borderTop: "1px solid #e2e8f0", fontSize: 12, color: "#64748b" }}>
+                    <div style={{ paddingTop: 4, borderTop: "1px solid #E2E6E3", fontSize: 12, color: "#5D6660" }}>
                       <strong>Inspecting Officer:</strong> {pendingConfirm.summary.officer || "Dr. Dave"}
                     </div>
                   </div>
-                  <p style={{ margin: 0, fontSize: 12, color: "#64748b", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: 12, color: "#5D6660", textAlign: "center" }}>
                     Clicking confirm will officially record this decision and update animal status.
                   </p>
                 </>

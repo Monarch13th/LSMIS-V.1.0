@@ -20,13 +20,13 @@ const getSpeciesStyle = (species) => {
       return {
         bg: "var(--color-violet-bg)",
         text: "var(--color-violet)",
-        border: "rgba(139, 92, 246, 0.35)"
+        border: "rgba(24, 122, 86, 0.35)"
       };
     case "Cattle":
       return {
         bg: "var(--color-info-bg)",
         text: "var(--color-info)",
-        border: "rgba(14, 165, 233, 0.35)"
+        border: "rgba(24, 122, 86, 0.35)"
       };
     case "Carabao":
       return {
@@ -279,39 +279,39 @@ export const CarcassWeighing = () => {
         return {
           id: matchedOwner.id || ownerId,
           name: matchedOwner.name,
-          contact: matchedOwner.contact || matchedOwner.phone || item?.owner_contact || animal?.owner_contact || "‚Äî",
-          address: matchedOwner.address || item?.owner_address || animal?.address || "‚Äî",
+          contact: matchedOwner.contact || matchedOwner.phone || item?.owner_contact || animal?.owner_contact || "ó",
+          address: matchedOwner.address || item?.owner_address || animal?.address || "ó",
         };
       }
     }
 
     const directName = item?.owner_name || item?.owner;
-    if (directName && directName !== "Unknown" && directName !== "‚Äî") {
+    if (directName && directName !== "Unknown" && directName !== "ó") {
       const matchedOwner = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === String(directName).trim().toLowerCase()
       );
       return {
         name: matchedOwner?.name || directName,
-        contact: matchedOwner?.contact || matchedOwner?.phone || item?.owner_contact || item?.contact_number || "‚Äî",
-        address: matchedOwner?.address || item?.owner_address || "‚Äî",
+        contact: matchedOwner?.contact || matchedOwner?.phone || item?.owner_contact || item?.contact_number || "ó",
+        address: matchedOwner?.address || item?.owner_address || "ó",
       };
     }
 
-    if (animal?.owner_name && animal.owner_name !== "Unknown" && animal.owner_name !== "‚Äî") {
+    if (animal?.owner_name && animal.owner_name !== "Unknown" && animal.owner_name !== "ó") {
       const matchedOwner = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === String(animal.owner_name).trim().toLowerCase()
       );
       return {
         name: matchedOwner?.name || animal.owner_name,
-        contact: matchedOwner?.contact || matchedOwner?.phone || animal.owner_contact || animal.contact_number || "‚Äî",
-        address: matchedOwner?.address || animal.address || "‚Äî",
+        contact: matchedOwner?.contact || matchedOwner?.phone || animal.owner_contact || animal.contact_number || "ó",
+        address: matchedOwner?.address || animal.address || "ó",
       };
     }
 
     return {
       name: "Unknown Owner",
-      contact: "‚Äî",
-      address: "‚Äî",
+      contact: "ó",
+      address: "ó",
     };
   };
 
@@ -914,7 +914,7 @@ export const CarcassWeighing = () => {
         setModalSuccessAlert(successMsg);
 
         const targetOwner = selectedOwner || singleAnimal?.owner_name;
-        if (targetOwner && targetOwner !== "‚Äî" && targetOwner !== "Unknown Owner") {
+        if (targetOwner && targetOwner !== "ó" && targetOwner !== "Unknown Owner") {
           const remaining = await getRemainingWeighingForOwner(targetOwner);
           if (Array.isArray(remaining)) {
             const savedSet = new Set(savedTags.map((t) => String(t).trim().toLowerCase()));
@@ -1018,7 +1018,7 @@ export const CarcassWeighing = () => {
         operator: c.weighed_by || c.operator || "Dr. Dave",
         weighed_by: c.weighed_by || c.operator || "Dr. Dave",
         slaughter_id: c.slaughter_id || animal?.slaughter_id || "SL-REC",
-        sex: animal?.sex || c.sex || "‚Äî",
+        sex: animal?.sex || c.sex || "ó",
         inspector: pm?.inspector_name || animal?.post_inspected_by || "Dr. Dave",
         inspectionDecision: pm?.decision || (animal?.status === "Partially Condemned" ? "Partially Condemned" : "Approved"),
         postMortemDate: pm?.date || pm?.created_at || animal?.post_inspected_at || c.date || today(),
@@ -1230,7 +1230,7 @@ export const CarcassWeighing = () => {
       .map((g) => ({
         ...g,
         count: g.items.length,
-        totalWeightFormatted: g.totalWeight > 0 ? `${g.totalWeight.toFixed(2)} kg` : "‚Äî",
+        totalWeightFormatted: g.totalWeight > 0 ? `${g.totalWeight.toFixed(2)} kg` : "ó",
         items: [...g.items].sort((a, b) => {
           const timeA = new Date(a.weighed_at || a.created_at || a.date || 0).getTime();
           const timeB = new Date(b.weighed_at || b.created_at || b.date || 0).getTime();
@@ -1324,18 +1324,7 @@ export const CarcassWeighing = () => {
           }}
         >
           {/* Segmented Nav Tabs */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              background: "var(--color-bg)",
-              padding: 3,
-              borderRadius: 8,
-              border: "1px solid var(--color-border)",
-              flexShrink: 0,
-            }}
-          >
+          <div className="adm-seg-tabs">
             {[
               {
                 id: "awaiting",
@@ -1355,39 +1344,15 @@ export const CarcassWeighing = () => {
                 <button
                   key={tab.id}
                   type="button"
+                  className={`adm-seg-btn ${isActive ? "active" : ""}`}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setPage(1);
                   }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: isActive ? 700 : 600,
-                    border: "none",
-                    cursor: "pointer",
-                    background: isActive ? "var(--color-surface)" : "transparent",
-                    color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-                    boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                    transition: "all 140ms ease",
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>{tab.icon}</span>
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      padding: "1px 6px",
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 800,
-                      background: isActive ? "rgba(16, 185, 129, 0.15)" : "var(--color-border)",
-                      color: isActive ? "#10b981" : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {isRecordsLoading ? "..." : tab.count}
                   </span>
                 </button>
@@ -1540,7 +1505,7 @@ export const CarcassWeighing = () => {
                     width: 24,
                     height: 24,
                     borderColor: "var(--color-border)",
-                    borderTopColor: "var(--color-primary, #0284c7)",
+                    borderTopColor: "var(--color-primary, #187A56)",
                   }}
                 />
                 <span style={{ fontSize: 13, fontWeight: 600 }}>Loading carcass records...</span>
@@ -1606,7 +1571,7 @@ export const CarcassWeighing = () => {
                           borderBottom: "1px solid var(--color-border)",
                           cursor: "pointer",
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                       >
                         {/* Owner Name */}
@@ -1617,7 +1582,7 @@ export const CarcassWeighing = () => {
                                 width: 32,
                                 height: 32,
                                 borderRadius: "50%",
-                                background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                                background: "#187A56",
                                 color: "#ffffff",
                                 display: "flex",
                                 alignItems: "center",
@@ -1635,9 +1600,9 @@ export const CarcassWeighing = () => {
                               </div>
                               <div style={{ fontSize: 11, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
                                 <span>{grp.count} carcass{grp.count > 1 ? "es" : ""} in batch</span>
-                                {grp.owner_contact && grp.owner_contact !== "‚Äî" && (
+                                {grp.owner_contact && grp.owner_contact !== "ó" && (
                                   <>
-                                    <span>‚Ä¢</span>
+                                    <span>ï</span>
                                     <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
                                       <Icon.Phone size={10} style={{ opacity: 0.7 }} />
                                       {grp.owner_contact}
@@ -1652,8 +1617,8 @@ export const CarcassWeighing = () => {
                         {/* Date Weighed */}
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "var(--color-primary, #0284c7)" }} />
-                            <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "‚Äî"}</span>
+                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "var(--color-primary, #187A56)" }} />
+                            <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "ó"}</span>
                           </div>
                         </td>
 
@@ -1754,9 +1719,9 @@ export const CarcassWeighing = () => {
                   <tbody>
                     {filteredCarcasses.map((c) => {
                       const ownerDisplay = c.owner_name || "Registered Raiser";
-                      const ownerInitial = ownerDisplay && ownerDisplay !== "‚Äî" ? ownerDisplay.trim().charAt(0).toUpperCase() : "R";
+                      const ownerInitial = ownerDisplay && ownerDisplay !== "ó" ? ownerDisplay.trim().charAt(0).toUpperCase() : "R";
                       const isPartialVerdict = String(c.inspectionDecision || "").toLowerCase().includes("partial");
-                      const weighedTimeStr = c.weighed_at || c.created_at ? formatPhTime(c.weighed_at || c.created_at) : "‚Äî";
+                      const weighedTimeStr = c.weighed_at || c.created_at ? formatPhTime(c.weighed_at || c.created_at) : "ó";
 
                       return (
                         <tr
@@ -1766,7 +1731,7 @@ export const CarcassWeighing = () => {
                             cursor: "pointer",
                             transition: "background 140ms ease",
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                         >
                           {/* 1. Tag Number & Brand Code */}
@@ -1779,16 +1744,16 @@ export const CarcassWeighing = () => {
                                     fontSize: 10.5,
                                     fontFamily: "monospace",
                                     fontWeight: 700,
-                                    color: "var(--color-primary, #0284c7)",
-                                    background: "rgba(2, 132, 199, 0.08)",
+                                    color: "var(--color-primary, #187A56)",
+                                    background: "rgba(24, 122, 86, 0.08)",
                                     padding: "1px 6px",
                                     borderRadius: 4,
-                                    border: "1px solid rgba(2, 132, 199, 0.2)",
+                                    border: "1px solid rgba(24, 122, 86, 0.2)",
                                     lineHeight: 1.2,
                                   }}
                                   title="Official Carcass Brand Code"
                                 >
-                                  üè∑Ô∏è {formatCarcassBrandCode(c.brand_code, c.tag_number)}
+                                  ??? {formatCarcassBrandCode(c.brand_code, c.tag_number)}
                                 </span>
                               )}
                             </div>
@@ -1832,9 +1797,9 @@ export const CarcassWeighing = () => {
                                   width: 28,
                                   height: 28,
                                   borderRadius: 7,
-                                  background: "rgba(2, 132, 199, 0.1)",
-                                  border: "1px solid rgba(2, 132, 199, 0.22)",
-                                  color: "var(--color-primary, #0284c7)",
+                                  background: "rgba(24, 122, 86, 0.1)",
+                                  border: "1px solid rgba(24, 122, 86, 0.22)",
+                                  color: "var(--color-primary, #187A56)",
                                   fontSize: 12,
                                   fontWeight: 700,
                                   display: "flex",
@@ -1874,12 +1839,12 @@ export const CarcassWeighing = () => {
                                     gap: 4,
                                   }}
                                 >
-                                  {c.owner_contact && c.owner_contact !== "‚Äî" ? (
+                                  {c.owner_contact && c.owner_contact !== "ó" ? (
                                     <>
                                       <Icon.Phone size={10.5} style={{ opacity: 0.7, flexShrink: 0 }} />
                                       <span>{c.owner_contact}</span>
                                     </>
-                                  ) : c.owner_address && c.owner_address !== "‚Äî" ? (
+                                  ) : c.owner_address && c.owner_address !== "ó" ? (
                                     <>
                                       <Icon.MapPin size={10.5} style={{ opacity: 0.7, flexShrink: 0 }} />
                                       <span>{c.owner_address}</span>
@@ -1922,9 +1887,9 @@ export const CarcassWeighing = () => {
                                   width: 26,
                                   height: 26,
                                   borderRadius: "50%",
-                                  background: "rgba(2, 132, 199, 0.12)",
-                                  border: "1px solid rgba(2, 132, 199, 0.28)",
-                                  color: "#0284c7",
+                                  background: "rgba(24, 122, 86, 0.12)",
+                                  border: "1px solid rgba(24, 122, 86, 0.28)",
+                                  color: "#187A56",
                                   fontSize: 10.5,
                                   fontWeight: 700,
                                   display: "flex",
@@ -1985,7 +1950,7 @@ export const CarcassWeighing = () => {
                               >
                                 <Icon.Calendar size={12.5} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                                 <span>{formatDate(c.date)}</span>
-                                <span style={{ color: "var(--color-border)" }}>‚Ä¢</span>
+                                <span style={{ color: "var(--color-border)" }}>ï</span>
                                 <span style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-muted)" }}>
                                   {weighedTimeStr}
                                 </span>
@@ -2048,7 +2013,7 @@ export const CarcassWeighing = () => {
                   width: 24,
                   height: 24,
                   borderColor: "var(--color-border)",
-                  borderTopColor: "var(--color-primary, #0284c7)",
+                  borderTopColor: "var(--color-primary, #187A56)",
                 }}
               />
               <span style={{ fontSize: 13, fontWeight: 600 }}>Loading awaiting weighing queue...</span>
@@ -2086,7 +2051,7 @@ export const CarcassWeighing = () => {
                         borderBottom: "1px solid var(--color-border)",
                         cursor: "pointer",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       <td style={{ padding: "14px 18px" }}>
@@ -2301,8 +2266,8 @@ export const CarcassWeighing = () => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "weighed"
-            ? `Weighed Carcass Records ‚Äî ${selectedOwnerView?.owner_name || ""}`
-            : `Awaiting Carcass Weighing ‚Äî ${selectedOwnerView?.owner_name || ""}`
+            ? `Weighed Carcass Records ó ${selectedOwnerView?.owner_name || ""}`
+            : `Awaiting Carcass Weighing ó ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -2381,7 +2346,7 @@ export const CarcassWeighing = () => {
                             borderBottom: "1px solid var(--color-border)",
                             transition: "background 140ms ease",
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                         >
                           <td style={{ padding: "12px 16px" }}>
@@ -2404,7 +2369,7 @@ export const CarcassWeighing = () => {
                                 gap: 5,
                               }}
                             >
-                              {item.tag_number || "‚Äî"}
+                              {item.tag_number || "ó"}
                             </span>
                           </td>
                           <td style={{ padding: "12px 16px", fontSize: 12.5, fontWeight: 600 }}>{item.species}</td>
@@ -2413,7 +2378,7 @@ export const CarcassWeighing = () => {
                             {formatPhDateTime(item.weighed_at || item.created_at)}
                           </td>
                           <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-text)" }}>
-                            {coldVal != null ? `${coldVal.toFixed(2)} kg` : "‚Äî"}
+                            {coldVal != null ? `${coldVal.toFixed(2)} kg` : "ó"}
                           </td>
                         </tr>
                       );
@@ -2445,7 +2410,7 @@ export const CarcassWeighing = () => {
                           cursor: "pointer",
                           transition: "background 140ms ease",
                         }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                       >
                         <td style={{ padding: "12px 14px" }}>
@@ -2468,12 +2433,12 @@ export const CarcassWeighing = () => {
                               gap: 5,
                             }}
                           >
-                            {item.tag_number || "‚Äî"}
+                            {item.tag_number || "ó"}
                           </span>
                         </td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{item.species}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{formatSex(item.sex)}</td>
-                        <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>{item.operator || "‚Äî"}</td>
+                        <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>{item.operator || "ó"}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
                           {formatPhDateTime(item.completed_at || item.slaughter_date || item.created_at)}
                         </td>
@@ -2519,7 +2484,7 @@ export const CarcassWeighing = () => {
           singleAnimal
             ? `Carcass Weighing (${singleAnimal.tag_number})`
             : isGroupMode
-              ? `Carcass Weighing (${selectedOwner || "Owner"} ‚Äî ${ownerAnimals.length} Heads)`
+              ? `Carcass Weighing (${selectedOwner || "Owner"} ó ${ownerAnimals.length} Heads)`
               : "Carcass Weighing"
         }
         size="lg"
@@ -2644,7 +2609,7 @@ export const CarcassWeighing = () => {
                     padding: "8px 12px",
                     borderRadius: 8,
                     background: "var(--color-info-bg)",
-                    border: "1px solid rgba(14, 165, 233, 0.35)",
+                    border: "1px solid rgba(24, 122, 86, 0.35)",
                     color: "var(--color-info)",
                     fontSize: 12.5,
                     marginBottom: 10
@@ -2747,9 +2712,9 @@ export const CarcassWeighing = () => {
                             gap: 5,
                             padding: "6px 12px",
                             borderRadius: 6,
-                            background: "rgba(2, 132, 199, 0.08)",
-                            border: "1px solid rgba(2, 132, 199, 0.25)",
-                            color: "var(--color-primary, #0284c7)",
+                            background: "rgba(24, 122, 86, 0.08)",
+                            border: "1px solid rgba(24, 122, 86, 0.25)",
+                            color: "var(--color-primary, #187A56)",
                             fontFamily: "monospace",
                             fontSize: 12.5,
                             fontWeight: 800,
@@ -2775,13 +2740,13 @@ export const CarcassWeighing = () => {
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, marginTop: 3 }}>
                           {isFemale ? (
-                            <span style={{ color: "#be185d", fontWeight: 700 }}>‚ôÄ Female</span>
+                            <span style={{ color: "#be185d", fontWeight: 700 }}>? Female</span>
                           ) : isMale ? (
-                            <span style={{ color: "#1d4ed8", fontWeight: 700 }}>‚ôÇ Male</span>
+                            <span style={{ color: "#1d4ed8", fontWeight: 700 }}>? Male</span>
                           ) : (
                             <span style={{ color: "var(--color-text-muted)" }}>Sex: {formatSex(animal.sex)}</span>
                           )}
-                          <span style={{ color: "var(--color-border)" }}>‚Ä¢</span>
+                          <span style={{ color: "var(--color-border)" }}>ï</span>
                           <span style={{ fontWeight: 600, color: "var(--color-text)" }}>{animal.species || "Hog"}</span>
                         </div>
                       </div>
@@ -3011,7 +2976,7 @@ export const CarcassWeighing = () => {
                     color: "var(--color-text)",
                   }}
                 >
-                  <Icon.User size={14} style={{ color: "var(--color-primary, #0284c7)", flexShrink: 0 }} />
+                  <Icon.User size={14} style={{ color: "var(--color-primary, #187A56)", flexShrink: 0 }} />
                   <span>Livestock Owner &amp; Producer</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", fontSize: 12.5 }}>
@@ -3157,7 +3122,7 @@ export const CarcassWeighing = () => {
                     color: "var(--color-text)",
                   }}
                 >
-                  <Icon.Stethoscope size={14} style={{ color: "var(--color-primary, #0284c7)", flexShrink: 0 }} />
+                  <Icon.Stethoscope size={14} style={{ color: "var(--color-primary, #187A56)", flexShrink: 0 }} />
                   <span>Veterinary Clearance</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", fontSize: 12.5 }}>
@@ -3262,11 +3227,11 @@ export const CarcassWeighing = () => {
                       style={{
                         fontWeight: 700,
                         fontFamily: "monospace",
-                        color: "#0284c7",
-                        background: "rgba(14, 165, 233, 0.10)",
+                        color: "#187A56",
+                        background: "rgba(24, 122, 86, 0.10)",
                         padding: "2px 8px",
                         borderRadius: 5,
-                        border: "1px solid rgba(14, 165, 233, 0.25)",
+                        border: "1px solid rgba(24, 122, 86, 0.25)",
                         textAlign: "right",
                       }}
                     >
@@ -3294,11 +3259,11 @@ export const CarcassWeighing = () => {
                       }}
                     >
                       <span>{formatDate(selectedCarcass.date)}</span>
-                      <span style={{ color: "var(--color-border)" }}>‚Ä¢</span>
+                      <span style={{ color: "var(--color-border)" }}>ï</span>
                       <span style={{ color: "var(--color-text-muted)" }}>
                         {selectedCarcass.weighed_at || selectedCarcass.created_at
                           ? formatPhTime(selectedCarcass.weighed_at || selectedCarcass.created_at)
-                          : "‚Äî"}
+                          : "ó"}
                       </span>
                     </span>
                   </div>
@@ -3432,9 +3397,9 @@ export const CarcassWeighing = () => {
                       fontSize: 13.5,
                       fontWeight: 700,
                       fontFamily: "monospace",
-                      background: "rgba(2, 132, 199, 0.06)",
-                      borderColor: "rgba(2, 132, 199, 0.25)",
-                      color: "var(--color-primary, #0284c7)",
+                      background: "rgba(24, 122, 86, 0.06)",
+                      borderColor: "rgba(24, 122, 86, 0.25)",
+                      color: "var(--color-primary, #187A56)",
                       cursor: "not-allowed",
                     }}
                     title="System-assigned official carcass identification brand (Read-only)"
@@ -3446,8 +3411,8 @@ export const CarcassWeighing = () => {
                       gap: 4,
                       padding: "4px 8px",
                       borderRadius: 6,
-                      background: "rgba(2, 132, 199, 0.1)",
-                      color: "var(--color-primary, #0284c7)",
+                      background: "rgba(24, 122, 86, 0.1)",
+                      color: "var(--color-primary, #187A56)",
                       fontSize: 11,
                       fontWeight: 700,
                       whiteSpace: "nowrap",

@@ -1,7 +1,7 @@
 /* =========================================================
    LSMIS Landing Page â€” Premium Modern Government Design System
    Tinaan, City of Naga, Cebu
-   Primary: Dark Forest Green (#173D32)
+   Primary: Sage Green (#187A56) + Warm Beige (#E6F7F0)
    Backgrounds: #FFFFFF / #F3F4F0 Alternate Sections
    Text: Dark Charcoal (#1A201C, #2B302D)
    Typography: Inter (font-display: swap)
@@ -9,39 +9,38 @@
    ========================================================= */
 
 :root {
-  /* Core Design Tokens */
-  --lsmis-green-950: #0D221C;
-  --lsmis-green-900: #173D32;
-  /* Primary Dark Forest Green */
-  --lsmis-green-800: #1E4D3F;
-  --lsmis-green-700: #296352;
-  --lsmis-green-600: #357B67;
-  --lsmis-green-500: #42957E;
-  --lsmis-green-100: #E6EFEA;
-  --lsmis-green-50: #F2F7F4;
+  /* Core Design Tokens — Theme No. 3: Sage Green + Warm Beige */
+  --lsmis-green-950: #262E27;
+  --lsmis-green-900: #187A56;
+  --lsmis-green-800: #136647;
+  --lsmis-green-700: #187A56;
+  --lsmis-green-600: #136647;
+  --lsmis-green-500: #34D399;
+  --lsmis-green-100: #E6F7F0;
+  --lsmis-green-50: #F7FAF9;
 
-  --lsmis-accent: #2D6A4F;
-  --lsmis-accent-muted: #D3E0D8;
-  --lsmis-accent-subtle: #F0F5F2;
+  --lsmis-accent: #34D399;
+  --lsmis-accent-muted: #E4E5DC;
+  --lsmis-accent-subtle: #F5F3EC;
 
   --lsmis-white: #FFFFFF;
-  --lsmis-bg-alt: #F3F4F0;
-  --lsmis-bg-subtle: #F9FAF8;
+  --lsmis-bg-alt: #F7FAF9;
+  --lsmis-bg-subtle: #F9FBFA;
 
-  --lsmis-charcoal-900: #1A201C;
-  --lsmis-charcoal-800: #2D332F;
-  --lsmis-charcoal-700: #444C47;
-  --lsmis-charcoal-600: #5D6660;
-  --lsmis-charcoal-500: #78827B;
-  --lsmis-charcoal-400: #9BA49E;
-  --lsmis-charcoal-300: #C2CAC4;
-  --lsmis-charcoal-200: #E2E6E3;
-  --lsmis-charcoal-100: #EFF2F0;
+  --lsmis-charcoal-900: #303A32;
+  --lsmis-charcoal-800: #3E4A40;
+  --lsmis-charcoal-700: #4F5C51;
+  --lsmis-charcoal-600: #707970;
+  --lsmis-charcoal-500: #889188;
+  --lsmis-charcoal-400: #A8B1A8;
+  --lsmis-charcoal-300: #CBD2CB;
+  --lsmis-charcoal-200: #E4E5DC;
+  --lsmis-charcoal-100: #F0F2EB;
 
-  --lsmis-shadow-sm: 0 1px 2px rgba(23, 61, 50, 0.04);
-  --lsmis-shadow-md: 0 4px 16px rgba(23, 61, 50, 0.06);
-  --lsmis-shadow-lg: 0 10px 30px rgba(23, 61, 50, 0.08);
-  --lsmis-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 18px rgba(23, 61, 50, 0.04);
+  --lsmis-shadow-sm: 0 1px 2px rgba(24, 122, 86, 0.04);
+  --lsmis-shadow-md: 0 4px 16px rgba(24, 122, 86, 0.06);
+  --lsmis-shadow-lg: 0 10px 30px rgba(24, 122, 86, 0.08);
+  --lsmis-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 6px 18px rgba(24, 122, 86, 0.04);
 
   --lsmis-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   --lsmis-radius-sm: 6px;
@@ -52,18 +51,18 @@
 
 /* Dark mode theme token mapping */
 [data-theme="dark"] .landing-page {
-  --lsmis-white: #161D19;
-  --lsmis-bg-alt: #101613;
-  --lsmis-bg-subtle: #131A16;
-  --lsmis-charcoal-900: #F3F7F5;
-  --lsmis-charcoal-800: #E1E7E3;
-  --lsmis-charcoal-700: #C4CBC6;
-  --lsmis-charcoal-600: #9DA6A0;
-  --lsmis-charcoal-500: #7F8A83;
-  --lsmis-charcoal-200: #26332B;
-  --lsmis-charcoal-100: #1D2721;
-  --lsmis-green-50: #1B2E24;
-  --lsmis-accent-subtle: #172920;
+  --lsmis-white: #1B221C;
+  --lsmis-bg-alt: #141A15;
+  --lsmis-bg-subtle: #171E18;
+  --lsmis-charcoal-900: #F3F5F3;
+  --lsmis-charcoal-800: #D8DFD8;
+  --lsmis-charcoal-700: #C0C8C0;
+  --lsmis-charcoal-600: #959F95;
+  --lsmis-charcoal-500: #737D73;
+  --lsmis-charcoal-200: #29342B;
+  --lsmis-charcoal-100: #222B24;
+  --lsmis-green-50: #1C241E;
+  --lsmis-accent-subtle: #232D25;
   --lsmis-shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
@@ -127,9 +126,9 @@
 }
 
 [data-theme="dark"] .section-header-badge {
-  background-color: #173D32;
-  border-color: #2D6A4F;
-  color: #A3D9C3;
+  background-color: #232D25;
+  border-color: #334336;
+  color: #B4C6B2;
 }
 
 .section-header-title {
@@ -221,7 +220,7 @@
 
 .landing-nav-header.nav-transparent .nav-btn-login {
   background-color: #FFFFFF;
-  color: #0D221C;
+  color: #303A32;
   border-radius: 8px;
   font-weight: 700;
   padding: 7px 18px;
@@ -254,7 +253,7 @@
 }
 
 [data-theme="dark"] .landing-nav-header.nav-scrolled .nav-brand-title {
-  color: #42957E;
+  color: #34D399;
 }
 
 .landing-nav-header.nav-scrolled .nav-brand-sub {
@@ -278,7 +277,7 @@
 
 [data-theme="dark"] .landing-nav-header.nav-scrolled .nav-menu-link.active {
   color: #FFFFFF;
-  background-color: #173D32;
+  background-color: #187A56;
 }
 
 .landing-nav-header.nav-scrolled .nav-btn-register {
@@ -583,7 +582,7 @@
   border-radius: var(--lsmis-radius-sm);
   font-size: 14px;
   font-weight: 700;
-  box-shadow: 0 2px 6px rgba(23, 61, 50, 0.2);
+  box-shadow: 0 2px 6px rgba(24, 122, 86, 0.2);
 }
 
 /* =========================================================
@@ -597,7 +596,7 @@
   align-items: center;
   padding: 120px 0 60px 0;
   overflow: hidden;
-  background-color: var(--lsmis-green-950);
+  background-color: #136647;
 }
 
 .hero-media-wrapper {
@@ -699,7 +698,7 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background-color: #174235;
+  background-color: #187A56;
   border: 1px solid rgba(255, 255, 255, 0.24);
   color: #FFFFFF;
   font-size: 15px;
@@ -712,7 +711,7 @@
 }
 
 .btn-hero-primary:hover {
-  background-color: #1F5444;
+  background-color: #136647;
   border-color: rgba(255, 255, 255, 0.4);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
@@ -1087,9 +1086,9 @@
 }
 
 [data-theme="dark"] .about-highlight-icon-box {
-  background-color: #173D32;
-  border-color: #2D6A4F;
-  color: #A3D9C3;
+  background-color: #232D25;
+  border-color: #334336;
+  color: #B4C6B2;
 }
 
 .about-highlight-body {
@@ -1203,9 +1202,9 @@
 }
 
 [data-theme="dark"] .feature-card-icon-wrap {
-  background-color: #173D32;
-  border-color: #2D6A4F;
-  color: #A3D9C3;
+  background-color: #232D25;
+  border-color: #334336;
+  color: #B4C6B2;
 }
 
 .feature-card-name {
@@ -1296,9 +1295,9 @@
 }
 
 [data-theme="dark"] .showcase-badge-pill {
-  background-color: #173D32;
-  border-color: #2D6A4F;
-  color: #A3D9C3;
+  background-color: #232D25;
+  border-color: #334336;
+  color: #B4C6B2;
 }
 
 /* =========================================================
@@ -1422,9 +1421,9 @@
 }
 
 [data-theme="dark"] .workflow-step-icon {
-  background-color: #173D32;
-  border-color: #2D6A4F;
-  color: #A3D9C3;
+  background-color: #232D25;
+  border-color: #334336;
+  color: #B4C6B2;
 }
 
 .workflow-step-name {
@@ -1547,9 +1546,9 @@
 }
 
 [data-theme="dark"] .contact-entry-icon {
-  background-color: #173D32;
-  border-color: #2D6A4F;
-  color: #A3D9C3;
+  background-color: #232D25;
+  border-color: #334336;
+  color: #B4C6B2;
 }
 
 .contact-entry-label {
@@ -1579,7 +1578,7 @@
 
 /* Facility Visual Panel */
 .contact-media-col {
-  background-color: var(--lsmis-green-950);
+  background-color: #136647;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -1601,7 +1600,7 @@
 .contact-facility-img-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(23, 61, 50, 0.3) 0%, rgba(13, 34, 28, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(24, 122, 86, 0.3) 0%, rgba(13, 34, 28, 0.85) 100%);
 }
 
 .contact-portal-box {

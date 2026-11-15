@@ -348,25 +348,25 @@
 .revenue-bar span { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10.5px; font-weight: 700; color: var(--color-text); }
 
 /* ===== Receipt doc ===== */
-.receipt-doc { border: 2px solid var(--color-border); border-radius: 14px; padding: 26px; background: #fff; color: #0f172a; }
-.receipt-head { display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; border-bottom: 2px dashed #cbd5e1; padding-bottom: 16px; margin-bottom: 16px; }
+.receipt-doc { border: 2px solid var(--color-border); border-radius: 14px; padding: 26px; background: #fff; color: #1A201C; }
+.receipt-head { display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; border-bottom: 2px dashed #C2CAC4; padding-bottom: 16px; margin-bottom: 16px; }
 .receipt-head h2 { font-size: 16px; font-weight: 800; }
-.receipt-head p { font-size: 11px; color: #475569; }
-.receipt-no { text-align: center; font-size: 11px; color: #64748b; font-family: ui-monospace, monospace; margin-bottom: 16px; }
+.receipt-head p { font-size: 11px; color: #5D6660; }
+.receipt-no { text-align: center; font-size: 11px; color: #5D6660; font-family: ui-monospace, monospace; margin-bottom: 16px; }
 .receipt-body { display: flex; flex-direction: column; gap: 8px; }
 .receipt-row { display: flex; justify-content: space-between; font-size: 13px; }
-.receipt-row span { color: #64748b; }
-.receipt-row b { color: #0f172a; }
-.receipt-row.total { padding: 10px 0; margin-top: 4px; border-top: 1px dashed #cbd5e1; border-bottom: 1px dashed #cbd5e1; }
+.receipt-row span { color: #5D6660; }
+.receipt-row b { color: #1A201C; }
+.receipt-row.total { padding: 10px 0; margin-top: 4px; border-top: 1px dashed #C2CAC4; border-bottom: 1px dashed #C2CAC4; }
 .receipt-row.total span { font-weight: 700; }
 .receipt-row.total b { font-size: 18px; font-weight: 800; color: #047857; }
-.receipt-foot { text-align: center; margin-top: 18px; padding-top: 14px; border-top: 2px dashed #cbd5e1; font-size: 11px; color: #64748b; }
+.receipt-foot { text-align: center; margin-top: 18px; padding-top: 14px; border-top: 2px dashed #C2CAC4; font-size: 11px; color: #5D6660; }
 
 /* ===== Owner detail modal (admin view-only) ===== */
 .owner-detail-head { display: flex; align-items: center; gap: 16px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); }
 .owner-detail-avatar {
   width: 56px; height: 56px; border-radius: 14px;
-  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  background: linear-gradient(135deg, var(--lsmis-focus), var(--lsmis-primary-hover));
   color: #fff; font-weight: 800; font-size: 20px;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }

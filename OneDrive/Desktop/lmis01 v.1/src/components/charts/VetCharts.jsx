@@ -28,7 +28,7 @@ export const InspectionDecisions = ({ counts, data }) => {
           datasets: [
             {
               data: values,
-              backgroundColor: ["#10b981", "#0284c7", "#ef4444", "#f59e0b"],
+              backgroundColor: ["#10b981", "#187A56", "#ef4444", "#f59e0b"],
               borderWidth: 0,
             },
           ],
@@ -83,7 +83,7 @@ export const CarcassWeightSpeciesBar = ({ carcass = [], livestock = [] }) => {
 
   if (!hasData(values)) return <ChartEmpty message="No carcass weighing records yet" />;
 
-  const colors = ["#0284c7", "#7c3aed", "#d97706", "#10b981"];
+  const colors = ["#187A56", "#187A56", "#d97706", "#10b981"];
 
   return (
     <div className="chart-container chart-container-sm">

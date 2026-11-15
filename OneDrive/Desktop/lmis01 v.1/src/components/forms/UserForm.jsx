@@ -107,9 +107,9 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
       case "admin":
         return { bg: "#fef3c7", color: "#b45309", border: "#fde68a" };
       case "vet":
-        return { bg: "#e0f2fe", color: "#0369a1", border: "#bae6fd" };
+        return { bg: "#E6EFEA", color: "#136647", border: "#D3E0D8" };
       default:
-        return { bg: "#ede9fe", color: "#6d28d9", border: "#ddd6fe" };
+        return { bg: "#E6EFEA", color: "#136647", border: "#D3E0D8" };
     }
   };
 
@@ -122,10 +122,10 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             display: "flex",
             alignItems: "center",
             gap: "12px",
-            padding: "10px 14px",
-            background: "#f8fafc",
-            border: "1px solid #e2e8f0",
-            borderRadius: "9px",
+            padding: "12px 16px",
+            background: "var(--color-bg)",
+            border: "1px solid var(--color-border)",
+            borderRadius: "12px",
           }}
         >
           {data.avatar_url ? (
@@ -134,12 +134,12 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               alt={fullName || username || "Personnel"}
               referrerPolicy="no-referrer"
               style={{
-                width: 38,
-                height: 38,
+                width: 40,
+                height: 40,
                 borderRadius: "50%",
                 objectFit: "cover",
                 boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                border: "1.5px solid #e2e8f0",
+                border: "1.5px solid var(--color-border)",
                 flexShrink: 0,
               }}
               onError={(e) => {
@@ -152,15 +152,15 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
           ) : null}
           <div
             style={{
-              width: 38,
-              height: 38,
+              width: 40,
+              height: 40,
               borderRadius: "50%",
               background:
                 role === "admin"
                   ? "linear-gradient(135deg, #f59e0b, #d97706)"
                   : role === "vet"
-                  ? "linear-gradient(135deg, #0284c7, #0369a1)"
-                  : "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+                  ? "#187A56"
+                  : "linear-gradient(135deg, #24966D, #136647)",
               color: "#fff",
               display: data.avatar_url ? "none" : "flex",
               alignItems: "center",
@@ -175,7 +175,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "#0f172a" }}>
+              <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text)" }}>
                 {fullName || "Personnel Member"}
               </span>
               <span
@@ -192,8 +192,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                 {ROLE_LABELS[role] || role}
               </span>
             </div>
-            <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
-              @{username || "username"} Â· {initial.id ? `ID: ${String(initial.id).slice(0, 8)}...` : ""}
+            <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
+              @{username || "username"} · {initial.id ? `ID: ${String(initial.id).slice(0, 8)}...` : ""}
             </span>
           </div>
         </div>
@@ -316,7 +316,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             {/* Contact Number */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-                Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #64748b)" }}>(Optional)</span>
+                Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #5D6660)" }}>(Optional)</span>
               </label>
               <div className="login-pwd-wrap">
                 <span className="login-pwd-icon"><Icon.Phone size={14} /></span>
@@ -393,11 +393,11 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
                 alignItems: "center",
                 gap: "5px",
                 fontSize: "0.73rem",
-                color: "var(--color-text-muted, #64748b)",
+                color: "var(--color-text-muted, #5D6660)",
                 padding: "2px 2px",
               }}
             >
-              <Icon.Info size={12} style={{ flexShrink: 0, color: "#0284c7" }} />
+              <Icon.Info size={12} style={{ flexShrink: 0, color: "#187A56" }} />
               <span>Personnel can change this password after login.</span>
             </div>
           </div>
@@ -530,7 +530,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
           {/* Row 3, Col 2: Contact Number */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="personnel-contact" style={{ fontSize: "0.78rem", marginBottom: "3px" }}>
-              Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #64748b)" }}>(Optional)</span>
+              Contact Number <span style={{ fontSize: "0.74rem", fontWeight: 500, color: "var(--color-text-muted, #5D6660)" }}>(Optional)</span>
             </label>
             <div className="login-pwd-wrap">
               <span className="login-pwd-icon"><Icon.Phone size={14} /></span>

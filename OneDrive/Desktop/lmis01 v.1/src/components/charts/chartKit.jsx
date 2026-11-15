@@ -17,7 +17,7 @@ export const baseOptions = {
         boxHeight: 10,
         usePointStyle: true,
         font: { size: 11.5, weight: 600 },
-        color: "#94a3b8",
+        color: "#9BA49E",
       },
     },
     tooltip: { padding: 10, cornerRadius: 8 },
@@ -31,11 +31,11 @@ export const cartesian = (extra = {}) => ({
   scales: {
     x: {
       grid: { display: false },
-      ticks: { color: "#94a3b8", font: { size: 11, weight: 600 } },
+      ticks: { color: "#9BA49E", font: { size: 11, weight: 600 } },
     },
     y: {
       beginAtZero: true,
-      ticks: { precision: 0, color: "#94a3b8", font: { size: 11, weight: 600 } },
+      ticks: { precision: 0, color: "#9BA49E", font: { size: 11, weight: 600 } },
       grid: { color: "rgba(148, 163, 184, 0.15)" },
     },
     ...extra,
@@ -63,7 +63,7 @@ export const doughnutOptions = {
         boxHeight: 10,
         usePointStyle: true,
         font: { size: 12, weight: 600 },
-        color: "#64748b",
+        color: "#5D6660",
         padding: 14,
         textAlign: "left",
       },

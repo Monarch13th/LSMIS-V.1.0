@@ -23,6 +23,20 @@ if (typeof window !== "undefined") {
       }
     }
   });
+
+  // Invalidate cached table data when Supabase Auth session hydrates or changes (critical on Vercel cold load)
+  try {
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+        for (const [, entry] of tableDataCache.entries()) {
+          entry.stale = true;
+        }
+        window.dispatchEvent(new CustomEvent("lmis-db-change", { detail: { source: "auth" } }));
+      } else if (event === "SIGNED_OUT") {
+        tableDataCache.clear();
+      }
+    });
+  } catch (_) {}
 }
 
 function areRowsEqual(oldRows, newRows) {

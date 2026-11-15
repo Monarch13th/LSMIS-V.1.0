@@ -15,10 +15,10 @@ export const ROLE_LABELS = {
 };
 
 export const ROLE_COLORS = {
-  admin: { from: "#7c3aed", to: "#4f46e5", accent: "#8b5cf6" },
-  vet: { from: "#0284c7", to: "#0891b2", accent: "#0ea5e9" },
-  staff: { from: "#059669", to: "#0d9488", accent: "#10b981" },
-  owner: { from: "#0284c7", to: "#0369a1", accent: "#38bdf8" },
+  admin: { from: "#187A56", to: "#136647", accent: "#10B981" },
+  vet: { from: "#187A56", to: "#24966D", accent: "#10B981" },
+  staff: { from: "#059669", to: "#0D9488", accent: "#10B981" },
+  owner: { from: "#187A56", to: "#209E71", accent: "#34D399" },
 };
 
 export const STATUS = {
@@ -51,6 +51,7 @@ export const TABLES = {
   SLAUGHTER_SCHEDULES: "slaughter_schedules",
   SLAUGHTER_PROCESSING: "slaughter_processing",
   CARCASS: "carcass_records",
+  CARCASS_RECORDS: "carcass_records",
   CARCASS_BRANDING: "carcass_branding_records",
   FEES: "fees",
   PAYMENTS: "payments",

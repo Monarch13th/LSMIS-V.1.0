@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo, useCallback, Fragment } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button, Badge, Modal, PageHeader, EmptyState, TagBadge, ConfirmDialog, Pagination, AlertDialog } from "../../components/ui";
 import { Icon } from "../../components/icons";
@@ -25,9 +25,9 @@ const MARK_TYPES = [
     label: "Tattoo",
     desc: "Permanent ear or flank ink marking",
     iconName: "Edit",
-    color: "#6366f1",
-    bg: "rgba(99, 102, 241, 0.1)",
-    border: "rgba(99, 102, 241, 0.3)",
+    color: "#24966D",
+    bg: "rgba(24, 122, 86, 0.1)",
+    border: "rgba(24, 122, 86, 0.3)",
     badge: "Permanent"
   }
 ];
@@ -278,7 +278,7 @@ export const AnimalMarking = ({ navTabs }) => {
       if (match?.name) return match.name.trim();
     }
     const directName = (item.owner_name || "").trim();
-    if (directName && directName !== "Unknown Owner" && directName !== "‚Äî" && directName !== "-") {
+    if (directName && directName !== "Unknown Owner" && directName !== "ó" && directName !== "-") {
       if (owners && owners.length > 0) {
         const nameMatch = owners.find(
           (o) => (o.name || "").trim().toLowerCase() === directName.toLowerCase()
@@ -456,7 +456,7 @@ export const AnimalMarking = ({ navTabs }) => {
         grp.hasFallback = true;
       }
       grp.items.push(item);
-      if (species && species !== "‚Äî" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "ó" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
       if (itemTime > grp.latestTimestamp) {
@@ -577,7 +577,7 @@ export const AnimalMarking = ({ navTabs }) => {
         const speciesList = [];
         sess.items.forEach((it) => {
           const sp = (it.species || "Unknown Species").trim();
-          if (sp && sp !== "‚Äî" && sp !== "Unknown Species" && !speciesList.includes(sp)) {
+          if (sp && sp !== "ó" && sp !== "Unknown Species" && !speciesList.includes(sp)) {
             speciesList.push(sp);
           }
         });
@@ -650,6 +650,10 @@ export const AnimalMarking = ({ navTabs }) => {
   // Individual & batch livestock selection for marking within owner view
   const [selectedLivestockKeys, setSelectedLivestockKeys] = useState(new Set());
 
+  const getLivestockKey = useCallback((item) => {
+    return String(item?.id || item?.tag_number || "").trim();
+  }, []);
+
   // Reset selection when switching owner, changing search/filter, or changing tabs
   useEffect(() => {
     setSelectedLivestockKeys(new Set());
@@ -665,34 +669,37 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   };
 
-  const selectedItemsForOwner = useMemo(() => {
-    if (!selectedOwnerView?.items || activeTab !== "for_marking") return [];
-    return selectedOwnerView.items.filter((i) => selectedLivestockKeys.has(i.id || i.tag_number));
-  }, [selectedOwnerView, selectedLivestockKeys, activeTab]);
-
   const isOwnerAllSelected = useMemo(() => {
-    if (!selectedOwnerView?.items || selectedOwnerView.items.length === 0 || activeTab !== "for_marking") return false;
-    return selectedOwnerView.items.every((i) => selectedLivestockKeys.has(i.id || i.tag_number));
-  }, [selectedOwnerView, selectedLivestockKeys, activeTab]);
+    if (!paginatedOwnerItems || paginatedOwnerItems.length === 0 || activeTab !== "for_marking") return false;
+    return paginatedOwnerItems.every((i) => selectedLivestockKeys.has(getLivestockKey(i)));
+  }, [paginatedOwnerItems, selectedLivestockKeys, activeTab, getLivestockKey]);
 
   const isOwnerSomeSelected = useMemo(() => {
-    if (!selectedOwnerView?.items || activeTab !== "for_marking") return false;
-    const hasSome = selectedOwnerView.items.some((i) => selectedLivestockKeys.has(i.id || i.tag_number));
+    if (!paginatedOwnerItems || paginatedOwnerItems.length === 0 || activeTab !== "for_marking") return false;
+    const hasSome = paginatedOwnerItems.some((i) => selectedLivestockKeys.has(getLivestockKey(i)));
     return hasSome && !isOwnerAllSelected;
-  }, [selectedOwnerView, selectedLivestockKeys, isOwnerAllSelected, activeTab]);
+  }, [paginatedOwnerItems, selectedLivestockKeys, isOwnerAllSelected, activeTab, getLivestockKey]);
 
   const toggleSelectOwnerAll = () => {
-    if (!selectedOwnerView?.items || activeTab !== "for_marking") return;
+    if (!paginatedOwnerItems || paginatedOwnerItems.length === 0 || activeTab !== "for_marking") return;
     setSelectedLivestockKeys((prev) => {
       const next = new Set(prev);
       if (isOwnerAllSelected) {
-        selectedOwnerView.items.forEach((i) => next.delete(i.id || i.tag_number));
+        paginatedOwnerItems.forEach((i) => next.delete(getLivestockKey(i)));
       } else {
-        selectedOwnerView.items.forEach((i) => next.add(i.id || i.tag_number));
+        paginatedOwnerItems.forEach((i) => {
+          const k = getLivestockKey(i);
+          if (k) next.add(k);
+        });
       }
       return next;
     });
   };
+
+  const selectedItemsForOwner = useMemo(() => {
+    if (!selectedOwnerView?.items || activeTab !== "for_marking") return [];
+    return selectedOwnerView.items.filter((i) => selectedLivestockKeys.has(getLivestockKey(i)));
+  }, [selectedOwnerView, selectedLivestockKeys, activeTab, getLivestockKey]);
 
   const openMarkSelected = (items) => {
     if (!items || items.length === 0) return;
@@ -703,20 +710,64 @@ export const AnimalMarking = ({ navTabs }) => {
     setSelected(null);
     const firstWithTime = items.find((i) => i?.created_at || i?.registered_at || i?.received_date);
     setSelectedBatch({
-      owner_name: selectedOwnerView.owner_name,
-      owner_id: selectedOwnerView.owner_id,
+      owner_name: selectedOwnerView?.owner_name || resolveOwnerName(items[0]),
+      owner_id: selectedOwnerView?.owner_id || resolveOwnerId(items[0]),
       count: items.length,
       items,
-      rawDate: firstWithTime?.created_at || firstWithTime?.registered_at || firstWithTime?.received_date || selectedOwnerView.rawDate || selectedOwnerView.date,
-      date: selectedOwnerView.date,
+      rawDate: firstWithTime?.created_at || firstWithTime?.registered_at || firstWithTime?.received_date || selectedOwnerView?.rawDate || selectedOwnerView?.date,
+      date: selectedOwnerView?.date,
       hasFallback: items.some((i) => i.status === "Returned to Animal Marking" || Boolean(i.fallback_at)),
     });
     setMarkType("Ear Tag");
+    if (selectedOwnerKey) {
+      setReturnOwnerKey(selectedOwnerKey);
+    }
+    setSelectedOwnerKey(null);
     setModalOpen(true);
   };
 
+  const handleProcessSelectedMarking = () => {
+    if (!selectedOwnerView || activeTab !== "for_marking") return;
+    if (submitting) return;
+
+    // Requirement 11: Show clear validation feedback if no livestock record is selected.
+    if (!selectedItemsForOwner || selectedItemsForOwner.length === 0) {
+      showToast("Please select at least one livestock record to mark.", "warning");
+      return;
+    }
+
+    // Requirements 9 & 10: Validate every selected record before processing.
+    // If a record is no longer eligible (already marked and not fallback), handle it safely without affecting other valid selections.
+    const validItems = selectedItemsForOwner.filter((item) => {
+      const isFallback = item.status === "Returned to Animal Marking" || Boolean(item.fallback_at);
+      if (isFallback) return true;
+      if (!item.tag_number || String(item.tag_number).trim() === "") return false;
+      if (isMarked(item) || item.mark_type || item.mark_date) return false;
+      const s = String(item.status || "").trim().toLowerCase();
+      if (s.includes("condemn") || s.includes("reject")) return false;
+      return true;
+    });
+
+    if (validItems.length === 0) {
+      showToast("None of the selected records are eligible for marking (they may already be officially marked or processed).", "warning");
+      return;
+    }
+
+    if (validItems.length < selectedItemsForOwner.length) {
+      const excluded = selectedItemsForOwner.length - validItems.length;
+      showToast(`${excluded} ineligible or already-marked animal record(s) were excluded from marking.`, "info");
+    }
+
+    // Requirement 6: Only selected livestock records should proceed to the existing marking process.
+    if (validItems.length === 1) {
+      openMarkSingle(validItems[0]);
+    } else {
+      openMarkSelected(validItems);
+    }
+  };
+
   const resolveBatchSexSummary = (target) => {
-    if (!target) return "‚Äî";
+    if (!target) return "ó";
     const items = Array.isArray(target.items) && target.items.length > 0 ? target.items : [target];
     let maleCount = 0;
     let femaleCount = 0;
@@ -734,7 +785,7 @@ export const AnimalMarking = ({ navTabs }) => {
     const parts = [];
     if (maleCount > 0) parts.push(`${maleCount} Male`);
     if (femaleCount > 0) parts.push(`${femaleCount} Female`);
-    return parts.length > 0 ? parts.join(", ") : "‚Äî";
+    return parts.length > 0 ? parts.join(", ") : "ó";
   };
 
   const resolveSpeciesSexBreakdown = (target) => {
@@ -769,13 +820,13 @@ export const AnimalMarking = ({ navTabs }) => {
       if (entry.female > 0) sexParts.push(`${entry.female} Female`);
       return {
         ...entry,
-        sexText: sexParts.join(" and ") || "‚Äî",
+        sexText: sexParts.join(" and ") || "ó",
       };
     });
   };
 
   const resolveIntakeDateTime = (target) => {
-    if (!target) return "‚Äî";
+    if (!target) return "ó";
     const hasTime = (v) => v && (String(v).includes("T") || String(v).includes(":"));
     if (Array.isArray(target.items) && target.items.length > 0) {
       for (const it of target.items) {
@@ -787,7 +838,7 @@ export const AnimalMarking = ({ navTabs }) => {
       if (firstDate) return formatPhDateTime(firstDate);
     }
     const singleCandidate = target.created_at || target.registered_at || target.fallback_at || target.updated_at || target.rawDate || target.received_date || target.date;
-    return singleCandidate ? formatPhDateTime(singleCandidate) : "‚Äî";
+    return singleCandidate ? formatPhDateTime(singleCandidate) : "ó";
   };
 
   // Active dataset (grouped by default)
@@ -1014,7 +1065,7 @@ export const AnimalMarking = ({ navTabs }) => {
         // Clear selection for marked items
         setSelectedLivestockKeys((prev) => {
           const next = new Set(prev);
-          items.forEach((i) => next.delete(i.id || i.tag_number));
+          items.forEach((i) => next.delete(getLivestockKey(i)));
           return next;
         });
 
@@ -1060,7 +1111,7 @@ export const AnimalMarking = ({ navTabs }) => {
 
         setSelectedLivestockKeys((prev) => {
           const next = new Set(prev);
-          next.delete(target.id || target.tag_number);
+          next.delete(getLivestockKey(target));
           return next;
         });
 
@@ -1080,6 +1131,7 @@ export const AnimalMarking = ({ navTabs }) => {
       setSelected(null);
       setSelectedBatch(null);
       setReturnOwnerKey(null);
+      setSelectedLivestockKeys(new Set());
 
       // Optimistically update local dataset so UI responds at 0ms
       if (typeof setData === "function" && target?.tag_number) {
@@ -1116,7 +1168,7 @@ export const AnimalMarking = ({ navTabs }) => {
       species: item.species || "Cattle",
       quantity: item.quantity && Number(item.quantity) >= 1 ? Number(item.quantity) : 1,
       sex: item.sex ? (String(item.sex).toLowerCase().startsWith("f") ? "Female" : "Male") : "Male",
-      age: item.age_months || item.age || (formatLivestockAge(item) !== "‚Äî" ? formatLivestockAge(item) : ""),
+      age: item.age_months || item.age || (formatLivestockAge(item) !== "ó" ? formatLivestockAge(item) : ""),
       mark_type: item.mark_type || "Ear Tag",
     });
   };
@@ -1206,14 +1258,14 @@ export const AnimalMarking = ({ navTabs }) => {
     }
     const headers = "Tag #,Species,Sex,Age,Owner Name,Type of Marking,Date Marked,Time Marked,Status";
     const rows = listToExport.map((a) => {
-      const tag = a.tag_number || "‚Äî";
-      const species = a.species || "‚Äî";
+      const tag = a.tag_number || "ó";
+      const species = a.species || "ó";
       const sex = formatSex(a.sex);
-      const age = a.age_months ? a.age_months : "‚Äî";
-      const owner = a.owner_name ? a.owner_name.replace(/"/g, '""') : "‚Äî";
+      const age = a.age_months ? a.age_months : "ó";
+      const owner = a.owner_name ? a.owner_name.replace(/"/g, '""') : "ó";
       const mark = a.mark_type || (isMarked(a) ? "Ear Tag" : "Unmarked");
       const date = a.mark_date ? formatDate(a.mark_date) : formatDate(a.received_date || today());
-      const time = a.mark_time ? a.mark_time : "‚Äî";
+      const time = a.mark_time ? a.mark_time : "ó";
       const status = isMarked(a) ? "Marked" : "For Marking";
       return `"${tag}","${species}","${sex}","${age}","${owner}","${mark}","${date}","${time}","${status}"`;
     });
@@ -1360,8 +1412,8 @@ export const AnimalMarking = ({ navTabs }) => {
                 maxWidth: 170,
               }}
             >
-              <option value="for_marking">üè∑Ô∏è For Marking ({toMark.length})</option>
-              <option value="marked">‚úÖ Marked ({markedAnimals.length})</option>
+              <option value="for_marking">??? For Marking ({toMark.length})</option>
+              <option value="marked">? Marked ({markedAnimals.length})</option>
             </select>
 
             {/* Sort Dropdown */}
@@ -1382,8 +1434,8 @@ export const AnimalMarking = ({ navTabs }) => {
                 width: 130,
               }}
             >
-              <option value="tag_asc">Tag (A ‚Üí Z)</option>
-              <option value="tag_desc">Tag (Z ‚Üí A)</option>
+              <option value="tag_asc">Tag (A ? Z)</option>
+              <option value="tag_desc">Tag (Z ? A)</option>
               <option value="owner">Owner Name</option>
               <option value="newest">Newest First</option>
             </select>
@@ -1502,7 +1554,7 @@ export const AnimalMarking = ({ navTabs }) => {
                         borderBottom: "1px solid var(--color-border)",
                         cursor: "pointer",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       {/* Owner Name */}
@@ -1675,8 +1727,8 @@ export const AnimalMarking = ({ navTabs }) => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "for_marking"
-            ? `For Official Animal Marking ‚Äî ${selectedOwnerView?.owner_name || ""}`
-            : `Marked Livestock Records ‚Äî ${selectedOwnerView?.owner_name || ""}`
+            ? `For Official Animal Marking ó ${selectedOwnerView?.owner_name || ""}`
+            : `Marked Livestock Records ó ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -1697,29 +1749,52 @@ export const AnimalMarking = ({ navTabs }) => {
         footer={
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
-              {selectedOwnerView?.items?.length || 0} head{selectedOwnerView?.items?.length === 1 ? "" : "s"}
+              {activeTab === "for_marking" && selectedItemsForOwner.length > 0 ? (
+                <span style={{ fontWeight: 700, color: "var(--color-text)" }}>
+                  {selectedItemsForOwner.length} of {selectedOwnerView?.items?.length || 0} selected
+                </span>
+              ) : (
+                <span>
+                  {selectedOwnerView?.items?.length || 0} head{selectedOwnerView?.items?.length === 1 ? "" : "s"}
+                </span>
+              )}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {activeTab === "for_marking" && selectedOwnerView && selectedOwnerView.items.length > 0 && (
                 <Button
                   size="sm"
-                  onClick={() => {
-                    const target = selectedOwnerView;
-                    setSelectedOwnerKey(null);
-                    openMarkBatch(target);
-                  }}
+                  onClick={handleProcessSelectedMarking}
+                  disabled={submitting}
                   style={{
                     padding: "7px 14px",
                     fontSize: 12.5,
                     fontWeight: 700,
-                    background: "linear-gradient(135deg, #0284c7, #0369a1)",
+                    background: "#187A56",
                     color: "#ffffff",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
+                    opacity: submitting ? 0.7 : 1,
+                    cursor: submitting ? "not-allowed" : "pointer",
                   }}
+                  title={
+                    selectedItemsForOwner.length === 0
+                      ? "Select livestock using checkboxes to mark"
+                      : `Mark ${selectedItemsForOwner.length} selected record(s)`
+                  }
                 >
-                  <Icon.Tag size={14} /> {selectedOwnerView.hasFallback ? "Re-Mark All Animals" : "Mark All Animals"}
+                  <Icon.Tag size={14} />{" "}
+                  {selectedItemsForOwner.length > 0
+                    ? isOwnerAllSelected
+                      ? selectedOwnerView.hasFallback
+                        ? `Re-Mark All Animals (${selectedItemsForOwner.length})`
+                        : `Mark All Animals (${selectedItemsForOwner.length})`
+                      : selectedOwnerView.hasFallback
+                      ? `Re-Mark Selected Animals (${selectedItemsForOwner.length})`
+                      : `Mark Selected Animals (${selectedItemsForOwner.length})`
+                    : selectedOwnerView.hasFallback
+                    ? "Re-Mark All Animals"
+                    : "Mark All Animals"}
                 </Button>
               )}
               <Button variant="outline" size="sm" onClick={() => setSelectedOwnerKey(null)} style={{ minWidth: 80, fontWeight: 700 }}>
@@ -1748,13 +1823,39 @@ export const AnimalMarking = ({ navTabs }) => {
                   <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
                     {activeTab === "for_marking" ? (
                       <>
+                        <th
+                          style={{
+                            width: "46px",
+                            padding: "12px 10px",
+                            textAlign: "center",
+                            verticalAlign: "middle",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isOwnerAllSelected}
+                            ref={(el) => {
+                              if (el) el.indeterminate = isOwnerSomeSelected;
+                            }}
+                            onChange={toggleSelectOwnerAll}
+                            title={isOwnerAllSelected ? "Deselect all records on this page" : "Select all records on this page"}
+                            aria-label="Select all livestock records on this page"
+                            style={{
+                              width: 17,
+                              height: 17,
+                              cursor: "pointer",
+                              accentColor: "#187A56",
+                              verticalAlign: "middle",
+                            }}
+                          />
+                        </th>
                         <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
                         <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
                         <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
                         <th style={{ width: "11%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Age</th>
                         <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Registration Date</th>
                         <th style={{ width: "12%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                        <th className="table-action-th" style={{ width: "22%" }}>ACTIONS</th>
+                        <th className="table-action-th" style={{ width: "16%" }}>ACTIONS</th>
                       </>
                     ) : (
                       <>
@@ -1772,26 +1873,64 @@ export const AnimalMarking = ({ navTabs }) => {
                 <tbody>
                   {paginatedOwnerItems.map((item) => {
                     const isFallback = Boolean(item.is_fallback);
+                    const rowKey = getLivestockKey(item);
+                    const isSelected = selectedLivestockKeys.has(rowKey);
+
                     return (
                       <tr
                         key={item.id || item.tag_number}
                         onClick={() => {
                           if (activeTab === "for_marking") {
-                            openMarkSingle(item);
+                            toggleSelectLivestock(rowKey);
                           }
                         }}
                         style={{
                           borderBottom: "1px solid var(--color-border)",
                           cursor: activeTab === "for_marking" ? "pointer" : "default",
+                          background: isSelected ? "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.06))" : "transparent",
                           transition: "background 120ms ease",
                         }}
                         onMouseEnter={(e) => {
-                          if (activeTab === "for_marking") e.currentTarget.style.background = "var(--color-bg)";
+                          if (activeTab === "for_marking") {
+                            e.currentTarget.style.background = isSelected
+                              ? "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.1))"
+                              : "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.04))";
+                          }
                         }}
                         onMouseLeave={(e) => {
-                          if (activeTab === "for_marking") e.currentTarget.style.background = "transparent";
+                          if (activeTab === "for_marking") {
+                            e.currentTarget.style.background = isSelected
+                              ? "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.06))"
+                              : "transparent";
+                          }
                         }}
                       >
+                        {activeTab === "for_marking" && (
+                          <td
+                            style={{
+                              width: "46px",
+                              padding: "12px 10px",
+                              textAlign: "center",
+                              verticalAlign: "middle",
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectLivestock(rowKey)}
+                              title={`Select ${item.tag_number}`}
+                              aria-label={`Select ${item.tag_number}`}
+                              style={{
+                                width: 17,
+                                height: 17,
+                                cursor: "pointer",
+                                accentColor: "#187A56",
+                                verticalAlign: "middle",
+                              }}
+                            />
+                          </td>
+                        )}
                         <td style={{ padding: "12px 14px" }}>
                           <span
                             onClick={(e) => {
@@ -1824,7 +1963,7 @@ export const AnimalMarking = ({ navTabs }) => {
                           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                             <span>{formatPhDateTime(item.marked_at || item.mark_date || item.created_at || item.registered_at)}</span>
                             {item.marking_history && (Array.isArray(item.marking_history) ? item.marking_history : []).length > 0 && (
-                              <span style={{ fontSize: 10.5, color: "#6366f1", fontWeight: 700 }}>
+                              <span style={{ fontSize: 10.5, color: "#24966D", fontWeight: 700 }}>
                                 Re-Marked: {formatPhDateTime(
                                   (Array.isArray(item.marking_history) ? item.marking_history : [])[item.marking_history.length - 1]?.re_marked_at || item.marked_at
                                 )}
@@ -1843,9 +1982,9 @@ export const AnimalMarking = ({ navTabs }) => {
                                 borderRadius: 6,
                                 fontSize: 11.5,
                                 fontWeight: 700,
-                                background: item.mark_type === "Tattoo" ? "rgba(99, 102, 241, 0.1)" : "rgba(16, 185, 129, 0.1)",
-                                color: item.mark_type === "Tattoo" ? "#6366f1" : "#10b981",
-                                border: `1px solid ${item.mark_type === "Tattoo" ? "rgba(99, 102, 241, 0.25)" : "rgba(16, 185, 129, 0.25)"}`,
+                                background: item.mark_type === "Tattoo" ? "rgba(24, 122, 86, 0.1)" : "rgba(16, 185, 129, 0.1)",
+                                color: item.mark_type === "Tattoo" ? "#24966D" : "#10b981",
+                                border: `1px solid ${item.mark_type === "Tattoo" ? "rgba(24, 122, 86, 0.25)" : "rgba(16, 185, 129, 0.25)"}`,
                               }}
                             >
                               <Icon.Tag size={12} />
@@ -1867,21 +2006,7 @@ export const AnimalMarking = ({ navTabs }) => {
                         {activeTab === "for_marking" && (
                           <td className="table-action-td">
                             <div className="table-action-group">
-                              {/* 1. Mark Animal Button */}
-                              <button
-                                type="button"
-                                className={isFallback ? "action-btn action-btn-warning" : "action-btn action-btn-primary"}
-                                title={isFallback ? "Re-Mark Animal" : "Mark Animal"}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openMarkSingle(item);
-                                }}
-                              >
-                                <Icon.Tag size={13} />
-                                <span>Mark</span>
-                              </button>
-
-                              {/* 2. Edit Details Button */}
+                              {/* 1. Edit Details Button */}
                               <button
                                 type="button"
                                 className="action-btn action-btn-outline"
@@ -1899,7 +2024,7 @@ export const AnimalMarking = ({ navTabs }) => {
                                 <span>Edit</span>
                               </button>
 
-                              {/* 3. Delete Record Button */}
+                              {/* 2. Delete Record Button */}
                               <button
                                 type="button"
                                 className="action-btn action-btn-danger"
@@ -1938,9 +2063,9 @@ export const AnimalMarking = ({ navTabs }) => {
         onClose={handleCancelMark}
         title={
           selectedBatch
-            ? `Mark Batch ‚Äî ${selectedBatch.owner_name} (${selectedBatch.count} Heads)`
+            ? `Mark Batch ó ${selectedBatch.owner_name} (${selectedBatch.count} Heads)`
             : selected
-            ? `Mark Livestock ‚Äî ${selected.tag_number}`
+            ? `Mark Livestock ó ${selected.tag_number}`
             : "Mark Livestock"
         }
       >
@@ -2086,7 +2211,7 @@ export const AnimalMarking = ({ navTabs }) => {
                     <strong style={{ fontWeight: 700, color: "var(--color-text)" }}>{spItem.species}:</strong>
                     <span style={{ fontWeight: 600, color: "#10b981" }}>{spItem.sexText}</span>
                     {idx < arr.length - 1 && (
-                      <span style={{ color: "var(--color-text-muted)", marginLeft: 8 }}>¬∑</span>
+                      <span style={{ color: "var(--color-text-muted)", marginLeft: 8 }}>∑</span>
                     )}
                   </span>
                 ))}
@@ -2282,14 +2407,14 @@ export const AnimalMarking = ({ navTabs }) => {
                   const speciesDisplay =
                     resolveTargetSpeciesList(confirmingMark.target).join(", ") ||
                     confirmingMark.target?.species ||
-                    "‚Äî";
+                    "ó";
                   return confirmingMark.type === "batch" ? (
                     <>
-                      Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name}</strong> ¬∑ Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> ¬∑ Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
+                      Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name}</strong> ∑ Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> ∑ Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
                     </>
                   ) : (
                     <>
-                      Tag: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.tag_number}</strong> ¬∑ Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name || "Unknown"}</strong> ¬∑ Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> ¬∑ Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
+                      Tag: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.tag_number}</strong> ∑ Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name || "Unknown"}</strong> ∑ Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> ∑ Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
                     </>
                   );
                 })()}
@@ -2344,7 +2469,7 @@ export const AnimalMarking = ({ navTabs }) => {
         onClose={() => {
           if (!savingEdit) setEditTarget(null);
         }}
-        title={`Edit Livestock Details ‚Äî ${editTarget?.tag_number || "Record"}`}
+        title={`Edit Livestock Details ó ${editTarget?.tag_number || "Record"}`}
         size="md"
         dialogStyle={{ maxWidth: "560px" }}
         bodyStyle={{ padding: "18px 22px" }}
@@ -2424,7 +2549,7 @@ export const AnimalMarking = ({ navTabs }) => {
                       </option>
                     ))}
                   </select>
-                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>‚ñº</span>
+                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>?</span>
                 </div>
               </div>
 
@@ -2474,8 +2599,8 @@ export const AnimalMarking = ({ navTabs }) => {
                 </label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, height: 38 }}>
                   {[
-                    { id: "Male", label: "Male ‚ôÇ", activeColor: "#0284c7", activeBg: "rgba(2, 132, 199, 0.1)", activeBorder: "#38bdf8" },
-                    { id: "Female", label: "Female ‚ôÄ", activeColor: "#e11d48", activeBg: "rgba(225, 29, 72, 0.1)", activeBorder: "#fb7185" },
+                    { id: "Male", label: "Male ?", activeColor: "#187A56", activeBg: "rgba(24, 122, 86, 0.1)", activeBorder: "#24966D" },
+                    { id: "Female", label: "Female ?", activeColor: "#e11d48", activeBg: "rgba(225, 29, 72, 0.1)", activeBorder: "#fb7185" },
                   ].map((s) => {
                     const isSel = editForm.sex === s.id;
                     return (

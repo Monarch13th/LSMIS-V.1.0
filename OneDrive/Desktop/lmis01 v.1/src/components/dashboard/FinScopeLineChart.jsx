@@ -32,7 +32,7 @@ export const FinScopeLineChart = ({
   dataPoints = [28, 42, 36, 68, 54],
   label = "Volume",
   unit = "Head",
-  color = "#0284c7", // default cyan/blue
+  color = "#187A56", // default cyan/blue
   secondaryPoints = null,
   secondaryLabel = "Target",
   height = 160,
@@ -69,7 +69,7 @@ export const FinScopeLineChart = ({
               {
                 label: secondaryLabel,
                 data: secondaryPoints,
-                borderColor: "#94a3b8",
+                borderColor: "#9BA49E",
                 borderWidth: 1.5,
                 borderDash: [5, 4],
                 tension: 0.38,
@@ -95,9 +95,9 @@ export const FinScopeLineChart = ({
         tooltip: {
           enabled: true,
           backgroundColor: "#ffffff",
-          titleColor: "#0f172a",
-          bodyColor: "#475569",
-          borderColor: "#e2e8f0",
+          titleColor: "#1A201C",
+          bodyColor: "#5D6660",
+          borderColor: "#E2E6E3",
           borderWidth: 1,
           padding: 10,
           boxPadding: 4,
@@ -118,7 +118,7 @@ export const FinScopeLineChart = ({
           grid: { display: false },
           border: { display: false },
           ticks: {
-            color: "#94a3b8",
+            color: "#9BA49E",
             font: { size: 10.5, weight: 600 },
             padding: 4,
             maxRotation: 0,
@@ -132,7 +132,7 @@ export const FinScopeLineChart = ({
           },
           border: { display: false },
           ticks: {
-            color: "#94a3b8",
+            color: "#9BA49E",
             font: { size: 10, weight: 600 },
             padding: 8,
             maxTicksLimit: 4,

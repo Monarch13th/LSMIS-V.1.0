@@ -10,6 +10,7 @@ import "./styles/profile.css";
 import "./styles/login.css";
 import "./styles/landing.css";
 import "./styles/owner.css";
+import "./styles/theme.css";
 import { registerServiceWorker } from "./utils/pwaUpdate";
 
 registerServiceWorker();

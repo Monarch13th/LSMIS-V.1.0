@@ -20,7 +20,7 @@ export const DEFAULT_SPECIES = [
     name: "Cattle",
     code: "CAT",
     description: "Bovine livestock / Large cattle",
-    color: "#0284c7",
+    color: "#187A56",
     icon: "Cow",
     status: "Active",
     sort_order: 2,
@@ -210,10 +210,10 @@ export async function createSpecies(payload) {
   // Log activity
   try {
     await logActivity({
-      action: "Created",
+      action: `Created livestock species "${trimmedName}" (${code})`,
       module: "Species Management",
-      details: `Created new livestock species "${trimmedName}" (${code})`,
-      new_value: data,
+      new_value: JSON.stringify(data),
+      field_changed: "species",
     });
   } catch (logErr) {
     console.warn("Activity log failed:", logErr);
@@ -285,12 +285,16 @@ export async function updateSpecies(id, patch) {
   notifyDbChange(TABLES.SPECIES, "update", data);
 
   try {
+    const statusChangeDesc =
+      patch.status && oldSpeciesRecord && oldSpeciesRecord.status !== patch.status
+        ? ` (Status: ${patch.status})`
+        : "";
     await logActivity({
-      action: "Updated",
+      action: `Updated livestock species "${data.name}"${statusChangeDesc}`,
       module: "Species Management",
-      details: `Updated species "${data.name}"`,
-      old_value: oldSpeciesRecord,
-      new_value: data,
+      old_value: oldSpeciesRecord ? JSON.stringify(oldSpeciesRecord) : null,
+      new_value: JSON.stringify(data),
+      field_changed: "species",
     });
   } catch (logErr) {
     console.warn("Activity log failed:", logErr);
@@ -432,10 +436,11 @@ export async function deleteSpecies(id) {
 
   try {
     await logActivity({
-      action: "Deleted",
+      action: `Deleted livestock species "${speciesRecord.name}"`,
       module: "Species Management",
-      details: `Deleted livestock species "${speciesRecord.name}"`,
-      old_value: speciesRecord,
+      old_value: JSON.stringify(speciesRecord),
+      field_changed: "species",
+      severity: "warning",
     });
   } catch (logErr) {
     console.warn("Activity log failed:", logErr);

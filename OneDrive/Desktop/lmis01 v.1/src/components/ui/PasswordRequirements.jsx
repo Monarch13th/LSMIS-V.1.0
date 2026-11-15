@@ -32,8 +32,8 @@ export const PasswordRequirements = ({
         marginBottom: compact ? 2 : 8,
         padding: compact ? "8px 12px" : "12px 14px",
         borderRadius: 10,
-        background: "var(--color-surface, #f8fafc)",
-        border: `1px solid ${result.isValid ? "rgba(16, 185, 129, 0.4)" : "var(--color-border, #e2e8f0)"}`,
+        background: "var(--color-surface, #F9FAF8)",
+        border: `1px solid ${result.isValid ? "rgba(16, 185, 129, 0.4)" : "var(--color-border, #E2E6E3)"}`,
         transition: "all 0.2s ease"
       }}
     >
@@ -47,10 +47,10 @@ export const PasswordRequirements = ({
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ color: result.isValid ? "#10b981" : "var(--color-text-muted, #475569)", display: "flex" }}>
+            <span style={{ color: result.isValid ? "#10b981" : "var(--color-text-muted, #5D6660)", display: "flex" }}>
               <Icon.Shield size={compact ? 14 : 16} />
             </span>
-            <span style={{ fontSize: compact ? 12 : 13.5, fontWeight: 700, color: "var(--color-text, #1e293b)" }}>
+            <span style={{ fontSize: compact ? 12 : 13.5, fontWeight: 700, color: "var(--color-text, #2D332F)" }}>
               Password Requirements
             </span>
           </div>
@@ -65,12 +65,12 @@ export const PasswordRequirements = ({
                 ? "rgba(16, 185, 129, 0.18)"
                 : isDirty
                 ? "rgba(245, 158, 11, 0.18)"
-                : "var(--color-bg, #e2e8f0)",
+                : "var(--color-bg, #E2E6E3)",
               color: result.isValid
                 ? "#10b981"
                 : isDirty
                 ? "#f59e0b"
-                : "var(--color-text-muted, #475569)"
+                : "var(--color-text-muted, #5D6660)"
             }}
           >
             {satisfiedCount} of {result.rules.length} Met
@@ -83,7 +83,7 @@ export const PasswordRequirements = ({
         style={{
           height: compact ? 4 : 5,
           width: "100%",
-          background: "var(--color-border, #e2e8f0)",
+          background: "var(--color-border, #E2E6E3)",
           borderRadius: 999,
           overflow: "hidden",
           marginBottom: compact ? 8 : 12
@@ -93,7 +93,7 @@ export const PasswordRequirements = ({
           style={{
             height: "100%",
             width: `${percentMet}%`,
-            background: result.isValid ? "#10b981" : isDirty ? "#f59e0b" : "var(--color-text-muted, #94a3b8)",
+            background: result.isValid ? "#10b981" : isDirty ? "#f59e0b" : "var(--color-text-muted, #9BA49E)",
             transition: "all 0.3s ease"
           }}
         />
@@ -122,7 +122,7 @@ export const PasswordRequirements = ({
                 fontSize: compact ? 11.5 : 13.5,
                 lineHeight: 1.3,
                 fontWeight: ok ? 600 : 500,
-                color: ok ? "#10b981" : "var(--color-text-muted, #475569)",
+                color: ok ? "#10b981" : "var(--color-text-muted, #5D6660)",
                 transition: "color 0.15s ease"
               }}
             >
@@ -135,12 +135,12 @@ export const PasswordRequirements = ({
                   alignItems: "center",
                   justifyContent: "center",
                   flexShrink: 0,
-                  background: ok ? "rgba(16, 185, 129, 0.16)" : "var(--color-bg, #f1f5f9)",
-                  color: ok ? "#10b981" : "var(--color-text-muted, #94a3b8)",
-                  border: `1px solid ${ok ? "rgba(16, 185, 129, 0.4)" : "var(--color-border, #cbd5e1)"}`
+                  background: ok ? "rgba(16, 185, 129, 0.16)" : "var(--color-bg, #EFF2F0)",
+                  color: ok ? "#10b981" : "var(--color-text-muted, #9BA49E)",
+                  border: `1px solid ${ok ? "rgba(16, 185, 129, 0.4)" : "var(--color-border, #C2CAC4)"}`
                 }}
               >
-                {ok ? <Icon.Check size={compact ? 9 : 11} strokeWidth={3} /> : <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--color-text-muted, #94a3b8)" }} />}
+                {ok ? <Icon.Check size={compact ? 9 : 11} strokeWidth={3} /> : <span style={{ width: 4, height: 4, borderRadius: "50%", background: "var(--color-text-muted, #9BA49E)" }} />}
               </span>
               <span>{rule.label}</span>
             </li>

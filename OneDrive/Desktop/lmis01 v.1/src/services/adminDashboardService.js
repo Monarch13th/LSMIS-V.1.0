@@ -12,6 +12,17 @@ let _cachedTime = 0;
 const CACHE_TTL_MS = 25000; // 25s fresh window
 let _inFlightPromise = null;
 
+if (typeof window !== "undefined") {
+  try {
+    supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION" || event === "SIGNED_OUT") {
+        _cachedMetrics = null;
+        _cachedTime = 0;
+      }
+    });
+  } catch (_) {}
+}
+
 /**
  * Fetch and compute Admin Dashboard operational metrics with high performance.
  * - Queries run in parallel with strictly projected scalar columns (no full-table select *).
@@ -160,8 +171,10 @@ export async function fetchAdminDashboardData(forceRefresh = false) {
         ),
       };
 
-      _cachedMetrics = metrics;
-      _cachedTime = Date.now();
+      if (!metrics.hasSyncIssue && (metrics.users.length > 0 || metrics.livestockCount > 0)) {
+        _cachedMetrics = metrics;
+        _cachedTime = Date.now();
+      }
       return metrics;
     } finally {
       _inFlightPromise = null;

@@ -607,7 +607,7 @@ export const OwnerProfile = () => {
     session?.avatar_url ||
     "";
 
-  const registeredEmail = owner?.email || authUser?.email || session?.email || "â€”";
+  const registeredEmail = owner?.email || authUser?.email || session?.email || "—";
   const displayName = form.name || owner?.name || session?.name || "Livestock Owner";
   const isGoogleAuth = Boolean(
     owner?.auth_provider === "google" ||
@@ -686,7 +686,7 @@ export const OwnerProfile = () => {
             </h1>
 
             {/* Registered Email */}
-            <div style={{ fontSize: 12, color: "#64748b", display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 5 }}>
+            <div style={{ fontSize: 12, color: "#5D6660", display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 5 }}>
               <Icon.Mail size={12} />
               <span>{registeredEmail}</span>
             </div>
@@ -722,10 +722,10 @@ export const OwnerProfile = () => {
           <div className="owner-profile-preview-card" style={{ marginTop: 10 }}>
             <img src={previewUrl} alt="Preview" className="owner-profile-preview-img" />
             <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                 New Picture Preview
               </div>
-              <div style={{ fontSize: 11, color: "#64748b" }}>
+              <div style={{ fontSize: 11, color: "#5D6660" }}>
                 Ready to save as your profile photo.
               </div>
             </div>
@@ -777,7 +777,7 @@ export const OwnerProfile = () => {
       <div className="owner-profile-card">
         <div className="owner-profile-section-title">
           <h2 className="owner-profile-section-heading">
-            <Icon.User size={15} style={{ color: "#0284c7" }} />
+            <Icon.User size={15} style={{ color: "#187A56" }} />
             <span>Personal Information</span>
           </h2>
           {!isEditing && (
@@ -840,7 +840,7 @@ export const OwnerProfile = () => {
                 disabled
                 className="owner-profile-input"
               />
-              <span style={{ fontSize: 10.5, color: "#94a3b8" }}>
+              <span style={{ fontSize: 10.5, color: "#9BA49E" }}>
                 Email address is tied to your login account and cannot be modified directly.
               </span>
             </div>
@@ -867,7 +867,7 @@ export const OwnerProfile = () => {
               <span
                 style={{
                   fontSize: 11,
-                  color: "var(--color-text-muted, #64748b)",
+                  color: "var(--color-text-muted, #5D6660)",
                   marginTop: 4,
                   display: "block",
                 }}
@@ -936,7 +936,7 @@ export const OwnerProfile = () => {
           <div className="owner-profile-info-grid">
             <div className="owner-profile-info-row">
               <span className="owner-profile-info-label">
-                <Icon.User size={14} style={{ color: "#0284c7" }} /> Full Name
+                <Icon.User size={14} style={{ color: "#187A56" }} /> Full Name
               </span>
               <span className="owner-profile-info-val">
                 {displayName}
@@ -945,7 +945,7 @@ export const OwnerProfile = () => {
 
             <div className="owner-profile-info-row">
               <span className="owner-profile-info-label">
-                <Icon.Mail size={14} style={{ color: "#0284c7" }} /> Email Address
+                <Icon.Mail size={14} style={{ color: "#187A56" }} /> Email Address
               </span>
               <span className="owner-profile-info-val" style={{ wordBreak: "break-all" }}>
                 {registeredEmail}
@@ -954,7 +954,7 @@ export const OwnerProfile = () => {
 
             <div className="owner-profile-info-row">
               <span className="owner-profile-info-label">
-                <Icon.Phone size={14} style={{ color: "#0284c7" }} /> Contact Number
+                <Icon.Phone size={14} style={{ color: "#187A56" }} /> Contact Number
               </span>
               <span className="owner-profile-info-val">
                 {owner?.contact || owner?.phone || "Not specified"}
@@ -963,7 +963,7 @@ export const OwnerProfile = () => {
 
             <div className="owner-profile-info-row">
               <span className="owner-profile-info-label">
-                <Icon.MapPin size={14} style={{ color: "#0284c7" }} /> Address
+                <Icon.MapPin size={14} style={{ color: "#187A56" }} /> Address
               </span>
               <span className="owner-profile-info-val">
                 {owner?.address || "Not specified"}
@@ -982,7 +982,7 @@ export const OwnerProfile = () => {
       <div className="owner-profile-card">
         <div className="owner-profile-section-title">
           <h2 className="owner-profile-section-heading">
-            <Icon.Download size={15} style={{ color: "#0284c7" }} />
+            <Icon.Download size={15} style={{ color: "#187A56" }} />
             <span>Download Application</span>
           </h2>
         </div>
@@ -990,16 +990,16 @@ export const OwnerProfile = () => {
         {/* Download Progress Indicator */}
         {(isDownloading || downloadProgress > 0) && (
           <div style={{ marginTop: 6 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#0284c7", marginBottom: 4 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#187A56", marginBottom: 4 }}>
               <span>{downloadProgress < 100 ? `Downloading ${appPackage.fileName}...` : "APK Ready to Install"}</span>
               <span>{downloadProgress}%</span>
             </div>
-            <div style={{ width: "100%", height: 6, borderRadius: 999, background: "rgba(2, 132, 199, 0.15)", overflow: "hidden" }}>
+            <div style={{ width: "100%", height: 6, borderRadius: 999, background: "rgba(24, 122, 86, 0.15)", overflow: "hidden" }}>
               <div
                 style={{
                   width: `${downloadProgress}%`,
                   height: "100%",
-                  background: "linear-gradient(90deg, #0284c7, #10b981)",
+                  background: "linear-gradient(90deg, #187A56, #10b981)",
                   transition: "width 0.3s ease",
                 }}
               />
@@ -1066,7 +1066,7 @@ export const OwnerProfile = () => {
               minHeight: 46,
               padding: "10px 18px",
               borderRadius: 9999,
-              border: "1px solid rgba(2, 132, 199, 0.4)",
+              border: "1px solid rgba(24, 122, 86, 0.4)",
               fontSize: 13.5,
               fontWeight: 700,
             }}
@@ -1092,9 +1092,9 @@ export const OwnerProfile = () => {
               minHeight: 46,
               padding: "10px 18px",
               borderRadius: 9999,
-              border: "1px solid rgba(2, 132, 199, 0.25)",
-              backgroundColor: "rgba(2, 132, 199, 0.1)",
-              color: "#0284c7",
+              border: "1px solid rgba(24, 122, 86, 0.25)",
+              backgroundColor: "rgba(24, 122, 86, 0.1)",
+              color: "#187A56",
               fontSize: 13.5,
               fontWeight: 700,
             }}
@@ -1118,8 +1118,8 @@ export const OwnerProfile = () => {
                 padding: "10px 16px",
                 borderRadius: 12,
                 border: "none",
-                backgroundColor: "var(--color-bg, #f8fafc)",
-                color: "var(--color-text, #0f172a)",
+                backgroundColor: "var(--color-bg, #F9FAF8)",
+                color: "var(--color-text, #1A201C)",
                 fontSize: 13.5,
                 fontWeight: 700,
               }}
@@ -1163,8 +1163,8 @@ export const OwnerProfile = () => {
               gap: 12,
               padding: "12px 14px",
               borderRadius: 12,
-              backgroundColor: "rgba(2, 132, 199, 0.08)",
-              border: "1px solid rgba(2, 132, 199, 0.2)",
+              backgroundColor: "rgba(24, 122, 86, 0.08)",
+              border: "1px solid rgba(24, 122, 86, 0.2)",
             }}
           >
             <div
@@ -1172,7 +1172,7 @@ export const OwnerProfile = () => {
                 width: 38,
                 height: 38,
                 borderRadius: "50%",
-                backgroundColor: "#0284c7",
+                backgroundColor: "#187A56",
                 color: "#ffffff",
                 display: "flex",
                 alignItems: "center",
@@ -1183,37 +1183,37 @@ export const OwnerProfile = () => {
               <Icon.Smartphone size={20} />
             </div>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text, #0f172a)" }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text, #1A201C)" }}>
                 Android APK Installation
               </div>
-              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)" }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)" }}>
                 Follow these 4 simple steps to install LSMIS on your phone
               </div>
             </div>
           </div>
 
-          <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 12, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-text, #0f172a)" }}>
+          <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 12, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-text, #1A201C)" }}>
             <li>
               <strong>Download the APK</strong>
-              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
                 Tap the blue <strong>Download App</strong> button to save <code>{appPackage.fileName}</code> to your mobile device.
               </div>
             </li>
             <li>
               <strong>Open the Downloaded File</strong>
-              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
                 When the download finishes, tap <strong>Open</strong> in your browser notification or locate the APK in your phone&apos;s <strong>Downloads</strong> or <strong>Files</strong> manager.
               </div>
             </li>
             <li>
               <strong>Allow Installation from this Source</strong>
-              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
                 If Android shows a security prompt (&ldquo;For your security, your phone is not allowed to install unknown apps&rdquo;), tap <strong>Settings</strong>, switch on <strong>&ldquo;Allow from this source&rdquo;</strong>, and press Back to continue.
               </div>
             </li>
             <li>
               <strong>Complete Installation &amp; Launch</strong>
-              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)", marginTop: 2 }}>
+              <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
                 Tap <strong>Install</strong> on the Android screen. Once complete, tap <strong>Open</strong> or launch <strong>LSMIS</strong> from your device&apos;s app drawer.
               </div>
             </li>

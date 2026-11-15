@@ -11,6 +11,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "../../components/notifications/Toast";
 import { supabase } from "../../services/supabaseClient";
 import { notifyDbChange } from "../../services/realtimeSync";
+import { logActivity } from "../../services/activityService";
 import { TABLES } from "../../utils/constants";
 import { Card, Button } from "../../components/ui";
 import { Icon } from "../../components/icons";
@@ -126,6 +127,14 @@ export const PermitConfig = () => {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("permit_config_updated"));
       }
+      try {
+        await logActivity({
+          action: "Updated Meat Permit & Gate Pass configuration defaults",
+          module: "Settings",
+          new_value: JSON.stringify(form),
+          field_changed: "permit_config",
+        });
+      } catch (_) {}
     } catch (err) {
       console.error("Failed to save permit config:", err);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
@@ -168,6 +177,14 @@ export const PermitConfig = () => {
     if (typeof window !== "undefined") {
       window.dispatchEvent(new Event("permit_config_updated"));
     }
+    try {
+      await logActivity({
+        action: "Reset Meat Permit & Gate Pass configuration to defaults",
+        module: "Settings",
+        new_value: JSON.stringify(DEFAULT_PERMIT_CONFIG),
+        field_changed: "permit_config",
+      });
+    } catch (_) {}
   };
 
   if (loading) {

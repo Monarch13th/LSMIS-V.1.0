@@ -140,7 +140,7 @@ export const ModulePage = ({
                       left: 13,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      color: "var(--color-text-muted, #94a3b8)",
+                      color: "var(--color-text-muted, #9BA49E)",
                       pointerEvents: "none",
                       zIndex: 10
                     }}

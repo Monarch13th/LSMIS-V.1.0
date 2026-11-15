@@ -134,13 +134,13 @@ export const OwnerNotifications = () => {
         color: "#f59e0b",
         label: "Veterinary Inspection",
         route: "/owner/animals",
-        routeLabel: "View in Today's Livestock →",
+        routeLabel: "View in Today's Livestock ?",
       };
     }
     return {
       icon: <Icon.Bell size={18} />,
-      bg: "rgba(14, 165, 233, 0.12)",
-      color: "#0ea5e9",
+      bg: "rgba(24, 122, 86, 0.12)",
+      color: "#24966D",
       label: "Abattoir Notice",
       route: null,
       routeLabel: null,
@@ -162,8 +162,8 @@ export const OwnerNotifications = () => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ fontSize: 17 }}>🔔</span>
-          <h1 style={{ fontSize: 15, fontWeight: 900, margin: 0, color: "var(--color-text, #0f172a)", letterSpacing: "-0.01em" }}>
+          <span style={{ fontSize: 17 }}>??</span>
+          <h1 style={{ fontSize: 15, fontWeight: 900, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
             Notifications
           </h1>
           <span
@@ -172,8 +172,8 @@ export const OwnerNotifications = () => {
               fontWeight: 700,
               padding: "2px 7px",
               borderRadius: 999,
-              background: unreadCount > 0 ? "rgba(239, 68, 68, 0.12)" : "rgba(2, 132, 199, 0.12)",
-              color: unreadCount > 0 ? "#ef4444" : "#0284c7",
+              background: unreadCount > 0 ? "rgba(239, 68, 68, 0.12)" : "rgba(24, 122, 86, 0.12)",
+              color: unreadCount > 0 ? "#ef4444" : "#187A56",
             }}
           >
             {unreadCount > 0 ? `${unreadCount} New` : `${notifs.length} Total`}
@@ -186,11 +186,11 @@ export const OwnerNotifications = () => {
               type="button"
               onClick={markAllAsRead}
               style={{
-                background: "rgba(14, 165, 233, 0.1)",
-                border: "1px solid rgba(14, 165, 233, 0.25)",
+                background: "rgba(24, 122, 86, 0.1)",
+                border: "1px solid rgba(24, 122, 86, 0.25)",
                 borderRadius: 8,
                 padding: "4px 8px",
-                color: "#0284c7",
+                color: "#187A56",
                 cursor: "pointer",
                 display: "flex",
                 alignItems: "center",
@@ -231,11 +231,11 @@ export const OwnerNotifications = () => {
             onClick={fetchNotifs}
             title="Refresh notifications"
             style={{
-              background: "var(--color-bg, #f8fafc)",
-              border: "1px solid var(--color-border, #e2e8f0)",
+              background: "var(--color-bg, #F9FAF8)",
+              border: "1px solid var(--color-border, #E2E6E3)",
               borderRadius: 8,
               padding: "4px 8px",
-              color: "var(--color-text-muted, #64748b)",
+              color: "var(--color-text-muted, #5D6660)",
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
@@ -252,16 +252,16 @@ export const OwnerNotifications = () => {
 
       {/* 2. NOTIFICATIONS LIST */}
       {loading ? (
-        <div className="owner-section-card" style={{ textAlign: "center", padding: 32, color: "#94a3b8", fontSize: 12 }}>
+        <div className="owner-section-card" style={{ textAlign: "center", padding: 32, color: "#9BA49E", fontSize: 12 }}>
           Loading alerts...
         </div>
       ) : notifs.length === 0 ? (
         <div className="owner-section-card" style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>🔔</div>
-          <h3 style={{ fontSize: 13, fontWeight: 800, margin: "0 0 4px 0", color: "var(--color-text, #0f172a)" }}>
+          <div style={{ fontSize: 28, marginBottom: 8 }}>??</div>
+          <h3 style={{ fontSize: 13, fontWeight: 800, margin: "0 0 4px 0", color: "var(--color-text, #1A201C)" }}>
             No notifications
           </h3>
-          <p style={{ fontSize: 11.5, color: "#94a3b8", margin: 0, maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
+          <p style={{ fontSize: 11.5, color: "#9BA49E", margin: 0, maxWidth: 280, marginLeft: "auto", marginRight: "auto" }}>
             You're all caught up! New inspection and payment notices will appear here in real time.
           </p>
         </div>
@@ -298,7 +298,7 @@ export const OwnerNotifications = () => {
 
                 {info.route && (
                   <div className="owner-notif-footer">
-                    <span style={{ color: "#94a3b8" }}>Official Record Attached</span>
+                    <span style={{ color: "#9BA49E" }}>Official Record Attached</span>
                     <Link
                       to={info.route}
                       onClick={(e) => {

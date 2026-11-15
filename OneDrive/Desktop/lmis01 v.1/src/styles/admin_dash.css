@@ -1,0 +1,2205 @@
+/* ===========================================================
+   LSMIS Admin Interface & Dashboard — Growth-Inspired Redesign
+   Retains LSMIS theme colors (--role-admin-from/to, --color-primary,
+   slate surfaces, emerald/violet/sky/amber accents) while matching
+   the floating sidebar, integrated header, and 3-row card layout
+   of the reference design.
+   =========================================================== */
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) {
+  /* All values resolve to the centralized Landing Page theme (theme.css) */
+  --ag-primary: var(--lsmis-primary);
+  --ag-primary-to: var(--lsmis-primary-hover);
+  --ag-primary-text: var(--lsmis-primary-text);
+  --ag-emerald: #059669;
+  --color-primary: var(--lsmis-primary);
+  --color-primary-light: var(--lsmis-accent-light);
+  --color-primary-dark: var(--lsmis-primary-hover);
+  --color-primary-bg: var(--lsmis-primary-soft);
+  --ag-hero-bg: linear-gradient(135deg, #187A56 0%, #10593E 100%);
+  --ag-card: var(--lsmis-surface);
+  --ag-surface-alt: var(--lsmis-surface-alt);
+  --ag-input-bg: var(--lsmis-surface);
+  --ag-card-ink: var(--lsmis-text);
+  --ag-muted: var(--lsmis-text-secondary);
+  --ag-subtle: var(--lsmis-text-subtle);
+  --ag-line: var(--lsmis-border);
+  --ag-border-card: var(--lsmis-border);
+  --ag-row-hover: var(--lsmis-primary-subtle);
+  --ag-page: var(--lsmis-page-bg);
+  --ag-radius: 20px;
+  --ag-shadow: var(--lsmis-shadow-card);
+}
+
+[data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]),
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"])[data-theme="dark"] {
+  --ag-hero-bg: linear-gradient(135deg, #143527 0%, #0F271D 100%);
+  --ag-card: var(--lsmis-surface);
+  --ag-surface-alt: var(--lsmis-surface-alt);
+  --ag-input-bg: var(--lsmis-surface-alt);
+  --ag-card-ink: var(--lsmis-text);
+  --ag-muted: var(--lsmis-text-muted);
+  --ag-subtle: var(--lsmis-text-subtle);
+  --ag-line: var(--lsmis-border);
+  --ag-border-card: var(--lsmis-border);
+  --ag-row-hover: var(--lsmis-primary-subtle);
+  --ag-page: var(--lsmis-page-bg);
+  --ag-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* ===========================================================
+   1. ADMIN SHELL: Floating Rounded Sidebar + Seamless Header
+   =========================================================== */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-layout {
+  background: var(--ag-page) !important;
+  background-attachment: fixed !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-main,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-content {
+  background: transparent !important;
+}
+
+@media (min-width: 1025px) {
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar {
+    top: 14px !important;
+    left: 14px !important;
+    height: calc(100vh - 28px) !important;
+    width: 248px !important;
+    border: 1px solid var(--ag-line) !important;
+    border-radius: 24px !important;
+    background: var(--ag-card) !important;
+    box-shadow: 0 10px 30px -10px rgba(18, 43, 33, 0.07), 0 2px 6px rgba(18, 43, 33, 0.02) !important;
+    overflow: hidden;
+  }
+
+  [data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 20px 44px -12px rgba(0, 0, 0, 0.55) !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-main {
+    margin-left: 266px !important;
+    padding-top: 78px !important;
+    position: relative !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    height: 78px !important;
+    padding: 0 28px !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-content {
+    padding: 6px 28px 28px !important;
+  }
+}
+
+/* Sidebar Brand — Clean horizontal logo + title like "Growth" in reference */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-brand {
+  background: transparent !important;
+  color: var(--ag-card-ink) !important;
+  padding: 22px 20px 14px !important;
+  border-bottom: none !important;
+  gap: 11px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-brand::after {
+  display: none !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-brand .logo {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--ag-line) !important;
+  box-shadow: 0 4px 10px rgba(24, 122, 86, 0.12) !important;
+  padding: 2px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-brand h1 {
+  color: var(--ag-card-ink) !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.05 !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-brand p {
+  color: var(--ag-muted) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+  margin-top: 2px !important;
+}
+
+/* Sidebar Nav Sections & Pills */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-nav {
+  padding: 6px 14px 14px !important;
+  gap: 3px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-section-title {
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  color: var(--ag-subtle) !important;
+  padding: 16px 12px 6px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-group-head {
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  color: var(--ag-muted) !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  transition: all 160ms ease !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item svg,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-group-head .nav-group-icon svg {
+  color: var(--ag-subtle) !important;
+  width: 18px !important;
+  height: 18px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item:hover,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-group-head:hover {
+  background: var(--lsmis-primary-subtle) !important;
+  color: var(--lsmis-primary-text) !important;
+  transform: none !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item:hover svg,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-group-head:hover .nav-group-icon svg {
+  color: var(--ag-primary) !important;
+}
+
+/* Active Nav Pill — Solid themed pill matching the reference's "Dashboard" pill */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item.active {
+  background: linear-gradient(135deg, var(--lsmis-primary) 0%, var(--lsmis-secondary) 100%) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  border-radius: 13px !important;
+  box-shadow: 0 6px 16px -4px rgba(24, 122, 86, 0.35) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item.active svg {
+  color: #ffffff !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item.active:hover {
+  background: linear-gradient(135deg, var(--lsmis-primary-hover) 0%, var(--lsmis-primary) 100%) !important;
+  color: #ffffff !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-foot {
+  background: transparent !important;
+  border-top: 1px solid var(--ag-line) !important;
+  padding: 12px 14px !important;
+}
+
+/* Top Header — Transparent seamless bar with "Hi, User!" greeting & circular buttons */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header,
+[data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"])[data-theme="dark"] .app-header {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header h2 {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  color: var(--ag-card-ink) !important;
+  line-height: 1.15 !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header p {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: var(--ag-muted) !important;
+  margin-top: 2px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header-right {
+  gap: 10px !important;
+}
+
+/* Circular white icon buttons in header (matching reference top-right) */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header .icon-btn-header {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  background: var(--ag-card) !important;
+  color: var(--ag-card-ink) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 12px rgba(26, 32, 28, 0.06) !important;
+}
+
+[data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header .icon-btn-header {
+  border-color: var(--ag-line) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header .icon-btn-header:hover {
+  background: var(--lsmis-primary-subtle) !important;
+  border-color: var(--lsmis-primary-muted) !important;
+  color: var(--lsmis-primary-text) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--lsmis-shadow-md) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header .user-pill {
+  padding: 4px 12px 4px 4px !important;
+  border-radius: 999px !important;
+  background: var(--ag-card) !important;
+  border: 1px solid rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 4px 12px rgba(26, 32, 28, 0.06) !important;
+}
+
+[data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header .user-pill {
+  border-color: var(--ag-line) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-footer {
+  background: transparent !important;
+  border-top: none !important;
+}
+
+/* ===========================================================
+   2. ADMIN DASHBOARD GRID (Matches Reference 3-Row Layout)
+   =========================================================== */
+.ag-dash {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  color: var(--ag-card-ink);
+  padding-bottom: 8px;
+}
+
+/* Optional subtle sub-bar when sync or quick action is needed */
+.ag-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: -4px;
+}
+
+.ag-facility-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ag-muted);
+}
+
+.ag-facility-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.ag-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Solid dark/themed pill action button (like "+ Create" in reference) */
+.ag-create-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  border: none;
+  background: var(--lsmis-primary-active);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 20px -6px rgba(13, 34, 28, 0.45);
+  transition: transform 160ms ease, box-shadow 160ms ease;
+}
+
+.ag-create-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px -6px rgba(24, 122, 86, 0.5);
+}
+
+/* Grid Rows */
+.ag-row {
+  display: grid;
+  gap: 18px;
+}
+
+.ag-row-top {
+  grid-template-columns: 1.05fr 1.2fr 0.85fr;
+  align-items: stretch;
+}
+
+.ag-row-mid {
+  grid-template-columns: 0.82fr 2.18fr;
+  align-items: stretch;
+}
+
+.ag-row-bottom {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Card Surfaces */
+.ag-card {
+  border-radius: var(--ag-radius, 22px);
+  padding: 22px;
+  min-width: 0;
+  position: relative;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+/* Dark Hero Card (Reference top-left & bottom cards, themed in deep LSMIS emerald gradient) */
+.ag-dark {
+  background: var(--ag-hero-bg);
+  color: #ffffff;
+  box-shadow: 0 14px 30px -8px rgba(24, 122, 86, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Frosted Glass Card (Reference center chart card) */
+.ag-glass {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: var(--ag-card-ink);
+  box-shadow: var(--ag-shadow);
+}
+
+[data-theme="dark"] .ag-glass {
+  background: rgba(30, 41, 59, 0.68);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Clean White Card (Reference right card, Month Goal's card, Task cards) */
+.ag-white {
+  background: var(--ag-card);
+  color: var(--ag-card-ink);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: var(--ag-shadow);
+}
+
+[data-theme="dark"] .ag-white {
+  border-color: var(--ag-line);
+}
+
+/* Card Header */
+.ag-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.ag-card-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ag-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.ag-white .ag-icon-btn,
+.ag-glass .ag-icon-btn {
+  background: rgba(24, 122, 86, 0.08);
+  color: var(--ag-primary);
+}
+
+.ag-icon-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(24, 122, 86, 0.16);
+}
+
+.ag-dark .ag-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ===========================================================
+   2.5. INTERACTIVE HOVER TOOLTIPS ([data-ag-tip])
+   =========================================================== */
+[data-ag-tip] {
+  position: relative;
+}
+
+[data-ag-tip]::after {
+  content: attr(data-ag-tip);
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  transform: translate(-50%, 5px) scale(0.96);
+  background: rgba(26, 32, 28, 0.96);
+  color: #F9FAF8;
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  padding: 6px 11px;
+  border-radius: 9px;
+  border: 1px solid rgba(24, 122, 86, 0.28);
+  box-shadow: 0 10px 26px -6px rgba(26, 32, 28, 0.45);
+  white-space: nowrap;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 80;
+  transition: opacity 150ms ease, transform 150ms cubic-bezier(0.22, 1, 0.36, 1), visibility 150ms ease;
+}
+
+[data-ag-tip]::before {
+  content: "";
+  position: absolute;
+  bottom: calc(100% + 3px);
+  left: 50%;
+  transform: translate(-50%, 5px);
+  border: 5px solid transparent;
+  border-top-color: rgba(26, 32, 28, 0.96);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  z-index: 80;
+  transition: opacity 150ms ease, transform 150ms cubic-bezier(0.22, 1, 0.36, 1), visibility 150ms ease;
+}
+
+[data-ag-tip]:hover::after,
+[data-ag-tip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0) scale(1);
+}
+
+[data-ag-tip]:hover::before,
+[data-ag-tip]:focus-visible::before {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+[data-ag-tip][data-ag-tip-pos="left"]::after {
+  left: 0;
+  transform: translate(0, 5px) scale(0.96);
+}
+
+[data-ag-tip][data-ag-tip-pos="left"]:hover::after,
+[data-ag-tip][data-ag-tip-pos="left"]:focus-visible::after {
+  transform: translate(0, 0) scale(1);
+}
+
+[data-ag-tip][data-ag-tip-pos="right"]::after {
+  left: auto;
+  right: 0;
+  transform: translate(0, 5px) scale(0.96);
+}
+
+[data-ag-tip][data-ag-tip-pos="right"]:hover::after,
+[data-ag-tip][data-ag-tip-pos="right"]:focus-visible::after {
+  transform: translate(0, 0) scale(1);
+}
+
+/* ===========================================================
+   3. TOP-LEFT CARD: "Overall Information" Hero Card
+   =========================================================== */
+.ag-overview {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ag-overview-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 2px 0 12px;
+  flex-wrap: wrap;
+}
+
+.ag-big {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  margin: -6px -10px;
+  border-radius: 14px;
+  transition: background 180ms ease, transform 180ms ease, box-shadow 180ms ease;
+}
+
+.ag-big.interactive {
+  cursor: pointer;
+}
+
+.ag-big.interactive:hover {
+  background: rgba(255, 255, 255, 0.11);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -8px rgba(0, 0, 0, 0.35);
+}
+
+.ag-big strong {
+  font-size: 44px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.ag-big.interactive:hover strong {
+  color: var(--lsmis-accent-soft);
+  text-shadow: 0 0 18px rgba(24, 122, 86, 0.45);
+}
+
+.ag-big.small strong {
+  font-size: 38px;
+}
+
+.ag-big span {
+  font-size: 11px;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.68);
+  font-weight: 500;
+  transition: color 180ms ease;
+}
+
+.ag-big.interactive:hover span {
+  color: #ffffff;
+}
+
+.ag-big-sep {
+  width: 1px;
+  height: 34px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Progress bar inside dark hero card */
+.ag-progress {
+  height: 7px;
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  margin: 4px 0 16px;
+  cursor: pointer;
+  transition: height 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.ag-progress:hover {
+  height: 9px;
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.35);
+}
+
+.ag-progress i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--lsmis-accent-light) 0%, #34d399 100%);
+  border-radius: 999px;
+  transition: width 500ms ease, filter 160ms ease;
+}
+
+.ag-progress:hover i {
+  filter: brightness(1.12);
+}
+
+/* 3 Sub-Tiles at bottom of Overall Information card */
+.ag-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.ag-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 14px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.ag-tile.mid {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.ag-tile.light {
+  background: #ffffff;
+  color: #1A201C;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.ag-tile:hover {
+  transform: translateY(-3px);
+  border-color: rgba(24, 122, 86, 0.55);
+  box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.35);
+}
+
+.ag-tile:not(.light):hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.ag-tile.light:hover {
+  box-shadow: 0 12px 26px -6px rgba(24, 122, 86, 0.35);
+}
+
+.ag-tile-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.16);
+  margin-bottom: 2px;
+  transition: transform 180ms ease, background 180ms ease;
+}
+
+.ag-tile:hover .ag-tile-icon {
+  transform: scale(1.12);
+}
+
+.ag-tile.light .ag-tile-icon {
+  background: rgba(24, 122, 86, 0.12);
+  color: var(--ag-primary);
+}
+
+.ag-tile strong {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.ag-tile span {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
+/* ===========================================================
+   4. TOP-CENTER CARD: Dual-Line Area Chart (Operations)
+   =========================================================== */
+.ag-chart-interactive-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.ag-legend-inline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ag-muted);
+  margin-bottom: 6px;
+}
+
+.ag-legend-series-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background: rgba(148, 163, 184, 0.08);
+  cursor: pointer;
+  transition: all 160ms ease;
+}
+
+.ag-legend-series-pill:hover,
+.ag-legend-series-pill.is-active {
+  background: rgba(24, 122, 86, 0.1);
+  border-color: rgba(24, 122, 86, 0.28);
+  color: var(--ag-card-ink);
+  transform: translateY(-1px);
+}
+
+.ag-legend-series-pill.is-dimmed {
+  opacity: 0.45;
+}
+
+.ag-legend-series-val {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--ag-card-ink);
+  margin-left: 2px;
+}
+
+.ag-legend-inline i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ag-legend-inline i.dk {
+  background: var(--ag-primary, var(--lsmis-primary));
+}
+
+.ag-legend-inline i.lt {
+  background: var(--ag-emerald, #10b981);
+}
+
+.ag-linechart {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.ag-chart-stage-canvas {
+  position: relative;
+  width: 100%;
+}
+
+.ag-linechart svg {
+  width: 100%;
+  height: 158px;
+  display: block;
+  overflow: visible;
+}
+
+/* Floating Chart Hover Tooltip */
+.ag-chart-floating-tooltip {
+  position: absolute;
+  top: -6px;
+  transform: translate(-50%, -4px);
+  min-width: 175px;
+  max-width: 230px;
+  padding: 9px 12px;
+  border-radius: 13px;
+  background: rgba(26, 32, 28, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(24, 122, 86, 0.32);
+  box-shadow: 0 14px 30px -8px rgba(26, 32, 28, 0.45);
+  color: #F9FAF8;
+  pointer-events: none;
+  z-index: 45;
+  animation: agTooltipFadeIn 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes agTooltipFadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 2px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -4px) scale(1);
+  }
+}
+
+.ag-chart-tt-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.ag-chart-tt-head strong {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.ag-chart-tt-head span {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--lsmis-accent-soft);
+  background: rgba(24, 122, 86, 0.25);
+  padding: 1px 6px;
+  border-radius: 999px;
+}
+
+.ag-chart-tt-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: rgba(248, 250, 252, 0.82);
+}
+
+.ag-chart-tt-row b {
+  margin-left: auto;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.ag-chart-tt-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ag-chart-tt-dot.dk {
+  background: var(--lsmis-accent-light);
+}
+
+.ag-chart-tt-dot.lt {
+  background: #34d399;
+}
+
+.ag-chart-tt-hint {
+  margin-top: 5px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12);
+  font-size: 10px;
+  font-weight: 600;
+  color: #93c5fd;
+  text-align: right;
+}
+
+.ag-grid {
+  stroke: var(--ag-line);
+  stroke-dasharray: 3 4;
+}
+
+.ag-hover-guide {
+  stroke: var(--ag-primary, var(--lsmis-primary));
+  stroke-width: 1.3;
+  stroke-dasharray: 3 3;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.ag-hover-guide.visible {
+  opacity: 0.55;
+}
+
+.ag-area-primary {
+  fill: url(#agGradPrimary);
+  transition: opacity 180ms ease;
+}
+
+.ag-area-secondary {
+  fill: url(#agGradSecondary);
+  transition: opacity 180ms ease;
+}
+
+.ag-line-primary {
+  fill: none;
+  stroke: var(--ag-primary, var(--lsmis-primary));
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transition: opacity 180ms ease, stroke-width 180ms ease;
+}
+
+.ag-line-secondary {
+  fill: none;
+  stroke: var(--ag-emerald, #10b981);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.85;
+  transition: opacity 180ms ease, stroke-width 180ms ease;
+}
+
+.ag-area-primary.is-dimmed,
+.ag-line-primary.is-dimmed,
+.ag-area-secondary.is-dimmed,
+.ag-line-secondary.is-dimmed {
+  opacity: 0.22;
+}
+
+.ag-line-primary.is-emphasized {
+  stroke-width: 3.2;
+}
+
+.ag-line-secondary.is-emphasized {
+  stroke-width: 2.8;
+  opacity: 1;
+}
+
+.ag-dot {
+  fill: var(--ag-card, #ffffff);
+  stroke: var(--ag-primary, var(--lsmis-primary));
+  stroke-width: 2.2;
+  transition: r 150ms ease, fill 150ms ease;
+}
+
+.ag-dot.peak {
+  fill: var(--ag-primary, var(--lsmis-primary));
+}
+
+.ag-dot-halo {
+  fill: rgba(24, 122, 86, 0.18);
+  pointer-events: none;
+}
+
+.ag-dot-sub {
+  fill: var(--ag-card, #ffffff);
+  stroke: var(--ag-emerald, #10b981);
+  stroke-width: 1.8;
+  opacity: 0.75;
+  transition: r 150ms ease, opacity 150ms ease, fill 150ms ease;
+}
+
+.ag-dot-sub.active {
+  fill: var(--ag-emerald, #10b981);
+  opacity: 1;
+}
+
+.ag-peak-group {
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  pointer-events: none;
+}
+
+.ag-peak-tag {
+  fill: var(--lsmis-primary-active);
+}
+
+.ag-peak-text {
+  font-size: 10px;
+  font-weight: 700;
+  fill: #ffffff;
+}
+
+.ag-chart-axis {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ag-line);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ag-muted);
+}
+
+.ag-chart-axis span {
+  padding: 4px 10px;
+  border-radius: 999px;
+  transition: all 150ms ease;
+  user-select: none;
+}
+
+.ag-chart-axis span.clickable {
+  cursor: pointer;
+}
+
+.ag-chart-axis span:hover {
+  background: rgba(24, 122, 86, 0.12);
+  color: var(--ag-primary);
+}
+
+.ag-chart-axis span.on {
+  background: var(--lsmis-primary-active);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(13, 34, 28, 0.22);
+}
+
+[data-theme="dark"] .ag-chart-axis span.on {
+  background: var(--ag-primary);
+}
+
+/* ===========================================================
+   5. TOP-RIGHT CARD: "Month Progress / Users by Role" Rings
+   =========================================================== */
+.ag-progress-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.ag-sub-stat {
+  margin: -6px 0 10px;
+  font-size: 12.5px;
+  color: var(--ag-muted);
+  display: inline-block;
+  border-radius: 8px;
+  transition: color 150ms ease;
+}
+
+.ag-sub-stat.interactive {
+  cursor: pointer;
+}
+
+.ag-sub-stat.interactive:hover {
+  color: var(--ag-primary);
+}
+
+.ag-sub-stat b {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--ag-card-ink);
+  margin-right: 4px;
+  transition: color 150ms ease;
+}
+
+.ag-sub-stat.interactive:hover b {
+  color: var(--ag-primary);
+}
+
+.ag-overview-label {
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ag-subtle);
+  margin-bottom: 6px;
+}
+
+.ag-rings {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 0 14px;
+}
+
+.ag-rings-svg-wrap {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ag-rings svg {
+  width: 118px;
+  height: 118px;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.ag-ring-bg {
+  fill: none;
+  stroke: var(--ag-line);
+  stroke-width: 7;
+  transition: opacity 180ms ease;
+}
+
+.ag-ring {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+  transition: stroke-dasharray 500ms ease, stroke-width 180ms ease, opacity 180ms ease, filter 180ms ease;
+}
+
+.ag-ring.is-hovered {
+  filter: drop-shadow(0 0 6px rgba(24, 122, 86, 0.45));
+}
+
+.ag-ring.is-dimmed {
+  opacity: 0.25;
+}
+
+.ag-ring-num {
+  font-size: 18px;
+  font-weight: 800;
+  fill: var(--ag-card-ink);
+  transition: fill 150ms ease;
+}
+
+.ag-ring-cap {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  fill: var(--ag-muted);
+}
+
+.ag-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+}
+
+.ag-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ag-muted);
+  padding: 4px 8px;
+  margin: 0 -8px;
+  border-radius: 10px;
+  transition: background 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease;
+}
+
+.ag-legend li.clickable {
+  cursor: pointer;
+}
+
+.ag-legend li.is-hovered,
+.ag-legend li:hover {
+  background: rgba(24, 122, 86, 0.08);
+  color: var(--ag-card-ink);
+  transform: translateX(2px);
+}
+
+.ag-legend li.is-dimmed {
+  opacity: 0.48;
+}
+
+.ag-legend li span.ag-legend-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ag-legend b {
+  margin-left: auto;
+  color: var(--ag-card-ink);
+  font-weight: 700;
+  transition: color 150ms ease;
+}
+
+.ag-legend li.is-hovered b,
+.ag-legend li:hover b {
+  color: var(--ag-primary);
+}
+
+.ag-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+
+/* Bottom action row inside Month Progress card (like Share + Download Report) */
+.ag-card-foot-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.ag-circle-action {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--lsmis-primary-active);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
+}
+
+.ag-circle-action:hover {
+  transform: translateY(-2px);
+  background: var(--ag-primary);
+  box-shadow: 0 8px 18px -4px rgba(24, 122, 86, 0.45);
+}
+
+.ag-outline-pill {
+  flex: 1;
+  height: 38px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ag-card-ink);
+  background: transparent;
+  color: var(--ag-card-ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 150ms ease;
+}
+
+.ag-outline-pill:hover {
+  background: var(--lsmis-primary-subtle);
+  border-color: var(--lsmis-primary-hover);
+  color: var(--lsmis-primary-text);
+  transform: translateY(-1px);
+}
+
+/* ===========================================================
+   6. MIDDLE ROW: Left Checklist Card + Right Permits Cards
+   =========================================================== */
+.ag-goals {
+  display: flex;
+  flex-direction: column;
+}
+
+.ag-goals-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--ag-line);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--ag-card-ink);
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.ag-goals-badge:hover {
+  border-color: var(--ag-primary);
+  background: rgba(24, 122, 86, 0.08);
+}
+
+.ag-checklist {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ag-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ag-card-ink);
+  padding: 6px 8px;
+  margin: 0 -8px;
+  border-radius: 10px;
+  transition: color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.ag-checklist li:hover {
+  color: var(--ag-primary);
+  background: rgba(24, 122, 86, 0.07);
+  transform: translateX(3px);
+}
+
+.ag-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--lsmis-primary-active);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 150ms ease, transform 150ms ease;
+}
+
+.ag-checklist li:hover .ag-check {
+  background: var(--ag-primary);
+  transform: scale(1.08);
+}
+
+.ag-checklist li.muted .ag-check {
+  background: rgba(100, 116, 139, 0.2);
+  color: var(--ag-muted);
+}
+
+.ag-checklist li.muted:hover .ag-check {
+  background: var(--ag-primary);
+  color: #ffffff;
+}
+
+.ag-check-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ag-check-sub {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ag-muted);
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.1);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.ag-checklist li:hover .ag-check-sub {
+  background: var(--ag-primary);
+  color: #ffffff;
+}
+
+/* Right side of Middle Row: "Recent Permits (N)" */
+.ag-process {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.ag-process-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding: 0 4px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ag-process-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ag-process-head small {
+  color: var(--ag-muted);
+  font-weight: 600;
+}
+
+.ag-link {
+  background: none;
+  border: 0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ag-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.ag-link:hover {
+  color: var(--ag-primary);
+  background: rgba(24, 122, 86, 0.08);
+  transform: translateX(2px);
+}
+
+.ag-process-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  flex: 1;
+}
+
+/* White Permit Task Cards with corner notch badge (like reference "Meet HR" / "Boss Appointment") */
+.ag-task {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  min-height: 158px;
+  padding: 20px;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.ag-task:hover {
+  transform: translateY(-4px);
+  border-color: rgba(24, 122, 86, 0.35);
+  box-shadow: 0 18px 34px -12px rgba(24, 122, 86, 0.22);
+}
+
+.ag-task-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.ag-task-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(24, 122, 86, 0.1);
+  color: var(--ag-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 180ms ease, background 180ms ease, color 180ms ease;
+}
+
+.ag-task:hover .ag-task-icon {
+  transform: scale(1.08);
+  background: var(--ag-primary);
+  color: #ffffff;
+}
+
+.ag-task h3 {
+  margin: 14px 0 4px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ag-card-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+
+.ag-task:hover h3 {
+  color: var(--ag-primary);
+}
+
+.ag-task p {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ag-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ag-task footer {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--ag-subtle);
+}
+
+.ag-task-corner {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: var(--lsmis-primary-active);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.ag-task:hover .ag-task-corner {
+  background: var(--ag-primary);
+  transform: translateX(2px);
+}
+
+/* Dashed Action Slot (3rd column in Middle Row, like "+ Add a task" in reference) */
+.ag-dashed-slot {
+  border-radius: var(--ag-radius, 22px);
+  border: 1.5px dashed rgba(100, 116, 139, 0.45);
+  background: rgba(255, 255, 255, 0.28);
+  color: var(--ag-card-ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 158px;
+  padding: 20px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  transition: all 160ms ease;
+}
+
+[data-theme="dark"] .ag-dashed-slot {
+  background: rgba(30, 41, 59, 0.35);
+  border-color: rgba(148, 163, 184, 0.35);
+}
+
+.ag-dashed-slot small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ag-muted);
+}
+
+.ag-dashed-slot:hover {
+  background: rgba(24, 122, 86, 0.08);
+  border-color: var(--ag-primary);
+  color: var(--ag-primary);
+  transform: translateY(-3px);
+}
+
+/* ===========================================================
+   7. BOTTOM ROW: "Latest Livestock" Dark Cards with Ring Badge
+   =========================================================== */
+.ag-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 2px 4px -4px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ag-section {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.ag-project {
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 128px;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.ag-project:hover {
+  transform: translateY(-4px);
+  border-color: rgba(24, 122, 86, 0.45);
+  box-shadow: 0 22px 40px -12px rgba(13, 34, 28, 0.6);
+}
+
+.ag-project header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ag-project h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #ffffff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color 150ms ease;
+}
+
+.ag-project:hover h3 {
+  color: var(--lsmis-accent-soft);
+}
+
+/* Circular ring badge in top-right of dark bottom cards (like 95% / 100% in reference) */
+.ag-ring-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid #34d399;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: rgba(16, 185, 129, 0.14);
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.ag-project:hover .ag-ring-badge {
+  transform: scale(1.1);
+  background: rgba(16, 185, 129, 0.28);
+  box-shadow: 0 0 14px rgba(52, 211, 153, 0.45);
+}
+
+.ag-project ul {
+  margin: 10px 0 0;
+  padding-left: 16px;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.78);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ag-project ul li strong {
+  color: #ffffff;
+}
+
+.ag-empty {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--ag-muted);
+}
+
+.ag-empty-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  min-height: 130px;
+  opacity: 0.85;
+}
+
+/* ===========================================================
+   8. RESPONSIVE BREAKPOINTS
+   =========================================================== */
+@media (max-width: 1280px) {
+  .ag-row-top {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ag-row-top > .ag-progress-card {
+    grid-column: 1 / -1;
+  }
+  .ag-row-top > .ag-progress-card .ag-rings {
+    justify-content: space-around;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .ag-row-mid {
+    grid-template-columns: 1fr;
+  }
+  .ag-process-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ag-process-grid > .ag-dashed-slot {
+    grid-column: 1 / -1;
+    min-height: 110px;
+  }
+  .ag-row-bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .ag-row-top {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 680px) {
+  .ag-row-mid,
+  .ag-row-bottom,
+  .ag-process-grid {
+    grid-template-columns: 1fr;
+  }
+  .ag-big strong {
+    font-size: 36px;
+  }
+  .ag-big.small strong {
+    font-size: 32px;
+  }
+  .ag-chart-floating-tooltip {
+    min-width: 150px;
+    padding: 7px 10px;
+  }
+  [data-ag-tip]::after {
+    white-space: normal;
+    width: max-content;
+    max-width: 210px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .ag-tiles {
+    grid-template-columns: 1fr;
+  }
+  .ag-tile {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 12px 14px;
+    gap: 12px;
+  }
+  .ag-tile span:last-child {
+    margin-left: auto;
+  }
+  .ag-rings {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+  .ag-chart-axis span {
+    padding: 3px 7px;
+    font-size: 11px;
+  }
+}
+
+/* ===========================================================
+   9. STANDARDIZED ADMIN RECORDS & PAGE CONTAINERS
+   Applies the exact Admin Dashboard card aesthetic (22px radius,
+   crisp border, soft elevation shadow) across all Admin pages.
+   =========================================================== */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
+  background: var(--ag-card) !important;
+  border-radius: var(--ag-radius, 22px) !important;
+  border: 1px solid var(--ag-border-card) !important;
+  box-shadow: var(--ag-shadow) !important;
+  overflow: hidden !important;
+}
+
+@media (min-width: 1025px) {
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
+    height: calc(100dvh - 78px - 34px) !important;
+    max-height: calc(100dvh - 78px - 34px) !important;
+  }
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container > div:first-child:not(.records-fixed-header),
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .animal-marking-page > div:first-child:not(.records-fixed-header) {
+  background: transparent !important;
+  border-radius: inherit !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ===========================================================
+   10. STANDARDIZED ADMIN TOOLBAR, TABS, SEARCH & FILTERS
+   =========================================================== */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header {
+  padding: 14px 20px !important;
+  min-height: 62px !important;
+  background: var(--ag-card) !important;
+  border-bottom: 1px solid var(--ag-line) !important;
+  gap: 12px !important;
+}
+
+/* Unified Segmented Filter Tabs Track */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--ag-input-bg);
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--ag-line);
+  flex-shrink: 0;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9px;
+  border: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ag-muted);
+  background: transparent;
+  cursor: pointer;
+  transition: all 160ms ease;
+  white-space: nowrap;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn:hover:not(.active) {
+  color: var(--lsmis-primary-text);
+  background: var(--lsmis-primary-subtle);
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn.active {
+  background: var(--lsmis-primary) !important;
+  color: #ffffff !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px -2px rgba(24, 122, 86, 0.38);
+}
+
+[data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn.active {
+  background: var(--lsmis-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px -2px rgba(24, 122, 86, 0.45);
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn.active svg {
+  color: #ffffff !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--ag-line);
+  color: var(--ag-muted);
+  transition: all 160ms ease;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn.active .adm-seg-badge,
+[data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-btn.active .adm-seg-badge {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #ffffff !important;
+}
+
+/* Standardized Search Inputs & Select Dropdowns in Toolbar */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="text"],
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="search"],
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="date"],
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header select {
+  height: 36px !important;
+  border-radius: 10px !important;
+  border: 1px solid var(--ag-line) !important;
+  background: var(--ag-input-bg) !important;
+  color: var(--ag-card-ink) !important;
+  font-size: 12.5px !important;
+  font-weight: 500;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="text"]:focus,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="search"]:focus,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="date"]:focus,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header select:focus {
+  border-color: var(--ag-primary) !important;
+  background: var(--ag-card) !important;
+  box-shadow: 0 0 0 3px rgba(24, 122, 86, 0.14) !important;
+}
+
+/* Primary Toolbar & Modal Action Buttons (Add Personnel, Add Species, Export, Save) */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-toolbar-primary-btn,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 10px !important;
+  background: var(--lsmis-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-shadow: 0 6px 16px -3px rgba(24, 122, 86, 0.38) !important;
+  transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-toolbar-primary-btn {
+  height: 36px !important;
+  padding: 0 14px !important;
+  font-size: 12.5px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-toolbar-primary-btn:hover,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .btn-primary:hover:not(:disabled) {
+  background: var(--lsmis-primary-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px -3px rgba(24, 122, 86, 0.48) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-soft-success {
+  background: rgba(24, 122, 86, 0.1) !important;
+  color: var(--ag-primary) !important;
+  border: 1px solid rgba(24, 122, 86, 0.28) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-soft-success:hover:not(:disabled) {
+  background: rgba(24, 122, 86, 0.18) !important;
+  border-color: var(--ag-primary) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-soft-success svg {
+  color: var(--ag-primary) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-success,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-primary {
+  background: var(--lsmis-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  box-shadow: 0 4px 12px -2px rgba(24, 122, 86, 0.35) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-success:hover:not(:disabled),
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-primary:hover:not(:disabled) {
+  background: var(--lsmis-primary-hover) !important;
+  box-shadow: 0 6px 16px -2px rgba(24, 122, 86, 0.45) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-success svg,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-primary svg {
+  color: #ffffff !important;
+}
+
+/* ===========================================================
+   11. STANDARDIZED ADMIN TABLES & RECORD ROWS
+   =========================================================== */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-scrollable-content {
+  background: var(--ag-card) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--ag-card-ink);
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table thead tr {
+  background: var(--ag-surface-alt) !important;
+  border-bottom: 1.5px solid var(--ag-line) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table thead th {
+  padding: 13px 16px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.055em !important;
+  text-transform: uppercase !important;
+  color: var(--ag-muted) !important;
+  background: var(--ag-surface-alt) !important;
+  border-bottom: 1.5px solid var(--ag-line) !important;
+  vertical-align: middle !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table tbody tr {
+  border-bottom: 1px solid var(--ag-line) !important;
+  transition: background-color 140ms ease !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table tbody tr:hover,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .personnel-table-row:hover {
+  background-color: var(--ag-row-hover) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table tbody td {
+  padding: 13px 16px !important;
+  font-size: 13px;
+  color: var(--ag-card-ink);
+  vertical-align: middle !important;
+  border-bottom: 1px solid var(--ag-line) !important;
+}
+
+/* Standardized Table Action Buttons */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table-action-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn {
+  height: 31px !important;
+  padding: 0 11px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  transition: all 150ms ease !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-outline {
+  background: var(--ag-card) !important;
+  color: var(--ag-card-ink) !important;
+  border: 1px solid var(--ag-line) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .action-btn-outline:hover {
+  background: var(--lsmis-primary-subtle) !important;
+  border-color: var(--lsmis-primary-hover) !important;
+  color: var(--lsmis-primary-text) !important;
+}
+
+/* ===========================================================
+   12. STANDARDIZED ADMIN PAGINATION FOOTER
+   =========================================================== */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-footer,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-pagination-bar {
+  padding: 12px 20px !important;
+  min-height: 54px !important;
+  background: var(--ag-card) !important;
+  border-top: 1px solid var(--ag-line) !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-footer button,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-pagination-bar button {
+  border-radius: 8px !important;
+  transition: all 150ms ease !important;
+}
+
+/* ===========================================================
+   13. STANDARDIZED ADMIN MODALS, DIALOGS & FORMS
+   =========================================================== */
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal-backdrop,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .confirm-modal-backdrop {
+  background: rgba(26, 32, 28, 0.58) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .confirm-modal-card {
+  background: var(--ag-card) !important;
+  color: var(--ag-card-ink) !important;
+  border-radius: 22px !important;
+  border: 1px solid var(--ag-line) !important;
+  box-shadow: 0 28px 64px -12px rgba(26, 32, 28, 0.38), 0 4px 16px rgba(26, 32, 28, 0.08) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal-header {
+  padding: 18px 24px !important;
+  background: var(--ag-card) !important;
+  border-bottom: 1px solid var(--ag-line) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal-header h3 {
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--ag-card-ink) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal-body {
+  padding: 20px 24px !important;
+  background: var(--ag-card) !important;
+  color: var(--ag-card-ink) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal-footer {
+  padding: 14px 24px !important;
+  background: var(--ag-surface-alt) !important;
+  border-top: 1px solid var(--ag-line) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .form-label {
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  color: var(--ag-card-ink) !important;
+  margin-bottom: 5px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .form-control,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal select,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal textarea {
+  border-radius: 10px !important;
+  border-color: var(--ag-line);
+  background: var(--ag-input-bg);
+  color: var(--ag-card-ink);
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .form-control:focus,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal select:focus,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal textarea:focus {
+  border-color: var(--ag-primary) !important;
+  background: var(--ag-card) !important;
+  box-shadow: 0 0 0 3px rgba(24, 122, 86, 0.14) !important;
+  outline: none !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal .btn,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .confirm-modal-card .btn {
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+}
+
+/* ===========================================================
+   14. STANDARDIZED ADMIN SETTINGS & PERMIT CONFIG PAGES
+   =========================================================== */
+@media (min-width: 1025px) {
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-content:has(.central-settings-container) {
+    height: calc(100dvh - 78px) !important;
+    max-height: calc(100dvh - 78px) !important;
+    padding: 6px 28px 28px !important;
+  }
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-sidebar-nav {
+  background: var(--ag-card) !important;
+  border-radius: var(--ag-radius, 22px) !important;
+  border: 1px solid var(--ag-border-card) !important;
+  box-shadow: var(--ag-shadow) !important;
+  padding: 14px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-nav-btn {
+  border-radius: 13px !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-nav-btn.active {
+  background: var(--lsmis-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 16px -3px rgba(24, 122, 86, 0.38) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-nav-btn.active svg {
+  color: #ffffff !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .owner-profile-action-btn.primary {
+  background: var(--lsmis-primary) !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  box-shadow: 0 6px 16px -3px rgba(24, 122, 86, 0.35) !important;
+}
+
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .owner-profile-card,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .settings-content-panel .card,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .mfa-security-card,
+:is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .permit-config-page .card {
+  background: var(--ag-card) !important;
+  border-radius: var(--ag-radius, 22px) !important;
+  border: 1px solid var(--ag-border-card) !important;
+  box-shadow: var(--ag-shadow) !important;
+}
+
+/* ===========================================================
+   15. RESPONSIVE ADJUSTMENTS FOR ADMIN PAGES
+   =========================================================== */
+@media (max-width: 1024px) {
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
+    border-radius: 18px !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header {
+    padding: 12px 14px !important;
+  }
+}
+
+@media (max-width: 640px) {
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
+    border-radius: 14px !important;
+  }
+
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal,
+  :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .confirm-modal-card {
+    border-radius: 18px !important;
+  }
+}

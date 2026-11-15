@@ -1683,7 +1683,7 @@ export const Login = ({ embedded = false, initialView }) => {
       // DB Activity logging & Presence Registration
       try {
         supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
-        // Immediately register a fresh active session ‚Äî shows user Online right away
+        // Immediately register a fresh active session ó shows user Online right away
         registerLoginSession({ name, email: cleanEmail, role, module: "Dashboard", loginTime: loginTimeIso });
         logActivity({
           action: `User logged in (${name} - ${role})`,
@@ -2260,7 +2260,7 @@ export const Login = ({ embedded = false, initialView }) => {
             <div className="login-brand-hero">
               <h2>Livestock Slaughter and Meat Inspection Management System</h2>
               <p>
-                City Government of Naga, Cebu ¬∑ City Abattoir Complex. Providing certified animal traceability, veterinary meat inspection clearances, and automated statutory fee assessment.
+                City Government of Naga, Cebu ∑ City Abattoir Complex. Providing certified animal traceability, veterinary meat inspection clearances, and automated statutory fee assessment.
               </p>
             </div>
             <div className="login-features">
@@ -2317,7 +2317,7 @@ export const Login = ({ embedded = false, initialView }) => {
                     width: 60,
                     height: 60,
                     borderRadius: "50%",
-                    background: "rgba(16, 185, 129, 0.12)",
+                    background: "#E6EFEA",
                     border: "2px solid #10b981",
                     color: "#10b981",
                     display: "flex",
@@ -2328,7 +2328,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   }}>
                     <Icon.ShieldCheck size={32} />
                   </div>
-                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-primary, #059669)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-primary, #187A56)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 4 }}>
                     Two-Factor Authentication
                   </div>
                   <h1 style={{ fontSize: 23, fontWeight: 800 }}>Enter Authenticator Code</h1>
@@ -2342,15 +2342,15 @@ export const Login = ({ embedded = false, initialView }) => {
                   margin: "16px 0 18px",
                   padding: "12px 16px",
                   borderRadius: 12,
-                  background: "rgba(14, 165, 233, 0.06)",
-                  border: "1px solid rgba(14, 165, 233, 0.2)",
+                  background: "rgba(24, 122, 86, 0.06)",
+                  border: "1px solid rgba(24, 122, 86, 0.2)",
                   display: "flex",
                   alignItems: "center",
                   gap: 12
                 }}>
-                  <Icon.Smartphone size={20} style={{ color: "var(--color-primary, #0284c7)", flexShrink: 0 }} />
-                  <div style={{ fontSize: 12.5, color: "var(--color-text-muted, #64748b)", lineHeight: 1.4 }}>
-                    <strong style={{ color: "var(--color-text, #0f172a)" }}>Time-Based Code:</strong> Codes refresh every 30 seconds. Enter the current code displayed on your device.
+                  <Icon.Smartphone size={20} style={{ color: "var(--color-primary, #187A56)", flexShrink: 0 }} />
+                  <div style={{ fontSize: 12.5, color: "var(--color-text-muted, #5D6660)", lineHeight: 1.4 }}>
+                    <strong style={{ color: "var(--color-text, #1A201C)" }}>Time-Based Code:</strong> Codes refresh every 30 seconds. Enter the current code displayed on your device.
                   </div>
                 </div>
 
@@ -2375,7 +2375,7 @@ export const Login = ({ embedded = false, initialView }) => {
                           setTwoFaCode(val);
                           if (twoFaError) setTwoFaError("");
                         }}
-                        placeholder="‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢‚Ä¢"
+                        placeholder="ïïïïïï"
                         style={{
                           textAlign: "center",
                           fontSize: 26,
@@ -2427,7 +2427,7 @@ export const Login = ({ embedded = false, initialView }) => {
                       style={{
                         background: "none",
                         border: "none",
-                        color: twoFaCooldown > 0 ? "var(--color-text-subtle)" : "var(--color-primary, #059669)",
+                        color: twoFaCooldown > 0 ? "var(--color-text-subtle)" : "var(--color-primary, #187A56)",
                         fontSize: 13,
                         fontWeight: 600,
                         cursor: twoFaCooldown > 0 ? "default" : "pointer",
@@ -2451,7 +2451,7 @@ export const Login = ({ embedded = false, initialView }) => {
                       style={{
                         background: "none",
                         border: "none",
-                        color: "var(--color-text-muted, #64748b)",
+                        color: "var(--color-text-muted, #5D6660)",
                         fontSize: 12.5,
                         fontWeight: 600,
                         cursor: "pointer",
@@ -2486,9 +2486,9 @@ export const Login = ({ embedded = false, initialView }) => {
                       style={{
                         padding: "12px 14px",
                         borderRadius: 10,
-                        background: "rgba(2, 132, 199, 0.08)",
-                        border: "1px solid rgba(2, 132, 199, 0.2)",
-                        color: "#0369a1",
+                        background: "rgba(24, 122, 86, 0.08)",
+                        border: "1px solid rgba(24, 122, 86, 0.2)",
+                        color: "#136647",
                         fontSize: 13,
                         lineHeight: 1.5,
                       }}
@@ -2505,7 +2505,7 @@ export const Login = ({ embedded = false, initialView }) => {
                               display: "block",
                               fontSize: 12.5,
                               fontWeight: 700,
-                              color: "var(--color-text, #0f172a)",
+                              color: "var(--color-text, #1A201C)",
                               marginBottom: 6,
                             }}
                           >
@@ -2529,9 +2529,9 @@ export const Login = ({ embedded = false, initialView }) => {
                               fontWeight: 800,
                               textAlign: "center",
                               borderRadius: 8,
-                              border: recoveryError ? "1.5px solid #ef4444" : "1px solid var(--color-border, #cbd5e1)",
+                              border: recoveryError ? "1.5px solid #ef4444" : "1px solid var(--color-border, #C2CAC4)",
                               background: "var(--color-bg, #ffffff)",
-                              color: "var(--color-text, #0f172a)",
+                              color: "var(--color-text, #1A201C)",
                               fontFamily: "ui-monospace, monospace",
                             }}
                             autoFocus
@@ -2562,7 +2562,7 @@ export const Login = ({ embedded = false, initialView }) => {
                               flex: 1,
                               height: 40,
                               borderRadius: 8,
-                              background: "linear-gradient(135deg, #10b981 0%, #047857 100%)",
+                              background: "#187A56",
                               color: "#ffffff",
                               fontWeight: 700,
                             }}
@@ -2585,7 +2585,7 @@ export const Login = ({ embedded = false, initialView }) => {
                             style={{
                               background: "none",
                               border: "none",
-                              color: "var(--color-text-muted, #64748b)",
+                              color: "var(--color-text-muted, #5D6660)",
                               fontSize: 12,
                               fontWeight: 600,
                               cursor: "pointer",
@@ -2602,17 +2602,17 @@ export const Login = ({ embedded = false, initialView }) => {
                           style={{
                             padding: "14px",
                             borderRadius: 10,
-                            background: "var(--color-bg, #f8fafc)",
-                            border: "1px solid var(--color-border, #cbd5e1)",
+                            background: "var(--color-bg, #F9FAF8)",
+                            border: "1px solid var(--color-border, #C2CAC4)",
                             fontSize: 13,
-                            color: "var(--color-text, #0f172a)",
+                            color: "var(--color-text, #1A201C)",
                             lineHeight: 1.5,
                           }}
                         >
                           <h4 style={{ margin: "0 0 6px", fontSize: 14, fontWeight: 800 }}>
                             Administrator-Assisted 2FA Reset Procedure
                           </h4>
-                          <p style={{ margin: "0 0 8px", color: "var(--color-text-muted, #64748b)" }}>
+                          <p style={{ margin: "0 0 8px", color: "var(--color-text-muted, #5D6660)" }}>
                             If you lost both your authenticator device and your recovery backup codes, you must verify your identity with the City Abattoir System Administration to authorize a security reset:
                           </p>
                           <ul style={{ margin: "0 0 10px 18px", padding: 0 }}>
@@ -2620,7 +2620,7 @@ export const Login = ({ embedded = false, initialView }) => {
                             <li>Contact: <strong>Naga City Abattoir Admin Office</strong></li>
                             <li>Email: <strong>admin1@gmail.com / pardillojustin7@gmail.com</strong></li>
                           </ul>
-                          <div style={{ fontSize: 12, color: "#64748b" }}>
+                          <div style={{ fontSize: 12, color: "#5D6660" }}>
                             Once your identity is confirmed in person, the System Administrator will reset your 2FA factor in Admin Personnel Management.
                           </div>
                         </div>
@@ -3181,7 +3181,7 @@ export const Login = ({ embedded = false, initialView }) => {
                     width: 68,
                     height: 68,
                     borderRadius: "50%",
-                    background: "rgba(16, 185, 129, 0.12)",
+                    background: "#E6EFEA",
                     border: "2px solid #10b981",
                     color: "#10b981",
                     display: "flex",
@@ -3203,7 +3203,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
                 <div style={{
                   background: "var(--color-surface, #ffffff)",
-                  border: "1px solid var(--color-border, #e2e8f0)",
+                  border: "1px solid var(--color-border, #E2E6E3)",
                   borderRadius: 14,
                   padding: "18px 20px",
                   margin: "20px 0",
@@ -3212,15 +3212,15 @@ export const Login = ({ embedded = false, initialView }) => {
                   gap: 12
                 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5 }}>
-                    <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Registered Owner:</span>
-                    <strong style={{ color: "var(--color-text, #0f172a)" }}>{registeredOwnerInfo?.name || "-"}</strong>
+                    <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Registered Owner:</span>
+                    <strong style={{ color: "var(--color-text, #1A201C)" }}>{registeredOwnerInfo?.name || "-"}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5 }}>
-                    <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Email:</span>
-                    <strong style={{ color: "var(--color-text, #0f172a)" }}>{registeredOwnerInfo?.email || "-"}</strong>
+                    <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Email:</span>
+                    <strong style={{ color: "var(--color-text, #1A201C)" }}>{registeredOwnerInfo?.email || "-"}</strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 14.5 }}>
-                    <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Current Status:</span>
+                    <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Current Status:</span>
                     <span style={{
                       padding: "4px 12px",
                       borderRadius: 999,
@@ -3234,14 +3234,14 @@ export const Login = ({ embedded = false, initialView }) => {
                     </span>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5 }}>
-                    <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Registration Ref ID:</span>
-                    <strong style={{ color: "var(--color-text, #0f172a)", fontFamily: "monospace" }}>
+                    <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Registration Ref ID:</span>
+                    <strong style={{ color: "var(--color-text, #1A201C)", fontFamily: "monospace" }}>
                       {registeredOwnerInfo?.id || "REG-001-2026"}
                     </strong>
                   </div>
                   <div style={{ display: "flex", justifyContent: "space-between", fontSize: 14.5 }}>
-                    <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Owner ID:</span>
-                    <span style={{ fontStyle: "italic", color: "var(--color-text-muted, #94a3b8)" }}>To be assigned upon approval (e.g. OWN-001-2026)</span>
+                    <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Owner ID:</span>
+                    <span style={{ fontStyle: "italic", color: "var(--color-text-muted, #9BA49E)" }}>To be assigned upon approval (e.g. OWN-001-2026)</span>
                   </div>
                 </div>
 
@@ -3255,7 +3255,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   lineHeight: 1.5,
                   marginBottom: 20
                 }}>
-                  ‚ÑπÔ∏è <strong>Next Steps:</strong> Once the Administrator approves your registration, you may log in using <strong>Continue with Google</strong> or your registered username/email and password to access the Owner Portal.
+                  ?? <strong>Next Steps:</strong> Once the Administrator approves your registration, you may log in using <strong>Continue with Google</strong> or your registered username/email and password to access the Owner Portal.
                 </div>
 
                 <Button
@@ -3273,7 +3273,7 @@ export const Login = ({ embedded = false, initialView }) => {
               <>
                 {/* Password Changed Successfully Alert Screen */}
                 <div className="login-form-head">
-                  <div className="form-icon-badge" style={{ background: "rgba(16, 185, 129, 0.12)", color: "var(--color-primary, #007A53)", width: 56, height: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px auto" }}>
+                  <div className="form-icon-badge" style={{ background: "#E6EFEA", color: "var(--color-primary, #187A56)", width: 56, height: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px auto" }}>
                     <Icon.CheckCircle size={32} />
                   </div>
                   <h1>Password Changed</h1>
@@ -3407,7 +3407,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") e.preventDefault();
                         }}
-                        placeholder="‚Ä¢ ‚Ä¢ ‚Ä¢ ‚Ä¢ ‚Ä¢ ‚Ä¢"
+                        placeholder="ï ï ï ï ï ï"
                         required
                       />
                     </div>
@@ -3609,16 +3609,16 @@ export const Login = ({ embedded = false, initialView }) => {
                   </div>
                 </div>
 
-                <p style={{ fontSize: "13.5px", color: "#334155", lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: "13.5px", color: "#444C47", lineHeight: 1.6, margin: 0 }}>
                   Your account is still under termination. You are unable to log in until the restriction expires or the administrator restores your account. Changing your password will not remove this restriction.
                 </p>
 
                 {terminationNotice.reason && (
-                  <div style={{ padding: "10px 12px", background: "#f8fafc", borderRadius: "6px", border: "1px solid #e2e8f0" }}>
-                    <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#64748b", marginBottom: "3px" }}>
+                  <div style={{ padding: "10px 12px", background: "#F9FAF8", borderRadius: "6px", border: "1px solid #E2E6E3" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#5D6660", marginBottom: "3px" }}>
                       Reason for Termination:
                     </div>
-                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a" }}>
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#1A201C" }}>
                       {terminationNotice.reason}
                     </div>
                   </div>
@@ -3668,7 +3668,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   </div>
                 </div>
 
-                <p style={{ fontSize: "13.5px", color: "#334155", lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: "13.5px", color: "#444C47", lineHeight: 1.6, margin: 0 }}>
                   Your session has ended because your account was signed in elsewhere. For your security, only one active authenticated session is allowed per account at a time. If this was not you, please change your password or contact your system administrator.
                 </p>
 
@@ -3703,7 +3703,7 @@ export const Login = ({ embedded = false, initialView }) => {
                   </div>
                 </div>
 
-                <p style={{ fontSize: "13.5px", color: "var(--color-text, #334155)", lineHeight: 1.6, margin: 0 }}>
+                <p style={{ fontSize: "13.5px", color: "var(--color-text, #444C47)", lineHeight: 1.6, margin: 0 }}>
                   This Google account is not registered. Please register an owner account first.
                 </p>
 
@@ -3714,13 +3714,13 @@ export const Login = ({ embedded = false, initialView }) => {
                     gap: 8,
                     padding: "10px 12px",
                     borderRadius: "6px",
-                    background: "var(--color-surface-hover, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-surface-hover, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                     fontSize: "12.5px"
                   }}>
                     <GoogleLogo size={14} />
-                    <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Google Account:</span>
-                    <strong style={{ color: "var(--color-text, #0f172a)" }}>{unregisteredGoogleEmail}</strong>
+                    <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Google Account:</span>
+                    <strong style={{ color: "var(--color-text, #1A201C)" }}>{unregisteredGoogleEmail}</strong>
                   </div>
                 )}
 

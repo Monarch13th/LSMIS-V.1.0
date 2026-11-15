@@ -16,7 +16,7 @@ import { initials } from "../../utils/helpers";
 const resolveTagNumbers = (log) => {
   if (!log) return [];
   const found = new Set();
-  if (log.tag_number && log.tag_number !== "â€”" && log.tag_number !== "null") {
+  if (log.tag_number && log.tag_number !== "—" && log.tag_number !== "null") {
     log.tag_number.split(",").forEach((t) => {
       const trimmed = t.trim();
       if (trimmed) found.add(trimmed);
@@ -35,20 +35,20 @@ const getRoleBadgeStyle = (role) => {
   const label = formatRoleLabel(role);
   if (label === "Admin") {
     return {
-      bg: "rgba(139, 92, 246, 0.14)",
-      color: "#8b5cf6",
-      border: "rgba(139, 92, 246, 0.3)",
+      bg: "rgba(24, 122, 86, 0.14)",
+      color: "#24966D",
+      border: "rgba(24, 122, 86, 0.3)",
       label: "Admin",
-      gradient: "linear-gradient(135deg, #7c3aed, #6d28d9)",
+      gradient: "#187A56",
     };
   }
   if (label === "Veterinarian") {
     return {
-      bg: "rgba(14, 165, 233, 0.14)",
-      color: "#0284c7",
-      border: "rgba(14, 165, 233, 0.3)",
+      bg: "rgba(24, 122, 86, 0.14)",
+      color: "#187A56",
+      border: "rgba(24, 122, 86, 0.3)",
       label: "Veterinarian",
-      gradient: "linear-gradient(135deg, #0284c7, #0369a1)",
+      gradient: "#187A56",
     };
   }
   return {
@@ -103,7 +103,7 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
   };
 
   const roleStyle = getRoleBadgeStyle(record?.role_label || record?.role);
-  const actionCategory = record ? record.action_category || classifyAuditAction(record) : "";
+  const actionCategory = record ? record.action_category || record.actionCategory || classifyAuditAction(record.action) : "";
   const fullName = record ? record.user_full_name || record.user || "Authorized Personnel" : "";
   const tags = resolveTagNumbers(record);
 
@@ -229,9 +229,9 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                       borderRadius: 6,
                       fontSize: 11,
                       fontWeight: 800,
-                      background: "rgba(14, 165, 233, 0.14)",
-                      color: "#0284c7",
-                      border: "1px solid rgba(14, 165, 233, 0.3)",
+                      background: "rgba(24, 122, 86, 0.14)",
+                      color: "#187A56",
+                      border: "1px solid rgba(24, 122, 86, 0.3)",
                     }}
                   >
                     {actionCategory}

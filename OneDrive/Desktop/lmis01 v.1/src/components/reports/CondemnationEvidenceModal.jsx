@@ -231,7 +231,7 @@ export const CondemnationEvidenceModal = ({
   const isRealSpecies = (val) => {
     if (!val || typeof val !== "string") return false;
     const s = val.trim().toLowerCase();
-    return s !== "" && s !== "—" && s !== "-" && s !== "livestock" && s !== "carcass" && s !== "unknown" && s !== "n/a";
+    return s !== "" && s !== "�" && s !== "-" && s !== "livestock" && s !== "carcass" && s !== "unknown" && s !== "n/a";
   };
   const speciesCandidates = [
     record.species,
@@ -273,7 +273,7 @@ export const CondemnationEvidenceModal = ({
   const fallbackRecordNotes = cleanEvidenceNotes(displayRecord?.reason || displayRecord?.notes || record?.details);
   const findingsCandidates = [rawPhotoNotes, rawInspFindings, rawCondReason, fallbackRecordNotes]
     .map((s) => String(s || "").trim())
-    .filter((s) => s && s !== "—" && s !== "-");
+    .filter((s) => s && s !== "�" && s !== "-");
   const findingsDisplay = findingsCandidates[0] || "Not recorded";
 
   // 7. Condemnation Date & Time
@@ -343,7 +343,7 @@ export const CondemnationEvidenceModal = ({
       >
         <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <div className="vet-evidence-viewer-grid">
-            {/* ── LEFT COLUMN: PHOTO & FILE VIEWER ── */}
+            {/* -- LEFT COLUMN: PHOTO & FILE VIEWER -- */}
             <div className="vet-evidence-viewer-media-col">
               {/* Top Bar: Counter & Zoom Controls */}
               <div
@@ -354,9 +354,9 @@ export const CondemnationEvidenceModal = ({
                   flexWrap: "wrap",
                   gap: 8,
                   padding: "8px 12px",
-                  background: "#1e293b",
-                  borderBottom: "1px solid #334155",
-                  color: "#f8fafc",
+                  background: "#2D332F",
+                  borderBottom: "1px solid #444C47",
+                  color: "#F9FAF8",
                   fontSize: 12,
                 }}
               >
@@ -364,11 +364,11 @@ export const CondemnationEvidenceModal = ({
                   <span
                     style={{
                       fontWeight: 700,
-                      color: "#e2e8f0",
-                      background: "#0f172a",
+                      color: "#E2E6E3",
+                      background: "#1A201C",
                       padding: "3px 9px",
                       borderRadius: 6,
-                      border: "1px solid #334155",
+                      border: "1px solid #444C47",
                     }}
                     data-testid="evidence-photo-counter"
                   >
@@ -377,13 +377,13 @@ export const CondemnationEvidenceModal = ({
                       : "0 of 0"}
                   </span>
                   {currentPhoto?.part && (
-                    <span style={{ color: "#94a3b8", fontSize: 11.5, fontWeight: 600 }}>
-                      Part: <strong style={{ color: "#f1f5f9" }}>{currentPhoto.part}</strong>
+                    <span style={{ color: "#9BA49E", fontSize: 11.5, fontWeight: 600 }}>
+                      Part: <strong style={{ color: "#EFF2F0" }}>{currentPhoto.part}</strong>
                     </span>
                   )}
                   {tagPhotos.length > 1 && (
-                    <span style={{ color: "#64748b", fontSize: 11 }} className="vet-ev-kbd-hint">
-                      Use ← / → keys to navigate
+                    <span style={{ color: "#5D6660", fontSize: 11 }} className="vet-ev-kbd-hint">
+                      Use ? / ? keys to navigate
                     </span>
                   )}
                 </div>
@@ -401,15 +401,15 @@ export const CondemnationEvidenceModal = ({
                         height: 26,
                         padding: "0 8px",
                         borderRadius: 5,
-                        border: "1px solid #475569",
-                        background: zoomLevel <= 1 ? "#0f172a" : "#334155",
-                        color: zoomLevel <= 1 ? "#475569" : "#f8fafc",
+                        border: "1px solid #5D6660",
+                        background: zoomLevel <= 1 ? "#1A201C" : "#444C47",
+                        color: zoomLevel <= 1 ? "#5D6660" : "#F9FAF8",
                         fontSize: 13,
                         fontWeight: 800,
                         cursor: zoomLevel <= 1 ? "not-allowed" : "pointer",
                       }}
                     >
-                      −
+                      -
                     </button>
                     <button
                       type="button"
@@ -419,9 +419,9 @@ export const CondemnationEvidenceModal = ({
                         height: 26,
                         padding: "0 8px",
                         borderRadius: 5,
-                        border: "1px solid #475569",
-                        background: "#0f172a",
-                        color: "#e2e8f0",
+                        border: "1px solid #5D6660",
+                        background: "#1A201C",
+                        color: "#E2E6E3",
                         fontSize: 11,
                         fontWeight: 700,
                         cursor: "pointer",
@@ -440,9 +440,9 @@ export const CondemnationEvidenceModal = ({
                         height: 26,
                         padding: "0 8px",
                         borderRadius: 5,
-                        border: "1px solid #475569",
-                        background: zoomLevel >= 2.5 ? "#0f172a" : "#334155",
-                        color: zoomLevel >= 2.5 ? "#475569" : "#f8fafc",
+                        border: "1px solid #5D6660",
+                        background: zoomLevel >= 2.5 ? "#1A201C" : "#444C47",
+                        color: zoomLevel >= 2.5 ? "#5D6660" : "#F9FAF8",
                         fontSize: 13,
                         fontWeight: 800,
                         cursor: zoomLevel >= 2.5 ? "not-allowed" : "pointer",
@@ -458,8 +458,8 @@ export const CondemnationEvidenceModal = ({
                         height: 26,
                         padding: "0 9px",
                         borderRadius: 5,
-                        border: "1px solid #0284c7",
-                        background: "#0284c7",
+                        border: "1px solid #187A56",
+                        background: "#187A56",
                         color: "#ffffff",
                         fontSize: 11,
                         fontWeight: 700,
@@ -479,9 +479,9 @@ export const CondemnationEvidenceModal = ({
                         height: 26,
                         padding: "0 9px",
                         borderRadius: 5,
-                        border: "1px solid #475569",
-                        background: "#334155",
-                        color: "#f8fafc",
+                        border: "1px solid #5D6660",
+                        background: "#444C47",
+                        color: "#F9FAF8",
                         fontSize: 11,
                         fontWeight: 600,
                         cursor: "pointer",
@@ -503,7 +503,7 @@ export const CondemnationEvidenceModal = ({
                   flex: 1,
                   minHeight: 200,
                   maxHeight: "270px",
-                  background: "#0f172a",
+                  background: "#1A201C",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -518,7 +518,7 @@ export const CondemnationEvidenceModal = ({
                     style={{
                       padding: "36px 24px",
                       textAlign: "center",
-                      color: "#cbd5e1",
+                      color: "#C2CAC4",
                       maxWidth: 380,
                     }}
                   >
@@ -532,15 +532,15 @@ export const CondemnationEvidenceModal = ({
                         alignItems: "center",
                         justifyContent: "center",
                         margin: "0 auto 12px",
-                        color: "#94a3b8",
+                        color: "#9BA49E",
                       }}
                     >
                       <Icon.FileText size={26} />
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#F9FAF8" }}>
                       No evidence file exists for this record
                     </div>
-                    <div style={{ fontSize: 12.5, color: "#94a3b8", marginTop: 6, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12.5, color: "#9BA49E", marginTop: 6, lineHeight: 1.5 }}>
                       No photo or document file is attached to this condemnation record.
                     </div>
                   </div>
@@ -551,7 +551,7 @@ export const CondemnationEvidenceModal = ({
                     style={{
                       padding: "36px 24px",
                       textAlign: "center",
-                      color: "#e2e8f0",
+                      color: "#E2E6E3",
                       maxWidth: 420,
                     }}
                   >
@@ -560,22 +560,22 @@ export const CondemnationEvidenceModal = ({
                         width: 56,
                         height: 56,
                         borderRadius: 12,
-                        background: "rgba(2, 132, 199, 0.16)",
-                        border: "1px solid rgba(2, 132, 199, 0.35)",
+                        background: "rgba(24, 122, 86, 0.16)",
+                        border: "1px solid rgba(24, 122, 86, 0.35)",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         margin: "0 auto 12px",
-                        color: "#38bdf8",
+                        color: "#24966D",
                       }}
                     >
                       <Icon.FileText size={28} />
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc", wordBreak: "break-word" }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#F9FAF8", wordBreak: "break-word" }}>
                       {currentPhoto.name || displayRecord.file_name || "Evidence Document"}
                     </div>
-                    <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 4 }}>
-                      {displayRecord.type || "Document"} · Non-image evidence file
+                    <div style={{ fontSize: 12, color: "#9BA49E", marginTop: 4 }}>
+                      {displayRecord.type || "Document"} � Non-image evidence file
                     </div>
                     <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 16 }}>
                       <Button
@@ -609,7 +609,7 @@ export const CondemnationEvidenceModal = ({
                     style={{
                       padding: "32px 24px",
                       textAlign: "center",
-                      color: "#cbd5e1",
+                      color: "#C2CAC4",
                       maxWidth: 440,
                     }}
                   >
@@ -628,14 +628,14 @@ export const CondemnationEvidenceModal = ({
                     >
                       <Icon.AlertTriangle size={26} />
                     </div>
-                    <div style={{ fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
+                    <div style={{ fontSize: 15, fontWeight: 700, color: "#F9FAF8" }}>
                       Unable to load evidence photo
                     </div>
-                    <div style={{ fontSize: 12.5, color: "#94a3b8", marginTop: 6, lineHeight: 1.5 }}>
+                    <div style={{ fontSize: 12.5, color: "#9BA49E", marginTop: 6, lineHeight: 1.5 }}>
                       The image file could not be loaded from storage. The file may have been removed or the URL is temporarily unreachable.
                     </div>
                     {currentPhoto.name && (
-                      <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 8, wordBreak: "break-all" }}>
+                      <div style={{ fontSize: 11.5, color: "#5D6660", marginTop: 8, wordBreak: "break-all" }}>
                         File: {currentPhoto.name}
                       </div>
                     )}
@@ -667,14 +667,14 @@ export const CondemnationEvidenceModal = ({
                           flexDirection: "column",
                           alignItems: "center",
                           justifyContent: "center",
-                          background: "rgba(15, 23, 42, 0.82)",
-                          color: "#e2e8f0",
+                          background: "rgba(26, 32, 28, 0.82)",
+                          color: "#E2E6E3",
                           zIndex: 3,
                           gap: 10,
                         }}
                       >
                         <span className="spinner" style={{ width: 28, height: 28 }} />
-                        <span style={{ fontSize: 12.5, fontWeight: 600, color: "#cbd5e1" }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 600, color: "#C2CAC4" }}>
                           Loading evidence photo...
                         </span>
                       </div>
@@ -720,7 +720,7 @@ export const CondemnationEvidenceModal = ({
                         left: 12,
                         top: "50%",
                         transform: "translateY(-50%)",
-                        background: "rgba(15, 23, 42, 0.82)",
+                        background: "rgba(26, 32, 28, 0.82)",
                         color: "#ffffff",
                         border: "1px solid rgba(255,255,255,0.25)",
                         borderRadius: "50%",
@@ -748,7 +748,7 @@ export const CondemnationEvidenceModal = ({
                         right: 12,
                         top: "50%",
                         transform: "translateY(-50%)",
-                        background: "rgba(15, 23, 42, 0.82)",
+                        background: "rgba(26, 32, 28, 0.82)",
                         color: "#ffffff",
                         border: "1px solid rgba(255,255,255,0.25)",
                         borderRadius: "50%",
@@ -776,8 +776,8 @@ export const CondemnationEvidenceModal = ({
                     alignItems: "center",
                     gap: 8,
                     padding: "8px 12px",
-                    background: "#1e293b",
-                    borderTop: "1px solid #334155",
+                    background: "#2D332F",
+                    borderTop: "1px solid #444C47",
                     overflowX: "auto",
                   }}
                 >
@@ -796,8 +796,8 @@ export const CondemnationEvidenceModal = ({
                           padding: 0,
                           borderRadius: 6,
                           overflow: "hidden",
-                          border: isSelected ? "2px solid #38bdf8" : "1px solid #475569",
-                          background: "#0f172a",
+                          border: isSelected ? "2px solid #24966D" : "1px solid #5D6660",
+                          background: "#1A201C",
                           cursor: "pointer",
                           flexShrink: 0,
                           position: "relative",
@@ -834,7 +834,7 @@ export const CondemnationEvidenceModal = ({
               )}
             </div>
 
-            {/* ── RIGHT COLUMN: TWO-LINE LABELED DETAILS LIST ── */}
+            {/* -- RIGHT COLUMN: TWO-LINE LABELED DETAILS LIST -- */}
             <div className="vet-evidence-viewer-details-col">
               <div
                 className="vet-evidence-viewer-details-header"
@@ -946,7 +946,7 @@ export const CondemnationEvidenceModal = ({
                         }}
                       >
                         <span style={{ fontWeight: 700, color: "#dc2626", fontSize: 12.5 }}>
-                          • {condPartsInfo.parts[0].part}
+                          � {condPartsInfo.parts[0].part}
                         </span>
                         <span style={{ fontWeight: 800, color: "#dc2626", fontSize: 12.5 }}>
                           {condPartsInfo.parts[0].quantity}
@@ -1101,7 +1101,7 @@ export const CondemnationEvidenceModal = ({
                   display: "flex",
                   alignItems: "center",
                   gap: 12,
-                  color: "#f8fafc",
+                  color: "#F9FAF8",
                   fontSize: 12.5,
                 }}
               >
@@ -1142,7 +1142,7 @@ export const CondemnationEvidenceModal = ({
             border: 1px solid var(--color-border);
             border-radius: 10px;
             overflow: hidden;
-            background: #0f172a;
+            background: #1A201C;
             flex-shrink: 0;
           }
           .vet-evidence-viewer-details-col {

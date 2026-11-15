@@ -10,6 +10,7 @@ import { calculateLivestockProgress } from "./Animals";
 import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 import { subscribeOwnerLiveRefresh, buildOwnerScope } from "../../utils/ownerLiveRefresh";
+import "../../styles/admin_dash.css";
 
 export const OwnerDashboard = () => {
   const { session, userName, ownerId: authOwnerId } = useAuth();
@@ -226,13 +227,44 @@ export const OwnerDashboard = () => {
 
       // Build milestone lookup maps
       const anteMap = {};
-      anteList.forEach((x) => { if (x.tag_number) anteMap[x.tag_number] = x; });
+      anteList.forEach((x) => {
+        if (x.livestock_id) anteMap[x.livestock_id] = x;
+        if (x.tag_number) {
+          if (!anteMap[x.tag_number] || x.livestock_id) {
+            anteMap[x.tag_number] = x;
+            anteMap[String(x.tag_number).trim().toUpperCase()] = x;
+          }
+        }
+      });
 
       const postMap = {};
-      postList.forEach((x) => { if (x.tag_number) postMap[x.tag_number] = x; });
+      postList.forEach((x) => {
+        if (x.livestock_id) postMap[x.livestock_id] = x;
+        if (x.tag_number) {
+          if (!postMap[x.tag_number] || x.livestock_id) {
+            postMap[x.tag_number] = x;
+            postMap[String(x.tag_number).trim().toUpperCase()] = x;
+          }
+        }
+      });
 
       const condMap = {};
-      condList.forEach((x) => { if (x.tag_number) condMap[x.tag_number] = x; });
+      condList.forEach((x) => {
+        if (x.livestock_id) {
+          if (!condMap[x.livestock_id]) condMap[x.livestock_id] = [];
+          condMap[x.livestock_id].push(x);
+        }
+        if (x.tag_number) {
+          const rawTag = x.tag_number;
+          const upperTag = String(x.tag_number).trim().toUpperCase();
+          if (!condMap[rawTag]) condMap[rawTag] = [];
+          condMap[rawTag].push(x);
+          if (upperTag !== rawTag) {
+            if (!condMap[upperTag]) condMap[upperTag] = [];
+            condMap[upperTag].push(x);
+          }
+        }
+      });
 
       const spMap = {};
       spList.forEach((x) => { if (x.tag_number) spMap[x.tag_number] = x; });
@@ -331,7 +363,19 @@ export const OwnerDashboard = () => {
       }
     };
     window.addEventListener("lmis-db-change", handleDbChange);
-    return () => window.removeEventListener("lmis-db-change", handleDbChange);
+    let authSub = null;
+    try {
+      const { data } = supabase.auth.onAuthStateChange((event) => {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+          fetchRef.current?.({ silent: true });
+        }
+      });
+      authSub = data?.subscription;
+    } catch (_) {}
+    return () => {
+      window.removeEventListener("lmis-db-change", handleDbChange);
+      if (authSub && typeof authSub.unsubscribe === "function") authSub.unsubscribe();
+    };
   }, []);
 
   // Automatic Date Updates: Silently refresh when the calendar date rolls over in Asia/Manila
@@ -499,10 +543,11 @@ export const OwnerDashboard = () => {
     const matchedAnimal =
       animals.find((a) => String(a.tag_number || "").trim().toUpperCase() === tagUpper) ||
       { tag_number: tagNumber };
-    const ante = milestones.ante[tagNumber] || milestones.ante[tagUpper];
-    const post = milestones.post[tagNumber] || milestones.post[tagUpper];
-    const cond = milestones.condemnation[tagNumber] || milestones.condemnation[tagUpper];
-    const ev = milestones.evidence?.[tagNumber] || milestones.evidence?.[tagUpper] || [];
+    const aId = matchedAnimal.id;
+    const ante = (aId && milestones.ante[aId]) || milestones.ante[tagNumber] || milestones.ante[tagUpper];
+    const post = (aId && milestones.post[aId]) || milestones.post[tagNumber] || milestones.post[tagUpper];
+    const cond = (aId && milestones.condemnation[aId]) || milestones.condemnation[tagNumber] || milestones.condemnation[tagUpper];
+    const ev = (aId && milestones.evidence?.[aId]) || milestones.evidence?.[tagNumber] || milestones.evidence?.[tagUpper] || [];
 
     const details =
       getOwnerCondemnationDetails({
@@ -518,7 +563,7 @@ export const OwnerDashboard = () => {
         resultLabel: matchedAnimal.progress?.isPartialCondemned ? "Passed with Partial Condemnation" : "Condemned",
         scope: matchedAnimal.progress?.isPartialCondemned ? "partial" : "whole",
         locationArea: "Tinaan, City of Naga, Cebu, Philippines",
-        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "—",
+        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "�",
         inspectionDateFormatted: formatPhDateTime(new Date()),
         vetName: "Official Meat Inspection Service (Veterinarian)",
         pathologyReasons: "Veterinary condemnation decision recorded.",
@@ -537,9 +582,9 @@ export const OwnerDashboard = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 4px 28px 4px", maxWidth: "100%", overflowX: "hidden" }}>
       
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {/* SECTION A: COMPACT HEADER (Requirement 3.A)                              */}
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       <Link
         to="/owner/profile"
         title="View your profile"
@@ -549,8 +594,8 @@ export const OwnerDashboard = () => {
           gap: 12,
           padding: "14px 14px",
           background: "var(--color-surface, #ffffff)",
-          border: "1px solid var(--color-border, #e2e8f0)",
-          borderLeft: "4px solid #0284c7",
+          border: "1px solid var(--color-border, #E2E6E3)",
+          borderLeft: "4px solid #187A56",
           borderRadius: 16,
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
           textDecoration: "none",
@@ -566,11 +611,11 @@ export const OwnerDashboard = () => {
               borderRadius: "50%",
               overflow: "hidden",
               border: "2px solid var(--color-surface, #ffffff)",
-              boxShadow: "0 0 0 2px #0284c7",
+              boxShadow: "0 0 0 2px #187A56",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "#e0f2fe",
+              background: "#E6EFEA",
             }}
           >
             {resolvedAvatarUrl && !avatarError ? (
@@ -581,7 +626,7 @@ export const OwnerDashboard = () => {
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             ) : (
-              <Icon.User size={24} style={{ color: "#0284c7" }} />
+              <Icon.User size={24} style={{ color: "#187A56" }} />
             )}
           </div>
           <span
@@ -603,13 +648,13 @@ export const OwnerDashboard = () => {
               fontWeight: 900,
             }}
           >
-            ✓
+            ?
           </span>
         </div>
 
         {/* Greeting, name, status */}
         <div style={{ minWidth: 0, flex: 1 }}>
-          <span style={{ fontSize: 12, color: "var(--color-text-muted, #64748b)", display: "block", fontWeight: 500 }}>
+          <span style={{ fontSize: 12, color: "var(--color-text-muted, #5D6660)", display: "block", fontWeight: 500 }}>
             {(() => {
               const h = Number(
                 new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Manila", hour: "numeric", hourCycle: "h23" }).format(new Date())
@@ -620,7 +665,7 @@ export const OwnerDashboard = () => {
           <strong
             style={{
               fontSize: 17,
-              color: "var(--color-text, #0f172a)",
+              color: "var(--color-text, #1A201C)",
               fontWeight: 800,
               display: "block",
               whiteSpace: "nowrap",
@@ -644,7 +689,7 @@ export const OwnerDashboard = () => {
             >
               Verified Owner
             </span>
-            <span style={{ fontSize: 10.5, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+            <span style={{ fontSize: 10.5, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
               {new Intl.DateTimeFormat("en-PH", {
                 timeZone: "Asia/Manila",
                 weekday: "short",
@@ -655,45 +700,55 @@ export const OwnerDashboard = () => {
           </div>
         </div>
 
-        <Icon.ChevronRight size={18} style={{ color: "#94a3b8", flexShrink: 0 }} />
+        <Icon.ChevronRight size={18} style={{ color: "#9BA49E", flexShrink: 0 }} />
       </Link>
 
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {/* SECTION B: LIVESTOCK OVERVIEW (Requirement 3.B)                           */}
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         {/* 1. Total Registered */}
         <div
+          onClick={() => setTodayStatusFilter("all")}
+          data-ag-tip={`${totalCount} total registered livestock (${todayEnrichedAnimals.length} today) � click to show all`}
+          data-ag-tip-pos="left"
           style={{
             padding: "12px 14px",
             borderRadius: 14,
             background: "var(--color-surface, #ffffff)",
-            border: "1px solid var(--color-border, #e2e8f0)",
+            border: todayStatusFilter === "all" ? "1.5px solid #187A56" : "1px solid var(--color-border, #E2E6E3)",
             boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            cursor: "pointer",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#0284c7", marginBottom: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#187A56", marginBottom: 6 }}>
             <Icon.Tag size={16} />
             <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.03em" }}>
               Total Registered
             </span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #0f172a)" }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #1A201C)" }}>
             {loading ? "..." : totalCount}
           </div>
-          <span style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)" }}>
+          <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)" }}>
             Livestock in system
           </span>
         </div>
 
         {/* 2. For Inspection */}
         <div
+          onClick={() => setTodayStatusFilter("inspection")}
+          data-ag-tip={`${forInspectionCount} livestock awaiting veterinary inspection � click to filter`}
+          data-ag-tip-pos="right"
           style={{
             padding: "12px 14px",
             borderRadius: 14,
             background: "var(--color-surface, #ffffff)",
-            border: "1px solid var(--color-border, #e2e8f0)",
+            border: todayStatusFilter === "inspection" ? "1.5px solid #f59e0b" : "1px solid var(--color-border, #E2E6E3)",
             boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            cursor: "pointer",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#f59e0b", marginBottom: 6 }}>
@@ -702,22 +757,27 @@ export const OwnerDashboard = () => {
               For Inspection
             </span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #0f172a)" }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #1A201C)" }}>
             {loading ? "..." : forInspectionCount}
           </div>
-          <span style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)" }}>
+          <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)" }}>
             Awaiting vet check
           </span>
         </div>
 
         {/* 3. Approved Livestock */}
         <div
+          onClick={() => setTodayStatusFilter("cleared")}
+          data-ag-tip={`${approvedCount} livestock passed inspection � click to filter cleared`}
+          data-ag-tip-pos="left"
           style={{
             padding: "12px 14px",
             borderRadius: 14,
             background: "var(--color-surface, #ffffff)",
-            border: "1px solid var(--color-border, #e2e8f0)",
+            border: todayStatusFilter === "cleared" ? "1.5px solid #10b981" : "1px solid var(--color-border, #E2E6E3)",
             boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            cursor: "pointer",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#10b981", marginBottom: 6 }}>
@@ -726,22 +786,27 @@ export const OwnerDashboard = () => {
               Approved
             </span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #0f172a)" }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #1A201C)" }}>
             {loading ? "..." : approvedCount}
           </div>
-          <span style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)" }}>
+          <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)" }}>
             Passed examination
           </span>
         </div>
 
         {/* 4. Condemned Livestock */}
         <div
+          onClick={() => setTodayStatusFilter("condemned")}
+          data-ag-tip={`${condemnedCount} condemned / rejected livestock � click to filter`}
+          data-ag-tip-pos="right"
           style={{
             padding: "12px 14px",
             borderRadius: 14,
             background: "var(--color-surface, #ffffff)",
-            border: "1px solid var(--color-border, #e2e8f0)",
+            border: todayStatusFilter === "condemned" ? "1.5px solid #ef4444" : "1px solid var(--color-border, #E2E6E3)",
             boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+            cursor: "pointer",
+            transition: "transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 7, color: "#ef4444", marginBottom: 6 }}>
@@ -750,22 +815,22 @@ export const OwnerDashboard = () => {
               Condemned
             </span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #0f172a)" }}>
+          <div style={{ fontSize: 24, fontWeight: 900, color: "var(--color-text, #1A201C)" }}>
             {loading ? "..." : condemnedCount}
           </div>
-          <span style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)" }}>
+          <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)" }}>
             Failed / condemned
           </span>
         </div>
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {/* SECTION C: TODAY'S LIVESTOCK RECORDS                                      */}
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       <div
         style={{
           background: "var(--color-surface, #ffffff)",
-          border: "1px solid var(--color-border, #e2e8f0)",
+          border: "1px solid var(--color-border, #E2E6E3)",
           borderRadius: 16,
           padding: "16px 14px",
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
@@ -774,18 +839,18 @@ export const OwnerDashboard = () => {
         {/* Section Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Icon.Cow size={18} style={{ color: "#0284c7" }} />
-            <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)" }}>
+            <Icon.Cow size={18} style={{ color: "#187A56" }} />
+            <h2 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)" }}>
               Today's Livestock
             </h2>
             <span
               style={{
                 fontSize: 11,
                 fontWeight: 700,
-                background: "rgba(2, 132, 199, 0.12)",
+                background: "rgba(24, 122, 86, 0.12)",
                 padding: "2px 8px",
                 borderRadius: 999,
-                color: "#0284c7",
+                color: "#187A56",
               }}
             >
               {todayEnrichedAnimals.length} Today
@@ -794,9 +859,9 @@ export const OwnerDashboard = () => {
 
           <Link
             to="/owner/animals"
-            style={{ fontSize: 12, fontWeight: 700, color: "#0284c7", textDecoration: "none" }}
+            style={{ fontSize: 12, fontWeight: 700, color: "#187A56", textDecoration: "none" }}
           >
-            See All Records →
+            See All Records ?
           </Link>
         </div>
 
@@ -808,7 +873,7 @@ export const OwnerDashboard = () => {
               left: 11,
               top: "50%",
               transform: "translateY(-50%)",
-              color: "#94a3b8",
+              color: "#9BA49E",
               display: "flex",
               alignItems: "center",
               pointerEvents: "none",
@@ -827,9 +892,9 @@ export const OwnerDashboard = () => {
               paddingLeft: 34,
               paddingRight: todaySearchQuery ? 32 : 12,
               borderRadius: 10,
-              border: "1px solid var(--color-border, #e2e8f0)",
-              background: "var(--color-bg, #f8fafc)",
-              color: "var(--color-text, #0f172a)",
+              border: "1px solid var(--color-border, #E2E6E3)",
+              background: "var(--color-bg, #F9FAF8)",
+              color: "var(--color-text, #1A201C)",
               fontSize: 12,
               fontWeight: 500,
               outline: "none",
@@ -848,7 +913,7 @@ export const OwnerDashboard = () => {
                 transform: "translateY(-50%)",
                 background: "transparent",
                 border: "none",
-                color: "#94a3b8",
+                color: "#9BA49E",
                 cursor: "pointer",
                 padding: 4,
                 display: "flex",
@@ -892,9 +957,9 @@ export const OwnerDashboard = () => {
                   fontWeight: 700,
                   padding: "4px 10px",
                   borderRadius: 999,
-                  border: isActive ? "1px solid #0284c7" : "1px solid var(--color-border, #e2e8f0)",
-                  background: isActive ? "#0284c7" : "var(--color-bg, #f8fafc)",
-                  color: isActive ? "#ffffff" : "var(--color-text-muted, #64748b)",
+                  border: isActive ? "1px solid #187A56" : "1px solid var(--color-border, #E2E6E3)",
+                  background: isActive ? "#187A56" : "var(--color-bg, #F9FAF8)",
+                  color: isActive ? "#ffffff" : "var(--color-text-muted, #5D6660)",
                   cursor: "pointer",
                   whiteSpace: "nowrap",
                   display: "inline-flex",
@@ -920,17 +985,17 @@ export const OwnerDashboard = () => {
 
         {/* Content Body */}
         {loading && animals.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "30px 0", color: "#64748b", fontSize: 12.5 }}>
-            <Icon.RefreshCw size={18} className="animate-spin" style={{ margin: "0 auto 8px auto", color: "#0284c7", display: "block" }} />
+          <div style={{ textAlign: "center", padding: "30px 0", color: "#5D6660", fontSize: 12.5 }}>
+            <Icon.RefreshCw size={18} className="animate-spin" style={{ margin: "0 auto 8px auto", color: "#187A56", display: "block" }} />
             Loading today&apos;s livestock records...
           </div>
         ) : filteredTodayAnimals.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "28px 12px", color: "#64748b" }}>
-            <span style={{ fontSize: 32, display: "block", marginBottom: 6 }}>📋</span>
-            <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+          <div style={{ textAlign: "center", padding: "28px 12px", color: "#5D6660" }}>
+            <span style={{ fontSize: 32, display: "block", marginBottom: 6 }}>??</span>
+            <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
               No livestock registered today.
             </div>
-            <p style={{ fontSize: 12, margin: "6px 0 0", color: "#64748b", lineHeight: 1.5, maxWidth: 300, marginLeft: "auto", marginRight: "auto" }}>
+            <p style={{ fontSize: 12, margin: "6px 0 0", color: "#5D6660", lineHeight: 1.5, maxWidth: 300, marginLeft: "auto", marginRight: "auto" }}>
               Newly registered livestock by abattoir receiving staff will appear here.
             </p>
             {(todaySearchQuery || todayStatusFilter !== "all") && (
@@ -944,9 +1009,9 @@ export const OwnerDashboard = () => {
                   marginTop: 12,
                   fontSize: 11.5,
                   fontWeight: 700,
-                  color: "#0284c7",
-                  background: "rgba(2, 132, 199, 0.1)",
-                  border: "1px solid rgba(2, 132, 199, 0.25)",
+                  color: "#187A56",
+                  background: "rgba(24, 122, 86, 0.1)",
+                  border: "1px solid rgba(24, 122, 86, 0.25)",
                   padding: "5px 12px",
                   borderRadius: 8,
                   cursor: "pointer",
@@ -963,23 +1028,24 @@ export const OwnerDashboard = () => {
               const isCondemned = prog.statusCategory === "condemned" || prog.statusCategory === "rejected";
               const isCleared = prog.statusCategory === "cleared";
               const isProcessing = prog.statusCategory === "processing";
-              const isPartial = prog.isPartialCondemned || /partial/i.test(`${prog.statusLabel || ""} ${a.status || ""}`);
+              const isPartial = Boolean(prog.isPartialCondemned);
               const isActuallyCondemned = !isPartial && (isCondemned || /condemn|reject/i.test(`${prog.statusLabel || ""} ${a.status || ""}`));
 
               const regTimeFormatted = formatPhDateTime(a.registered_at || a.created_at || a.received_date);
               const tag = a.tag_number;
               const tagUpper = String(tag || "").trim().toUpperCase();
-              const condRec = milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
-              const postRec = milestones.post?.[tag] || milestones.post?.[tagUpper];
-              const anteRec = milestones.ante?.[tag] || milestones.ante?.[tagUpper];
+              const aId = a.id;
+              const condRec = (aId && milestones.condemnation?.[aId]) || milestones.condemnation?.[tag] || milestones.condemnation?.[tagUpper];
+              const postRec = (aId && milestones.post?.[aId]) || milestones.post?.[tag] || milestones.post?.[tagUpper];
+              const anteRec = (aId && milestones.ante?.[aId]) || milestones.ante?.[tag] || milestones.ante?.[tagUpper];
               const rejectedPartsStr =
                 Array.isArray(postRec?.condemned_parts) && postRec.condemned_parts.length > 0
-                  ? postRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+                  ? postRec.condemned_parts.filter(p => p && (p.part || p.specific_part)).map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : (p.part || "Cut")}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
                   : Array.isArray(condRec) && condRec.length > 0
-                  ? condRec.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
-                  : condRec?.part
+                  ? condRec.filter(c => c && c.part && !/whole|entire|live animal/i.test(c.part)).map((c) => `${c.part}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+                  : condRec?.part && !/whole|entire|live animal/i.test(condRec.part)
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
-                  : "Specific carcass cuts";
+                  : "Pathological cuts removed";
 
               // 2. FULLY CONDEMNED CARD (Mobile Dashboard)
               if (isActuallyCondemned) {
@@ -1006,10 +1072,10 @@ export const OwnerDashboard = () => {
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#0f172a", fontFamily: "monospace" }}>
+                        <span style={{ fontSize: 14.5, fontWeight: 900, color: "#1A201C", fontFamily: "monospace" }}>
                           {a.tag_number || "NO TAG"}
                         </span>
-                        <span style={{ fontSize: 12, fontWeight: 700, color: "#64748b" }}>
+                        <span style={{ fontSize: 12, fontWeight: 700, color: "#5D6660" }}>
                           {a.species}
                         </span>
                       </div>
@@ -1038,7 +1104,7 @@ export const OwnerDashboard = () => {
                     {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                        <span style={{ color: "#64748b", fontWeight: 600 }}>Stage:</span>
+                        <span style={{ color: "#5D6660", fontWeight: 600 }}>Stage:</span>
                         <span
                           style={{
                             fontWeight: 800,
@@ -1052,7 +1118,7 @@ export const OwnerDashboard = () => {
                           {condStageName}
                         </span>
                       </div>
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#64748b" }}>
+                      <div style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11.5, color: "#5D6660" }}>
                         <Icon.Clock size={12} style={{ color: "#dc2626" }} />
                         <span>{condTimeFormatted}</span>
                       </div>
@@ -1089,8 +1155,8 @@ export const OwnerDashboard = () => {
                 );
               }
 
-              const badgeColor = isCondemned ? "#ef4444" : isCleared ? "#10b981" : isProcessing ? "#0284c7" : "#f59e0b";
-              const badgeBg = isCondemned ? "rgba(239, 68, 68, 0.1)" : isCleared ? "rgba(16, 185, 129, 0.1)" : isProcessing ? "rgba(2, 132, 199, 0.1)" : "rgba(245, 158, 11, 0.1)";
+              const badgeColor = isCondemned ? "#ef4444" : isCleared ? "#10b981" : isProcessing ? "#187A56" : "#f59e0b";
+              const badgeBg = isCondemned ? "rgba(239, 68, 68, 0.1)" : isCleared ? "rgba(16, 185, 129, 0.1)" : isProcessing ? "rgba(24, 122, 86, 0.1)" : "rgba(245, 158, 11, 0.1)";
               const carcassWeight = milestones.carcass?.[a.tag_number]?.total_weight || milestones.carcass?.[a.tag_number]?.cold_weight;
 
               return (
@@ -1100,8 +1166,8 @@ export const OwnerDashboard = () => {
                   style={{
                     padding: "12px 14px",
                     borderRadius: 14,
-                    border: "1px solid var(--color-border, #e2e8f0)",
-                    background: "var(--color-bg, #f8fafc)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
+                    background: "var(--color-bg, #F9FAF8)",
                     display: "flex",
                     flexDirection: "column",
                     gap: 8,
@@ -1116,8 +1182,8 @@ export const OwnerDashboard = () => {
                       style={{
                         fontSize: 13,
                         fontWeight: 800,
-                        color: "#0284c7",
-                        background: "rgba(2, 132, 199, 0.1)",
+                        color: "#187A56",
+                        background: "rgba(24, 122, 86, 0.1)",
                         padding: "3px 8px",
                         borderRadius: 6,
                         fontFamily: "monospace",
@@ -1155,19 +1221,19 @@ export const OwnerDashboard = () => {
                   </div>
 
                   {/* Clean Info Row: Species, Breed, Sex */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--color-text-muted, #64748b)", flexWrap: "wrap" }}>
-                    <span style={{ fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--color-text-muted, #5D6660)", flexWrap: "wrap" }}>
+                    <span style={{ fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                       {a.species}
-                      {a.breed && a.breed !== "Standard" ? ` · ${a.breed}` : ""}
+                      {a.breed && a.breed !== "Standard" ? ` � ${a.breed}` : ""}
                     </span>
-                    <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
+                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>�</span>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <span style={{ color: "var(--color-text-muted, #94a3b8)", fontWeight: 500 }}>Sex:</span>
-                      <strong style={{ color: "var(--color-text, #334155)", fontWeight: 700 }}>{formatSex(a.sex)}</strong>
+                      <span style={{ color: "var(--color-text-muted, #9BA49E)", fontWeight: 500 }}>Sex:</span>
+                      <strong style={{ color: "var(--color-text, #444C47)", fontWeight: 700 }}>{formatSex(a.sex)}</strong>
                     </span>
                     {carcassWeight && (
                       <>
-                        <span style={{ color: "var(--color-border, #cbd5e1)" }}>•</span>
+                        <span style={{ color: "var(--color-border, #C2CAC4)" }}>�</span>
                         <span style={{ color: "#059669", fontWeight: 700 }}>{carcassWeight} kg</span>
                       </>
                     )}
@@ -1225,7 +1291,7 @@ export const OwnerDashboard = () => {
 
                   {/* Mini Progress Bar (Stage X of 7) */}
                   <div style={{ marginTop: 2 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--color-text-muted, #64748b)", marginBottom: 4 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--color-text-muted, #5D6660)", marginBottom: 4 }}>
                       <span>Stage {prog.currentStageIndex || 1} of 7</span>
                       <span>{prog.statusLabel || "In Progress"}</span>
                     </div>
@@ -1249,14 +1315,14 @@ export const OwnerDashboard = () => {
                       alignItems: "center",
                       justifyContent: "space-between",
                       fontSize: 11.5,
-                      color: "var(--color-text-muted, #64748b)",
-                      borderTop: "1px dashed var(--color-border, #e2e8f0)",
+                      color: "var(--color-text-muted, #5D6660)",
+                      borderTop: "1px dashed var(--color-border, #E2E6E3)",
                       paddingTop: 8,
                       marginTop: 2,
                     }}
                   >
                     <div style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                      <Icon.Clock size={12} style={{ color: "#0284c7" }} />
+                      <Icon.Clock size={12} style={{ color: "#187A56" }} />
                       <span>{regTimeFormatted}</span>
                     </div>
 
@@ -1267,7 +1333,7 @@ export const OwnerDashboard = () => {
                         gap: 4,
                         fontSize: 11.5,
                         fontWeight: 700,
-                        color: "#0284c7",
+                        color: "#187A56",
                       }}
                     >
                       <span>View Details</span>
@@ -1286,13 +1352,13 @@ export const OwnerDashboard = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   paddingTop: 10,
-                  borderTop: "1px solid var(--color-border, #e2e8f0)",
+                  borderTop: "1px solid var(--color-border, #E2E6E3)",
                   fontSize: 11.5,
-                  color: "var(--color-text-muted, #64748b)",
+                  color: "var(--color-text-muted, #5D6660)",
                 }}
               >
                 <span>
-                  Showing {(todayPage - 1) * todayPageSize + 1}–{Math.min(todayPage * todayPageSize, filteredTodayAnimals.length)} of {filteredTodayAnimals.length}
+                  Showing {(todayPage - 1) * todayPageSize + 1}�{Math.min(todayPage * todayPageSize, filteredTodayAnimals.length)} of {filteredTodayAnimals.length}
                 </span>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1303,9 +1369,9 @@ export const OwnerDashboard = () => {
                     style={{
                       padding: "4px 9px",
                       borderRadius: 8,
-                      border: "1px solid var(--color-border, #e2e8f0)",
-                      background: todayPage <= 1 ? "transparent" : "var(--color-bg, #f8fafc)",
-                      color: todayPage <= 1 ? "#94a3b8" : "var(--color-text, #0f172a)",
+                      border: "1px solid var(--color-border, #E2E6E3)",
+                      background: todayPage <= 1 ? "transparent" : "var(--color-bg, #F9FAF8)",
+                      color: todayPage <= 1 ? "#9BA49E" : "var(--color-text, #1A201C)",
                       fontSize: 11,
                       fontWeight: 700,
                       cursor: todayPage <= 1 ? "not-allowed" : "pointer",
@@ -1325,9 +1391,9 @@ export const OwnerDashboard = () => {
                     style={{
                       padding: "4px 9px",
                       borderRadius: 8,
-                      border: "1px solid var(--color-border, #e2e8f0)",
-                      background: todayPage >= totalTodayPages ? "transparent" : "var(--color-bg, #f8fafc)",
-                      color: todayPage >= totalTodayPages ? "#94a3b8" : "var(--color-text, #0f172a)",
+                      border: "1px solid var(--color-border, #E2E6E3)",
+                      background: todayPage >= totalTodayPages ? "transparent" : "var(--color-bg, #F9FAF8)",
+                      color: todayPage >= totalTodayPages ? "#9BA49E" : "var(--color-text, #1A201C)",
                       fontSize: 11,
                       fontWeight: 700,
                       cursor: todayPage >= totalTodayPages ? "not-allowed" : "pointer",
@@ -1342,9 +1408,9 @@ export const OwnerDashboard = () => {
         )}
       </div>
 
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {/* MODAL 1: VIEW LIVESTOCK HISTORY DETAILS MODAL (Records/Animals Parity)    */}
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {selectedAnimal && (() => {
         const selTag = selectedAnimal.tag_number;
         const selTagUpper = String(selTag || "").trim().toUpperCase();
@@ -1355,16 +1421,17 @@ export const OwnerDashboard = () => {
         const carcassRec = milestones.carcass?.[selTag] || milestones.carcass?.[selTagUpper];
         const steps = prog.steps || [];
 
-        const modalCondRec = milestones.condemnation?.[selTag] || milestones.condemnation?.[selTagUpper];
-        const modalPostRec = milestones.post?.[selTag] || milestones.post?.[selTagUpper];
+        const selId = selectedAnimal.id;
+        const modalCondRec = (selId && milestones.condemnation?.[selId]) || milestones.condemnation?.[selTag] || milestones.condemnation?.[selTagUpper];
+        const modalPostRec = (selId && milestones.post?.[selId]) || milestones.post?.[selTag] || milestones.post?.[selTagUpper];
         const modalRejectedPartsStr =
           Array.isArray(modalPostRec?.condemned_parts) && modalPostRec.condemned_parts.length > 0
-            ? modalPostRec.condemned_parts.map((p) => `${p.part || "Cut"}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
+            ? modalPostRec.condemned_parts.filter(p => p && (p.part || p.specific_part)).map((p) => `${p.specific_part ? `${p.part} (${p.specific_part})` : (p.part || "Cut")}${p.weight || p.quantity || p.weight_kg ? ` (${p.weight || p.quantity || p.weight_kg} kg)` : ""}`).join(", ")
             : Array.isArray(modalCondRec) && modalCondRec.length > 0
-            ? modalCondRec.map((c) => `${c.part || "Cut"}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
-            : modalCondRec?.part
+            ? modalCondRec.filter(c => c && c.part && !/whole|entire|live animal/i.test(c.part)).map((c) => `${c.part}${c.weight || c.weight_kg ? ` (${c.weight || c.weight_kg} kg)` : ""}`).join(", ")
+            : modalCondRec?.part && !/whole|entire|live animal/i.test(modalCondRec.part)
             ? `${modalCondRec.part}${modalCondRec.weight || modalCondRec.weight_kg ? ` (${modalCondRec.weight || modalCondRec.weight_kg} kg)` : ""}`
-            : "Specific carcass cuts";
+            : "Pathological cuts removed";
 
         return (
           <div
@@ -1376,7 +1443,7 @@ export const OwnerDashboard = () => {
             style={{
               position: "fixed",
               inset: 0,
-              backgroundColor: "rgba(15, 23, 42, 0.75)",
+              backgroundColor: "rgba(26, 32, 28, 0.75)",
               backdropFilter: "blur(6px)",
               WebkitBackdropFilter: "blur(6px)",
               zIndex: 10000,
@@ -1411,7 +1478,7 @@ export const OwnerDashboard = () => {
                       fontSize: 11,
                       fontWeight: 800,
                       textTransform: "uppercase",
-                      color: "#0284c7",
+                      color: "#187A56",
                       letterSpacing: "0.06em",
                       display: "inline-flex",
                       alignItems: "center",
@@ -1427,7 +1494,7 @@ export const OwnerDashboard = () => {
                       fontWeight: 900,
                       margin: "4px 0 0",
                       fontFamily: "monospace",
-                      color: "var(--color-text, #0f172a)",
+                      color: "var(--color-text, #1A201C)",
                       letterSpacing: "0.02em",
                     }}
                   >
@@ -1442,12 +1509,12 @@ export const OwnerDashboard = () => {
                     width: 32,
                     height: 32,
                     borderRadius: "50%",
-                    background: "var(--color-bg, #f1f5f9)",
+                    background: "var(--color-bg, #EFF2F0)",
                     border: "none",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#64748b",
+                    color: "#5D6660",
                     cursor: "pointer",
                     flexShrink: 0,
                   }}
@@ -1466,13 +1533,13 @@ export const OwnerDashboard = () => {
                     ? "linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, rgba(220, 38, 38, 0.06) 100%)"
                     : isPermitIssued
                     ? "linear-gradient(135deg, rgba(16, 185, 129, 0.14) 0%, rgba(5, 150, 105, 0.06) 100%)"
-                    : "linear-gradient(135deg, rgba(14, 165, 233, 0.14) 0%, rgba(2, 132, 199, 0.06) 100%)",
+                    : "linear-gradient(135deg, rgba(24, 122, 86, 0.14) 0%, rgba(24, 122, 86, 0.06) 100%)",
                   border: `1.5px solid ${
                     isCondemned
                       ? "rgba(239, 68, 68, 0.3)"
                       : isPermitIssued
                       ? "rgba(16, 185, 129, 0.35)"
-                      : "rgba(14, 165, 233, 0.3)"
+                      : "rgba(24, 122, 86, 0.3)"
                   }`,
                 }}
               >
@@ -1483,7 +1550,7 @@ export const OwnerDashboard = () => {
                         width: 8,
                         height: 8,
                         borderRadius: "50%",
-                        backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#0ea5e9",
+                        backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#24966D",
                       }}
                     />
                     <span
@@ -1491,7 +1558,7 @@ export const OwnerDashboard = () => {
                         fontSize: 13,
                         fontWeight: 900,
                         textTransform: "uppercase",
-                        color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#0284c7",
+                        color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#187A56",
                         letterSpacing: "0.03em",
                       }}
                     >
@@ -1516,7 +1583,7 @@ export const OwnerDashboard = () => {
                     style={{
                       fontSize: 11,
                       fontWeight: 800,
-                      color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#0284c7",
+                      color: isCondemned ? "#dc2626" : isPermitIssued ? "#059669" : "#187A56",
                       background: "rgba(255, 255, 255, 0.8)",
                       padding: "2px 8px",
                       borderRadius: 6,
@@ -1540,7 +1607,7 @@ export const OwnerDashboard = () => {
                     style={{
                       height: "100%",
                       width: `${Math.min(100, ((prog.currentStageIndex || 1) / 7) * 100)}%`,
-                      backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#0284c7",
+                      backgroundColor: isCondemned ? "#ef4444" : isPermitIssued ? "#10b981" : "#187A56",
                       borderRadius: 999,
                       transition: "width 0.4s ease",
                     }}
@@ -1610,16 +1677,16 @@ export const OwnerDashboard = () => {
                   style={{
                     padding: "9px 11px",
                     borderRadius: 10,
-                    background: "var(--color-bg, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-bg, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                   }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
                     Species &amp; Breed
                   </div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #0f172a)", marginTop: 2 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginTop: 2 }}>
                     {selectedAnimal.species}
-                    {selectedAnimal.breed && selectedAnimal.breed !== "Standard" ? ` · ${selectedAnimal.breed}` : ""}
+                    {selectedAnimal.breed && selectedAnimal.breed !== "Standard" ? ` � ${selectedAnimal.breed}` : ""}
                   </div>
                 </div>
 
@@ -1627,14 +1694,14 @@ export const OwnerDashboard = () => {
                   style={{
                     padding: "9px 11px",
                     borderRadius: 10,
-                    background: "var(--color-bg, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-bg, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                   }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
                     Sex
                   </div>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #0f172a)", marginTop: 2 }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginTop: 2 }}>
                     {formatSex(selectedAnimal.sex || selectedAnimal.gender)}
                   </div>
                 </div>
@@ -1643,11 +1710,11 @@ export const OwnerDashboard = () => {
                   style={{
                     padding: "9px 11px",
                     borderRadius: 10,
-                    background: "var(--color-bg, #f8fafc)",
-                    border: "1px solid var(--color-border, #e2e8f0)",
+                    background: "var(--color-bg, #F9FAF8)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
                   }}
                 >
-                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #64748b)", fontWeight: 600 }}>
+                  <div style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", fontWeight: 600 }}>
                     Carcass Weight
                   </div>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: "#059669", marginTop: 2 }}>
@@ -1673,17 +1740,17 @@ export const OwnerDashboard = () => {
                       fontSize: 12,
                       fontWeight: 800,
                       textTransform: "uppercase",
-                      color: "var(--color-text, #0f172a)",
+                      color: "var(--color-text, #1A201C)",
                       margin: 0,
                       display: "flex",
                       alignItems: "center",
                       gap: 6,
                     }}
                   >
-                    <Icon.Clock size={13} style={{ color: "#0284c7" }} />
+                    <Icon.Clock size={13} style={{ color: "#187A56" }} />
                     Lifecycle Milestones
                   </h3>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-muted, #64748b)" }}>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "var(--color-text-muted, #5D6660)" }}>
                     7-Stage Abattoir Flow
                   </span>
                 </div>
@@ -1704,18 +1771,18 @@ export const OwnerDashboard = () => {
                           background: isDone
                             ? "rgba(16, 185, 129, 0.05)"
                             : isCurr
-                            ? "rgba(14, 165, 233, 0.07)"
+                            ? "rgba(24, 122, 86, 0.07)"
                             : isRej
                             ? "rgba(239, 68, 68, 0.07)"
-                            : "var(--color-bg, #f8fafc)",
+                            : "var(--color-bg, #F9FAF8)",
                           border: `1px solid ${
                             isDone
                               ? "rgba(16, 185, 129, 0.22)"
                               : isCurr
-                              ? "rgba(14, 165, 233, 0.3)"
+                              ? "rgba(24, 122, 86, 0.3)"
                               : isRej
                               ? "rgba(239, 68, 68, 0.3)"
-                              : "var(--color-border, #e2e8f0)"
+                              : "var(--color-border, #E2E6E3)"
                           }`,
                           display: "flex",
                           alignItems: "center",
@@ -1739,21 +1806,21 @@ export const OwnerDashboard = () => {
                                 : isRej
                                 ? "#ef4444"
                                 : isCurr
-                                ? "#0ea5e9"
-                                : "var(--color-border, #cbd5e1)",
+                                ? "#24966D"
+                                : "var(--color-border, #C2CAC4)",
                               color: "#ffffff",
                               flexShrink: 0,
                             }}
                           >
-                            {isDone ? "✓" : isRej ? "✕" : st.id}
+                            {isDone ? "?" : isRej ? "?" : st.id}
                           </span>
                           <div>
-                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+                            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                               {st.label}
                             </div>
-                            <div style={{ fontSize: 10.5, color: "var(--color-text-muted, #64748b)", marginTop: 1 }}>
+                            <div style={{ fontSize: 10.5, color: "var(--color-text-muted, #5D6660)", marginTop: 1 }}>
                               {st.sublabel || (isDone ? "Completed" : isCurr ? "In Progress" : "Pending")}
-                              {st.actor ? ` · ${st.actor}` : ""}
+                              {st.actor ? ` � ${st.actor}` : ""}
                             </div>
                           </div>
                         </div>
@@ -1771,9 +1838,9 @@ export const OwnerDashboard = () => {
                                   : isRej
                                   ? "rgba(239, 68, 68, 0.12)"
                                   : isCurr
-                                  ? "rgba(14, 165, 233, 0.12)"
+                                  ? "rgba(24, 122, 86, 0.12)"
                                   : "rgba(148, 163, 184, 0.12)",
-                                color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#0ea5e9" : "#64748b",
+                                color: isDone ? "#10b981" : isRej ? "#dc2626" : isCurr ? "#24966D" : "#5D6660",
                                 border: isRej ? "1px solid rgba(239, 68, 68, 0.28)" : "none",
                               }}
                             >
@@ -1840,7 +1907,7 @@ export const OwnerDashboard = () => {
                           </div>
 
                           {st.timestampFormatted && (
-                            <div style={{ fontSize: 10, color: isRej ? "#dc2626" : "#0284c7", fontWeight: 600, marginTop: 2 }}>
+                            <div style={{ fontSize: 10, color: isRej ? "#dc2626" : "#187A56", fontWeight: 600, marginTop: 2 }}>
                               {st.timestampFormatted}
                             </div>
                           )}
@@ -1859,7 +1926,7 @@ export const OwnerDashboard = () => {
                   width: "100%",
                   padding: "11px 16px",
                   borderRadius: 12,
-                  background: "#0284c7",
+                  background: "#187A56",
                   color: "#ffffff",
                   border: "none",
                   fontWeight: 800,
@@ -1874,15 +1941,15 @@ export const OwnerDashboard = () => {
         );
       })()}
 
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {/* MODAL 2: OFFICIAL MEAT PERMIT PREVIEW MODAL                               */}
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {selectedPermit && (
         <div
           style={{
             position: "fixed",
             inset: 0,
-            backgroundColor: "rgba(15, 23, 42, 0.75)",
+            backgroundColor: "rgba(26, 32, 28, 0.75)",
             backdropFilter: "blur(4px)",
             zIndex: 9999,
             display: "flex",
@@ -1907,64 +1974,64 @@ export const OwnerDashboard = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Government Header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #cbd5e1", paddingBottom: 10, marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #C2CAC4", paddingBottom: 10, marginBottom: 12 }}>
               <img src="/naga_city_seal.png" alt="City Seal" style={{ width: 44, height: 44, objectFit: "contain" }} />
               <div style={{ textAlign: "center", flex: 1, padding: "0 6px" }}>
-                <div style={{ fontSize: 10, color: "#334155" }}>Republic of the Philippines</div>
+                <div style={{ fontSize: 10, color: "#444C47" }}>Republic of the Philippines</div>
                 <div style={{ fontSize: 11, fontWeight: "bold", color: "#000000" }}>City of Naga, Cebu</div>
-                <div style={{ fontSize: 12, fontWeight: 900, color: "#0284c7" }}>OFFICIAL MEAT INSPECTION PERMIT</div>
+                <div style={{ fontSize: 12, fontWeight: 900, color: "#187A56" }}>OFFICIAL MEAT INSPECTION PERMIT</div>
               </div>
               <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style={{ width: 44, height: 44, objectFit: "contain" }} />
             </div>
 
             {/* Certificate Details */}
-            <div style={{ fontSize: 11.5, color: "#0f172a", lineHeight: 1.6, marginBottom: 14 }}>
+            <div style={{ fontSize: 11.5, color: "#1A201C", lineHeight: 1.6, marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Permit No:</span>
+                <span style={{ color: "#5D6660" }}>Permit No:</span>
                 <strong>{selectedPermit.permit_no || "MIC-001"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Date Issued:</span>
+                <span style={{ color: "#5D6660" }}>Date Issued:</span>
                 <strong>{formatPhDateTime(selectedPermit.issued_at || selectedPermit.created_at)}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Owner Name:</span>
+                <span style={{ color: "#5D6660" }}>Owner Name:</span>
                 <strong>{selectedPermit.owner_name || ownerInfo?.name || "Verified Owner"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Livestock Tag:</span>
-                <strong>{selectedPermit.tag_number || "—"}</strong>
+                <span style={{ color: "#5D6660" }}>Livestock Tag:</span>
+                <strong>{selectedPermit.tag_number || "�"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Species:</span>
+                <span style={{ color: "#5D6660" }}>Species:</span>
                 <strong>{selectedPermit.species || "Carcass"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Carcass Weight:</span>
+                <span style={{ color: "#5D6660" }}>Carcass Weight:</span>
                 <strong>{selectedPermit.carcass_weight ? `${selectedPermit.carcass_weight} kg` : "Weighed"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
-                <span style={{ color: "#64748b" }}>Destination:</span>
+                <span style={{ color: "#5D6660" }}>Destination:</span>
                 <strong>{selectedPermit.destination || "Public Market"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span style={{ color: "#64748b" }}>Conveyance / Plate:</span>
+                <span style={{ color: "#5D6660" }}>Conveyance / Plate:</span>
                 <strong>{selectedPermit.conveyance || "Meat Van"} ({selectedPermit.plate_no || "Registered"})</strong>
               </div>
             </div>
 
-            <div style={{ padding: "8px 10px", background: "#f8fafc", borderRadius: 8, border: "1px solid #e2e8f0", fontSize: 10.5, color: "#475569", marginBottom: 14 }}>
+            <div style={{ padding: "8px 10px", background: "#F9FAF8", borderRadius: 8, border: "1px solid #E2E6E3", fontSize: 10.5, color: "#5D6660", marginBottom: 14 }}>
               This certifies that the carcass has passed both veterinary ante-mortem and post-mortem hygiene standards and is officially cleared for public transport and consumption.
             </div>
 
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, textAlign: "center", borderTop: "1px dashed #cbd5e1", paddingTop: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, textAlign: "center", borderTop: "1px dashed #C2CAC4", paddingTop: 10 }}>
               <div>
                 <div style={{ fontWeight: 800 }}>{selectedPermit.inspector || "Dr. Dave"}</div>
-                <div style={{ color: "#64748b" }}>Meat Inspector</div>
+                <div style={{ color: "#5D6660" }}>Meat Inspector</div>
               </div>
               <div>
                 <div style={{ fontWeight: 800 }}>{selectedPermit.city_vet || "City Veterinarian"}</div>
-                <div style={{ color: "#64748b" }}>City Veterinarian Office</div>
+                <div style={{ color: "#5D6660" }}>City Veterinarian Office</div>
               </div>
             </div>
 
@@ -1976,8 +2043,8 @@ export const OwnerDashboard = () => {
                 marginTop: 14,
                 padding: "9px",
                 borderRadius: 8,
-                border: "1px solid #cbd5e1",
-                background: "#0f172a",
+                border: "1px solid #C2CAC4",
+                background: "#1A201C",
                 color: "#ffffff",
                 fontSize: 12,
                 fontWeight: 700,
@@ -1990,9 +2057,9 @@ export const OwnerDashboard = () => {
         </div>
       )}
 
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {/* MODAL 3: CONDEMNATION & PATHOLOGY PHOTO VIEWER                            */}
-      {/* ───────────────────────────────────────────────────────────────────────── */}
+      {/* ------------------------------------------------------------------------- */}
       {condemnationDetails && (
         <OwnerCondemnationModal
           open={!!condemnationDetails}

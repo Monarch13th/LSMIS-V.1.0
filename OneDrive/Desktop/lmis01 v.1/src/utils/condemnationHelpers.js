@@ -35,9 +35,45 @@ export const getOwnerCondemnationDetails = ({
     ? [condemnation]
     : [];
 
+  const aId = animal?.id;
+  const regTimestamp = animal?.registered_at || animal?.created_at || animal?.received_at || animal?.received_date;
+  const regTimeMs = regTimestamp ? new Date(regTimestamp).getTime() : null;
+
+  // Strict ID & Date verification for post
+  let validPost = post;
+  if (validPost) {
+    if (validPost.livestock_id && aId && String(validPost.livestock_id).trim() !== String(aId).trim()) {
+      validPost = null;
+    } else if (regTimeMs && (validPost.inspected_at || validPost.date)) {
+      const pTimeMs = new Date(validPost.inspected_at || validPost.date).getTime();
+      if (!isNaN(pTimeMs) && pTimeMs < regTimeMs - 86400000) validPost = null;
+    }
+  }
+
+  // Strict ID & Date verification for ante
+  let validAnte = ante;
+  if (validAnte) {
+    if (validAnte.livestock_id && aId && String(validAnte.livestock_id).trim() !== String(aId).trim()) {
+      validAnte = null;
+    } else if (regTimeMs && (validAnte.inspected_at || validAnte.date)) {
+      const aTimeMs = new Date(validAnte.inspected_at || validAnte.date).getTime();
+      if (!isNaN(aTimeMs) && aTimeMs < regTimeMs - 86400000) validAnte = null;
+    }
+  }
+
+  // Strict ID & Date verification for condList
+  const validCondList = condList.filter((c) => {
+    if (c.livestock_id && aId && String(c.livestock_id).trim() !== String(aId).trim()) return false;
+    if (regTimeMs && (c.created_at || c.date)) {
+      const cTimeMs = new Date(c.created_at || c.date).getTime();
+      if (!isNaN(cTimeMs) && cTimeMs < regTimeMs - 86400000) return false;
+    }
+    return true;
+  });
+
   const rawAnimalStatus = String(animal?.status || "").toLowerCase();
-  const anteDecision = String(ante?.decision || ante?.result || "").toLowerCase();
-  const postDecision = String(post?.decision || post?.result || "").toLowerCase();
+  const anteDecision = String(validAnte?.decision || validAnte?.result || "").toLowerCase();
+  const postDecision = String(validPost?.decision || validPost?.result || "").toLowerCase();
 
   const isAntePassed = anteDecision.includes("approv") || anteDecision.includes("pass");
   const isAnteRejected =
@@ -45,13 +81,39 @@ export const getOwnerCondemnationDetails = ({
     rawAnimalStatus === "rejected" ||
     anteDecision.includes("reject") ||
     anteDecision.includes("condemn") ||
-    condList.some((c) => c.stage === "Ante-Mortem" || c.inspection_type === "Ante-Mortem" || c.part === "Live Animal");
+    validCondList.some((c) => c.stage === "Ante-Mortem" || c.inspection_type === "Ante-Mortem" || c.part === "Live Animal");
+
+  const hasValidCondemnedCuts =
+    Boolean(validPost) &&
+    Array.isArray(validPost.condemned_parts) &&
+    validPost.condemned_parts.some(
+      (p) => p && (p.part || p.carcass_area || p.specific_part) && !/whole|entire|live animal/i.test(String(p.part || ""))
+    );
+
+  const hasConfirmedPartialPostDecision =
+    Boolean(validPost) &&
+    (postDecision === "partial" ||
+      postDecision === "partially condemned" ||
+      postDecision === "passed with partial condemnation" ||
+      postDecision.includes("partial") ||
+      String(validPost.raw_decision || "").toLowerCase() === "partial");
+
+  const hasConfirmedPartialCondRecord = validCondList.some(
+    (c) =>
+      (c.type === "Partial" || (c.part && !/whole|entire|live animal/i.test(String(c.part)))) &&
+      String(c.stage || c.inspection_type || "Post-Mortem").toLowerCase().includes("post")
+  );
 
   const isPostPartialCondemned =
-    rawAnimalStatus.includes("partial") ||
-    postDecision.includes("partial") ||
-    (Array.isArray(post?.condemned_parts) && post.condemned_parts.length > 0) ||
-    condList.some((c) => c.type === "Partial" || (c.part && c.part !== "Whole Carcass" && c.part !== "Live Animal"));
+    !isAnteRejected &&
+    !postDecision.includes("whole") &&
+    !postDecision.includes("total") &&
+    (
+      (hasConfirmedPartialPostDecision && (hasValidCondemnedCuts || hasConfirmedPartialCondRecord || rawAnimalStatus.includes("partial"))) ||
+      hasValidCondemnedCuts ||
+      hasConfirmedPartialCondRecord ||
+      (rawAnimalStatus === "partially condemned" && Boolean(validPost) && !postDecision.includes("approv") && !postDecision.includes("pass"))
+    );
 
   const isPostWholeCondemned =
     !isPostPartialCondemned &&
@@ -62,15 +124,15 @@ export const getOwnerCondemnationDetails = ({
       postDecision.includes("total") ||
       (postDecision.includes("condemn") && !postDecision.includes("partial")) ||
       (rawAnimalStatus.includes("post-mortem") && (rawAnimalStatus.includes("condemn") || rawAnimalStatus.includes("reject")) && !rawAnimalStatus.includes("partial")) ||
-      (rawAnimalStatus === "condemned" && (isAntePassed || Boolean(post))) ||
-      condList.some((c) => (c.stage === "Post-Mortem" || c.inspection_type === "Post-Mortem" || c.part === "Whole Carcass" || c.part === "Entire Carcass") && c.part !== "Live Animal"));
+      (rawAnimalStatus === "condemned" && (isAntePassed || Boolean(validPost))) ||
+      validCondList.some((c) => (c.stage === "Post-Mortem" || c.inspection_type === "Post-Mortem" || c.part === "Whole Carcass" || c.part === "Entire Carcass") && c.part !== "Live Animal"));
 
   const isAnteCondemned =
     !isPostWholeCondemned &&
     !isPostPartialCondemned &&
-    (isAnteRejected || anteDecision.includes("condemn") || (rawAnimalStatus === "condemned" && !isAntePassed && !post));
+    (isAnteRejected || anteDecision.includes("condemn") || (rawAnimalStatus === "condemned" && !isAntePassed && !validPost));
 
-  const hasCondRecords = condList.length > 0;
+  const hasCondRecords = validCondList.length > 0;
 
   const isCondemned = isAnteRejected || isAnteCondemned || isPostWholeCondemned || isPostPartialCondemned || hasCondRecords;
 
@@ -81,34 +143,25 @@ export const getOwnerCondemnationDetails = ({
   let scope = "whole";
 
   if (isAnteRejected || isAnteCondemned) {
-    resultLabel = ante?.decision || ante?.result || "Ante-Mortem Whole Carcass Condemned";
+    resultLabel = validAnte?.decision || validAnte?.result || "Ante-Mortem Whole Carcass Condemned";
     scope = "ante_condemned";
   } else if (isPostPartialCondemned) {
-    resultLabel = post?.decision || post?.result || "Passed with Partial Condemnation";
+    resultLabel = validPost?.decision || validPost?.result || "Passed with Partial Condemnation";
     scope = "partial";
   } else if (isPostWholeCondemned) {
-    resultLabel = post?.decision || post?.result || "Post-Mortem Whole Carcass Condemned";
+    resultLabel = validPost?.decision || validPost?.result || "Post-Mortem Whole Carcass Condemned";
     scope = "whole";
   } else if (hasCondRecords) {
-    const isPartialCond = condList.some(
+    const isPartialCond = validCondList.some(
       (c) => c.type === "Partial" || (c.part && c.part !== "Whole Carcass" && c.part !== "Live Animal")
     );
-    const isAnteRecord = condList.some((c) => c.stage === "Ante-Mortem" || c.inspection_type === "Ante-Mortem" || c.part === "Live Animal");
+    const isAnteRecord = validCondList.some((c) => c.stage === "Ante-Mortem" || c.inspection_type === "Ante-Mortem" || c.part === "Live Animal");
     resultLabel = isAnteRecord
       ? "Ante-Mortem Whole Carcass Condemned"
       : isPartialCond
       ? "Passed with Partial Condemnation"
       : "Post-Mortem Whole Carcass Condemned";
     scope = isAnteRecord ? "ante_condemned" : isPartialCond ? "partial" : "whole";
-  } else if (hasEvidence) {
-    const hasAnteEvidence = evidence.some((e) => String(e.inspection_type || "").toLowerCase().includes("ante"));
-    if (hasAnteEvidence) {
-      resultLabel = "Ante-Mortem Whole Carcass Condemned";
-      scope = "ante_condemned";
-    } else {
-      resultLabel = "Passed with Partial Condemnation";
-      scope = "partial";
-    }
   }
 
 

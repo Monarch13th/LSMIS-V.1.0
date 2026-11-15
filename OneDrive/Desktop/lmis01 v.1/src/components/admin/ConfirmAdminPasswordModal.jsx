@@ -64,7 +64,7 @@ export const ConfirmAdminPasswordModal = ({
   return (
     <div
       className="modal-backdrop"
-      style={{ zIndex: 3000, position: "fixed", inset: 0, background: "rgba(15,23,42,0.65)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      style={{ zIndex: 3000, position: "fixed", inset: 0, background: "rgba(26, 32, 28,0.65)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={(e) => {
         if (e.target === e.currentTarget && !loading) onClose();
       }}
@@ -114,9 +114,9 @@ export const ConfirmAdminPasswordModal = ({
               width: 46,
               height: 46,
               borderRadius: 14,
-              background: danger ? "rgba(239, 68, 68, 0.12)" : "rgba(2, 132, 199, 0.12)",
-              color: danger ? "#ef4444" : "#0284c7",
-              border: danger ? "1px solid rgba(239, 68, 68, 0.28)" : "1px solid rgba(2, 132, 199, 0.28)",
+              background: danger ? "rgba(239, 68, 68, 0.12)" : "rgba(24, 122, 86, 0.12)",
+              color: danger ? "#ef4444" : "#187A56",
+              border: danger ? "1px solid rgba(239, 68, 68, 0.28)" : "1px solid rgba(24, 122, 86, 0.28)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -181,7 +181,7 @@ export const ConfirmAdminPasswordModal = ({
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                placeholder="••••••••••••"
                 disabled={loading}
                 style={{
                   width: "100%",

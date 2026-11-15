@@ -28,7 +28,7 @@ export const OperationsThroughputBar = ({ stats }) => {
             {
               label: "Total Records",
               data: values,
-              backgroundColor: ["#0284c7", "#d97706", "#7c3aed", "#10b981"],
+              backgroundColor: ["#187A56", "#d97706", "#187A56", "#10b981"],
               borderRadius: 6,
               maxBarThickness: 48,
             },
@@ -116,7 +116,7 @@ export const InspectionDoughnut = ({ counts, data }) => {
           datasets: [
             {
               data: values,
-              backgroundColor: ["#10b981", "#0284c7", "#ef4444", "#f59e0b"],
+              backgroundColor: ["#10b981", "#187A56", "#ef4444", "#f59e0b"],
               borderWidth: 0,
             },
           ],
@@ -137,14 +137,14 @@ export const RevenueLine = ({ payments }) => {
       <Line
         data={{
           labels,
-          datasets: [{ label: "Revenue (₱)", data: values, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.12)", fill: true, tension: 0.35, pointRadius: 3 }],
+          datasets: [{ label: "Revenue (?)", data: values, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.12)", fill: true, tension: 0.35, pointRadius: 3 }],
         }}
         options={{
           ...cartesian(),
           plugins: {
             ...baseOptions.plugins,
             legend: { display: false },
-            tooltip: { ...baseOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ₱${Number(ctx.parsed.y).toLocaleString()}` } },
+            tooltip: { ...baseOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ?${Number(ctx.parsed.y).toLocaleString()}` } },
           },
         }}
       />

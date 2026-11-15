@@ -51,9 +51,9 @@ const TABS = [
     id: "postmortem",
     label: "Post-Mortem",
     icon: <Icon.Activity size={15} />,
-    color: "#0ea5e9",
-    badgeBg: "rgba(14, 165, 233, 0.12)",
-    badgeColor: "#0284c7",
+    color: "#24966D",
+    badgeBg: "rgba(24, 122, 86, 0.12)",
+    badgeColor: "#187A56",
     description: "Carcasses that passed post-mortem inspection",
   },
   {
@@ -257,23 +257,23 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       if (found) {
         return {
           id: found.id || directId,
-          name: found.name || animal?.owner_name || item?.owner_name || "‚Äî",
+          name: found.name || animal?.owner_name || item?.owner_name || "ó",
           avatar: found.avatar_url || null,
-          contact: found.contact || found.phone || found.email || "‚Äî",
-          address: found.address || "‚Äî",
+          contact: found.contact || found.phone || found.email || "ó",
+          address: found.address || "ó",
         };
       }
     }
-    const name = animal?.owner_name || item?.owner_name || "‚Äî";
-    if (name && name !== "‚Äî" && name !== "Unknown") {
+    const name = animal?.owner_name || item?.owner_name || "ó";
+    if (name && name !== "ó" && name !== "Unknown") {
       const found = (owners || []).find((o) => String(o.name || "").trim().toLowerCase() === name.trim().toLowerCase());
       if (found) {
         return {
           id: found.id,
           name: found.name,
           avatar: found.avatar_url || null,
-          contact: found.contact || found.phone || found.email || "‚Äî",
-          address: found.address || "‚Äî",
+          contact: found.contact || found.phone || found.email || "ó",
+          address: found.address || "ó",
         };
       }
     }
@@ -281,8 +281,8 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       id: directId || null,
       name: name,
       avatar: null,
-      contact: "‚Äî",
-      address: "‚Äî",
+      contact: "ó",
+      address: "ó",
     };
   };
 
@@ -347,9 +347,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: i?.id || `ante-cond-${normTag}`,
           tag_number: tag,
           species: i?.species || animal?.species || "Livestock",
-          breed: animal?.breed || "‚Äî",
-          sex: animal?.sex || "‚Äî",
-          age: animal?.age || "‚Äî",
+          breed: animal?.breed || "ó",
+          sex: animal?.sex || "ó",
+          age: animal?.age || "ó",
           owner,
           date: i?.inspected_at || i?.date || animal?.created_at || today(),
           stage: "Ante-Mortem (Live Animal)",
@@ -369,13 +369,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: i.id || `ante-${tag}`,
           tag_number: tag,
           species: i.species || animal?.species || "Livestock",
-          breed: animal?.breed || "‚Äî",
-          sex: animal?.sex || "‚Äî",
-          age: animal?.age || "‚Äî",
+          breed: animal?.breed || "ó",
+          sex: animal?.sex || "ó",
+          age: animal?.age || "ó",
           owner,
           date: i.inspected_at || i.date || animal?.created_at || today(),
           findings: i.findings || "Normal clinical appearance, fit for slaughter",
-          remarks: i.remarks || "‚Äî",
+          remarks: i.remarks || "ó",
           decision: "Passed",
           inspector: i.inspector_name || "Dr. Dave",
           category: "antemortem",
@@ -496,9 +496,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: p?.id || `whole-post-${normTag}`,
           tag_number: tag,
           species: p?.species || animal?.species || "Carcass",
-          breed: animal?.breed || "‚Äî",
-          sex: animal?.sex || "‚Äî",
-          age: animal?.age || "‚Äî",
+          breed: animal?.breed || "ó",
+          sex: animal?.sex || "ó",
+          age: animal?.age || "ó",
           owner,
           date: p?.inspected_at || p?.date || today(),
           stage: "Post-Mortem (Whole Carcass)",
@@ -544,13 +544,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: p?.id || `partial-${normTag}`,
           tag_number: tag,
           species: p?.species || animal?.species || "Carcass",
-          breed: animal?.breed || "‚Äî",
-          sex: animal?.sex || "‚Äî",
-          age: animal?.age || "‚Äî",
+          breed: animal?.breed || "ó",
+          sex: animal?.sex || "ó",
+          age: animal?.age || "ó",
           owner,
           date: p?.inspected_at || p?.date || today(),
           findings: p?.findings || "Localized pathology identified on specific carcass parts",
-          remarks: p?.remarks || "‚Äî",
+          remarks: p?.remarks || "ó",
           decision: "Partially Condemned",
           inspector: p?.inspector_name || "Dr. Dave",
           category: "partially_condemned",
@@ -570,13 +570,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: p.id || `post-${tag}`,
           tag_number: tag,
           species: p.species || animal?.species || "Carcass",
-          breed: animal?.breed || "‚Äî",
-          sex: animal?.sex || "‚Äî",
-          age: animal?.age || "‚Äî",
+          breed: animal?.breed || "ó",
+          sex: animal?.sex || "ó",
+          age: animal?.age || "ó",
           owner,
           date: p.inspected_at || p.date || today(),
           findings: p.findings || "Carcass and viscera free of pathology, approved for food",
-          remarks: p.remarks || "‚Äî",
+          remarks: p.remarks || "ó",
           decision: "Passed",
           inspector: p.inspector_name || "Dr. Dave",
           category: "postmortem",
@@ -672,7 +672,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       if (!groupsMap.has(key)) {
         groupsMap.set(key, {
           key,
-          owner_name: owner.name && owner.name !== "‚Äî" ? owner.name : "Unknown Owner",
+          owner_name: owner.name && owner.name !== "ó" ? owner.name : "Unknown Owner",
           owner_avatar: owner.avatar,
           owner_contact: owner.contact,
           owner_address: owner.address,
@@ -795,19 +795,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           }}
         >
           {/* Left: 4 Inspection Result Category Tabs */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              background: "var(--color-bg)",
-              padding: 3,
-              borderRadius: 9,
-              border: "1px solid var(--color-border)",
-              gap: 4,
-              flexShrink: 0,
-              whiteSpace: "nowrap",
-            }}
-          >
+          <div className="adm-seg-tabs">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
               const count = categoryCounts[tab.id] || 0;
@@ -815,48 +803,18 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                 <button
                   key={tab.id}
                   type="button"
+                  className={`adm-seg-btn ${isActive ? "active" : ""}`}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setSearchParams({ tab: tab.id });
                   }}
-                  style={{
-                    height: 32,
-                    padding: "0 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    border: "none",
-                    cursor: "pointer",
-                    background: isActive ? "var(--color-surface)" : "transparent",
-                    color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-                    boxShadow: isActive ? "0 1px 3px rgba(0, 0, 0, 0.1)" : "none",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    transition: "all 140ms ease",
-                    whiteSpace: "nowrap",
-                  }}
                   title={tab.description}
                 >
-                  <span style={{ color: isActive ? tab.color : "var(--color-text-muted)", display: "flex" }}>
+                  <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>
                     {tab.icon}
                   </span>
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      minWidth: 18,
-                      height: 18,
-                      padding: "0 5px",
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 800,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      background: isActive ? tab.badgeBg : "var(--color-border)",
-                      color: isActive ? tab.badgeColor : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {count}
                   </span>
                 </button>
@@ -1021,7 +979,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         borderBottom: "1px solid var(--color-border)",
                         cursor: "pointer",
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
                       {/* Owner Details */}
@@ -1059,7 +1017,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                                   activeTab === "antemortem"
                                     ? "linear-gradient(135deg, #10b981 0%, #059669 100%)"
                                     : activeTab === "postmortem"
-                                    ? "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
+                                    ? "#187A56"
                                     : activeTab === "partially_condemned"
                                     ? "linear-gradient(135deg, #f59e0b 0%, #d97706 100%)"
                                     : "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)",
@@ -1081,7 +1039,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                               {grp.owner_name}
                             </div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                              {grp.count} {grp.count === 1 ? "record" : "records"} &bull; {grp.owner_contact !== "‚Äî" ? grp.owner_contact : "Direct Intake"}
+                              {grp.count} {grp.count === 1 ? "record" : "records"} &bull; {grp.owner_contact !== "ó" ? grp.owner_contact : "Direct Intake"}
                             </div>
                           </div>
                         </div>
@@ -1091,7 +1049,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.75, color: currentTabMeta.color }} />
-                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "‚Äî"}</span>
+                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "ó"}</span>
                         </div>
                       </td>
 
@@ -1207,7 +1165,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           setSelectedOwnerKey(null);
           setModalFilterSpecies("all");
         }}
-        title={`${currentTabMeta.label} Records ‚Äî ${selectedOwnerView?.owner_name || ""}`}
+        title={`${currentTabMeta.label} Records ó ${selectedOwnerView?.owner_name || ""}`}
         headerRight={
           selectedOwnerView && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1317,7 +1275,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             borderBottom: "1px solid var(--color-border)",
                             transition: "background 120ms ease",
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--color-bg)"; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                         >
                           {/* Tag Number */}
@@ -1329,7 +1287,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           <td style={{ padding: "12px 14px", verticalAlign: "middle", fontSize: 12.5, fontWeight: 600 }}>
                             <div>{item.species}</div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                              {formatSex(item.sex)} {item.age && item.age !== "‚Äî" ? `¬∑ ${item.age}` : ""}
+                              {formatSex(item.sex)} {item.age && item.age !== "ó" ? `∑ ${item.age}` : ""}
                             </div>
                           </td>
 
@@ -1337,7 +1295,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           <td style={{ padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)" }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                               <Icon.Calendar size={12} style={{ opacity: 0.7, color: currentTabMeta.color }} />
-                              <span>{item.date ? formatPhDateTime(item.date) : "‚Äî"}</span>
+                              <span>{item.date ? formatPhDateTime(item.date) : "ó"}</span>
                             </div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
                               by {item.inspector || "Dr. Dave"}
@@ -1366,7 +1324,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                                       }}
                                     >
                                       {p.part} {p.weight_kg > 0 ? `(${p.weight_kg} kg)` : ""}
-                                      {p.reason ? ` ¬∑ ${p.reason}` : ""}
+                                      {p.reason ? ` ∑ ${p.reason}` : ""}
                                     </span>
                                   ))}
                                 </div>
@@ -1400,7 +1358,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           ) : (
                             <td style={{ padding: "12px 14px", verticalAlign: "middle", maxWidth: 280, fontSize: 12, color: "var(--color-text)" }}>
                               <div style={{ lineHeight: 1.4 }}>{item.findings || "Normal clinical appearance"}</div>
-                              {item.remarks && item.remarks !== "‚Äî" && (
+                              {item.remarks && item.remarks !== "ó" && (
                                 <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
                                   Note: {item.remarks}
                                 </div>
@@ -1506,7 +1464,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         const currentPhotoIndex = Math.min(activePhotoIndex, Math.max(0, tagPhotos.length - 1));
         const currentPhotoUrl = tagPhotos[currentPhotoIndex] || null;
         const isAnte = viewingDetails.category === "condemned" && (viewingDetails.stage?.includes("Ante") || viewingDetails.stage === "Ante-Mortem");
-        const ownerDisplay = viewingDetails.owner?.name && viewingDetails.owner.name !== "‚Äî" ? viewingDetails.owner.name : "Not recorded";
+        const ownerDisplay = viewingDetails.owner?.name && viewingDetails.owner.name !== "ó" ? viewingDetails.owner.name : "Not recorded";
 
         // Authoritative parts & scope extraction from Supabase
         const condPartsInfo = getCondemnationRecordParts({
@@ -1547,7 +1505,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           >
             <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               <div className="vet-evidence-viewer-grid">
-                {/* ‚îÄ‚îÄ LEFT: PRIMARY PHOTO & FILE VIEWER ‚îÄ‚îÄ */}
+                {/* -- LEFT: PRIMARY PHOTO & FILE VIEWER -- */}
                 <div className="vet-evidence-viewer-media-col">
                   {/* Viewer Top Bar */}
                   <div
@@ -1558,9 +1516,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       flexWrap: "wrap",
                       gap: 8,
                       padding: "8px 12px",
-                      background: "#1e293b",
-                      borderBottom: "1px solid #334155",
-                      color: "#f8fafc",
+                      background: "#2D332F",
+                      borderBottom: "1px solid #444C47",
+                      color: "#F9FAF8",
                       fontSize: 12,
                     }}
                   >
@@ -1568,23 +1526,23 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       <span
                         style={{
                           fontWeight: 700,
-                          color: "#e2e8f0",
-                          background: "#0f172a",
+                          color: "#E2E6E3",
+                          background: "#1A201C",
                           padding: "3px 9px",
                           borderRadius: 6,
-                          border: "1px solid #334155",
+                          border: "1px solid #444C47",
                         }}
                       >
                         {tagPhotos.length > 0 ? `${currentPhotoIndex + 1} of ${tagPhotos.length}` : "0 of 0"}
                       </span>
                       {currentPhotoPart && (
-                        <span style={{ color: "#94a3b8", fontSize: 11.5, fontWeight: 600 }}>
-                          Part: <strong style={{ color: "#f1f5f9" }}>{currentPhotoPart}</strong>
+                        <span style={{ color: "#9BA49E", fontSize: 11.5, fontWeight: 600 }}>
+                          Part: <strong style={{ color: "#EFF2F0" }}>{currentPhotoPart}</strong>
                         </span>
                       )}
                       {tagPhotos.length > 1 && (
-                        <span style={{ color: "#64748b", fontSize: 11 }} className="vet-ev-kbd-hint">
-                          Use ‚Üê / ‚Üí keys to navigate
+                        <span style={{ color: "#5D6660", fontSize: 11 }} className="vet-ev-kbd-hint">
+                          Use ? / ? keys to navigate
                         </span>
                       )}
                     </div>
@@ -1601,15 +1559,15 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: zoomLevel <= 1 ? "#0f172a" : "#334155",
-                            color: zoomLevel <= 1 ? "#475569" : "#f8fafc",
+                            border: "1px solid #5D6660",
+                            background: zoomLevel <= 1 ? "#1A201C" : "#444C47",
+                            color: zoomLevel <= 1 ? "#5D6660" : "#F9FAF8",
                             fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel <= 1 ? "not-allowed" : "pointer",
                           }}
                         >
-                          ‚àí
+                          -
                         </button>
                         <button
                           type="button"
@@ -1619,9 +1577,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             height: 24,
                             padding: "0 6px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: "#0f172a",
-                            color: "#e2e8f0",
+                            border: "1px solid #5D6660",
+                            background: "#1A201C",
+                            color: "#E2E6E3",
                             fontSize: 10.5,
                             fontWeight: 700,
                             cursor: "pointer",
@@ -1639,9 +1597,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: zoomLevel >= 2.5 ? "#0f172a" : "#334155",
-                            color: zoomLevel >= 2.5 ? "#475569" : "#f8fafc",
+                            border: "1px solid #5D6660",
+                            background: zoomLevel >= 2.5 ? "#1A201C" : "#444C47",
+                            color: zoomLevel >= 2.5 ? "#5D6660" : "#F9FAF8",
                             fontSize: 12,
                             fontWeight: 800,
                             cursor: zoomLevel >= 2.5 ? "not-allowed" : "pointer",
@@ -1657,8 +1615,8 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #0284c7",
-                            background: "#0284c7",
+                            border: "1px solid #187A56",
+                            background: "#187A56",
                             color: "#ffffff",
                             fontSize: 10.5,
                             fontWeight: 700,
@@ -1678,9 +1636,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             height: 24,
                             padding: "0 7px",
                             borderRadius: 4,
-                            border: "1px solid #475569",
-                            background: "#334155",
-                            color: "#f8fafc",
+                            border: "1px solid #5D6660",
+                            background: "#444C47",
+                            color: "#F9FAF8",
                             fontSize: 10.5,
                             fontWeight: 600,
                             cursor: "pointer",
@@ -1702,7 +1660,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       flex: 1,
                       minHeight: 200,
                       maxHeight: "270px",
-                      background: "#0f172a",
+                      background: "#1A201C",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1715,7 +1673,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         style={{
                           padding: "24px 16px",
                           textAlign: "center",
-                          color: "#cbd5e1",
+                          color: "#C2CAC4",
                           maxWidth: 320,
                         }}
                       >
@@ -1729,15 +1687,15 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             alignItems: "center",
                             justifyContent: "center",
                             margin: "0 auto 10px",
-                            color: "#94a3b8",
+                            color: "#9BA49E",
                           }}
                         >
                           <Icon.FileText size={22} />
                         </div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "#f8fafc" }}>
+                        <div style={{ fontSize: 14, fontWeight: 700, color: "#F9FAF8" }}>
                           No evidence file attached
                         </div>
-                        <div style={{ fontSize: 11.5, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 11.5, color: "#9BA49E", marginTop: 4, lineHeight: 1.4 }}>
                           No photo or document file is recorded for this condemnation.
                         </div>
                       </div>
@@ -1773,7 +1731,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             left: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            background: "rgba(15, 23, 42, 0.82)",
+                            background: "rgba(26, 32, 28, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
@@ -1799,7 +1757,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             right: 8,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            background: "rgba(15, 23, 42, 0.82)",
+                            background: "rgba(26, 32, 28, 0.82)",
                             color: "#ffffff",
                             border: "1px solid rgba(255,255,255,0.25)",
                             borderRadius: "50%",
@@ -1827,8 +1785,8 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         alignItems: "center",
                         gap: 6,
                         padding: "6px 10px",
-                        background: "#1e293b",
-                        borderTop: "1px solid #334155",
+                        background: "#2D332F",
+                        borderTop: "1px solid #444C47",
                         overflowX: "auto",
                       }}
                     >
@@ -1845,8 +1803,8 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                               padding: 0,
                               borderRadius: 4,
                               overflow: "hidden",
-                              border: isSelected ? "2px solid #38bdf8" : "1px solid #475569",
-                              background: "#0f172a",
+                              border: isSelected ? "2px solid #24966D" : "1px solid #5D6660",
+                              background: "#1A201C",
                               cursor: "pointer",
                               flexShrink: 0,
                               position: "relative",
@@ -1865,7 +1823,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                   )}
                 </div>
 
-                {/* ‚îÄ‚îÄ RIGHT: COMPACT TWO-LINE LABELED DETAILS LIST ‚îÄ‚îÄ */}
+                {/* -- RIGHT: COMPACT TWO-LINE LABELED DETAILS LIST -- */}
                 <div className="vet-evidence-viewer-details-col">
                   <div
                     className="vet-evidence-viewer-details-header"
@@ -2003,17 +1961,17 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                                   <span style={{ fontWeight: 750, color: "var(--color-text)" }}>
                                     {p.part}
-                                    {p.area ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> ¬∑ {p.area}</span> : null}
+                                    {p.area ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> ∑ {p.area}</span> : null}
                                   </span>
                                   <span style={{ fontWeight: 700, color: "#b45309", fontSize: 11.5 }}>
                                     Qty: {p.quantity || 1}
-                                    {p.weightDisplay ? ` ¬∑ ${p.weightDisplay}` : ""}
+                                    {p.weightDisplay ? ` ∑ ${p.weightDisplay}` : ""}
                                   </span>
                                 </div>
                                 {(p.reason || p.disposition) && (
                                   <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
                                     {p.reason ? <span>Reason: <strong style={{ color: "var(--color-text)" }}>{p.reason}</strong></span> : null}
-                                    {p.reason && p.disposition ? " ¬∑ " : ""}
+                                    {p.reason && p.disposition ? " ∑ " : ""}
                                     {p.disposition ? <span>{p.disposition}</span> : null}
                                   </div>
                                 )}
@@ -2033,7 +1991,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                     {/* 7. Condemnation Date & Time */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Condemnation Date & Time</dt>
-                      <dd>{viewingDetails.date ? formatPhDateTime(viewingDetails.date) : "‚Äî"}</dd>
+                      <dd>{viewingDetails.date ? formatPhDateTime(viewingDetails.date) : "ó"}</dd>
                     </div>
 
                     {/* 8. Condemned By */}
@@ -2116,7 +2074,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         height: 32,
                         borderRadius: "50%",
                         background: "#ffffff",
-                        color: "#0f172a",
+                        color: "#1A201C",
                         border: "none",
                         display: "flex",
                         alignItems: "center",
@@ -2127,7 +2085,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                       }}
                     >
-                      ‚úï
+                      ?
                     </button>
                   </div>
                 </div>
@@ -2164,7 +2122,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           border: 1px solid var(--color-border);
           border-radius: 8px;
           overflow: hidden;
-          background: #0f172a;
+          background: #1A201C;
           flex-shrink: 0;
         }
         .vet-evidence-viewer-details-col {

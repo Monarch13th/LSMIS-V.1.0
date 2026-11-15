@@ -106,9 +106,13 @@ export const adminService = {
     let authData = null;
     try {
       // Use a secondary client so we don't log out the admin when creating a new user
-      const secondarySupabase = createClient(import.meta.env.VITE_SUPABASE_URL, import.meta.env.VITE_SUPABASE_ANON_KEY, {
-        auth: { persistSession: false, autoRefreshToken: false }
-      });
+      const secondarySupabase = createClient(
+        import.meta.env?.VITE_SUPABASE_URL || "https://zwuoebmkapoywkpyaahw.supabase.co",
+        import.meta.env?.VITE_SUPABASE_ANON_KEY || "sb_publishable_59ktqE4W2Qfk6PuSwxLrvA_0IuyMEBR",
+        {
+          auth: { persistSession: false, autoRefreshToken: false }
+        }
+      );
       
       // Create the user in Supabase Auth
       const { data, error: authError } = await secondarySupabase.auth.signUp({

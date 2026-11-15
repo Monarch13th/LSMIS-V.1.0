@@ -427,7 +427,7 @@ export const SpeciesManagement = () => {
           }}
         >
           {/* Status Filter Pills */}
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          <div className="adm-seg-tabs">
             {[
               { id: "all", label: "All Species", count: totalCount, icon: <Icon.Cow size={14} /> },
               { id: "Active", label: "Active", count: activeCount, icon: <Icon.CheckCircle size={14} /> },
@@ -437,35 +437,13 @@ export const SpeciesManagement = () => {
               return (
                 <button
                   key={tab.id}
+                  type="button"
+                  className={`adm-seg-btn ${active ? "active" : ""}`}
                   onClick={() => setFilterStatus(tab.id)}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: active ? 700 : 600,
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    background: active ? "var(--color-primary)" : "var(--color-surface-hover, rgba(0,0,0,0.04))",
-                    color: active ? "#fff" : "var(--color-text)",
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: "1px 6px",
-                      borderRadius: 10,
-                      background: active ? "rgba(255,255,255,0.25)" : "var(--color-bg)",
-                      color: active ? "#fff" : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {tab.count}
                   </span>
                 </button>
@@ -476,12 +454,12 @@ export const SpeciesManagement = () => {
           {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {/* Search Input */}
-            <div style={{ position: "relative", width: 220 }}>
+            <div style={{ position: "relative", width: 240 }}>
               <Icon.Search
                 size={13}
                 style={{
                   position: "absolute",
-                  left: 10,
+                  left: 11,
                   top: "50%",
                   transform: "translateY(-50%)",
                   color: "var(--color-text-muted)",
@@ -495,14 +473,14 @@ export const SpeciesManagement = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 style={{
                   width: "100%",
-                  height: 34,
-                  paddingLeft: 30,
-                  paddingRight: search ? 24 : 10,
-                  borderRadius: 6,
+                  height: 36,
+                  paddingLeft: 32,
+                  paddingRight: search ? 26 : 12,
+                  borderRadius: 10,
                   border: "1px solid var(--color-border)",
                   background: "var(--color-bg)",
                   color: "var(--color-text)",
-                  fontSize: 12,
+                  fontSize: 12.5,
                   outline: "none",
                   boxSizing: "border-box",
                 }}
@@ -524,7 +502,7 @@ export const SpeciesManagement = () => {
                     padding: 2,
                   }}
                 >
-                  âœ•
+                  ?
                 </button>
               )}
             </div>
@@ -532,23 +510,8 @@ export const SpeciesManagement = () => {
             {/* Add Species Button */}
             <button
               type="button"
+              className="adm-toolbar-primary-btn"
               onClick={handleOpenAddModal}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                height: 34,
-                padding: "0 12px",
-                borderRadius: 6,
-                background: "var(--color-primary)",
-                color: "#fff",
-                border: "none",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}
             >
               <Icon.Plus size={14} />
               <span>Add Species</span>
@@ -598,7 +561,7 @@ export const SpeciesManagement = () => {
             <tbody>
               {filteredList.map((spec) => {
                 const isActive = spec.status === "Active";
-                const dateDisplay = formatDate(spec.created_at) || "â€”";
+                const dateDisplay = formatDate(spec.created_at) || "—";
 
                 return (
                   <tr
@@ -758,7 +721,7 @@ export const SpeciesManagement = () => {
                             onClick={() => setConfirmStatusToggle(spec)}
                             title="Activate species"
                           >
-                            <Icon.CheckCircle size={14} style={{ color: "#16a34a" }} />
+                            <Icon.CheckCircle size={14} />
                             <span>Activate</span>
                           </button>
                         )}
@@ -792,18 +755,18 @@ export const SpeciesManagement = () => {
         onClose={() => !submitting && setFormModalOpen(false)}
         title={editingSpecies ? "Edit Livestock Species" : "Add New Livestock Species"}
         size="md"
-        dialogStyle={{ maxWidth: "520px" }}
-        bodyStyle={{ padding: "18px 22px" }}
+        dialogStyle={{ maxWidth: "480px" }}
+        bodyStyle={{ padding: "20px 24px" }}
       >
-        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
           {formErrors.general && (
             <div
               style={{
-                padding: "10px 12px",
-                borderRadius: 8,
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                color: "#dc2626",
+                padding: "10px 14px",
+                borderRadius: 10,
+                background: "rgba(239, 68, 68, 0.08)",
+                border: "1px solid rgba(239, 68, 68, 0.28)",
+                color: "#ef4444",
                 fontSize: 12.5,
                 fontWeight: 600,
                 display: "flex",
@@ -811,33 +774,66 @@ export const SpeciesManagement = () => {
                 gap: 8,
               }}
             >
-              <Icon.AlertTriangle size={16} />
+              <Icon.AlertTriangle size={16} style={{ flexShrink: 0 }} />
               <span>{formErrors.general}</span>
             </div>
           )}
 
           {/* 1. Species Name (Required) */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "5px", fontWeight: 700 }}>
+            <label
+              htmlFor="species-name-input"
+              className="form-label"
+              style={{
+                fontSize: "0.8rem",
+                marginBottom: "6px",
+                fontWeight: 700,
+                display: "block",
+                color: "var(--color-text)",
+              }}
+            >
               Species Name <span style={{ color: "#ef4444" }}>*</span>
             </label>
-            <input
-              id="species-name-input"
-              type="text"
-              className="form-control"
-              placeholder="e.g. Hog, Cattle, Carabao, Goat, Sheep"
-              value={formData.name}
-              onChange={(e) => {
-                setFormData((prev) => ({ ...prev, name: e.target.value }));
-                if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: null }));
-              }}
-              style={{
-                height: "38px",
-                fontSize: "0.85rem",
-                border: formErrors.name ? "1.5px solid #ef4444" : undefined,
-              }}
-              required
-            />
+            <div style={{ position: "relative" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: 13,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--color-text-muted)",
+                  display: "flex",
+                  pointerEvents: "none",
+                }}
+              >
+                <Icon.Cow size={16} />
+              </span>
+              <input
+                id="species-name-input"
+                type="text"
+                className="form-control"
+                placeholder="e.g. Hog, Cattle, Carabao, Goat, Sheep"
+                value={formData.name}
+                onChange={(e) => {
+                  setFormData((prev) => ({ ...prev, name: e.target.value }));
+                  if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: null }));
+                }}
+                style={{
+                  height: "42px",
+                  paddingLeft: "38px",
+                  paddingRight: "14px",
+                  fontSize: "0.85rem",
+                  fontWeight: 500,
+                  borderRadius: "11px",
+                  border: formErrors.name ? "1.5px solid #ef4444" : "1px solid var(--color-border)",
+                  background: "var(--color-bg)",
+                  color: "var(--color-text)",
+                  width: "100%",
+                  boxSizing: "border-box",
+                }}
+                required
+              />
+            </div>
             {formErrors.name && (
               <span style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: 4, display: "block", fontWeight: 600 }}>
                 {formErrors.name}
@@ -847,12 +843,22 @@ export const SpeciesManagement = () => {
 
           {/* 2. Animal Picture Upload Area (Required, Clean & Visual) */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "5px" }}>
-              <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: 0, fontWeight: 700 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+              <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: 0, fontWeight: 700, color: "var(--color-text)" }}>
                 Animal Picture <span style={{ color: "#ef4444" }}>*</span>
               </label>
-              <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)" }}>
-                JPG, JPEG, PNG, WEBP (Max 5MB)
+              <span
+                style={{
+                  fontSize: "0.68rem",
+                  fontWeight: 600,
+                  color: "var(--color-text-muted)",
+                  background: "var(--color-bg)",
+                  border: "1px solid var(--color-border)",
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                }}
+              >
+                JPG, PNG, WEBP · Max 5MB
               </span>
             </div>
 
@@ -875,14 +881,14 @@ export const SpeciesManagement = () => {
                 onDragLeave={handleDragLeave}
                 style={{
                   border: formErrors.image
-                    ? "2px dashed #ef4444"
+                    ? "1.5px dashed #ef4444"
                     : isDragging
-                    ? "2px dashed var(--color-primary)"
+                    ? "1.5px dashed var(--color-primary)"
                     : "1.5px dashed var(--color-border)",
-                  borderRadius: 10,
-                  padding: "24px 16px",
+                  borderRadius: 12,
+                  padding: "18px 16px",
                   background: isDragging
-                    ? "rgba(16, 185, 129, 0.05)"
+                    ? "rgba(24, 122, 86, 0.06)"
                     : "var(--color-bg)",
                   display: "flex",
                   flexDirection: "column",
@@ -890,30 +896,44 @@ export const SpeciesManagement = () => {
                   justifyContent: "center",
                   gap: 8,
                   cursor: "pointer",
-                  transition: "all 0.15s ease",
+                  transition: "all 0.16s ease",
                   textAlign: "center",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isDragging && !formErrors.image) {
+                    e.currentTarget.style.borderColor = "var(--color-primary)";
+                    e.currentTarget.style.background = "rgba(24, 122, 86, 0.04)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isDragging && !formErrors.image) {
+                    e.currentTarget.style.borderColor = "var(--color-border)";
+                    e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
+                  }
                 }}
               >
                 <div
                   style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: "50%",
-                    background: "rgba(16, 185, 129, 0.1)",
+                    width: 42,
+                    height: 42,
+                    borderRadius: 12,
+                    background: "rgba(24, 122, 86, 0.1)",
+                    border: "1px solid rgba(24, 122, 86, 0.22)",
                     color: "var(--color-primary)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    boxShadow: "0 4px 10px -2px rgba(24, 122, 86, 0.15)",
                   }}
                 >
-                  <Icon.Upload size={20} />
+                  <Icon.Upload size={19} />
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
+                  <div style={{ fontSize: "0.84rem", fontWeight: 700, color: "var(--color-text)" }}>
                     Click to upload animal picture
                   </div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)", marginTop: 2 }}>
-                    or drag and drop file here
+                  <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", marginTop: 2 }}>
+                    or drag and drop image file here
                   </div>
                 </div>
               </div>
@@ -921,7 +941,7 @@ export const SpeciesManagement = () => {
               /* Selected Image Preview with Change Picture action */
               <div
                 style={{
-                  borderRadius: 10,
+                  borderRadius: 12,
                   border: "1px solid var(--color-border)",
                   padding: "10px 14px",
                   background: "var(--color-bg)",
@@ -935,16 +955,16 @@ export const SpeciesManagement = () => {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
                   <div
                     style={{
-                      width: 52,
-                      height: 52,
-                      borderRadius: 8,
+                      width: 50,
+                      height: 50,
+                      borderRadius: 10,
                       border: "1px solid var(--color-border)",
-                      background: "#ffffff",
+                      background: "var(--color-surface)",
                       overflow: "hidden",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: 2,
+                      padding: 3,
                       flexShrink: 0,
                     }}
                   >
@@ -975,8 +995,8 @@ export const SpeciesManagement = () => {
                     >
                       {imageFile ? imageFile.name : `${formData.name || "Species"} Picture`}
                     </div>
-                    <div style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: 600, marginTop: 2 }}>
-                      âœ“ Picture ready
+                    <div style={{ fontSize: "0.72rem", color: "var(--color-primary)", fontWeight: 600, marginTop: 2 }}>
+                      ? Picture ready
                     </div>
                   </div>
                 </div>
@@ -986,7 +1006,7 @@ export const SpeciesManagement = () => {
                   onClick={() => fileInputRef.current?.click()}
                   style={{
                     padding: "6px 12px",
-                    borderRadius: 6,
+                    borderRadius: 8,
                     border: "1px solid var(--color-border)",
                     background: "var(--color-surface)",
                     color: "var(--color-text)",
@@ -1016,22 +1036,46 @@ export const SpeciesManagement = () => {
 
           {/* 3. Description (Optional) */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "5px", fontWeight: 700 }}>
-              Description <span style={{ fontWeight: 400, color: "var(--color-text-muted)" }}>(Optional)</span>
+            <label
+              className="form-label"
+              style={{
+                fontSize: "0.8rem",
+                marginBottom: "6px",
+                fontWeight: 700,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                color: "var(--color-text)",
+              }}
+            >
+              <span>Description</span>
+              <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--color-text-muted)" }}>Optional</span>
             </label>
             <textarea
               className="form-control"
-              rows={3}
+              rows={2}
               placeholder="e.g. Swine livestock or domestic pig classification notes"
               value={formData.description}
               onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              style={{ fontSize: "0.85rem", resize: "vertical" }}
+              style={{
+                fontSize: "0.84rem",
+                padding: "10px 14px",
+                borderRadius: "11px",
+                border: "1px solid var(--color-border)",
+                background: "var(--color-bg)",
+                color: "var(--color-text)",
+                resize: "vertical",
+                minHeight: "66px",
+                lineHeight: 1.45,
+                width: "100%",
+                boxSizing: "border-box",
+              }}
             />
           </div>
 
           {/* 4. Status (Active / Inactive) */}
           <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "6px", fontWeight: 700 }}>
+            <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "6px", fontWeight: 700, display: "block", color: "var(--color-text)" }}>
               Status
             </label>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
@@ -1040,15 +1084,28 @@ export const SpeciesManagement = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: formData.status === "Active" ? "1.5px solid #16a34a" : "1px solid var(--color-border)",
-                  background: formData.status === "Active" ? "#f0fdf4" : "var(--color-bg)",
-                  color: formData.status === "Active" ? "#166534" : "var(--color-text)",
+                  gap: 9,
+                  padding: "10px 14px",
+                  borderRadius: 11,
+                  border:
+                    formData.status === "Active"
+                      ? "1.5px solid var(--color-primary)"
+                      : "1px solid var(--color-border)",
+                  background:
+                    formData.status === "Active"
+                      ? "rgba(24, 122, 86, 0.08)"
+                      : "var(--color-bg)",
+                  color:
+                    formData.status === "Active"
+                      ? "var(--color-primary)"
+                      : "var(--color-text)",
+                  boxShadow:
+                    formData.status === "Active"
+                      ? "0 2px 8px rgba(24, 122, 86, 0.12)"
+                      : "none",
                   cursor: "pointer",
-                  fontSize: "0.82rem",
-                  fontWeight: formData.status === "Active" ? 700 : 500,
+                  fontSize: "0.83rem",
+                  fontWeight: formData.status === "Active" ? 700 : 600,
                   transition: "all 0.15s ease",
                 }}
               >
@@ -1058,7 +1115,7 @@ export const SpeciesManagement = () => {
                   value="Active"
                   checked={formData.status === "Active"}
                   onChange={() => {}}
-                  style={{ accentColor: "#16a34a" }}
+                  style={{ accentColor: "var(--color-primary, #187A56)", width: 15, height: 15, margin: 0, cursor: "pointer" }}
                 />
                 <span>Active</span>
               </label>
@@ -1068,15 +1125,28 @@ export const SpeciesManagement = () => {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
-                  padding: "8px 12px",
-                  borderRadius: 8,
-                  border: formData.status === "Inactive" ? "1.5px solid #dc2626" : "1px solid var(--color-border)",
-                  background: formData.status === "Inactive" ? "#fef2f2" : "var(--color-bg)",
-                  color: formData.status === "Inactive" ? "#991b1b" : "var(--color-text)",
+                  gap: 9,
+                  padding: "10px 14px",
+                  borderRadius: 11,
+                  border:
+                    formData.status === "Inactive"
+                      ? "1.5px solid #ef4444"
+                      : "1px solid var(--color-border)",
+                  background:
+                    formData.status === "Inactive"
+                      ? "rgba(239, 68, 68, 0.08)"
+                      : "var(--color-bg)",
+                  color:
+                    formData.status === "Inactive"
+                      ? "#ef4444"
+                      : "var(--color-text)",
+                  boxShadow:
+                    formData.status === "Inactive"
+                      ? "0 2px 8px rgba(239, 68, 68, 0.12)"
+                      : "none",
                   cursor: "pointer",
-                  fontSize: "0.82rem",
-                  fontWeight: formData.status === "Inactive" ? 700 : 500,
+                  fontSize: "0.83rem",
+                  fontWeight: formData.status === "Inactive" ? 700 : 600,
                   transition: "all 0.15s ease",
                 }}
               >
@@ -1086,14 +1156,24 @@ export const SpeciesManagement = () => {
                   value="Inactive"
                   checked={formData.status === "Inactive"}
                   onChange={() => {}}
-                  style={{ accentColor: "#dc2626" }}
+                  style={{ accentColor: "#ef4444", width: 15, height: 15, margin: 0, cursor: "pointer" }}
                 />
                 <span>Inactive</span>
               </label>
             </div>
-            <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", marginTop: 4, display: "block" }}>
-              Active species appear automatically in Staff Personnel's Register Livestock options.
-            </span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                fontSize: "0.73rem",
+                color: "var(--color-text-muted)",
+                marginTop: 7,
+              }}
+            >
+              <Icon.Info size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
+              <span>Active species appear automatically in Staff Personnel&apos;s Register Livestock options.</span>
+            </div>
           </div>
 
           {/* Form Action Buttons */}
@@ -1103,9 +1183,9 @@ export const SpeciesManagement = () => {
               justifyContent: "flex-end",
               alignItems: "center",
               gap: 10,
-              paddingTop: 12,
+              paddingTop: 14,
               borderTop: "1px solid var(--color-border)",
-              marginTop: 4,
+              marginTop: 2,
             }}
           >
             <button
@@ -1113,7 +1193,7 @@ export const SpeciesManagement = () => {
               className="btn btn-secondary"
               disabled={submitting}
               onClick={() => setFormModalOpen(false)}
-              style={{ height: "36px", padding: "0 16px", fontSize: "0.82rem" }}
+              style={{ height: "38px", padding: "0 18px", fontSize: "0.83rem", borderRadius: "10px" }}
             >
               Cancel
             </button>
@@ -1121,7 +1201,7 @@ export const SpeciesManagement = () => {
               type="submit"
               className="btn btn-primary"
               disabled={submitting}
-              style={{ height: "36px", padding: "0 18px", fontSize: "0.82rem", minWidth: 110 }}
+              style={{ height: "38px", padding: "0 20px", fontSize: "0.83rem", minWidth: 120, borderRadius: "10px" }}
             >
               {submitting ? "Saving..." : editingSpecies ? "Save Changes" : "Save Species"}
             </button>
@@ -1146,16 +1226,16 @@ export const SpeciesManagement = () => {
             <div
               style={{
                 width: "100%",
-                height: 180,
-                borderRadius: 10,
+                height: 170,
+                borderRadius: 12,
                 overflow: "hidden",
-                background: "#ffffff",
+                background: "var(--color-bg)",
                 border: "1px solid var(--color-border)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 position: "relative",
-                padding: 10,
+                padding: 12,
               }}
             >
               {viewingSpecies.image_url ? (
@@ -1199,11 +1279,11 @@ export const SpeciesManagement = () => {
                     gap: "5px",
                     fontSize: "12px",
                     fontWeight: 700,
-                    color: viewingSpecies.status === "Active" ? "#166534" : "#dc2626",
-                    background: viewingSpecies.status === "Active" ? "#f0fdf4" : "#fef2f2",
-                    border: `1px solid ${viewingSpecies.status === "Active" ? "#bbf7d0" : "#fecaca"}`,
-                    padding: "3px 8px",
-                    borderRadius: "6px",
+                    color: viewingSpecies.status === "Active" ? "var(--color-primary)" : "#ef4444",
+                    background: viewingSpecies.status === "Active" ? "rgba(24, 122, 86, 0.12)" : "rgba(239, 68, 68, 0.12)",
+                    border: `1px solid ${viewingSpecies.status === "Active" ? "rgba(24, 122, 86, 0.28)" : "rgba(239, 68, 68, 0.28)"}`,
+                    padding: "4px 10px",
+                    borderRadius: "8px",
                   }}
                 >
                   <span
@@ -1211,7 +1291,7 @@ export const SpeciesManagement = () => {
                       width: 6,
                       height: 6,
                       borderRadius: "50%",
-                      background: viewingSpecies.status === "Active" ? "#16a34a" : "#dc2626",
+                      background: viewingSpecies.status === "Active" ? "var(--color-primary)" : "#ef4444",
                     }}
                   />
                   {viewingSpecies.status || "Active"}
@@ -1235,7 +1315,7 @@ export const SpeciesManagement = () => {
                     Date Added
                   </div>
                   <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
-                    {formatDate(viewingSpecies.created_at) || "â€”"}
+                    {formatDate(viewingSpecies.created_at) || "—"}
                   </div>
                 </div>
 

@@ -161,7 +161,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 07:10",
     inspector_name: "Dr. Aris Santos",
     inspector_license: "PRC-VET-004419",
-    temperature: "39.1Â°C",
+    temperature: "39.1°C",
     clinical_notes: "Alert, active, normal respiration. No gait anomalies or skin erythema.",
     decision: "Passed",
     facility: "Line 1 - Swine Lairage Bay",
@@ -174,7 +174,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 07:15",
     inspector_name: "Dr. Aris Santos",
     inspector_license: "PRC-VET-004419",
-    temperature: "39.2Â°C",
+    temperature: "39.2°C",
     clinical_notes: "Clear eyes, normal posture, good hydration. Sound condition.",
     decision: "Passed",
     facility: "Line 1 - Swine Lairage Bay",
@@ -187,7 +187,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 07:35",
     inspector_name: "Dr. Ma. Elena Cruz",
     inspector_license: "PRC-VET-005128",
-    temperature: "40.8Â°C",
+    temperature: "40.8°C",
     clinical_notes: "Elevated rectal temp, lethargic, rapid respiration, suspected heat prostration.",
     decision: "Suspect",
     facility: "Bay 4 - Quarantine Holding",
@@ -200,7 +200,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 06:30",
     inspector_name: "Dr. Ma. Elena Cruz",
     inspector_license: "PRC-VET-005128",
-    temperature: "38.6Â°C",
+    temperature: "38.6°C",
     clinical_notes: "Bright demeanor, rhythmic breathing, rumen motility normal. Clean hide.",
     decision: "Passed",
     facility: "Line 2 - Large Animal Chute",
@@ -213,7 +213,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 06:45",
     inspector_name: "Dr. Ma. Elena Cruz",
     inspector_license: "PRC-VET-005128",
-    temperature: "38.7Â°C",
+    temperature: "38.7°C",
     clinical_notes: "Symmetrical gait, clear nasal discharge, normal lymph nodes.",
     decision: "Passed",
     facility: "Line 2 - Large Animal Chute",
@@ -226,7 +226,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 07:50",
     inspector_name: "Dr. Aris Santos",
     inspector_license: "PRC-VET-004419",
-    temperature: "38.4Â°C",
+    temperature: "38.4°C",
     clinical_notes: "Sturdy condition, resting peacefully. 12-hour resting period completed.",
     decision: "Passed",
     facility: "Line 2 - Large Animal Chute",
@@ -239,7 +239,7 @@ const MOCK_CERTIFICATIONS_ANTE = [
     inspection_date: "2026-09-14 08:05",
     inspector_name: "Dr. Aris Santos",
     inspector_license: "PRC-VET-004419",
-    temperature: "39.4Â°C",
+    temperature: "39.4°C",
     clinical_notes: "Active, responsive, no oronasal discharge. Fleece dry and clean.",
     decision: "Passed",
     facility: "Small Stock Inspection Gate",
@@ -299,7 +299,7 @@ const MOCK_CERTIFICATIONS_POST = [
     inspector_name: "Dr. Ma. Elena Cruz",
     meat_inspector: "Insp. Teresa Ocampo",
     viscera_findings: "Lungs, heart, kidneys, reticulorumen clean. No parasitic cysts.",
-    carcass_condition: "Grade A carcass conformation, clean spinal split, good chill temp (4Â°C).",
+    carcass_condition: "Grade A carcass conformation, clean spinal split, good chill temp (4°C).",
     decision: "Passed",
     stamp_code: "NMIS-INSP-PASS-01",
   },
@@ -498,7 +498,7 @@ const INITIAL_ALERTS = [
     id: "ALT-01",
     severity: "critical",
     title: "Febrile Live Animal in Holding Pen",
-    message: "Tag SW-2026-0814 registered 40.8Â°C rectal temp. Quarantined in Bay 4. Barred from slaughter line pending lab screen.",
+    message: "Tag SW-2026-0814 registered 40.8°C rectal temp. Quarantined in Bay 4. Barred from slaughter line pending lab screen.",
     timestamp: "18m ago",
     tag_ref: "SW-2026-0814",
     tab_target: "certifications",
@@ -525,7 +525,7 @@ const INITIAL_ALERTS = [
     id: "ALT-04",
     severity: "warning",
     title: "Unpaid Slaughter Processing Fee",
-    message: "Consignment TXN-2026-8809 (â‚±1,850.00) pending payment past 24h SLA. Meat release lock applied.",
+    message: "Consignment TXN-2026-8809 (?1,850.00) pending payment past 24h SLA. Meat release lock applied.",
     timestamp: "45m ago",
     tag_ref: "TXN-2026-8809",
     tab_target: "payments",
@@ -754,7 +754,7 @@ export const LivestockInspectionDashboard = () => {
                 <span className="lid-pulse-dot" />
                 SYSTEM ONLINE
               </span>
-              <span>â€¢</span>
+              <span>•</span>
               <span title="Philippine Standard Time">
                 {currentTime.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit", second: "2-digit" })} PST
               </span>
@@ -874,7 +874,7 @@ export const LivestockInspectionDashboard = () => {
             <div>
               <div className="lid-kpi-label">Swine (Hogs)</div>
               <div className="lid-kpi-value">84 Head</div>
-              <div className="lid-kpi-sub">59.2% â€¢ Pens A1â€“A6</div>
+              <div className="lid-kpi-sub">59.2% • Pens A1–A6</div>
             </div>
           </div>
 
@@ -886,7 +886,7 @@ export const LivestockInspectionDashboard = () => {
             <div>
               <div className="lid-kpi-label">Cattle (Bovine)</div>
               <div className="lid-kpi-value">38 Head</div>
-              <div className="lid-kpi-sub">26.8% â€¢ Pens B1â€“B3</div>
+              <div className="lid-kpi-sub">26.8% • Pens B1–B3</div>
             </div>
           </div>
 
@@ -898,7 +898,7 @@ export const LivestockInspectionDashboard = () => {
             <div>
               <div className="lid-kpi-label">Carabao & Goats</div>
               <div className="lid-kpi-value">20 Head</div>
-              <div className="lid-kpi-sub">14.0% â€¢ Pens C1â€“C2</div>
+              <div className="lid-kpi-sub">14.0% • Pens C1–C2</div>
             </div>
           </div>
 
@@ -1086,7 +1086,7 @@ export const LivestockInspectionDashboard = () => {
                     {filteredLivestock.length === 0 ? (
                       <tr>
                         <td colSpan={10} style={{ textAlign: "center", padding: "3rem" }}>
-                          <Icon.Search size={32} style={{ color: "#94a3b8", marginBottom: "0.5rem" }} />
+                          <Icon.Search size={32} style={{ color: "#9BA49E", marginBottom: "0.5rem" }} />
                           <div style={{ fontWeight: 600, color: "var(--color-text-muted)" }}>
                             No livestock records matching "{searchQuery}"
                           </div>
@@ -1102,7 +1102,7 @@ export const LivestockInspectionDashboard = () => {
                           <td>
                             <div style={{ fontWeight: 600 }}>{animal.species}</div>
                             <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                              {animal.breed} â€¢ {animal.gender}
+                              {animal.breed} • {animal.gender}
                             </div>
                           </td>
                           <td style={{ fontWeight: 600 }}>{animal.weight}</td>
@@ -1116,7 +1116,7 @@ export const LivestockInspectionDashboard = () => {
                             </div>
                           </td>
                           <td>
-                            <span style={{ fontWeight: 600, color: "#0284c7" }}>
+                            <span style={{ fontWeight: 600, color: "#187A56" }}>
                               {animal.holding_pen}
                             </span>
                           </td>
@@ -1180,7 +1180,7 @@ export const LivestockInspectionDashboard = () => {
                 <button
                   className={`lid-action-btn ${certSubTab === "postmortem" ? "active" : ""}`}
                   style={{
-                    backgroundColor: certSubTab === "postmortem" ? "#0284c7" : undefined,
+                    backgroundColor: certSubTab === "postmortem" ? "#187A56" : undefined,
                     color: certSubTab === "postmortem" ? "#ffffff" : undefined,
                     fontWeight: 600,
                   }}
@@ -1230,7 +1230,7 @@ export const LivestockInspectionDashboard = () => {
                         {filteredAnteCertifications.length === 0 ? (
                           <tr>
                             <td colSpan={11} style={{ textAlign: "center", padding: "3rem" }}>
-                              <Icon.Search size={32} style={{ color: "#94a3b8", marginBottom: "0.5rem" }} />
+                              <Icon.Search size={32} style={{ color: "#9BA49E", marginBottom: "0.5rem" }} />
                               <div style={{ fontWeight: 600, color: "var(--color-text-muted)" }}>
                                 No ante-mortem records match "{searchQuery}"
                               </div>
@@ -1242,7 +1242,7 @@ export const LivestockInspectionDashboard = () => {
                               key={item.cert_id}
                               onClick={() => handleOpenDetail(item, "Ante-Mortem Inspection Certificate")}
                             >
-                              <td style={{ fontWeight: 700, color: "#0284c7" }}>{item.cert_id}</td>
+                              <td style={{ fontWeight: 700, color: "#187A56" }}>{item.cert_id}</td>
                               <td className="lid-tag-cell"><TagBadge tag={item.tag_number} /></td>
                               <td style={{ fontWeight: 600 }}>{item.species}</td>
                               <td>{item.owner}</td>
@@ -1330,7 +1330,7 @@ export const LivestockInspectionDashboard = () => {
                         {filteredPostCertifications.length === 0 ? (
                           <tr>
                             <td colSpan={11} style={{ textAlign: "center", padding: "3rem" }}>
-                              <Icon.Search size={32} style={{ color: "#94a3b8", marginBottom: "0.5rem" }} />
+                              <Icon.Search size={32} style={{ color: "#9BA49E", marginBottom: "0.5rem" }} />
                               <div style={{ fontWeight: 600, color: "var(--color-text-muted)" }}>
                                 No post-mortem records match "{searchQuery}"
                               </div>
@@ -1342,7 +1342,7 @@ export const LivestockInspectionDashboard = () => {
                               key={item.cert_id}
                               onClick={() => handleOpenDetail(item, "Post-Mortem Carcass Certificate")}
                             >
-                              <td style={{ fontWeight: 700, color: "#7c3aed" }}>{item.cert_id}</td>
+                              <td style={{ fontWeight: 700, color: "#187A56" }}>{item.cert_id}</td>
                               <td className="lid-tag-cell"><TagBadge tag={item.tag_number} /></td>
                               <td style={{ fontWeight: 700 }}>{item.carcass_weight}</td>
                               <td style={{ fontWeight: 600 }}>{item.species}</td>
@@ -1421,7 +1421,7 @@ export const LivestockInspectionDashboard = () => {
                     {filteredPermits.length === 0 ? (
                       <tr>
                         <td colSpan={11} style={{ textAlign: "center", padding: "3rem" }}>
-                          <Icon.Search size={32} style={{ color: "#94a3b8", marginBottom: "0.5rem" }} />
+                          <Icon.Search size={32} style={{ color: "#9BA49E", marginBottom: "0.5rem" }} />
                           <div style={{ fontWeight: 600, color: "var(--color-text-muted)" }}>
                             No permit records match "{searchQuery}"
                           </div>
@@ -1501,7 +1501,7 @@ export const LivestockInspectionDashboard = () => {
                       <th>Livestock Ref</th>
                       <th>Owner / Payer</th>
                       <th>Fee Assessment Category</th>
-                      <th>Amount (â‚±)</th>
+                      <th>Amount (?)</th>
                       <th>Payment Method</th>
                       <th>Official Receipt (OR)</th>
                       <th>Date / Time</th>
@@ -1514,7 +1514,7 @@ export const LivestockInspectionDashboard = () => {
                     {filteredPayments.length === 0 ? (
                       <tr>
                         <td colSpan={11} style={{ textAlign: "center", padding: "3rem" }}>
-                          <Icon.Search size={32} style={{ color: "#94a3b8", marginBottom: "0.5rem" }} />
+                          <Icon.Search size={32} style={{ color: "#9BA49E", marginBottom: "0.5rem" }} />
                           <div style={{ fontWeight: 600, color: "var(--color-text-muted)" }}>
                             No permit fee records match "{searchQuery}"
                           </div>
@@ -1533,7 +1533,7 @@ export const LivestockInspectionDashboard = () => {
                           <td style={{ fontWeight: 600 }}>{p.owner}</td>
                           <td>{p.fee_type}</td>
                           <td style={{ fontWeight: 700, fontSize: "0.95rem" }}>
-                            â‚±{p.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+                            ?{p.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
                           </td>
                           <td>
                             <span style={{ fontSize: "0.82rem", fontWeight: 500 }}>
@@ -1619,7 +1619,7 @@ export const LivestockInspectionDashboard = () => {
             <button
               className={`lid-alert-tab ${alertFilter === "info" ? "active" : ""}`}
               onClick={() => setAlertFilter("info")}
-              style={{ color: alertFilter === "info" ? "#0284c7" : undefined }}
+              style={{ color: alertFilter === "info" ? "#187A56" : undefined }}
             >
               Info ({alerts.filter((a) => a.severity === "info").length})
             </button>
@@ -1687,7 +1687,7 @@ export const LivestockInspectionDashboard = () => {
                     {selectedRecord._type || "Record Details"}
                   </h3>
                   <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-                    Republic of the Philippines â€¢ Department of Agriculture â€¢ NMIS Accredited
+                    Republic of the Philippines • Department of Agriculture • NMIS Accredited
                   </div>
                 </div>
               </div>

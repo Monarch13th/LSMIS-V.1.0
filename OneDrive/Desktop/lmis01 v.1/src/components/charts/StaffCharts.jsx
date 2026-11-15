@@ -2,7 +2,7 @@ import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { baseOptions, noLegend, cartesian, doughnutOptions, ChartEmpty, hasData } from "./chartKit";
 import { monthlySeries, isPaidPayment, num, PAYMENT_DATE_FIELDS } from "../../utils/dashboardMetrics";
 
-const SPECIES_COLORS = ["#10b981", "#0ea5e9", "#f59e0b", "#8b5cf6", "#ef4444", "#14b8a6"];
+const SPECIES_COLORS = ["#10b981", "#24966D", "#f59e0b", "#24966D", "#ef4444", "#14b8a6"];
 
 /**
  * Graph 1: Livestock Intake & Registration by Species
@@ -61,7 +61,7 @@ export const TeamAssignmentBar = ({ processing = [] }) => {
   });
   const rows = [...tally.entries()].sort((a, b) => b[1] - a[1]);
   if (rows.length === 0) return <ChartEmpty message="No team assignments recorded yet" />;
-  const colors = ["#0284c7", "#10b981", "#d97706", "#7c3aed"];
+  const colors = ["#187A56", "#10b981", "#d97706", "#187A56"];
   return (
     <div className="chart-container chart-container-sm">
       <Bar
@@ -123,14 +123,14 @@ export const RevenueTrend = ({ payments }) => {
       <Line
         data={{
           labels,
-          datasets: [{ label: "Revenue (₱)", data: values, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.12)", fill: true, tension: 0.35, pointRadius: 3 }],
+          datasets: [{ label: "Revenue (?)", data: values, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.12)", fill: true, tension: 0.35, pointRadius: 3 }],
         }}
         options={{
           ...cartesian(),
           plugins: {
             ...baseOptions.plugins,
             legend: { display: false },
-            tooltip: { ...baseOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ₱${Number(ctx.parsed.y).toLocaleString()}` } },
+            tooltip: { ...baseOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ?${Number(ctx.parsed.y).toLocaleString()}` } },
           },
         }}
       />

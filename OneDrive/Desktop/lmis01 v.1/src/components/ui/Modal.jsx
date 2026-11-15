@@ -380,10 +380,10 @@ export const AlertDialog = ({
               <Icon.Info size={28} strokeWidth={2.2} />
             )}
           </div>
-          <h3 id="alert-dialog-title" className="confirm-title" style={{ fontSize: "1.15rem", fontWeight: 800, color: "#0f172a", marginBottom: 8 }}>
+          <h3 id="alert-dialog-title" className="confirm-title" style={{ fontSize: "1.15rem", fontWeight: 800, color: "#1A201C", marginBottom: 8 }}>
             {title}
           </h3>
-          <p id="alert-dialog-desc" className="confirm-message" style={{ fontSize: "0.92rem", color: "#475569", lineHeight: 1.55, margin: 0, textAlign: "center", textAlignLast: "center" }}>
+          <p id="alert-dialog-desc" className="confirm-message" style={{ fontSize: "0.92rem", color: "#5D6660", lineHeight: 1.55, margin: 0, textAlign: "center", textAlignLast: "center" }}>
             {message}
           </p>
         </div>

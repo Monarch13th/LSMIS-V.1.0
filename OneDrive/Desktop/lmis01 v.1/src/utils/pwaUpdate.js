@@ -91,7 +91,7 @@ function showUpdateBanner(onUpdate) {
   bar.setAttribute("aria-live", "polite");
   bar.style.cssText =
     "position:fixed;left:16px;right:16px;bottom:16px;z-index:2147483000;display:flex;align-items:center;" +
-    "justify-content:space-between;gap:14px;padding:12px 18px;border-radius:12px;background:#0f172a;color:#ffffff;" +
+    "justify-content:space-between;gap:14px;padding:12px 18px;border-radius:12px;background:#1A201C;color:#ffffff;" +
     "font:600 13.5px system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;" +
     "box-shadow:0 10px 30px rgba(0,0,0,.35);border:1px solid rgba(255,255,255,0.12);max-width:540px;margin:0 auto;";
 
@@ -128,7 +128,7 @@ function showUpdateBanner(onUpdate) {
   dismissBtn.setAttribute("aria-label", "Dismiss update notice");
   dismissBtn.innerHTML = "&times;";
   dismissBtn.style.cssText =
-    "border:0;background:transparent;color:#94a3b8;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;";
+    "border:0;background:transparent;color:#9BA49E;font-size:20px;cursor:pointer;padding:0 4px;line-height:1;";
   dismissBtn.addEventListener("click", () => {
     bar.remove();
   });

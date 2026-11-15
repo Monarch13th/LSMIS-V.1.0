@@ -885,7 +885,7 @@ export const OwnerManagement = () => {
           }}
         >
           {/* Left: Segmented Status Tabs */}
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          <div className="adm-seg-tabs">
             {[
               { key: "all", label: "All Owners", count: totalCount, icon: <Icon.Users size={14} /> },
               { key: "pending", label: "Pending Approval", count: pendingCount, icon: <Icon.AlertCircle size={14} /> },
@@ -897,35 +897,12 @@ export const OwnerManagement = () => {
                 <button
                   key={tab.key}
                   type="button"
+                  className={`adm-seg-btn ${active ? "active" : ""}`}
                   onClick={() => { setActiveTab(tab.key); setPage(1); }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: active ? 700 : 600,
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    background: active ? "var(--color-primary)" : "var(--color-surface-hover, rgba(0,0,0,0.04))",
-                    color: active ? "#fff" : "var(--color-text)",
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: "1px 6px",
-                      borderRadius: 10,
-                      background: active ? "rgba(255,255,255,0.25)" : "var(--color-bg)",
-                      color: active ? "#fff" : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {tab.count}
                   </span>
                 </button>
@@ -984,7 +961,7 @@ export const OwnerManagement = () => {
                     padding: 2,
                   }}
                 >
-                  âœ•
+                  ?
                 </button>
               )}
             </div>
@@ -1009,9 +986,9 @@ export const OwnerManagement = () => {
               >
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
-                <option value="name_asc">Name (Aâ€“Z)</option>
+                <option value="name_asc">Name (A–Z)</option>
               </select>
-              <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>â–¼</span>
+              <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>?</span>
             </div>
           </div>
         </div>
@@ -1022,34 +999,34 @@ export const OwnerManagement = () => {
             className="table"
             style={{
               width: "100%",
-              minWidth: "1060px",
+              minWidth: "840px",
               tableLayout: "fixed",
               borderCollapse: "collapse",
               margin: 0,
             }}
           >
             <colgroup>
-              <col style={{ width: "28%" }} />
               <col style={{ width: "25%" }} />
-              <col style={{ width: "15%" }} />
-              <col style={{ width: "12%" }} />
-              <col style={{ width: "20%" }} />
+              <col style={{ width: "23%" }} />
+              <col style={{ width: "13%" }} />
+              <col style={{ width: "13%" }} />
+              <col style={{ width: "26%" }} />
             </colgroup>
             <thead>
               <tr style={{ position: "sticky", top: 0, zIndex: 10, background: "var(--color-bg)", borderBottom: "1px solid var(--color-border)" }}>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 12px", fontSize: "0.72rem", fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   OWNER DETAILS
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 12px", fontSize: "0.72rem", fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   CONTACT &amp; ADDRESS
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 10px", fontSize: "0.72rem", fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   DATE REGISTERED
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
+                <th style={{ padding: "12px 10px", fontSize: "0.72rem", fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.04em", whiteSpace: "nowrap" }}>
                   STATUS
                 </th>
-                <th style={{ padding: "12px 14px", fontSize: "0.72rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap", minWidth: "220px" }}>
+                <th style={{ padding: "12px 8px", fontSize: "0.72rem", fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.04em", textAlign: "center", whiteSpace: "nowrap" }}>
                   ACTIONS
                 </th>
               </tr>
@@ -1067,30 +1044,17 @@ export const OwnerManagement = () => {
                   <tr
                     key={o.id || idx}
                     onClick={() => openOwnerDetail(o)}
+                    className="personnel-table-row"
                     style={{
-                      borderBottom: "1px solid #f1f5f9",
+                      borderBottom: "1px solid var(--color-border)",
                       cursor: "pointer",
                       background: isPending
-                        ? "rgba(254, 243, 199, 0.25)"
+                        ? "rgba(245, 158, 11, 0.06)"
                         : isRejected
-                        ? "rgba(254, 242, 242, 0.25)"
-                        : "#ffffff",
-                      transition: "background 0.12s ease",
+                        ? "rgba(239, 68, 68, 0.06)"
+                        : "transparent",
+                      transition: "background 0.14s ease",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = isPending
-                        ? "rgba(254, 243, 199, 0.45)"
-                        : isRejected
-                        ? "rgba(254, 242, 242, 0.45)"
-                        : "#f8fafc")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = isPending
-                        ? "rgba(254, 243, 199, 0.25)"
-                        : isRejected
-                        ? "rgba(254, 242, 242, 0.25)"
-                        : "#ffffff")
-                    }
                   >
                     {/* Column 1: Owner Details */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", overflow: "hidden" }}>
@@ -1185,7 +1149,7 @@ export const OwnerManagement = () => {
                             }}
                             title={o.email || o.username || ""}
                           >
-                            {o.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{o.username} Â· </span>}
+                            {o.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{o.username} · </span>}
                             <span>{o.email || "No email"}</span>
                           </div>
                         </div>
@@ -1194,18 +1158,18 @@ export const OwnerManagement = () => {
 
                     {/* Column 2: Contact & Address */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", overflow: "hidden" }}>
-                      <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#0284c7", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+                      <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#187A56", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
                         <Icon.Phone size={12} style={{ flexShrink: 0 }} />
                         {o.contact ? (
                           <span>{o.contact}</span>
                         ) : (
-                          <span style={{ color: "#94a3b8" }}>â€”</span>
+                          <span style={{ color: "#9BA49E" }}>—</span>
                         )}
                       </div>
                       <div
                         style={{
                           fontSize: "0.74rem",
-                          color: "#64748b",
+                          color: "#5D6660",
                           marginTop: 3,
                           whiteSpace: "nowrap",
                           overflow: "hidden",
@@ -1216,7 +1180,7 @@ export const OwnerManagement = () => {
                         }}
                         title={o.address || "No address on file"}
                       >
-                        <Icon.MapPin size={12} style={{ color: "#94a3b8", flexShrink: 0 }} />
+                        <Icon.MapPin size={12} style={{ color: "#9BA49E", flexShrink: 0 }} />
                         <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{o.address || "No address on file"}</span>
                       </div>
                     </td>
@@ -1234,119 +1198,70 @@ export const OwnerManagement = () => {
                       {getStatusBadge(o)}
                     </td>
 
-                    {/* Column 6: Actions */}
-                    <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "center", whiteSpace: "nowrap" }}>
-                      <div style={{ display: "inline-flex", gap: "6px", justifyContent: "center", alignItems: "center", flexWrap: "nowrap" }}>
+                    {/* Column 5: Actions */}
+                    <td className="table-action-td" style={{ padding: "12px 6px", verticalAlign: "middle", textAlign: "center", whiteSpace: "nowrap" }}>
+                      <div className="table-action-group" style={{ display: "inline-flex", gap: "5px", justifyContent: "center", alignItems: "center", flexWrap: "nowrap" }}>
                         {isPending ? (
                           <>
                             <button
                               type="button"
+                              className="action-btn action-btn-outline"
                               onClick={(e) => { e.stopPropagation(); openOwnerDetail(o); }}
-                              style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 4,
-                                height: "30px",
-                                padding: "0 9px",
-                                borderRadius: "6px",
-                                fontSize: "0.75rem",
-                                fontWeight: 700,
-                                background: "var(--color-surface)",
-                                color: "var(--color-text)",
-                                border: "1px solid var(--color-border)",
-                                cursor: "pointer",
-                                transition: "all 0.15s ease",
-                              }}
-                              onMouseEnter={(e) => (e.currentTarget.style.background = "#f1f5f9")}
-                              onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
                               title="View pending registration details"
                               aria-label="View Owner Details"
+                              style={{ height: 28, padding: "0 8px", fontSize: "0.74rem" }}
                             >
-                              <Icon.Eye size={13} />
+                              <Icon.Eye size={12} />
                               <span>View</span>
                             </button>
                             <button
                               type="button"
+                              className="action-btn"
                               onClick={(e) => { e.stopPropagation(); setApproveConfirmOwner(o); }}
                               disabled={actionLoading}
                               style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 4,
-                                height: "30px",
-                                padding: "0 10px",
-                                borderRadius: "6px",
-                                fontSize: "0.75rem",
-                                fontWeight: 700,
-                                background: "#059669",
+                                background: "#187A56",
                                 color: "#ffffff",
-                                border: "1px solid #047857",
+                                border: "1px solid #136647",
                                 cursor: actionLoading ? "not-allowed" : "pointer",
                                 opacity: actionLoading ? 0.6 : 1,
-                                boxShadow: "0 1px 2px rgba(5, 150, 105, 0.2)",
-                                transition: "all 0.15s ease",
+                                boxShadow: "0 2px 6px rgba(24, 122, 86, 0.28)",
+                                height: 28,
+                                padding: "0 9px",
+                                fontSize: "0.74rem",
                               }}
-                              onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#047857"; }}
-                              onMouseLeave={(e) => { if (!actionLoading) e.currentTarget.style.background = "#059669"; }}
                               title="Approve owner registration"
                             >
-                              <Icon.Check size={13} style={{ strokeWidth: 2.5 }} />
+                              <Icon.Check size={12} style={{ strokeWidth: 2.5 }} />
                               <span>Approve</span>
                             </button>
                             <button
                               type="button"
+                              className="action-btn"
                               onClick={(e) => { e.stopPropagation(); handleReject(o); }}
                               disabled={actionLoading}
                               style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 4,
-                                height: "30px",
-                                padding: "0 10px",
-                                borderRadius: "6px",
-                                fontSize: "0.75rem",
-                                fontWeight: 700,
                                 background: "#dc2626",
                                 color: "#ffffff",
                                 border: "1px solid #b91c1c",
                                 cursor: actionLoading ? "not-allowed" : "pointer",
                                 opacity: actionLoading ? 0.6 : 1,
                                 boxShadow: "0 1px 2px rgba(220, 38, 38, 0.2)",
-                                transition: "all 0.15s ease",
+                                height: 28,
+                                padding: "0 9px",
+                                fontSize: "0.74rem",
                               }}
-                              onMouseEnter={(e) => { if (!actionLoading) e.currentTarget.style.background = "#b91c1c"; }}
-                              onMouseLeave={(e) => { if (!actionLoading) e.currentTarget.style.background = "#dc2626"; }}
                               title="Reject owner registration"
                             >
-                              <Icon.X size={13} style={{ strokeWidth: 2.5 }} />
+                              <Icon.X size={12} style={{ strokeWidth: 2.5 }} />
                               <span>Reject</span>
                             </button>
                           </>
                         ) : isRejected ? (
                           <button
                             type="button"
+                            className="action-btn action-btn-outline"
                             onClick={(e) => { e.stopPropagation(); openOwnerDetail(o); }}
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: 4,
-                              height: "30px",
-                              padding: "0 9px",
-                              borderRadius: "6px",
-                              fontSize: "0.75rem",
-                              fontWeight: 700,
-                              background: "var(--color-surface)",
-                              color: "var(--color-text)",
-                              border: "1px solid var(--color-border)",
-                              cursor: "pointer",
-                              transition: "all 0.15s ease",
-                            }}
-                            onMouseEnter={(e) => (e.currentTarget.style.background = "#f1f5f9")}
-                            onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
                             title="View rejected registration details"
                             aria-label="View Owner Details"
                           >
@@ -1358,46 +1273,20 @@ export const OwnerManagement = () => {
                           isDeactivated ? (
                             <button
                               type="button"
+                              className="action-btn action-btn-soft-success"
                               onClick={(e) => { e.stopPropagation(); handleToggleDeactivateOwner(o); }}
                               disabled={actionLoading}
-                              style={{
-                                padding: "6px 14px",
-                                borderRadius: "6px",
-                                border: "1px solid #bbf7d0",
-                                background: "#f0fdf4",
-                                color: "#166534",
-                                cursor: actionLoading ? "not-allowed" : "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                transition: "all 0.15s ease",
-                              }}
                               title="Activate owner account"
                             >
-                              <Icon.CheckCircle size={14} style={{ color: "#16a34a" }} />
+                              <Icon.CheckCircle size={14} />
                               <span>Activate</span>
                             </button>
                           ) : (
                             <button
                               type="button"
+                              className="action-btn action-btn-soft-danger"
                               onClick={(e) => { e.stopPropagation(); handleToggleDeactivateOwner(o); }}
                               disabled={actionLoading}
-                              style={{
-                                padding: "6px 14px",
-                                borderRadius: "6px",
-                                border: "1px solid #fecaca",
-                                background: "#fef2f2",
-                                color: "#991b1b",
-                                cursor: actionLoading ? "not-allowed" : "pointer",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "6px",
-                                fontSize: "12px",
-                                fontWeight: 600,
-                                transition: "all 0.15s ease",
-                              }}
                               title="Deactivate owner account"
                             >
                               <Icon.XCircle size={14} style={{ color: "#dc2626" }} />
@@ -1452,7 +1341,7 @@ export const OwnerManagement = () => {
         onConfirm={handleApprove}
         title="Approve Owner Account Registration"
         confirmText="Approve Account"
-        confirmVariant="success"
+        confirmVariant="primary"
         loading={actionLoading}
         size="md"
         message={
@@ -1576,21 +1465,22 @@ export const OwnerManagement = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "#334155", marginBottom: 6 }}>
+              <label className="form-label" style={{ display: "block", fontSize: "0.8rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 6 }}>
                 Reason for Rejection <span style={{ color: "#dc2626" }}>*</span>
               </label>
               <select
+                className="form-control"
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 style={{
                   width: "100%",
-                  height: "38px",
-                  padding: "0 10px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
+                  height: "40px",
+                  padding: "0 12px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--color-border)",
                   fontSize: "0.84rem",
-                  color: "#1e293b",
-                  background: "#ffffff",
+                  color: "var(--color-text)",
+                  background: "var(--color-bg)",
                   outline: "none",
                   cursor: "pointer",
                   marginBottom: rejectReason === "other" ? 8 : 0,
@@ -1605,13 +1495,16 @@ export const OwnerManagement = () => {
               {rejectReason === "other" && (
                 <textarea
                   id="custom-rejection-reason"
+                  className="form-control"
                   rows={3}
                   placeholder="Enter specific administrative reason for rejection..."
                   style={{
                     width: "100%",
                     padding: "8px 12px",
-                    borderRadius: "6px",
-                    border: "1px solid #cbd5e1",
+                    borderRadius: "10px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg)",
+                    color: "var(--color-text)",
                     fontSize: "0.84rem",
                     boxSizing: "border-box",
                     marginTop: 6,
@@ -1621,7 +1514,7 @@ export const OwnerManagement = () => {
               )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid var(--color-border)" }}>
               <Button variant="outline" size="sm" onClick={() => setRejectModalOwner(null)} disabled={actionLoading}>
                 Cancel
               </Button>
@@ -1660,18 +1553,18 @@ export const OwnerManagement = () => {
         }
       >
         {selectedOwner && (() => {
-          const ownerName = selectedOwner.name || selectedOwner.full_name || "â€”";
+          const ownerName = selectedOwner.name || selectedOwner.full_name || "—";
           const regDateRaw = selectedOwner.registered_date || selectedOwner.created_at;
-          const regDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "â€”";
+          const regDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "—";
           const adminNote = selectedOwner.rejection_reason || selectedOwner.notes;
 
           const sections = [
             {
               title: "Account Identification",
               rows: [
-                { icon: <Icon.Tag size={14} />, field: "Owner ID", value: formatOwnerId(selectedOwner), mono: true, strong: true, accent: "#0369a1" },
+                { icon: <Icon.Tag size={14} />, field: "Owner ID", value: formatOwnerId(selectedOwner), mono: true, strong: true, accent: "#136647" },
                 { icon: <Icon.User size={14} />, field: "Full Name", value: ownerName, strong: true },
-                { icon: <Icon.Key size={14} />, field: "Username", value: selectedOwner.username ? `@${selectedOwner.username}` : "â€”", mono: true },
+                { icon: <Icon.Key size={14} />, field: "Username", value: selectedOwner.username ? `@${selectedOwner.username}` : "—", mono: true },
                 {
                   icon: <Icon.ShieldCheck size={14} />,
                   field: "Auth Provider",
@@ -1690,9 +1583,9 @@ export const OwnerManagement = () => {
             {
               title: "Contact Information",
               rows: [
-                { icon: <Icon.Mail size={14} />, field: "Email Address", value: selectedOwner.email || "â€”", mono: true },
-                { icon: <Icon.Phone size={14} />, field: "Contact Number", value: selectedOwner.contact || selectedOwner.phone || "â€”", mono: true },
-                { icon: <Icon.MapPin size={14} />, field: "Address", value: selectedOwner.address || "â€”" },
+                { icon: <Icon.Mail size={14} />, field: "Email Address", value: selectedOwner.email || "—", mono: true },
+                { icon: <Icon.Phone size={14} />, field: "Contact Number", value: selectedOwner.contact || selectedOwner.phone || "—", mono: true },
+                { icon: <Icon.MapPin size={14} />, field: "Address", value: selectedOwner.address || "—" },
               ],
             },
             {
@@ -1717,10 +1610,10 @@ export const OwnerManagement = () => {
           const labelCell = {
             width: "34%",
             padding: "11px 18px",
-            borderRight: "1px solid #e5e7eb",
-            borderBottom: "1px solid #eef2f6",
-            background: "#fafbfc",
-            color: "#475569",
+            borderRight: "1px solid var(--color-border)",
+            borderBottom: "1px solid var(--color-border)",
+            background: "var(--color-bg)",
+            color: "var(--color-text-muted)",
             fontSize: "0.8rem",
             fontWeight: 600,
             verticalAlign: "middle",
@@ -1832,7 +1725,7 @@ export const OwnerManagement = () => {
                           <tr key={`row-${sIdx}-${rIdx}`}>
                             <td style={labelCell}>
                               <span style={{ display: "inline-flex", alignItems: "center", gap: 9 }}>
-                                <span style={{ color: "#94a3b8", display: "inline-flex" }}>{row.icon}</span>
+                                <span style={{ color: "#9BA49E", display: "inline-flex" }}>{row.icon}</span>
                                 {row.field}
                               </span>
                             </td>
@@ -1841,13 +1734,13 @@ export const OwnerManagement = () => {
                               style={{
                                 ...valueCell,
                                 fontWeight: row.strong ? 600 : 500,
-                                color: row.value === "â€”" ? "#94a3b8" : row.accent || valueCell.color,
+                                color: row.value === "—" ? "#9BA49E" : row.accent || valueCell.color,
                               }}
                             >
                               {row.custom
                                 ? row.custom
                                 : typeof row.value === "object" && row.value !== null
-                                ? (row.value.label ?? row.value.value ?? "â€”")
+                                ? (row.value.label ?? row.value.value ?? "—")
                                 : row.value}
                             </td>
                           </tr>
@@ -1895,8 +1788,8 @@ export const OwnerManagement = () => {
         {historyOwner && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
+              background: "var(--color-bg)",
+              border: "1px solid var(--color-border)",
               borderRadius: "10px",
               padding: "14px 16px",
               display: "flex",
@@ -1906,19 +1799,19 @@ export const OwnerManagement = () => {
               gap: 8,
             }}>
               <div>
-                <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "#0f172a" }}>{historyOwner.name}</h4>
-                <div style={{ fontSize: "0.78rem", color: "#64748b", marginTop: 2 }}>
-                  ID: <strong>{formatOwnerId(historyOwner)}</strong> Â· {historyOwner.email}
+                <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "var(--color-text)" }}>{historyOwner.name}</h4>
+                <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: 2 }}>
+                  ID: <strong>{formatOwnerId(historyOwner)}</strong> · {historyOwner.email}
                 </div>
               </div>
               {getStatusBadge(historyOwner)}
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ padding: "10px 12px", borderRadius: "8px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
+              <div style={{ padding: "10px 12px", borderRadius: "8px", background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#0f172a" }}>Registration Application Submitted</div>
-                  <div style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text)" }}>Registration Application Submitted</div>
+                  <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)" }}>
                     Registered on {formatDate(historyOwner.registered_date || historyOwner.created_at)}
                   </div>
                   <div style={{ fontSize: "0.72rem", color: "#047857", marginTop: 2, fontWeight: 600 }}>
@@ -1927,17 +1820,17 @@ export const OwnerManagement = () => {
                 </div>
               </div>
 
-              <div style={{ padding: "10px 12px", borderRadius: "8px", background: "#ffffff", border: "1px solid #e2e8f0" }}>
+              <div style={{ padding: "10px 12px", borderRadius: "8px", background: "var(--color-surface)", border: "1px solid var(--color-border)" }}>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#0f172a" }}>
+                  <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text)" }}>
                     Administrator Approval: {historyOwner.approved_by ? "Approved" : "Pending Review"}
                   </div>
                   {historyOwner.approved_by ? (
-                    <div style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                    <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)" }}>
                       Approved by <strong>{historyOwner.approved_by}</strong> on {formatDate(historyOwner.approved_at)}
                     </div>
                   ) : (
-                    <div style={{ fontSize: "0.74rem", color: "#64748b" }}>
+                    <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)" }}>
                       Application is currently pending Administrator evaluation.
                     </div>
                   )}
@@ -1945,16 +1838,16 @@ export const OwnerManagement = () => {
               </div>
 
               {historyOwner.rejection_reason && (
-                <div style={{ padding: "10px 12px", borderRadius: "8px", background: "#fef2f2", border: "1px solid #fecaca" }}>
+                <div style={{ padding: "10px 12px", borderRadius: "8px", background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.25)" }}>
                   <div>
-                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#991b1b" }}>Rejection Recorded</div>
-                    <div style={{ fontSize: "0.74rem", color: "#b91c1c" }}>{historyOwner.rejection_reason}</div>
+                    <div style={{ fontWeight: 700, fontSize: "0.82rem", color: "#ef4444" }}>Rejection Recorded</div>
+                    <div style={{ fontSize: "0.74rem", color: "#ef4444" }}>{historyOwner.rejection_reason}</div>
                   </div>
                 </div>
               )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8, borderTop: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 8, borderTop: "1px solid var(--color-border)" }}>
               <Button variant="outline" size="sm" onClick={() => setHistoryOwner(null)}>Close</Button>
             </div>
           </div>
@@ -1982,7 +1875,7 @@ export const OwnerManagement = () => {
             <div style={{
               background: "var(--color-warning-bg, rgba(245, 158, 11, 0.12))",
               border: "1px solid rgba(245, 158, 11, 0.3)",
-              borderRadius: "8px",
+              borderRadius: "10px",
               padding: "10px 14px",
               display: "flex",
               alignItems: "flex-start",
@@ -2001,20 +1894,21 @@ export const OwnerManagement = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                 Account Reference ID
               </label>
               <input
                 type="text"
+                className="form-control"
                 disabled
                 value={formatOwnerId(editModalOwner)}
                 style={{
                   width: "100%",
                   padding: "8px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  background: "#f1f5f9",
-                  color: "#64748b",
+                  borderRadius: "10px",
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-bg)",
+                  color: "var(--color-text-muted)",
                   fontSize: "0.85rem",
                   fontFamily: "monospace",
                 }}
@@ -2022,7 +1916,7 @@ export const OwnerManagement = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                 Full Name <span style={{ color: "#dc2626" }}>*</span>
               </label>
               <Input
@@ -2036,7 +1930,7 @@ export const OwnerManagement = () => {
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
-                <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                   Contact Number
                 </label>
                 <Input
@@ -2047,7 +1941,7 @@ export const OwnerManagement = () => {
                 />
               </div>
               <div>
-                <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+                <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                   Username
                 </label>
                 <Input
@@ -2060,7 +1954,7 @@ export const OwnerManagement = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                 Email Address
               </label>
               <Input
@@ -2072,7 +1966,7 @@ export const OwnerManagement = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                 Address
               </label>
               <Textarea
@@ -2084,20 +1978,22 @@ export const OwnerManagement = () => {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "#334155", marginBottom: 4 }}>
+              <label className="form-label" style={{ display: "block", fontSize: "0.78rem", fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
                 Account Status
               </label>
               <select
+                className="form-control"
                 value={editFormData.status}
                 onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
                 style={{
                   width: "100%",
-                  padding: "8px 12px",
-                  borderRadius: "6px",
-                  border: "1px solid #cbd5e1",
-                  background: "#ffffff",
+                  height: "40px",
+                  padding: "0 12px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--color-border)",
+                  background: "var(--color-bg)",
                   fontSize: "0.85rem",
-                  color: "#0f172a",
+                  color: "var(--color-text)",
                 }}
               >
                 <option value="Pending Approval">Pending Approval</option>
@@ -2107,13 +2003,13 @@ export const OwnerManagement = () => {
             </div>
 
             {editFormData.status === "Rejected" && (
-              <div style={{ background: "#fef2f2", border: "1px solid #fecaca", borderRadius: "6px", padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, fontSize: "0.78rem", color: "#991b1b" }}>
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.25)", borderRadius: "8px", padding: "8px 12px", display: "flex", alignItems: "center", gap: 8, fontSize: "0.78rem", color: "#ef4444" }}>
                 <Icon.AlertTriangle size={14} style={{ color: "#dc2626", flexShrink: 0 }} />
                 <span>Warning: Setting status to <strong>Rejected</strong> will restrict this producer's login access.</span>
               </div>
             )}
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid var(--color-border)" }}>
               <Button type="button" variant="outline" size="sm" onClick={() => setEditModalOwner(null)} disabled={actionLoading}>
                 Cancel
               </Button>
@@ -2149,39 +2045,39 @@ export const OwnerManagement = () => {
         {deleteModalOwner && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#dc2626" }}>
-              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <div style={{ width: 38, height: 38, borderRadius: "50%", background: "rgba(239, 68, 68, 0.14)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <Icon.AlertTriangle size={20} style={{ color: "#dc2626" }} />
               </div>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#991b1b" }}>
+                <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "#ef4444" }}>
                   Confirm Permanent Account Deletion
                 </div>
-                <div style={{ fontSize: "0.78rem", color: "#64748b" }}>
+                <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)" }}>
                   This will permanently delete this owner record from the Supabase database.
                 </div>
               </div>
             </div>
 
-            <div style={{ background: "#f8fafc", padding: "12px 14px", borderRadius: "8px", border: "1px solid #e2e8f0", fontSize: "0.82rem" }}>
+            <div style={{ background: "var(--color-bg)", padding: "12px 14px", borderRadius: "10px", border: "1px solid var(--color-border)", fontSize: "0.82rem" }}>
               <div style={{ marginBottom: 4 }}>
-                <span style={{ color: "#64748b" }}>Owner Name: </span>
-                <strong style={{ color: "#0f172a" }}>{deleteModalOwner.name}</strong>
+                <span style={{ color: "var(--color-text-muted)" }}>Owner Name: </span>
+                <strong style={{ color: "var(--color-text)" }}>{deleteModalOwner.name}</strong>
               </div>
               <div style={{ marginBottom: 4 }}>
-                <span style={{ color: "#64748b" }}>Account Reference: </span>
-                <code style={{ background: "#e2e8f0", padding: "1px 5px", borderRadius: 4, color: "#0369a1" }}>
+                <span style={{ color: "var(--color-text-muted)" }}>Account Reference: </span>
+                <code style={{ background: "var(--color-surface)", padding: "1px 5px", borderRadius: 4, color: "#187A56", border: "1px solid var(--color-border)" }}>
                   {formatOwnerId(deleteModalOwner)}
                 </code>
               </div>
               {deleteModalOwner.email && (
                 <div>
-                  <span style={{ color: "#64748b" }}>Email: </span>
-                  <span style={{ color: "#334155" }}>{deleteModalOwner.email}</span>
+                  <span style={{ color: "var(--color-text-muted)" }}>Email: </span>
+                  <span style={{ color: "var(--color-text)" }}>{deleteModalOwner.email}</span>
                 </div>
               )}
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, paddingTop: 10, borderTop: "1px solid var(--color-border)" }}>
               <Button variant="outline" size="sm" onClick={() => setDeleteModalOwner(null)} disabled={actionLoading}>
                 Cancel
               </Button>

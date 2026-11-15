@@ -285,16 +285,16 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     <Card className="mfa-security-card" style={{ padding: "30px 32px", borderRadius: 16 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
         {/* Section Header */}
-        <div style={{ borderBottom: "1px solid var(--color-border, #e2e8f0)", paddingBottom: 16 }}>
+        <div style={{ borderBottom: "1px solid var(--color-border, #E2E6E3)", paddingBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div>
-              <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)" }}>
+              <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)" }}>
                 Two-Factor Authentication &amp; Security
               </h2>
-              <p className="mfa-desktop-text" style={{ fontSize: 14, color: "var(--color-text-muted, #64748b)", margin: "4px 0 0" }}>
+              <p className="mfa-desktop-text" style={{ fontSize: 14, color: "var(--color-text-muted, #5D6660)", margin: "4px 0 0" }}>
                 Protect your account using Two-Factor Authentication (2FA) with Google Authenticator, Microsoft Authenticator, or 2FAS.
               </p>
-              <p className="mfa-mobile-text" style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", margin: "3px 0 0", lineHeight: 1.4 }}>
+              <p className="mfa-mobile-text" style={{ fontSize: 13, color: "var(--color-text-muted, #5D6660)", margin: "3px 0 0", lineHeight: 1.4 }}>
                 Add an extra layer of security to your account with 2FA.
               </p>
             </div>
@@ -329,8 +329,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             justifyContent: "space-between",
             padding: "clamp(14px, 3.5vw, 20px)",
             borderRadius: 14,
-            border: is2FAEnabled ? "1.5px solid rgba(16, 185, 129, 0.35)" : "1.5px solid var(--color-border, #e2e8f0)",
-            background: is2FAEnabled ? "rgba(16, 185, 129, 0.03)" : "var(--color-bg, #f8fafc)",
+            border: is2FAEnabled ? "1.5px solid rgba(16, 185, 129, 0.35)" : "1.5px solid var(--color-border, #E2E6E3)",
+            background: is2FAEnabled ? "rgba(16, 185, 129, 0.03)" : "var(--color-bg, #F9FAF8)",
             flexWrap: "wrap",
             gap: 16,
           }}
@@ -342,7 +342,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 height: 44,
                 borderRadius: 12,
                 background: is2FAEnabled ? "rgba(16, 185, 129, 0.15)" : "rgba(100, 116, 139, 0.12)",
-                color: is2FAEnabled ? "#10b981" : "#64748b",
+                color: is2FAEnabled ? "#10b981" : "#5D6660",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -353,7 +353,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span style={{ fontSize: 16, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
+                <span style={{ fontSize: 16, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
                   <span className="mfa-desktop-text">Two-Factor Authentication (2FA)</span>
                   <span className="mfa-mobile-text">2FA Authentication</span>
                 </span>
@@ -363,8 +363,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                     fontWeight: 800,
                     padding: "2px 8px",
                     borderRadius: 6,
-                    background: is2FAEnabled ? "#dcfce7" : "#f1f5f9",
-                    color: is2FAEnabled ? "#15803d" : "#64748b",
+                    background: is2FAEnabled ? "#dcfce7" : "#EFF2F0",
+                    color: is2FAEnabled ? "#15803d" : "#5D6660",
                     textTransform: "uppercase",
                     whiteSpace: "nowrap",
                     flexShrink: 0,
@@ -373,10 +373,10 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   {is2FAEnabled ? "Enabled" : "Disabled"}
                 </span>
               </div>
-              <div className="mfa-desktop-text" style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 3 }}>
+              <div className="mfa-desktop-text" style={{ fontSize: 13, color: "var(--color-text-muted, #5D6660)", marginTop: 3 }}>
                 Secures your account using Time-based One-Time Passwords (TOTP). Compatible with Google Authenticator, Microsoft Authenticator, and 2FAS.
               </div>
-              <div className="mfa-mobile-text" style={{ fontSize: 12.5, color: "var(--color-text-muted, #64748b)", marginTop: 2, lineHeight: 1.4 }}>
+              <div className="mfa-mobile-text" style={{ fontSize: 12.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2, lineHeight: 1.4 }}>
                 Requires a 6-digit code from your authenticator app when signing in.
               </div>
               {lastVerifiedTime && (
@@ -450,8 +450,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             justifyContent: "space-between",
             padding: "clamp(14px, 3.5vw, 18px)",
             borderRadius: 14,
-            border: "1.5px solid var(--color-border, #e2e8f0)",
-            background: "var(--color-bg, #f8fafc)",
+            border: "1.5px solid var(--color-border, #E2E6E3)",
+            background: "var(--color-bg, #F9FAF8)",
             flexWrap: "wrap",
             gap: 16,
           }}
@@ -473,14 +473,14 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               <Icon.Check size={22} strokeWidth={2.4} />
             </div>
             <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
+              <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
                 <span className="mfa-desktop-text">Single Concurrent Session Protection</span>
                 <span className="mfa-mobile-text">Single Session Protection</span>
               </div>
-              <div className="mfa-desktop-text" style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 3 }}>
+              <div className="mfa-desktop-text" style={{ fontSize: 13, color: "var(--color-text-muted, #5D6660)", marginTop: 3 }}>
                 Enforces unique login tokens per authenticated user. Logins from unauthorized devices or secondary browsers automatically trigger termination notices.
               </div>
-              <div className="mfa-mobile-text" style={{ fontSize: 12.5, color: "var(--color-text-muted, #64748b)", marginTop: 2, lineHeight: 1.4 }}>
+              <div className="mfa-mobile-text" style={{ fontSize: 12.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2, lineHeight: 1.4 }}>
                 Automatically ends older sessions when you log in on another device.
               </div>
             </div>
@@ -534,9 +534,9 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             style={{
               padding: "10px 14px",
               borderRadius: 10,
-              background: "rgba(2, 132, 199, 0.08)",
-              border: "1px solid rgba(2, 132, 199, 0.2)",
-              color: "#0369a1",
+              background: "rgba(24, 122, 86, 0.08)",
+              border: "1px solid rgba(24, 122, 86, 0.2)",
+              color: "#136647",
               fontSize: 13,
               lineHeight: 1.45,
             }}
@@ -559,7 +559,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 gap: 12,
                 padding: "16px",
                 borderRadius: 12,
-                border: "1px solid var(--color-border, #e2e8f0)",
+                border: "1px solid var(--color-border, #E2E6E3)",
                 background: "#ffffff",
                 boxSizing: "border-box",
               }}
@@ -576,7 +576,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   background: "#ffffff",
                   padding: 8,
                   borderRadius: 8,
-                  border: "1px solid #cbd5e1",
+                  border: "1px solid #C2CAC4",
                   boxSizing: "border-box",
                 }}
               >
@@ -594,10 +594,10 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               {/* Secret Key Alternative */}
               {enrollData.secret && (
                 <div style={{ width: "100%", textAlign: "center" }}>
-                  <div className="mfa-desktop-text" style={{ fontSize: 11.5, color: "#64748b", fontWeight: 600, marginBottom: 4 }}>
+                  <div className="mfa-desktop-text" style={{ fontSize: 11.5, color: "#5D6660", fontWeight: 600, marginBottom: 4 }}>
                     Can&apos;t scan? Enter this secret key manually into your app:
                   </div>
-                  <div className="mfa-mobile-text" style={{ fontSize: 11.5, color: "#64748b", fontWeight: 600, marginBottom: 4 }}>
+                  <div className="mfa-mobile-text" style={{ fontSize: 11.5, color: "#5D6660", fontWeight: 600, marginBottom: 4 }}>
                     Or enter secret key manually:
                   </div>
                   <div
@@ -606,10 +606,10 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                       alignItems: "center",
                       justifyContent: "center",
                       gap: 8,
-                      background: "#f1f5f9",
+                      background: "#EFF2F0",
                       padding: "8px 12px",
                       borderRadius: 8,
-                      border: "1px solid #cbd5e1",
+                      border: "1px solid #C2CAC4",
                       flexWrap: "wrap",
                       wordBreak: "break-all",
                     }}
@@ -620,7 +620,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                         fontSize: 13,
                         fontWeight: 700,
                         letterSpacing: "0.06em",
-                        color: "#0f172a",
+                        color: "#1A201C",
                         wordBreak: "break-all",
                       }}
                     >
@@ -631,8 +631,8 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                       onClick={handleCopySecret}
                       style={{
                         border: "none",
-                        background: copiedSecret ? "#dcfce7" : "#e2e8f0",
-                        color: copiedSecret ? "#15803d" : "#334155",
+                        background: copiedSecret ? "#dcfce7" : "#E2E6E3",
+                        color: copiedSecret ? "#15803d" : "#444C47",
                         padding: "4px 10px",
                         borderRadius: 6,
                         fontSize: 12,
@@ -658,7 +658,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   display: "block",
                   fontSize: 13,
                   fontWeight: 700,
-                  color: "var(--color-text, #0f172a)",
+                  color: "var(--color-text, #1A201C)",
                   marginBottom: 6,
                 }}
               >
@@ -688,9 +688,9 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   fontWeight: 800,
                   textAlign: "center",
                   borderRadius: 10,
-                  border: enrollError ? "1.5px solid #ef4444" : "1.5px solid var(--color-border, #cbd5e1)",
+                  border: enrollError ? "1.5px solid #ef4444" : "1.5px solid var(--color-border, #C2CAC4)",
                   background: "var(--color-bg, #ffffff)",
-                  color: "var(--color-text, #0f172a)",
+                  color: "var(--color-text, #1A201C)",
                   fontFamily: "monospace",
                   boxSizing: "border-box",
                 }}
@@ -793,7 +793,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 display: "block",
                 fontSize: 12.5,
                 fontWeight: 700,
-                color: "var(--color-text, #0f172a)",
+                color: "var(--color-text, #1A201C)",
                 marginBottom: 6,
               }}
             >
@@ -807,7 +807,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               pattern="[0-9]*"
               maxLength={6}
               autoComplete="one-time-code"
-              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
+              placeholder="••••••"
               value={disableOtpCode}
               onChange={(e) => {
                 const val = e.target.value.replace(/\D/g, "").slice(0, 6);
@@ -822,9 +822,9 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 fontWeight: 800,
                 textAlign: "center",
                 borderRadius: 8,
-                border: disableError ? "1.5px solid #ef4444" : "1px solid var(--color-border, #cbd5e1)",
+                border: disableError ? "1.5px solid #ef4444" : "1px solid var(--color-border, #C2CAC4)",
                 background: "var(--color-bg, #ffffff)",
-                color: "var(--color-text, #0f172a)",
+                color: "var(--color-text, #1A201C)",
                 fontFamily: "monospace",
                 boxSizing: "border-box",
               }}
@@ -840,7 +840,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 display: "block",
                 fontSize: 12.5,
                 fontWeight: 700,
-                color: "var(--color-text, #0f172a)",
+                color: "var(--color-text, #1A201C)",
                 marginBottom: 6,
               }}
             >
@@ -862,9 +862,9 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   padding: "0 40px 0 12px",
                   fontSize: 13.5,
                   borderRadius: 8,
-                  border: "1px solid var(--color-border, #cbd5e1)",
+                  border: "1px solid var(--color-border, #C2CAC4)",
                   background: "var(--color-bg, #ffffff)",
-                  color: "var(--color-text, #0f172a)",
+                  color: "var(--color-text, #1A201C)",
                   boxSizing: "border-box",
                 }}
               />
@@ -878,7 +878,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                   transform: "translateY(-50%)",
                   border: "none",
                   background: "transparent",
-                  color: "#64748b",
+                  color: "#5D6660",
                   cursor: "pointer",
                   padding: 4,
                 }}
@@ -980,9 +980,9 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))",
               gap: 8,
               padding: "12px",
-              background: "var(--color-bg, #f8fafc)",
+              background: "var(--color-bg, #F9FAF8)",
               borderRadius: 12,
-              border: "1px solid var(--color-border, #cbd5e1)",
+              border: "1px solid var(--color-border, #C2CAC4)",
               boxSizing: "border-box",
             }}
           >
@@ -992,13 +992,13 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 style={{
                   padding: "8px 12px",
                   background: "#ffffff",
-                  border: "1px solid #e2e8f0",
+                  border: "1px solid #E2E6E3",
                   borderRadius: 8,
                   fontFamily: "ui-monospace, monospace",
                   fontSize: 13.5,
                   fontWeight: 700,
                   letterSpacing: "0.06em",
-                  color: "#0f172a",
+                  color: "#1A201C",
                   textAlign: "center",
                 }}
               >
@@ -1034,7 +1034,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               cursor: "pointer",
               fontSize: 13,
               fontWeight: 650,
-              color: "var(--color-text, #0f172a)",
+              color: "var(--color-text, #1A201C)",
               marginTop: 4,
             }}
           >
@@ -1062,7 +1062,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               fontWeight: 700,
             }}
           >
-            I&apos;m All Set â€” Continue
+            I&apos;m All Set — Continue
           </Button>
         </div>
       </Modal>

@@ -2297,6 +2297,24 @@ Thank you.`;
     notifyChange(TABLES.OWNERS, "update", { id: ownerId, ...dbPatch });
     notifyDbChange(TABLES.USERS, "update", { email: targetEmail });
 
+    try {
+      const actorName =
+        typeof adminUser === "object"
+          ? adminUser?.name || adminUser?.email || null
+          : adminUser && adminUser !== "Administrator"
+          ? adminUser
+          : null;
+      await logActivity({
+        action: `Updated owner account details: ${targetName || ownerId}${dbPatch.status ? ` (Status: ${dbPatch.status})` : ""}`,
+        module: "Owners",
+        user: actorName,
+        role: "admin",
+        old_value: previousStatus || null,
+        new_value: JSON.stringify(dbPatch),
+        field_changed: "owner_profile",
+      });
+    } catch (_) {}
+
     return { success: true, ownerId, updated: dbPatch, emailSent: emailResult.emailSent, emailError: emailResult.emailError };
   },
 
@@ -2587,6 +2605,26 @@ Thank you.`;
 
     notifyChange(TABLES.OWNERS, "delete", { id: ownerId, email: cleanEmail });
     notifyDbChange(TABLES.USERS, "delete", { email: cleanEmail });
+
+    try {
+      const actorName =
+        typeof adminUser === "object"
+          ? adminUser?.name || adminUser?.email || null
+          : adminUser && adminUser !== "Administrator"
+          ? adminUser
+          : null;
+      await logActivity({
+        action: `Deleted owner account: ${ownerId || cleanEmail}`,
+        module: "Owners",
+        user: actorName,
+        role: "admin",
+        old_value: `${ownerId || ""} ${cleanEmail || ""}`.trim(),
+        new_value: "Deleted",
+        field_changed: "owner_account",
+        severity: "warning",
+      });
+    } catch (_) {}
+
     return { success: true, ownerId };
   }
 };

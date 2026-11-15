@@ -320,7 +320,7 @@ export const SearchableAgeInput = ({
             maxHeight: 230,
             overflowY: "auto",
             background: "var(--color-surface, #ffffff)",
-            border: "1.5px solid var(--color-border, #cbd5e1)",
+            border: "1.5px solid var(--color-border, #C2CAC4)",
             borderRadius: 8,
             boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.25), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
             zIndex: 100,
@@ -399,7 +399,7 @@ export const SearchableAgeInput = ({
                 fontStyle: "italic",
               }}
             >
-              No preset matches &ldquo;{value}&rdquo; â€” your custom age will be used.
+              No preset matches &ldquo;{value}&rdquo; — your custom age will be used.
             </div>
           )}
 
@@ -420,7 +420,7 @@ export const SearchableAgeInput = ({
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                background: "rgba(2, 132, 199, 0.06)",
+                background: "rgba(24, 122, 86, 0.06)",
                 borderRadius: 6,
                 cursor: "pointer",
               }}
@@ -428,7 +428,7 @@ export const SearchableAgeInput = ({
               <span>
                 Use custom: <strong>&ldquo;{String(value || "").trim()}&rdquo;</strong>
               </span>
-              <span style={{ fontSize: 10.5, color: "#0284c7", fontWeight: 700 }}>Custom</span>
+              <span style={{ fontSize: 10.5, color: "#187A56", fontWeight: 700 }}>Custom</span>
             </div>
           )}
         </div>

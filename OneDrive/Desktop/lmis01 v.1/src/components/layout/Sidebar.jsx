@@ -11,7 +11,31 @@ const NavItem = ({ it, onClose }) => {
   const isAdminActive =
     (it.path === "/admin/slaughter/records" && location.pathname.startsWith("/admin/slaughter")) ||
     (it.path === "/admin/inspection/records" && location.pathname.startsWith("/admin/inspection")) ||
-    (it.path === "/admin/finance/records" && location.pathname.startsWith("/admin/finance"));
+    (it.path === "/admin/finance/records" && location.pathname.startsWith("/admin/finance")) ||
+    (it.path === "/vet/ante-mortem" && location.pathname.startsWith("/vet/ante-mortem")) ||
+    (it.path === "/vet/post-mortem" && location.pathname.startsWith("/vet/post-mortem")) ||
+    (it.path === "/vet/carcass-weighing" && location.pathname.startsWith("/vet/carcass-weighing")) ||
+    (it.path === "/vet/inspection-history" &&
+      (location.pathname.startsWith("/vet/inspection-history") ||
+        location.pathname.startsWith("/vet/history") ||
+        location.pathname.startsWith("/vet/condemned") ||
+        location.pathname.startsWith("/vet/approval"))) ||
+    (it.path === "/staff/owners" &&
+      (location.pathname.startsWith("/staff/owners") ||
+        location.pathname.startsWith("/staff/livestock-registration") ||
+        location.pathname.startsWith("/staff/animal-marking"))) ||
+    (it.path === "/staff/slaughter-processing" &&
+      (location.pathname.startsWith("/staff/slaughter-processing") ||
+        location.pathname.startsWith("/staff/slaughter-records"))) ||
+    (it.path === "/staff/permits" &&
+      (location.pathname.startsWith("/staff/permits") ||
+        location.pathname.startsWith("/staff/permit-dispatch") ||
+        location.pathname.startsWith("/staff/weight-slip"))) ||
+    (it.path === "/staff/inspection-results" &&
+      (location.pathname.startsWith("/staff/inspection-results") ||
+        location.pathname.startsWith("/staff/antemortem-status") ||
+        location.pathname.startsWith("/staff/postmortem-status") ||
+        location.pathname.startsWith("/staff/postmortem-result")));
   const isReportsActive =
     (it.path === "/admin/reports" && location.pathname.startsWith("/admin/reports")) ||
     (it.path === "/vet/reports" && location.pathname.startsWith("/vet/reports")) ||

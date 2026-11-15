@@ -12,6 +12,468 @@ import {
 const ACTIVE_SESSIONS_KEY = "lsmis_active_sessions";
 const TERMINATION_SIGNAL_KEY = "lsmis_session_termination_signal";
 const PRESENCE_CHANNEL = "lsmis_presence_channel";
+const AUDIT_MIRROR_KEY = "lsmis_personnel_audit_mirror_v1";
+
+const appendAuditMirror = (logEntry) => {
+  if (!logEntry || typeof window === "undefined") return;
+  try {
+    const raw = localStorage.getItem(AUDIT_MIRROR_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    const safeList = Array.isArray(list) ? list : [];
+    const next = [logEntry, ...safeList.filter((item) => item && item.id !== logEntry.id)].slice(0, 600);
+    localStorage.setItem(AUDIT_MIRROR_KEY, JSON.stringify(next));
+  } catch (_) {}
+};
+
+const readAuditMirror = () => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = localStorage.getItem(AUDIT_MIRROR_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Synthesizes historical personnel audit records from operational domain tables
+ * (livestock, ante_mortem_inspections, post_mortem_inspections, slaughter_records,
+ * slaughter_processing, carcass_records, payments, permits, dispatch, condemnation_records,
+ * disposal_records, diseases, users) when cross-role rows are filtered by legacy RLS.
+ */
+let _operationalAuditCache = { rows: null, timestamp: 0 };
+const OPERATIONAL_AUDIT_TTL_MS = 15000;
+
+const fetchOperationalPersonnelAuditLogs = async (directory, forceRefresh = false) => {
+  if (
+    !forceRefresh &&
+    Array.isArray(_operationalAuditCache.rows) &&
+    Date.now() - _operationalAuditCache.timestamp < OPERATIONAL_AUDIT_TTL_MS
+  ) {
+    return _operationalAuditCache.rows;
+  }
+
+  const safeFetch = async (table, limit = 300) => {
+    try {
+      const { data, error } = await supabase.from(table).select("*").limit(limit);
+      return !error && Array.isArray(data) ? data : [];
+    } catch {
+      return [];
+    }
+  };
+
+  try {
+    const [
+      livestock,
+      anteMortem,
+      postMortem,
+      slaughterRecs,
+      slaughterProc,
+      carcasses,
+      payments,
+      permits,
+      dispatches,
+      condemnations,
+      disposals,
+      diseases,
+    ] = await Promise.all([
+      safeFetch(TABLES.LIVESTOCK, 400),
+      safeFetch(TABLES.ANTE_MORTEM, 300),
+      safeFetch(TABLES.POST_MORTEM, 300),
+      safeFetch(TABLES.SLAUGHTER_RECORDS, 300),
+      safeFetch(TABLES.SLAUGHTER_PROCESSING, 300),
+      safeFetch(TABLES.CARCASS_RECORDS, 300),
+      safeFetch(TABLES.PAYMENTS, 300),
+      safeFetch(TABLES.PERMITS, 300),
+      safeFetch(TABLES.DISPATCH, 200),
+      safeFetch(TABLES.CONDEMNATION_RECORDS, 200),
+      safeFetch(TABLES.DISPOSAL_RECORDS, 200),
+      safeFetch(TABLES.DISEASES, 200),
+    ]);
+
+    const defaultVetUser =
+      (directory?.rows || []).find((u) => u && normalizeRole(u.role) === "vet")?.full_name || "Dr. Dave";
+    const defaultStaffUser =
+      (directory?.rows || []).find((u) => u && normalizeRole(u.role) === "staff")?.full_name || "Jenel Selgas";
+
+    const resolveRoleFromDirectory = (nameOrId, fallbackRole) => {
+      if (nameOrId && directory) {
+        const key = String(nameOrId).trim().toLowerCase();
+        const found =
+          directory.byId?.get(key) ||
+          directory.byName?.get(key) ||
+          directory.byEmail?.get(key) ||
+          directory.byUsername?.get(key);
+        if (found?.role) return normalizeRole(found.role);
+      }
+      return fallbackRole;
+    };
+
+    const resolveNameFromDirectory = (nameOrId, fallbackName) => {
+      if (nameOrId && directory) {
+        const key = String(nameOrId).trim().toLowerCase();
+        const found =
+          directory.byId?.get(key) ||
+          directory.byName?.get(key) ||
+          directory.byEmail?.get(key) ||
+          directory.byUsername?.get(key);
+        if (found?.full_name) return found.full_name;
+      }
+      if (nameOrId && !["unknown", "unassigned", "n/a", "staff", "vet", "veterinarian"].includes(String(nameOrId).trim().toLowerCase())) {
+        return String(nameOrId).trim();
+      }
+      return fallbackName;
+    };
+
+    const synthesized = [];
+
+    // 1. Livestock Registration & Animal Marking & Process History
+    livestock.forEach((lv) => {
+      if (!lv) return;
+      const tag = lv.tag_number || "";
+      const regTs = lv.registered_at || (lv.received_date ? `${lv.received_date}T08:00:00+08:00` : null);
+      if (regTs) {
+        const staffActor = resolveNameFromDirectory(lv.registered_by || lv.received_by, defaultStaffUser);
+        const actorRole = resolveRoleFromDirectory(lv.registered_by || lv.received_by, "staff");
+        synthesized.push({
+          id: `ops-lv-reg-${lv.id || tag}`,
+          user: staffActor,
+          role: actorRole,
+          action: `Registered ${lv.species || "Livestock"} (${tag}) for owner ${lv.owner_name || "Owner"}`,
+          module: "Intake",
+          tag_number: tag,
+          timestamp: regTs,
+          new_value: `Species: ${lv.species || "N/A"} | Weight: ${lv.weight || 0} kg | Status: ${lv.status || "Pending"}`,
+          field_changed: "livestock_registration",
+        });
+      }
+
+      if (lv.marked || lv.marked_at || lv.mark_date) {
+        const markTs = lv.marked_at || (lv.mark_date ? `${lv.mark_date}T09:15:00+08:00` : regTs);
+        const markActor = resolveNameFromDirectory(lv.marked_by, defaultStaffUser);
+        const markRole = resolveRoleFromDirectory(lv.marked_by, "staff");
+        if (markTs) {
+          synthesized.push({
+            id: `ops-lv-mark-${lv.id || tag}`,
+            user: markActor,
+            role: markRole,
+            action: `Marked animal ${tag} (${lv.mark_type || "Standard Paint Mark"})`,
+            module: "Animal Marking",
+            tag_number: tag,
+            timestamp: markTs,
+            old_value: "Unmarked",
+            new_value: `Marked (${lv.mark_type || "Standard"})`,
+            field_changed: "marked",
+          });
+        }
+      }
+
+      // Parse marking_history / process_history events if present
+      const histArr = Array.isArray(lv.marking_history)
+        ? lv.marking_history
+        : Array.isArray(lv.process_history)
+        ? lv.process_history
+        : [];
+      histArr.forEach((evt, idx) => {
+        if (!evt || !evt.timestamp) return;
+        const evtRole = normalizeRole(evt.role || resolveRoleFromDirectory(evt.user_name || evt.user_id, "staff"));
+        if (evtRole !== "admin" && evtRole !== "vet" && evtRole !== "staff") return;
+        const evtUser = resolveNameFromDirectory(
+          evt.user_name || evt.user_id,
+          evtRole === "vet" ? defaultVetUser : defaultStaffUser
+        );
+        synthesized.push({
+          id: `ops-lv-hist-${lv.id || tag}-${evt.id || idx}`,
+          user_id: evt.user_id || null,
+          user: evtUser,
+          role: evtRole,
+          action: `${evt.action || "Updated"} — ${tag} (${evt.stage || "Livestock"})`,
+          module: evt.stage || "Livestock",
+          tag_number: tag,
+          timestamp: evt.timestamp,
+        });
+      });
+    });
+
+    // 2. Ante-Mortem Inspections (Veterinarian)
+    anteMortem.forEach((am) => {
+      if (!am) return;
+      const tag = am.tag_number || "";
+      const ts = am.inspected_at || am.created_at || (am.date ? `${am.date}T10:00:00+08:00` : null);
+      if (!ts) return;
+      const vetActor = resolveNameFromDirectory(am.inspector_name || am.inspector_id, defaultVetUser);
+      synthesized.push({
+        id: `ops-am-${am.id || tag}`,
+        user_id: am.inspector_id || null,
+        user: vetActor,
+        role: "vet",
+        action: `Ante-Mortem inspection (${am.decision || "Inspected"}) for ${tag}${am.species ? ` (${am.species})` : ""}`,
+        module: "Ante-Mortem Inspection",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Decision: ${am.decision || "Approved"} | Findings: ${am.findings || "Normal"}`,
+        field_changed: "ante_mortem_decision",
+      });
+    });
+
+    // 3. Post-Mortem Inspections (Veterinarian)
+    postMortem.forEach((pm) => {
+      if (!pm) return;
+      const tag = pm.tag_number || "";
+      const ts = pm.inspected_at || pm.created_at || (pm.date ? `${pm.date}T11:30:00+08:00` : null);
+      if (!ts) return;
+      const vetActor = resolveNameFromDirectory(pm.inspector_name || pm.inspector_id, defaultVetUser);
+      synthesized.push({
+        id: `ops-pm-${pm.id || tag}`,
+        user_id: pm.inspector_id || null,
+        user: vetActor,
+        role: "vet",
+        action: `Post-Mortem inspection (${pm.decision || "Inspected"}) for ${tag}${pm.species ? ` (${pm.species})` : ""}`,
+        module: "Post-Mortem Inspection",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Decision: ${pm.decision || "Approved"} | Findings: ${pm.findings || "Normal"}`,
+        field_changed: "post_mortem_decision",
+      });
+    });
+
+    // 4. Slaughter Records & Team Assignment (Staff)
+    slaughterRecs.forEach((sr) => {
+      if (!sr) return;
+      const tag = sr.tag_number || "";
+      const dateBase = sr.slaughter_date || sr.scheduled_date;
+      const ts = sr.created_at || sr.updated_at || (dateBase ? `${dateBase}T10:30:00+08:00` : null);
+      if (!ts) return;
+      const staffActor = resolveNameFromDirectory(sr.slaughtered_by || sr.operator, defaultStaffUser);
+      const isAssign = sr.operator && sr.operator !== "Unassigned";
+      synthesized.push({
+        id: `ops-sr-${sr.id || tag}`,
+        user: staffActor,
+        role: "staff",
+        action: isAssign
+          ? `Slaughter status updated to ${sr.status || "Scheduled"} & assigned operator (${sr.operator}) for ${tag}`
+          : `Ready for Slaughter record updated (${sr.status || "Scheduled"}) for ${tag}`,
+        module: "Slaughter",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Status: ${sr.status || "Scheduled"} | Operator: ${sr.operator || "Assigned"}`,
+        field_changed: "slaughter_status",
+      });
+    });
+
+    // 5. Slaughter Processing (Staff)
+    slaughterProc.forEach((sp) => {
+      if (!sp) return;
+      const tag = sp.tag_number || "";
+      const ts = sp.updated_at || sp.created_at || (sp.date ? `${sp.date}T10:45:00+08:00` : null);
+      if (!ts) return;
+      const staffActor = resolveNameFromDirectory(sp.slaughtered_by || sp.operator, defaultStaffUser);
+      synthesized.push({
+        id: `ops-sp-${sp.id || tag}`,
+        user: staffActor,
+        role: "staff",
+        action: `Slaughter processing (${sp.status || "In Progress"}) for ${tag}`,
+        module: "Slaughter",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Status: ${sp.status} | Team: ${sp.operator || "Assigned"}`,
+        field_changed: "slaughter_processing",
+      });
+    });
+
+    // 6. Carcass Weighing (Veterinarian / Staff)
+    carcasses.forEach((cr) => {
+      if (!cr) return;
+      const tag = cr.tag_number || "";
+      const ts = cr.weighed_at || cr.created_at || (cr.date ? `${cr.date}T12:00:00+08:00` : null);
+      if (!ts) return;
+      const rawActor = cr.weighed_by || cr.operator || defaultVetUser;
+      const actorRole = resolveRoleFromDirectory(cr.weighed_by_user_id || rawActor, "vet");
+      const actorName = resolveNameFromDirectory(
+        cr.weighed_by_user_id || rawActor,
+        actorRole === "vet" ? defaultVetUser : defaultStaffUser
+      );
+      synthesized.push({
+        id: `ops-cr-${cr.id || tag}`,
+        user_id: cr.weighed_by_user_id || null,
+        user: actorName,
+        role: actorRole,
+        action: `Carcass weighed (${cr.total_weight || cr.hot_weight || 0} kg, Grade ${cr.grade || "A"}) for ${tag}`,
+        module: "Carcass Weighing",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Weight: ${cr.total_weight || 0} kg | Grade: ${cr.grade || "A"}`,
+        field_changed: "carcass_weight",
+      });
+    });
+
+    // 7. Payments (Staff)
+    payments.forEach((pay) => {
+      if (!pay) return;
+      const tag = pay.tag_number || "";
+      const ts = pay.paid_at || pay.created_at || (pay.date ? `${pay.date}T13:00:00+08:00` : null);
+      if (!ts) return;
+      const staffActor = resolveNameFromDirectory(pay.staff_name || pay.paid_by_user_id, defaultStaffUser);
+      synthesized.push({
+        id: `ops-pay-${pay.id || pay.receipt_no || tag}`,
+        user: staffActor,
+        role: "staff",
+        action: `Recorded payment (${pay.receipt_no || "Receipt"}) of PHP ${Number(pay.amount || 0).toFixed(2)} for ${tag}`,
+        module: "Payments",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Receipt: ${pay.receipt_no} | Amount: PHP ${Number(pay.amount || 0).toFixed(2)} | Status: ${pay.status || "Paid"}`,
+        field_changed: "payment_status",
+      });
+    });
+
+    // 8. Meat Permits (Staff)
+    permits.forEach((pmt) => {
+      if (!pmt) return;
+      const tag = pmt.tag_number || "";
+      const ts = pmt.issued_at || pmt.created_at;
+      if (!ts) return;
+      const staffActor = resolveNameFromDirectory(pmt.issued_by_user_id || pmt.issued_by, defaultStaffUser);
+      const actorRole = resolveRoleFromDirectory(pmt.issued_by_user_id || pmt.issued_by, "staff");
+      synthesized.push({
+        id: `ops-pmt-${pmt.id || pmt.permit_no || tag}`,
+        user_id: pmt.issued_by_user_id || null,
+        user: staffActor,
+        role: actorRole,
+        action: `Meat permit ${pmt.permit_no || ""} issued for ${tag} (${pmt.owner_name || "Owner"})`,
+        module: "Permits",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Permit No: ${pmt.permit_no} | Weight: ${pmt.carcass_weight || 0} kg | Destination: ${pmt.destination || ""}`,
+        field_changed: "permit_status",
+      });
+    });
+
+    // 9. Meat Dispatch (Staff)
+    dispatches.forEach((dsp) => {
+      if (!dsp) return;
+      const tagsList = Array.isArray(dsp.tags) ? dsp.tags.join(", ") : dsp.tag_number || "";
+      const ts = dsp.dispatched_at || dsp.released_at || dsp.created_at;
+      if (!ts) return;
+      const staffActor = resolveNameFromDirectory(dsp.dispatched_by || dsp.dispatched_by_user_id, defaultStaffUser);
+      synthesized.push({
+        id: `ops-dsp-${dsp.id}`,
+        user: staffActor,
+        role: "staff",
+        action: `Dispatched meat shipment (${dsp.id}) for ${dsp.owner_name || "Owner"} to ${dsp.destination || "Market"}`,
+        module: "Dispatch",
+        tag_number: tagsList || null,
+        timestamp: ts,
+        new_value: `Vehicle: ${dsp.vehicle || "N/A"} | Driver: ${dsp.driver || "N/A"} | Status: ${dsp.status || "Released"}`,
+        field_changed: "dispatch_status",
+      });
+    });
+
+    // 10. Condemnation Records (Veterinarian)
+    condemnations.forEach((cnd) => {
+      if (!cnd) return;
+      const tag = cnd.tag_number || "";
+      const ts = cnd.created_at || (cnd.date ? `${cnd.date}T11:45:00+08:00` : null);
+      if (!ts) return;
+      const vetActor = resolveNameFromDirectory(cnd.inspector_id || cnd.inspector, defaultVetUser);
+      synthesized.push({
+        id: `ops-cnd-${cnd.id || tag}`,
+        user: vetActor,
+        role: "vet",
+        action: `Condemned ${cnd.part || "carcass part"} (${cnd.quantity || ""}) for ${tag} — Reason: ${cnd.reason || "Inspection finding"}`,
+        module: "Condemnation",
+        tag_number: tag,
+        timestamp: ts,
+        severity: "warning",
+        new_value: `Part: ${cnd.part} | Reason: ${cnd.reason} | Disposition: ${cnd.disposition || "Condemned"}`,
+        field_changed: "condemnation",
+      });
+    });
+
+    // 11. Disposal Records (Veterinarian)
+    disposals.forEach((dis) => {
+      if (!dis) return;
+      const tag = dis.tag_number || "";
+      const ts = dis.created_at || (dis.date ? `${dis.date}T14:00:00+08:00` : null);
+      if (!ts) return;
+      const vetActor = resolveNameFromDirectory(dis.disposed_by, defaultVetUser);
+      synthesized.push({
+        id: `ops-dis-${dis.id || tag}`,
+        user: vetActor,
+        role: "vet",
+        action: `Recorded disposal (${dis.method || "Incineration"}) for ${tag}`,
+        module: "Disposal",
+        tag_number: tag,
+        timestamp: ts,
+        new_value: `Method: ${dis.method} | Status: ${dis.status || "Completed"}`,
+        field_changed: "disposal",
+      });
+    });
+
+    // 12. Disease Monitoring (Veterinarian)
+    diseases.forEach((ds) => {
+      if (!ds) return;
+      const tag = ds.tag_number || "";
+      const ts = ds.created_at || (ds.date ? `${ds.date}T10:15:00+08:00` : null);
+      if (!ts) return;
+      synthesized.push({
+        id: `ops-ds-${ds.id || tag}`,
+        user: defaultVetUser,
+        role: "vet",
+        action: `Logged disease finding (${ds.disease || "Condition"}) for ${tag}`,
+        module: "Disease Monitoring",
+        tag_number: tag,
+        timestamp: ts,
+        severity: ds.severity === "High" ? "danger" : "warning",
+      });
+    });
+
+    // 13. Personnel Login Sessions from public.users (Vet & Staff last_login)
+    (directory?.rows || []).forEach((u) => {
+      if (!u || !u.last_login || u.last_login === "Never") return;
+      const r = normalizeRole(u.role);
+      if (r !== "vet" && r !== "staff") return;
+      const parsedLogin = parseAuditTimestamp(u.last_login);
+      if (!parsedLogin) return;
+      synthesized.push({
+        id: `ops-login-${u.id}`,
+        user_id: u.id,
+        user: u.full_name || u.email,
+        role: r,
+        action: `User logged in (${formatRoleLabel(r)} Portal)`,
+        module: "Auth",
+        timestamp: toManilaIsoString(parsedLogin),
+        old_value: "Logged Out",
+        new_value: "Active Session",
+        field_changed: "session_state",
+      });
+    });
+
+    // 14. Persisted Personnel Audit Stream from system_settings (email column JSON)
+    try {
+      const { data: sysRow } = await supabase
+        .from(TABLES.SETTINGS)
+        .select("email")
+        .eq("id", "lsmis_personnel_audit_stream")
+        .maybeSingle();
+      if (sysRow?.email) {
+        const parsedStream = JSON.parse(sysRow.email);
+        if (Array.isArray(parsedStream)) {
+          parsedStream.forEach((item) => {
+            if (item && item.action) synthesized.push(item);
+          });
+        }
+      }
+    } catch (_) {}
+
+    _operationalAuditCache = { rows: synthesized, timestamp: Date.now() };
+    return synthesized;
+  } catch (err) {
+    console.warn("fetchOperationalPersonnelAuditLogs warning:", err);
+    return _operationalAuditCache.rows || [];
+  }
+};
 
 export const AUDIT_ACTION_TYPES = [
   "Created",
@@ -465,6 +927,50 @@ export const logActivity = async ({
     timestamp: manilaIsoTimestamp,
   };
 
+  appendAuditMirror(newLog);
+  _operationalAuditCache.timestamp = 0;
+
+  // Also persist cross-role personnel audit stream to system_settings so Admin sees all roles regardless of legacy RLS
+  if (actor.userRole === "admin" || actor.userRole === "vet" || actor.userRole === "staff") {
+    (async () => {
+      try {
+        const { data: sysRow } = await supabase
+          .from(TABLES.SETTINGS)
+          .select("email")
+          .eq("id", "lsmis_personnel_audit_stream")
+          .maybeSingle();
+        let existingList = [];
+        if (sysRow?.email) {
+          try {
+            const parsed = JSON.parse(sysRow.email);
+            if (Array.isArray(parsed)) existingList = parsed;
+          } catch (_) {}
+        }
+        const compactEntry = {
+          id: newLog.id,
+          user_id: newLog.user_id,
+          user: newLog.user,
+          role: newLog.role,
+          action: newLog.action,
+          module: newLog.module,
+          tag_number: newLog.tag_number,
+          old_value: newLog.old_value ? String(newLog.old_value).slice(0, 300) : null,
+          new_value: newLog.new_value ? String(newLog.new_value).slice(0, 300) : null,
+          field_changed: newLog.field_changed,
+          security_event: newLog.security_event,
+          severity: newLog.severity,
+          timestamp: newLog.timestamp,
+        };
+        const updatedList = [compactEntry, ...existingList.filter((i) => i && i.id !== newLog.id)].slice(0, 250);
+        await supabase.from(TABLES.SETTINGS).upsert({
+          id: "lsmis_personnel_audit_stream",
+          system_name: "LSMIS Personnel Audit Stream",
+          email: JSON.stringify(updatedList),
+        });
+      } catch (_) {}
+    })();
+  }
+
   try {
     let { error } = await supabase.from(TABLES.AUDIT_LOGS).insert(newLog);
     if (error && /user_id/i.test(`${error.message || ""} ${error.details || ""}`)) {
@@ -473,11 +979,11 @@ export const logActivity = async ({
       const res = await supabase.from(TABLES.AUDIT_LOGS).insert(fallbackLog);
       error = res.error;
     }
-    if (error) console.warn("Supabase audit log insert error:", error);
-    else {
-      notifyDbChange(TABLES.AUDIT_LOGS, "insert", newLog);
-      window.dispatchEvent(new CustomEvent("lsmis_audit_updated", { detail: newLog }));
+    if (error) {
+      console.warn("Supabase audit log insert error:", error);
     }
+    notifyDbChange(TABLES.AUDIT_LOGS, "insert", newLog);
+    window.dispatchEvent(new CustomEvent("lsmis_audit_updated", { detail: newLog }));
   } catch (err) {
     console.warn("Supabase audit log insert exception:", err);
   }
@@ -834,9 +1340,19 @@ export const enrichAuditRecord = (rawLog, directory) => {
   // Resolve full name of the person who performed the action
   let fullName = matchedUser?.full_name || rawLog.user || "";
   if (!fullName || fullName.toLowerCase() === "system" || fullName.toLowerCase() === "system scheduler") {
-    if (canonicalRole === "admin") fullName = "System Administrator";
-    else if (canonicalRole === "vet") fullName = "Dave Gisigisi";
-    else fullName = "Jenel Selgas";
+    // Attempt to resolve the primary active account for this role from public.users if available
+    const rolePersonnel = (directory?.rows || []).find(
+      (u) => u && normalizeRole(u.role) === canonicalRole && u.full_name
+    );
+    if (rolePersonnel?.full_name) {
+      fullName = rolePersonnel.full_name;
+    } else if (canonicalRole === "admin") {
+      fullName = "Administrator";
+    } else if (canonicalRole === "vet") {
+      fullName = "Veterinarian";
+    } else {
+      fullName = "Staff";
+    }
   }
 
   const effectiveRole =
@@ -844,7 +1360,7 @@ export const enrichAuditRecord = (rawLog, directory) => {
       ? canonicalRole
       : canonicalRole === "system"
       ? "admin"
-      : canonicalRole;
+      : "staff";
 
   const roleLabel = formatRoleLabel(effectiveRole);
   const actionCategory = classifyAuditAction(rawLog.action);
@@ -857,9 +1373,12 @@ export const enrichAuditRecord = (rawLog, directory) => {
   return {
     ...rawLog,
     user: fullName,
+    user_full_name: fullName,
     role: effectiveRole,
     roleLabel,
+    role_label: roleLabel,
     actionCategory,
+    action_category: actionCategory,
     module: rawLog.module || "System",
     parsedMs,
     manilaDateKey,
@@ -878,11 +1397,28 @@ export const getAuditLogById = async (id) => {
       getUsersDirectory(),
     ]);
 
+    if (data) {
+      return { data: enrichAuditRecord(data, directory), error: null };
+    }
+
+    // Fallback to local mirror if record is in cross-tab local mirror
+    const mirrorMatch = readAuditMirror().find((item) => item && String(item.id) === String(id));
+    if (mirrorMatch) {
+      return { data: enrichAuditRecord(mirrorMatch, directory), error: null };
+    }
+
+    // Fallback to synthesized operational personnel audit records
+    const opsRecords = await fetchOperationalPersonnelAuditLogs(directory);
+    const opsMatch = opsRecords.find((item) => item && String(item.id) === String(id));
+    if (opsMatch) {
+      return { data: enrichAuditRecord(opsMatch, directory), error: null };
+    }
+
     if (error) {
       console.warn("getAuditLogById error:", error);
       return { data: null, error };
     }
-    return { data: data ? enrichAuditRecord(data, directory) : null, error: null };
+    return { data: null, error: null };
   } catch (err) {
     console.error("getAuditLogById exception:", err);
     return { data: null, error: err };
@@ -890,17 +1426,21 @@ export const getAuditLogById = async (id) => {
 };
 
 /**
- * Fetch personnel audit logs from Supabase scoped strictly to a specific role, enriched, deduplicated, and sorted newest-first.
+ * Fetch personnel audit logs from Supabase.
+ * - Admin ('admin', 'all', or null) sees activities across ALL personnel accounts (Admin, Veterinarian, and Staff).
+ * - Veterinarian ('vet') and Staff ('staff') are strictly scoped to their own role.
  */
 export const fetchAllEnrichedPersonnelAuditLogs = async (roleScope = null) => {
-  const normScope = roleScope ? normalizeRole(roleScope) : null;
+  const normScope = roleScope && roleScope !== "all" ? normalizeRole(roleScope) : null;
+  const isCentralizedAdminView = !normScope || normScope === "admin";
+
   let query = supabase
     .from(TABLES.AUDIT_LOGS)
     .select("*")
     .order("timestamp", { ascending: false })
     .limit(2000);
 
-  if (normScope) {
+  if (!isCentralizedAdminView && normScope) {
     query = query.eq("role", normScope);
   }
 
@@ -910,28 +1450,55 @@ export const fetchAllEnrichedPersonnelAuditLogs = async (roleScope = null) => {
   ]);
 
   if (error) {
-    throw error;
+    console.warn("fetchAllEnrichedPersonnelAuditLogs query warning:", error);
   }
 
-  const enriched = (data || [])
+  // Merge database records with local cross-tab mirror and operational personnel activity records
+  const dbRows = Array.isArray(data) ? data : [];
+  const mirrorRows = readAuditMirror();
+  const opsRows = isCentralizedAdminView ? await fetchOperationalPersonnelAuditLogs(directory) : [];
+  const combinedRaw = [...dbRows, ...mirrorRows, ...opsRows];
+
+  const enriched = combinedRaw
     .map((row) => enrichAuditRecord(row, directory))
     .filter(Boolean)
-    // Strictly isolate activities to the designated role (no cross-role mixing)
     .filter((row) => {
-      if (normScope) return row.role === normScope;
-      return row.role === "admin" || row.role === "vet" || row.role === "staff";
+      const isPersonnelRole = row.role === "admin" || row.role === "vet" || row.role === "staff";
+      if (!isPersonnelRole) return false;
+      if (!isCentralizedAdminView && normScope) {
+        return row.role === normScope;
+      }
+      return true;
     });
 
   // Sort strictly newest first by parsed Philippine timestamp
   enriched.sort((a, b) => b.parsedMs - a.parsedMs);
 
-  // Deduplicate any identical consecutive entries (same user, role, module, action within same 2-second bucket)
+  // Deduplicate by ID, by (tag + module + role + date), and by identical consecutive entries within same 2-second bucket
   const deduped = [];
+  const seenIds = new Set();
   const seenKeys = new Set();
+  const seenTagModuleKeys = new Set();
   for (const item of enriched) {
+    if (item.id) {
+      const idStr = String(item.id);
+      if (seenIds.has(idStr)) continue;
+      seenIds.add(idStr);
+    }
     const timeBucket = item.parsedMs ? Math.floor(item.parsedMs / 2000) : item.timestamp;
     const dedupeKey = `${item.user}|${item.role}|${item.module}|${item.action}|${item.tag_number || ""}|${timeBucket}`;
     if (seenKeys.has(dedupeKey)) continue;
+
+    // Avoid duplicating an operational record if an explicit audit_logs row already recorded the same tag + module + actionCategory on the same day
+    if (item.tag_number && item.manilaDateKey) {
+      const modNorm = String(item.module || "").toLowerCase().replace(/[^a-z]/g, "").slice(0, 8);
+      const tagModKey = `${item.role}|${modNorm}|${item.actionCategory}|${String(item.tag_number).toUpperCase()}|${item.manilaDateKey}`;
+      if (String(item.id || "").startsWith("ops-") && seenTagModuleKeys.has(tagModKey)) {
+        continue;
+      }
+      seenTagModuleKeys.add(tagModKey);
+    }
+
     seenKeys.add(dedupeKey);
     deduped.push(item);
   }
@@ -957,15 +1524,16 @@ export const getAuditLogsPaginated = async ({
   roleScope = "admin",
 }) => {
   try {
-    const normScope = roleScope ? normalizeRole(roleScope) : "admin";
+    const normScope = roleScope && roleScope !== "all" ? normalizeRole(roleScope) : "admin";
+    const isCentralizedAdminView = normScope === "admin";
     const allLogs = await fetchAllEnrichedPersonnelAuditLogs(normScope);
 
-    // Compute overall role counts strictly for the designated role
+    // Compute overall role counts across available logs
     const stats = {
       total: allLogs.length,
-      adminCount: normScope === "admin" ? allLogs.length : 0,
-      vetCount: normScope === "vet" ? allLogs.length : 0,
-      staffCount: normScope === "staff" ? allLogs.length : 0,
+      adminCount: allLogs.filter((l) => l.role === "admin").length,
+      vetCount: allLogs.filter((l) => l.role === "vet").length,
+      staffCount: allLogs.filter((l) => l.role === "staff").length,
     };
 
     // Today's date key in Asia/Manila (YYYY-MM-DD)
@@ -973,10 +1541,15 @@ export const getAuditLogsPaginated = async ({
     const nowManilaDate = parseAuditTimestamp(`${nowManilaKey}T00:00:00+08:00`);
 
     const filtered = allLogs.filter((row) => {
-      // 1. Strict Role Scope Isolation (Never combine or show activities from another role)
-      if (row.role !== normScope) return false;
+      // 1. Role Scope & Role Filter
+      if (!isCentralizedAdminView) {
+        if (row.role !== normScope) return false;
+      } else if (roleFilter && roleFilter !== "all") {
+        const targetRole = normalizeRole(roleFilter);
+        if (row.role !== targetRole) return false;
+      }
 
-      // 2. User Filter (Full Name of personnel within this role)
+      // 2. User Filter (Full Name of personnel)
       if (userFilter && userFilter !== "all") {
         if (String(row.user || "").toLowerCase().trim() !== String(userFilter).toLowerCase().trim()) {
           return false;
@@ -1067,11 +1640,13 @@ export const getAuditLogsPaginated = async ({
 };
 
 /**
- * Get distinct Users, Actions, Roles, and Modules strictly scoped to the designated role.
+ * Get distinct Users, Actions, Roles, and Modules.
+ * When roleScope is 'admin', returns distinct values across all personnel roles ('admin', 'vet', 'staff').
  */
 export const getDistinctAuditFilters = async (roleScope = "admin") => {
   try {
     const normScope = roleScope ? normalizeRole(roleScope) : "admin";
+    const isCentralizedAdminView = normScope === "admin";
     const [allLogs, directory] = await Promise.all([
       fetchAllEnrichedPersonnelAuditLogs(normScope),
       getUsersDirectory(),
@@ -1080,16 +1655,19 @@ export const getDistinctAuditFilters = async (roleScope = "admin") => {
     const userSet = new Set();
     const moduleSet = new Set();
 
-    // Include users and modules who have audit records in this role
+    // Include users and modules who have audit records
     allLogs.forEach((log) => {
       if (log.user) userSet.add(log.user);
       if (log.module) moduleSet.add(log.module);
     });
 
-    // Also include active internal personnel belonging to this role from public.users
+    // Also include active internal personnel from public.users
     (directory?.rows || []).forEach((u) => {
       const r = normalizeRole(u?.role);
-      if (r === normScope && u?.full_name) {
+      const isTargetRole = isCentralizedAdminView
+        ? r === "admin" || r === "vet" || r === "staff"
+        : r === normScope;
+      if (isTargetRole && u?.full_name) {
         userSet.add(u.full_name.trim());
       }
     });
@@ -1097,27 +1675,29 @@ export const getDistinctAuditFilters = async (roleScope = "admin") => {
     const users = [...userSet].filter(Boolean).sort((a, b) => a.localeCompare(b));
     const modules = [...moduleSet].filter(Boolean).sort((a, b) => a.localeCompare(b));
     const actions = [...AUDIT_ACTION_TYPES];
-    const roles = [normScope];
+    const roles = isCentralizedAdminView ? ["admin", "vet", "staff"] : [normScope];
 
     return { users, actions, modules, roles };
   } catch {
     const normScope = roleScope ? normalizeRole(roleScope) : "admin";
+    const isCentralizedAdminView = normScope === "admin";
     return {
       users: [],
       actions: [...AUDIT_ACTION_TYPES],
       modules: [],
-      roles: [normScope],
+      roles: isCentralizedAdminView ? ["admin", "vet", "staff"] : [normScope],
     };
   }
 };
 
 /**
  * Fetch audit logs scoped by role ('all', 'admin', 'staff', 'vet').
+ * Note: 'admin' scope returns all personnel logs (Admin, Veterinarian, Staff).
  */
 export const getAuditLogsForRole = async (roleScope = null) => {
   try {
     const allLogs = await fetchAllEnrichedPersonnelAuditLogs(roleScope);
-    if (roleScope && roleScope !== "all") {
+    if (roleScope && roleScope !== "all" && normalizeRole(roleScope) !== "admin") {
       const cleanRole = normalizeRole(roleScope);
       return allLogs.filter((l) => l.role === cleanRole);
     }

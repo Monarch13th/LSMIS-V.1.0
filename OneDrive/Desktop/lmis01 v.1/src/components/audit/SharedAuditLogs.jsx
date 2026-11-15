@@ -17,19 +17,19 @@ const getRolePill = (role) => {
   const label = formatRoleLabel(role);
   if (label === "Admin") {
     return {
-      bg: "rgba(139, 92, 246, 0.12)",
-      color: "#8b5cf6",
-      border: "rgba(139, 92, 246, 0.28)",
-      gradient: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+      bg: "rgba(24, 122, 86, 0.12)",
+      color: "#24966D",
+      border: "rgba(24, 122, 86, 0.28)",
+      gradient: "linear-gradient(135deg, #24966D, #136647)",
       label: "Admin",
     };
   }
   if (label === "Veterinarian") {
     return {
-      bg: "rgba(14, 165, 233, 0.12)",
-      color: "#0284c7",
-      border: "rgba(14, 165, 233, 0.28)",
-      gradient: "linear-gradient(135deg, #0ea5e9, #0369a1)",
+      bg: "rgba(24, 122, 86, 0.12)",
+      color: "#187A56",
+      border: "rgba(24, 122, 86, 0.28)",
+      gradient: "linear-gradient(135deg, #24966D, #136647)",
       label: "Veterinarian",
     };
   }
@@ -45,7 +45,7 @@ const getRolePill = (role) => {
 const getModuleBadge = (mod) => {
   const m = (mod || "").toLowerCase();
   if (m.includes("ante") || m.includes("post") || m.includes("inspect")) {
-    return { bg: "rgba(14, 165, 233, 0.12)", color: "#0284c7", border: "rgba(14, 165, 233, 0.25)" };
+    return { bg: "rgba(24, 122, 86, 0.12)", color: "#187A56", border: "rgba(24, 122, 86, 0.25)" };
   }
   if (m.includes("condemn")) {
     return { bg: "rgba(239, 68, 68, 0.12)", color: "#ef4444", border: "rgba(239, 68, 68, 0.25)" };
@@ -57,7 +57,7 @@ const getModuleBadge = (mod) => {
     return { bg: "rgba(245, 158, 11, 0.12)", color: "#d97706", border: "rgba(245, 158, 11, 0.25)" };
   }
   if (m.includes("user") || m.includes("personnel") || m.includes("auth") || m.includes("owner")) {
-    return { bg: "rgba(139, 92, 246, 0.12)", color: "#8b5cf6", border: "rgba(139, 92, 246, 0.25)" };
+    return { bg: "rgba(24, 122, 86, 0.12)", color: "#24966D", border: "rgba(24, 122, 86, 0.25)" };
   }
   return { bg: "var(--color-bg)", color: "var(--color-text-muted)", border: "var(--color-border)" };
 };
@@ -91,19 +91,24 @@ export const SharedAuditLogs = ({ roleScope }) => {
   const normAuth = normalizeRoleKey(authRole);
   const effectiveRoleScope = normalizeRoleKey(roleScope || normAuth);
   const isOwner = normAuth === "owner";
+  const isAdminScope = effectiveRoleScope === "admin";
 
-  // Enforce role isolation: users can only access their own role's audit logs
+  // Enforce role isolation:
+  // - Admin can view centralized personnel audit logs (Admin, Veterinarian, and Staff)
+  // - Veterinarian and Staff can only access their own role's audit logs
   const isAuthorized = !isOwner && normAuth === effectiveRoleScope && ["admin", "vet", "staff"].includes(effectiveRoleScope);
 
   // Server-side State
   const [logs, setLogs] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
+  const [roleStats, setRoleStats] = useState({ total: 0, adminCount: 0, vetCount: 0, staffCount: 0 });
   const [loading, setLoading] = useState(true);
   const [queryError, setQueryError] = useState(null);
 
-  // Search input & debounce
+  // Search input & Role Filter
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState(isAdminScope ? "all" : effectiveRoleScope);
 
   // Selected Record ID for Detail View
   const [selectedLogId, setSelectedLogId] = useState(null);
@@ -124,6 +129,10 @@ export const SharedAuditLogs = ({ roleScope }) => {
     setSearch("");
   };
 
+  const handleRoleFilterChange = (nextRole) => {
+    setRoleFilter(nextRole);
+  };
+
   // Authoritative query execution
   const fetchAuditLogs = useCallback(async () => {
     if (!isAuthorized) {
@@ -134,13 +143,13 @@ export const SharedAuditLogs = ({ roleScope }) => {
     setLoading(true);
     setQueryError(null);
 
-    const { data, count, error } = await getAuditLogsPaginated({
+    const { data, count, stats, error } = await getAuditLogsPaginated({
       page: 1,
-      pageSize: 250,
+      pageSize: 500,
       search,
       userFilter: "all",
       actionType: "all",
-      roleFilter: effectiveRoleScope,
+      roleFilter: isAdminScope ? roleFilter : effectiveRoleScope,
       moduleFilter: "all",
       dateRange: "all",
       roleScope: effectiveRoleScope,
@@ -154,8 +163,9 @@ export const SharedAuditLogs = ({ roleScope }) => {
     } else {
       setLogs(data || []);
       setTotalCount(count || 0);
+      if (stats) setRoleStats(stats);
     }
-  }, [search, effectiveRoleScope, isAuthorized]);
+  }, [search, roleFilter, isAdminScope, effectiveRoleScope, isAuthorized]);
 
   useEffect(() => {
     fetchAuditLogs();
@@ -172,11 +182,12 @@ export const SharedAuditLogs = ({ roleScope }) => {
     };
   }, [fetchAuditLogs, effectiveRoleScope, isAuthorized]);
 
-  const hasActiveFilters = Boolean(search.trim());
+  const hasActiveFilters = Boolean(search.trim()) || (isAdminScope && roleFilter !== "all");
 
   const handleResetFilters = () => {
     setSearchInput("");
     setSearch("");
+    if (isAdminScope) setRoleFilter("all");
   };
 
   if (!isInitialized && authLoading) {
@@ -223,21 +234,21 @@ export const SharedAuditLogs = ({ roleScope }) => {
 
   const roleDisplayTitle =
     effectiveRoleScope === "admin"
-      ? "Administrator Audit Logs"
+      ? "Personnel Audit Logs"
       : effectiveRoleScope === "vet"
         ? "Veterinarian Audit Logs"
         : "Staff Personnel Audit Logs";
 
   const roleSubtitle =
     effectiveRoleScope === "admin"
-      ? "Immutable activity records of Administrator personnel in Philippine Standard Time (Asia/Manila)"
+      ? "Centralized immutable activity records across Admin, Veterinarian, and Staff personnel in Philippine Standard Time (Asia/Manila)"
       : effectiveRoleScope === "vet"
         ? "Immutable activity records of Veterinary personnel in Philippine Standard Time (Asia/Manila)"
         : "Immutable activity records of Staff personnel in Philippine Standard Time (Asia/Manila)";
 
   return (
     <div className="audit-logs-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* Top Header & Filter Bar â€” Fixed, does NOT scroll */}
+      {/* Top Header & Filter Bar — Fixed, does NOT scroll */}
       <div
         className="records-fixed-header"
         style={{
@@ -251,7 +262,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
           zIndex: 20,
         }}
       >
-          {/* Row 1: Title + Search + Refresh */}
+          {/* Row 1: Title + Role Filter Tabs */}
           <div
             style={{
               display: "flex",
@@ -267,8 +278,8 @@ export const SharedAuditLogs = ({ roleScope }) => {
                   width: 34,
                   height: 34,
                   borderRadius: 9,
-                  background: "rgba(2, 132, 199, 0.12)",
-                  color: "#0284c7",
+                  background: "rgba(24, 122, 86, 0.12)",
+                  color: "#187A56",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -302,86 +313,157 @@ export const SharedAuditLogs = ({ roleScope }) => {
               </div>
             </div>
 
-            {/* Search Input */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              <div style={{ position: "relative", width: 280, maxWidth: "100%" }}>
-                <span
+            {/* Role Filter (Left) + Search Input & Refresh (Right) */}
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: isAdminScope ? "space-between" : "flex-end",
+                gap: 8,
+                flexWrap: "wrap",
+                flex: "1 1 100%",
+              }}
+            >
+              {isAdminScope && (
+                <div
                   style={{
-                    position: "absolute",
-                    left: 11,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    color: "var(--color-text-muted)",
-                    display: "flex",
-                    pointerEvents: "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    padding: 3,
+                    borderRadius: 9,
+                    background: "var(--color-bg)",
+                    border: "1px solid var(--color-border)",
                   }}
                 >
-                  <Icon.Search size={14} />
-                </span>
-                <input
-                  type="text"
-                  value={searchInput}
-                  onChange={handleSearchChange}
-                  placeholder="Search user, action, role, module..."
-                  style={{
-                    width: "100%",
-                    height: 36,
-                    padding: "0 30px 0 34px",
-                    borderRadius: 8,
-                    border: "1px solid var(--color-border)",
-                    fontSize: 12.5,
-                    outline: "none",
-                    background: "var(--color-bg)",
-                    color: "var(--color-text)",
-                  }}
-                />
-                {searchInput && (
-                  <button
-                    type="button"
-                    onClick={handleClearSearch}
+                  {[
+                    { key: "all", label: "All Roles", count: roleStats.total },
+                    { key: "admin", label: "Admin", count: roleStats.adminCount },
+                    { key: "vet", label: "Veterinarian", count: roleStats.vetCount },
+                    { key: "staff", label: "Staff", count: roleStats.staffCount },
+                  ].map((tab) => {
+                    const active = roleFilter === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => handleRoleFilterChange(tab.key)}
+                        style={{
+                          height: 28,
+                          padding: "0 10px",
+                          borderRadius: 6,
+                          border: "none",
+                          fontSize: 12,
+                          fontWeight: active ? 700 : 600,
+                          cursor: "pointer",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 5,
+                          background: active ? "var(--color-surface)" : "transparent",
+                          color: active ? "var(--color-text)" : "var(--color-text-muted)",
+                          boxShadow: active ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
+                          transition: "all 140ms ease",
+                        }}
+                      >
+                        <span>{tab.label}</span>
+                        <span
+                          style={{
+                            fontSize: 10.5,
+                            fontWeight: 700,
+                            padding: "1px 5px",
+                            borderRadius: 999,
+                            background: active ? "rgba(24, 122, 86, 0.14)" : "rgba(148, 163, 184, 0.14)",
+                            color: active ? "var(--color-primary)" : "var(--color-text-muted)",
+                          }}
+                        >
+                          {tab.count}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+                <div style={{ position: "relative", width: 280, maxWidth: "100%" }}>
+                  <span
                     style={{
                       position: "absolute",
-                      right: 8,
+                      left: 11,
                       top: "50%",
                       transform: "translateY(-50%)",
-                      background: "transparent",
-                      border: "none",
-                      cursor: "pointer",
                       color: "var(--color-text-muted)",
-                      padding: 2,
                       display: "flex",
+                      pointerEvents: "none",
                     }}
-                    title="Clear search"
                   >
-                    <Icon.X size={13} />
-                  </button>
-                )}
-              </div>
+                    <Icon.Search size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={handleSearchChange}
+                    placeholder="Search user, action, role, module..."
+                    style={{
+                      width: "100%",
+                      height: 36,
+                      padding: "0 30px 0 34px",
+                      borderRadius: 8,
+                      border: "1px solid var(--color-border)",
+                      fontSize: 12.5,
+                      outline: "none",
+                      background: "var(--color-bg)",
+                      color: "var(--color-text)",
+                    }}
+                  />
+                  {searchInput && (
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      style={{
+                        position: "absolute",
+                        right: 8,
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "var(--color-text-muted)",
+                        padding: 2,
+                        display: "flex",
+                      }}
+                      title="Clear search"
+                    >
+                      <Icon.X size={13} />
+                    </button>
+                  )}
+                </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchAuditLogs}
-                disabled={loading}
-                style={{
-                  width: 36,
-                  height: 36,
-                  padding: 0,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  borderRadius: 8,
-                  flexShrink: 0,
-                  cursor: loading ? "not-allowed" : "pointer",
-                  color: "var(--color-text)",
-                  borderColor: "var(--color-border)",
-                  background: "var(--color-surface)",
-                }}
-                title={loading ? "Refreshing audit logs..." : "Refresh audit logs"}
-                aria-label="Refresh audit logs"
-              >
-                <Icon.RefreshCw size={15} className={loading ? "animate-spin" : ""} style={{ color: "currentColor" }} />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={fetchAuditLogs}
+                  disabled={loading}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    padding: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 8,
+                    flexShrink: 0,
+                    cursor: loading ? "not-allowed" : "pointer",
+                    color: "var(--color-text)",
+                    borderColor: "var(--color-border)",
+                    background: "var(--color-surface)",
+                  }}
+                  title={loading ? "Refreshing audit logs..." : "Refresh audit logs"}
+                  aria-label="Refresh audit logs"
+                >
+                  <Icon.RefreshCw size={15} className={loading ? "animate-spin" : ""} style={{ color: "currentColor" }} />
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -411,7 +493,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
           </div>
         )}
 
-        {/* Audit Logs Table â€” Records scroll internally, headers remain fixed */}
+        {/* Audit Logs Table — Records scroll internally, headers remain fixed */}
         <div
           style={{
             flex: 1,
@@ -440,7 +522,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                   width: 34,
                   height: 34,
                   border: "3px solid var(--color-border)",
-                  borderTopColor: "#0284c7",
+                  borderTopColor: "#187A56",
                   borderRadius: "50%",
                   animation: "spin 0.8s linear infinite",
                 }}
@@ -505,7 +587,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                           cursor: "pointer",
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.background = "var(--color-bg)";
+                          e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
@@ -551,7 +633,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                             >
                               {log.action || "Activity recorded"}
                             </span>
-                            {log.tag_number && log.tag_number !== "â€”" && log.tag_number !== "null" && (
+                            {log.tag_number && log.tag_number !== "—" && log.tag_number !== "null" && (
                               <TagBadge tag={log.tag_number} />
                             )}
                           </div>
@@ -607,7 +689,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                                       ? dt.time
                                       : "";
                                 if (dt?.date && dt.date !== "undefined" && dt.date !== "null" && dt.full !== "Not recorded") {
-                                  return validTime ? `${dt.date} â€¢ ${validTime}` : dt.date;
+                                  return validTime ? `${dt.date} • ${validTime}` : dt.date;
                                 }
                                 return formatManilaDateTime(log.timestamp || log.created_at);
                               })()}

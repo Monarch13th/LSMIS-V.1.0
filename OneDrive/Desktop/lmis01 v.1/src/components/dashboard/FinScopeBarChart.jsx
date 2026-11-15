@@ -19,7 +19,7 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 export const FinScopeBarChart = ({
   labels = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"],
   data = [12, 19, 28, 34, 45, 22, 18],
-  colors = ["#cbd5e1", "#cbd5e1", "#f97316", "#10b981", "#0284c7", "#cbd5e1", "#cbd5e1"],
+  colors = ["#C2CAC4", "#C2CAC4", "#f97316", "#10b981", "#187A56", "#C2CAC4", "#C2CAC4"],
   unit = "Head",
   height = 130,
   peakLabel = "Peak Intake",
@@ -32,7 +32,7 @@ export const FinScopeBarChart = ({
           data,
           backgroundColor: (ctx) => {
             const idx = ctx.dataIndex;
-            return colors[idx % colors.length] || "#0284c7";
+            return colors[idx % colors.length] || "#187A56";
           },
           borderRadius: 6,
           borderSkipped: false,
@@ -50,9 +50,9 @@ export const FinScopeBarChart = ({
         legend: { display: false },
         tooltip: {
           backgroundColor: "#ffffff",
-          titleColor: "#0f172a",
-          bodyColor: "#475569",
-          borderColor: "#e2e8f0",
+          titleColor: "#1A201C",
+          bodyColor: "#5D6660",
+          borderColor: "#E2E6E3",
           borderWidth: 1,
           padding: 8,
           cornerRadius: 8,
@@ -68,7 +68,7 @@ export const FinScopeBarChart = ({
           grid: { display: false },
           border: { display: false },
           ticks: {
-            color: "#94a3b8",
+            color: "#9BA49E",
             font: { size: 10, weight: 600 },
             padding: 4,
           },

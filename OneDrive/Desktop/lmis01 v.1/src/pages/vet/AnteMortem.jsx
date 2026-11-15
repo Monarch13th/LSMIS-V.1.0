@@ -292,7 +292,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       return (
         clean !== "" &&
         clean !== "-" &&
-        clean !== "â€”" &&
+        clean !== "—" &&
         clean.toLowerCase() !== "unknown" &&
         clean.toLowerCase() !== "unknown owner" &&
         clean.toLowerCase() !== "n/a"
@@ -434,7 +434,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     if (l?.owner_id) return String(l.owner_id).trim();
 
     const ownerName = resolveOwnerName(insp);
-    if (ownerName && ownerName !== "-" && ownerName !== "â€”") {
+    if (ownerName && ownerName !== "-" && ownerName !== "—") {
       const found = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === ownerName.trim().toLowerCase()
       );
@@ -472,7 +472,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       ...baseAnimal,
       tag_number: insp.tag_number || baseAnimal.tag_number,
       species: insp.species || baseAnimal.species || "Unknown",
-      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (baseAnimal.owner_name || "-"),
+      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (baseAnimal.owner_name || "-"),
     };
   };
 
@@ -632,7 +632,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       const grp = groups.get(key);
       grp.items.push(item);
       const species = (item.species || resolveAnimal(item)?.species || "Unknown Species").trim();
-      if (species && species !== "-" && species !== "â€”" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "-" && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
       const rawTime = item.action_timestamp || item.inspected_at || item.created_at || item.date;
@@ -735,7 +735,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || item.livestock_id || "",
             species: animal?.species || item.species || "Unknown",
-            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
             animal,
           };
         });
@@ -796,7 +796,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || "",
             species: animal?.species || "Unknown",
-            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
             animal,
           };
         });
@@ -931,18 +931,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
           }}
         >
           {/* Segmented Nav Tabs */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              background: "var(--color-bg)",
-              padding: 3,
-              borderRadius: 8,
-              border: "1px solid var(--color-border)",
-              flexShrink: 0,
-            }}
-          >
+          <div className="adm-seg-tabs">
             {[
               {
                 id: "awaiting",
@@ -962,40 +951,16 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 <button
                   key={tab.id}
                   type="button"
+                  className={`adm-seg-btn ${isActive ? "active" : ""}`}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setSelectedOwnerKey(null);
                     setPage(1);
                   }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: isActive ? 700 : 600,
-                    border: "none",
-                    cursor: "pointer",
-                    background: isActive ? "var(--color-surface)" : "transparent",
-                    color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-                    boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                    transition: "all 140ms ease",
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>{tab.icon}</span>
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      padding: "1px 6px",
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 800,
-                      background: isActive ? "var(--color-primary-light, rgba(2,132,199,0.12))" : "var(--color-border)",
-                      color: isActive ? "var(--color-primary, #0284c7)" : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {tab.count}
                   </span>
                 </button>
@@ -1167,7 +1132,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         transition: "background 140ms ease",
                         borderBottom: "1px solid var(--color-border)",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(2, 132, 199, 0.04)")}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
                       {/* Owner Name */}
@@ -1178,7 +1143,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                              background: "#187A56",
                               color: "#ffffff",
                               display: "flex",
                               alignItems: "center",
@@ -1204,7 +1169,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                       {/* Date Inspected */}
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#0284c7" }} />
+                          <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#187A56" }} />
                           <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "Undated Inspection"}</span>
                         </div>
                       </td>
@@ -1222,7 +1187,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           style={{
                             fontSize: 12.5,
                             fontWeight: 600,
-                            color: "#0284c7",
+                            color: "#187A56",
                           }}
                         >
                           {grp.count} head{grp.count > 1 ? "s" : ""}
@@ -1335,13 +1300,13 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                     return (
                       <tr
                         key={grp.key}
-                        onClick={() => setSelectedOwnerKey(grp.key)}
+                        onClick={() => handleOpenModal(allTags)}
                         style={{
                           cursor: "pointer",
                           transition: "background 140ms ease",
                           borderBottom: "1px solid var(--color-border)",
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(2, 132, 199, 0.04)")}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
                         {/* Owner Name */}
@@ -1352,7 +1317,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                                 width: 32,
                                 height: 32,
                                 borderRadius: "50%",
-                                background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                                background: "#187A56",
                                 color: "#ffffff",
                                 display: "flex",
                                 alignItems: "center",
@@ -1378,7 +1343,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         {/* Date Received */}
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#0284c7" }} />
+                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#187A56" }} />
                             <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "Undated Intake"}</span>
                           </div>
                         </td>
@@ -1396,7 +1361,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             style={{
                               fontSize: 12.5,
                               fontWeight: 600,
-                              color: "#0284c7",
+                              color: "#187A56",
                             }}
                           >
                             {grp.count} head{grp.count > 1 ? "s" : ""}
@@ -1425,8 +1390,8 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             <button
                               type="button"
                               className="action-btn action-btn-outline"
-                              onClick={() => setSelectedOwnerKey(grp.key)}
-                              title="View Owner Records"
+                              onClick={() => handleOpenModal(allTags)}
+                              title="View & Inspect Batch"
                             >
                               <Icon.Eye size={13} />
                               <span>View</span>
@@ -1565,9 +1530,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               alignItems: "center",
               gap: 4,
               padding: "3px 4px",
-              background: "var(--color-bg, #f1f5f9)",
+              background: "var(--color-bg, #EFF2F0)",
               borderRadius: 8,
-              border: "1px solid var(--color-border, #e2e8f0)",
+              border: "1px solid var(--color-border, #E2E6E3)",
               position: "relative",
               zIndex: 10,
               flexShrink: 0,
@@ -1721,7 +1686,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                     padding: "7px 14px",
                     fontSize: 12.5,
                     fontWeight: 700,
-                    background: "linear-gradient(135deg, #0284c7, #0369a1)",
+                    background: "#187A56",
                     color: "#ffffff",
                     display: "inline-flex",
                     alignItems: "center",
@@ -1785,7 +1750,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {i.species || animal?.species || "â€”"}
+                            {i.species || animal?.species || "—"}
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontWeight: 600, fontSize: 12.5, color: "var(--color-text)" }}>
                             {formatSex(i.sex || animal?.sex)}
@@ -1800,7 +1765,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           </td>
                           <td style={{ padding: "12px 14px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", fontSize: 12 }}>
-                              <span style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(2, 132, 199, 0.18)", color: "#0284c7", fontSize: 11, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                              <span style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(24, 122, 86, 0.18)", color: "#187A56", fontSize: 11, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                                 V
                               </span>
                               <span style={{ maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis" }} title={i.inspector_name || i.created_by || "Dr. Dave"}>
@@ -1885,7 +1850,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {item.species || "â€”"}
+                            {item.species || "—"}
                           </td>
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontWeight: 600, fontSize: 12.5, color: "var(--color-text)" }}>
                             {formatSex(item.sex)}
@@ -1950,7 +1915,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               }}
             >
               <div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#0284c7", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#187A56", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Republic of the Philippines - City Veterinary Office
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>

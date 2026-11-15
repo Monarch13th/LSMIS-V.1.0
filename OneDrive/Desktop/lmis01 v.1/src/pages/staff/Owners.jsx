@@ -409,13 +409,13 @@ export const Owners = ({ initialTab = "owners" }) => {
     const headers = "Official ID,System ID,Full Name,Contact Number,Email,Address,Status,Registered Date,Active Livestock";
     const rows = (filtered && filtered.length > 0 ? filtered : data).map((o) => {
       const officialId = formatOwnerId(o);
-      const id = o.id || "‚Äî";
-      const name = o.name ? o.name.replace(/"/g, '""') : "‚Äî";
-      const contact = o.contact || "‚Äî";
-      const email = o.email || "‚Äî";
-      const address = o.address ? o.address.replace(/"/g, '""') : "‚Äî";
+      const id = o.id || "ó";
+      const name = o.name ? o.name.replace(/"/g, '""') : "ó";
+      const contact = o.contact || "ó";
+      const email = o.email || "ó";
+      const address = o.address ? o.address.replace(/"/g, '""') : "ó";
       const status = o.status || "Approved";
-      const regDate = formatDate(o.registered_date || o.created_at) || "‚Äî";
+      const regDate = formatDate(o.registered_date || o.created_at) || "ó";
       const count = getOwnerAnimalsCount(o);
       return `"${officialId}","${id}","${name}","${contact}","${email}","${address}","${status}","${regDate}","${count}"`;
     });
@@ -548,35 +548,19 @@ export const Owners = ({ initialTab = "owners" }) => {
   };
 
   const renderNavTabs = () => (
-    <div
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        background: "var(--color-bg)",
-        padding: "3px",
-        borderRadius: 9,
-        border: "1px solid var(--color-border)",
-        gap: 4,
-      }}
-    >
+    <div className="adm-seg-tabs">
       {[
         {
           id: "owners",
           label: "Registered Owners",
           count: data.length,
           icon: <Icon.Users size={14} />,
-          color: "#10b981",
-          badgeBg: "rgba(16, 185, 129, 0.15)",
-          badgeColor: "#10b981",
         },
         {
           id: "marking",
           label: "Animal Marking",
           count: awaitingMarkingCount,
           icon: <Icon.Tag size={14} />,
-          color: "#8b5cf6",
-          badgeBg: "rgba(139, 92, 246, 0.15)",
-          badgeColor: "#8b5cf6",
         },
       ].map((tab) => {
         const isActive = activeTab === tab.id;
@@ -584,44 +568,17 @@ export const Owners = ({ initialTab = "owners" }) => {
           <button
             key={tab.id}
             type="button"
+            className={`adm-seg-btn ${isActive ? "active" : ""}`}
             onClick={() => {
               handleTabSwitch(tab.id);
               setPage(1);
             }}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "5px 12px",
-              borderRadius: 7,
-              fontSize: 12.5,
-              fontWeight: isActive ? 700 : 600,
-              border: isActive ? "1px solid var(--color-border)" : "1px solid transparent",
-              cursor: "pointer",
-              background: isActive ? "var(--color-surface)" : "transparent",
-              color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-              boxShadow: isActive ? "0 1px 3px rgba(0, 0, 0, 0.06)" : "none",
-              transition: "all 140ms ease",
-              whiteSpace: "nowrap",
-            }}
           >
-            <span style={{ color: isActive ? tab.color : "var(--color-text-muted)", display: "flex" }}>
+            <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>
               {tab.icon}
             </span>
             <span>{tab.label}</span>
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                padding: "1px 6px",
-                borderRadius: 999,
-                background: isActive ? tab.badgeBg : "var(--color-border-subtle, rgba(148, 163, 184, 0.15))",
-                color: isActive ? tab.badgeColor : "var(--color-text-muted)",
-                lineHeight: 1.1,
-                minWidth: 18,
-                textAlign: "center",
-              }}
-            >
+            <span className="adm-seg-badge">
               {tab.count}
             </span>
           </button>
@@ -961,8 +918,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                       <td style={{ padding: "14px 18px" }}>
                         <div>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--color-text)", fontSize: 13, fontWeight: 600 }}>
-                            <Icon.Phone size={13} style={{ color: "#0ea5e9", flexShrink: 0 }} />
-                            <span style={{ fontFamily: "monospace" }}>{o.contact || "‚Äî"}</span>
+                            <Icon.Phone size={13} style={{ color: "#24966D", flexShrink: 0 }} />
+                            <span style={{ fontFamily: "monospace" }}>{o.contact || "ó"}</span>
                           </div>
                           {o.email && (
                             <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "var(--color-text-muted)", marginTop: 2 }}>
@@ -980,7 +937,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
                           <Icon.MapPin size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0, marginTop: 3 }} />
                           <span style={{ fontSize: 12.5, color: "var(--color-text)", lineHeight: 1.4 }} className="truncate" title={o.address}>
-                            {o.address || "‚Äî"}
+                            {o.address || "ó"}
                           </span>
                         </div>
                       </td>
@@ -1187,9 +1144,9 @@ export const Owners = ({ initialTab = "owners" }) => {
                       style={{
                         fontSize: 11.5,
                         fontFamily: "monospace",
-                        color: "#0284c7",
-                        background: "rgba(14, 165, 233, 0.12)",
-                        border: "1px solid rgba(14, 165, 233, 0.25)",
+                        color: "#187A56",
+                        background: "rgba(24, 122, 86, 0.12)",
+                        border: "1px solid rgba(24, 122, 86, 0.25)",
                         padding: "2px 7px",
                         borderRadius: 5,
                         fontWeight: 700,
@@ -1282,8 +1239,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                     width: 34,
                     height: 34,
                     borderRadius: 8,
-                    background: "rgba(14, 165, 233, 0.12)",
-                    color: "#0284c7",
+                    background: "rgba(24, 122, 86, 0.12)",
+                    color: "#187A56",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1306,7 +1263,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         {detailModalOwner.contact}
                       </a>
                     ) : (
-                      "‚Äî"
+                      "ó"
                     )}
                   </div>
                 </div>
@@ -1329,8 +1286,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                     width: 34,
                     height: 34,
                     borderRadius: 8,
-                    background: "rgba(139, 92, 246, 0.12)",
-                    color: "#7c3aed",
+                    background: "rgba(24, 122, 86, 0.12)",
+                    color: "#187A56",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
@@ -1353,7 +1310,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         {detailModalOwner.email}
                       </a>
                     ) : (
-                      "‚Äî"
+                      "ó"
                     )}
                   </div>
                 </div>
@@ -1391,7 +1348,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     Address
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3, lineHeight: 1.35 }} title={detailModalOwner.address}>
-                    {detailModalOwner.address || "‚Äî"}
+                    {detailModalOwner.address || "ó"}
                   </div>
                 </div>
               </div>
@@ -1428,7 +1385,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     Registration Date
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3 }}>
-                    {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "‚Äî"}
+                    {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "ó"}
                   </div>
                 </div>
               </div>
@@ -1465,7 +1422,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     background: "var(--color-bg)",
                   }}
                 >
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>üêæ</div>
+                  <div style={{ fontSize: 24, marginBottom: 4 }}>??</div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>No livestock registered yet</div>
                   <p style={{ fontSize: 12, color: "var(--color-text-muted)", margin: "4px 0 0 0" }}>
                     This owner does not have any active livestock in the abattoir queue.
@@ -1474,7 +1431,7 @@ export const Owners = ({ initialTab = "owners" }) => {
               ) : (
                 <div style={{ maxHeight: 250, overflowY: "auto", border: "1px solid var(--color-border)", borderRadius: 10, scrollbarWidth: "thin" }}>
                   <table className="table" style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
-                    <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "var(--color-surface-subtle, #f8fafc)" }}>
+                    <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "var(--color-surface-subtle, #F9FAF8)" }}>
                       <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
                         <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "left", textTransform: "uppercase" }}>Tag Number</th>
                         <th style={{ padding: "9px 12px", fontSize: 11, fontWeight: 700, color: "var(--color-text-muted)", textAlign: "left", textTransform: "uppercase" }}>Species</th>
@@ -1491,7 +1448,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                           <tr
                             key={a.id || a.tag_number || idx}
                             style={{
-                              borderBottom: "1px solid var(--color-border, #f1f5f9)",
+                              borderBottom: "1px solid var(--color-border, #EFF2F0)",
                               background: idx % 2 === 0 ? "transparent" : "var(--color-surface-subtle, #fcfcfc)",
                             }}
                           >
@@ -1499,7 +1456,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                               {a.tag_number || a.id}
                             </td>
                             <td style={{ padding: "9px 12px", color: "var(--color-text)" }}>
-                              {a.species || "‚Äî"}
+                              {a.species || "ó"}
                             </td>
                             <td style={{ padding: "9px 12px", fontWeight: 600, color: "var(--color-text)" }}>
                               {formatSex(a.sex)}
@@ -1571,7 +1528,7 @@ export const Owners = ({ initialTab = "owners" }) => {
       <Modal
         open={!!intakeModalOwner}
         onClose={() => setIntakeModalOwner(null)}
-        title={intakeModalOwner ? `Register Incoming Livestock ‚Äî ${intakeModalOwner.name}` : "Register Incoming Livestock"}
+        title={intakeModalOwner ? `Register Incoming Livestock ó ${intakeModalOwner.name}` : "Register Incoming Livestock"}
         dialogStyle={{
           maxWidth: 820,
           width: "95vw",

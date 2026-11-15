@@ -381,7 +381,7 @@ export const Users = () => {
               fontWeight: 700,
               color: "var(--color-info, #0284c7)",
               background: "var(--color-info-bg, rgba(14, 165, 233, 0.15))",
-              border: "1px solid rgba(14, 165, 233, 0.3)",
+              border: "1px solid rgba(24, 122, 86, 0.3)",
               padding: "2px 8px",
               borderRadius: "5px",
               whiteSpace: "nowrap",
@@ -400,15 +400,15 @@ export const Users = () => {
               gap: 5,
               fontSize: "0.78rem",
               fontWeight: 700,
-              color: "var(--color-violet, #7c3aed)",
-              background: "var(--color-violet-bg, rgba(139, 92, 246, 0.15))",
-              border: "1px solid rgba(139, 92, 246, 0.3)",
+              color: "var(--color-violet, #187A56)",
+              background: "var(--color-violet-bg, rgba(24, 122, 86, 0.15))",
+              border: "1px solid rgba(24, 122, 86, 0.3)",
               padding: "2px 8px",
               borderRadius: "5px",
               whiteSpace: "nowrap",
             }}
           >
-            <Icon.Cow size={13} style={{ color: "var(--color-violet, #7c3aed)" }} />
+            <Icon.Cow size={13} style={{ color: "var(--color-violet, #187A56)" }} />
             Slaughterhouse Staff
           </span>
         );
@@ -420,9 +420,9 @@ export const Users = () => {
       case "admin":
         return "linear-gradient(135deg, #f59e0b, #d97706)";
       case "vet":
-        return "linear-gradient(135deg, #0284c7, #0369a1)";
+        return "#187A56";
       default:
-        return "linear-gradient(135deg, #8b5cf6, #6d28d9)";
+        return "linear-gradient(135deg, #24966D, #136647)";
     }
   };
 
@@ -458,7 +458,7 @@ export const Users = () => {
           }}
         >
           {/* Left: Status / Role Segmented Nav Tabs */}
-          <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+          <div className="adm-seg-tabs">
             {[
               { id: "all", label: "All Personnel", count: totalPersonnel, icon: <Icon.Users size={14} /> },
               { id: "vet", label: "Veterinary", count: vetCount, icon: <Icon.Stethoscope size={14} /> },
@@ -469,35 +469,12 @@ export const Users = () => {
                 <button
                   key={tab.id}
                   type="button"
+                  className={`adm-seg-btn ${active ? "active" : ""}`}
                   onClick={() => { setFilterRole(tab.id); setPage(1); }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "6px 12px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: active ? 700 : 600,
-                    border: "none",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    background: active ? "var(--color-primary, #059669)" : "var(--color-surface-hover, rgba(0,0,0,0.04))",
-                    color: active ? "#fff" : "var(--color-text)",
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 700,
-                      padding: "1px 6px",
-                      borderRadius: 10,
-                      background: active ? "rgba(255,255,255,0.25)" : "var(--color-bg)",
-                      color: active ? "#fff" : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {tab.count}
                   </span>
                 </button>
@@ -508,12 +485,12 @@ export const Users = () => {
           {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {/* Search Input */}
-            <div style={{ position: "relative", width: 230 }}>
+            <div style={{ position: "relative", width: 240 }}>
               <Icon.Search
                 size={13}
                 style={{
                   position: "absolute",
-                  left: 10,
+                  left: 11,
                   top: "50%",
                   transform: "translateY(-50%)",
                   color: "var(--color-text-muted)",
@@ -527,14 +504,14 @@ export const Users = () => {
                 onChange={(e) => { setSearch(e.target.value); setPage(1); }}
                 style={{
                   width: "100%",
-                  height: 34,
-                  paddingLeft: 30,
-                  paddingRight: search ? 24 : 10,
-                  borderRadius: 6,
+                  height: 36,
+                  paddingLeft: 32,
+                  paddingRight: search ? 26 : 12,
+                  borderRadius: 10,
                   border: "1px solid var(--color-border)",
                   background: "var(--color-bg)",
                   color: "var(--color-text)",
-                  fontSize: 12,
+                  fontSize: 12.5,
                   outline: "none",
                   boxSizing: "border-box",
                 }}
@@ -556,7 +533,7 @@ export const Users = () => {
                     padding: 2,
                   }}
                 >
-                  âœ•
+                  ?
                 </button>
               )}
             </div>
@@ -564,23 +541,8 @@ export const Users = () => {
             {/* Add Personnel Button */}
             <button
               type="button"
+              className="adm-toolbar-primary-btn"
               onClick={() => { setEditing(null); setModalOpen(true); }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                height: 34,
-                padding: "0 12px",
-                borderRadius: 6,
-                background: "var(--color-primary)",
-                color: "#fff",
-                border: "none",
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}
             >
               <Icon.Plus size={14} />
               <span>Add Personnel</span>
@@ -594,7 +556,7 @@ export const Users = () => {
             className="table"
             style={{
               width: "100%",
-              minWidth: "1060px",
+              minWidth: "860px",
               tableLayout: "fixed",
               borderCollapse: "collapse",
               margin: 0,
@@ -645,7 +607,7 @@ export const Users = () => {
                       background: isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.08))" : "transparent",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.15))" : "var(--color-bg)")
+                      (e.currentTarget.style.background = isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.15))" : "var(--lsmis-primary-subtle)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = isDeactivated ? "var(--color-danger-bg, rgba(239, 68, 68, 0.08))" : "transparent")
@@ -683,8 +645,8 @@ export const Users = () => {
                             height: 36,
                             borderRadius: "8px",
                             background: u.role === "vet"
-                              ? "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)"
-                              : "linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)",
+                              ? "#187A56"
+                              : "#187A56",
                             color: "#ffffff",
                             fontWeight: 800,
                             fontSize: "0.82rem",
@@ -722,9 +684,9 @@ export const Users = () => {
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                             }}
-                            title={`${u.username ? `@${u.username} Â· ` : ""}${u.email || ""}`}
+                            title={`${u.username ? `@${u.username} · ` : ""}${u.email || ""}`}
                           >
-                            {u.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{u.username} Â· </span>}
+                            {u.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{u.username} · </span>}
                             <span>{u.email || "No email"}</span>
                           </div>
                         </div>
@@ -736,7 +698,7 @@ export const Users = () => {
                       <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
                         <div>{getRoleBadge(u.role)}</div>
                         {(u.contact || u.phone) && (
-                          <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#0284c7", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
+                          <div style={{ fontSize: "0.78rem", fontWeight: 600, color: "#187A56", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
                             <Icon.Phone size={12} style={{ flexShrink: 0 }} />
                             <span>{u.contact || u.phone}</span>
                           </div>
@@ -800,7 +762,7 @@ export const Users = () => {
                               animation: tracking.online ? "pulse 2s infinite" : "none",
                             }}
                           />
-                          <span style={{ color: tracking.online ? "#10b981" : "#64748b", fontWeight: 600 }}>
+                          <span style={{ color: tracking.online ? "#10b981" : "#5D6660", fontWeight: 600 }}>
                             {tracking.online ? "Online Now" : tracking.lastActive || "Offline"}
                           </span>
                         </div>
@@ -827,7 +789,7 @@ export const Users = () => {
                               onClick={() => handleToggleDeactivate(u)}
                               title="Activate personnel account"
                             >
-                              <Icon.CheckCircle size={14} style={{ color: "#16a34a" }} />
+                              <Icon.CheckCircle size={14} />
                               <span>Activate</span>
                             </button>
                           ) : (
@@ -885,7 +847,7 @@ export const Users = () => {
 
       <style>{`
         .personnel-table-row:hover {
-          background-color: #f8fafc !important;
+          background-color: var(--ag-row-hover, var(--color-bg)) !important;
         }
         .spin-animation {
           animation: spin 1s linear infinite;

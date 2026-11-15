@@ -254,7 +254,7 @@ export const WaitingApproval = () => {
 
   const isRejected = currentStatus === "Rejected";
   const displayName = ownerInfo?.name || "Livestock Owner";
-  const displayEmail = ownerInfo?.email || "â€”";
+  const displayEmail = ownerInfo?.email || "—";
   const displayId = ownerInfo?.id || "REG-001-2026";
   const regDateRaw = ownerInfo?.registered_date || ownerInfo?.created_at;
   const displayDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "Today";
@@ -263,7 +263,7 @@ export const WaitingApproval = () => {
     <div
       style={{
         minHeight: "100vh",
-        background: "var(--color-bg, #f8fafc)",
+        background: "var(--color-bg, #F9FAF8)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -275,7 +275,7 @@ export const WaitingApproval = () => {
           width: "100%",
           maxWidth: 540,
           background: "var(--color-surface, #ffffff)",
-          border: "1px solid var(--color-border, #e2e8f0)",
+          border: "1px solid var(--color-border, #E2E6E3)",
           borderRadius: 18,
           boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04)",
           overflow: "hidden",
@@ -343,7 +343,7 @@ export const WaitingApproval = () => {
               style={{
                 fontSize: "1.45rem",
                 fontWeight: 800,
-                color: "var(--color-text, #0f172a)",
+                color: "var(--color-text, #1A201C)",
                 margin: "0 0 8px 0",
                 lineHeight: 1.3,
               }}
@@ -358,7 +358,7 @@ export const WaitingApproval = () => {
             <p
               style={{
                 fontSize: "0.92rem",
-                color: "var(--color-text-secondary, #64748b)",
+                color: "var(--color-text-secondary, #5D6660)",
                 lineHeight: 1.55,
                 margin: 0,
                 maxWidth: 460,
@@ -379,8 +379,8 @@ export const WaitingApproval = () => {
           {/* Details Card */}
           <div
             style={{
-              background: "var(--color-surface-subtle, #f8fafc)",
-              border: "1px solid var(--color-border, #e2e8f0)",
+              background: "var(--color-surface-subtle, #F9FAF8)",
+              border: "1px solid var(--color-border, #E2E6E3)",
               borderRadius: 14,
               padding: "18px 20px",
               marginBottom: 20,
@@ -396,7 +396,7 @@ export const WaitingApproval = () => {
                 alignItems: "center",
                 gap: 14,
                 paddingBottom: 12,
-                borderBottom: "1px solid var(--color-border, #e2e8f0)",
+                borderBottom: "1px solid var(--color-border, #E2E6E3)",
               }}
             >
               {ownerInfo?.avatar_url && !avatarError ? (
@@ -420,7 +420,7 @@ export const WaitingApproval = () => {
                     width: 48,
                     height: 48,
                     borderRadius: "50%",
-                    background: "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
+                    background: "#187A56",
                     color: "#ffffff",
                     fontWeight: 800,
                     fontSize: "1rem",
@@ -439,7 +439,7 @@ export const WaitingApproval = () => {
                   style={{
                     fontSize: "1rem",
                     fontWeight: 700,
-                    color: "var(--color-text, #0f172a)",
+                    color: "var(--color-text, #1A201C)",
                     whiteSpace: "nowrap",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -450,7 +450,7 @@ export const WaitingApproval = () => {
                 <div
                   style={{
                     fontSize: "0.8rem",
-                    color: "var(--color-text-secondary, #64748b)",
+                    color: "var(--color-text-secondary, #5D6660)",
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
@@ -467,15 +467,15 @@ export const WaitingApproval = () => {
 
             {/* Email */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
-              <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Registration Email:</span>
-              <strong style={{ color: "var(--color-text, #0f172a)", wordBreak: "break-all" }}>
+              <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Registration Email:</span>
+              <strong style={{ color: "var(--color-text, #1A201C)", wordBreak: "break-all" }}>
                 {displayEmail}
               </strong>
             </div>
 
             {/* Account Status */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
-              <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Current Account Status:</span>
+              <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Current Account Status:</span>
               <span
                 style={{
                   padding: "4px 12px",
@@ -511,16 +511,16 @@ export const WaitingApproval = () => {
 
             {/* Reference ID */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
-              <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Reference ID:</span>
-              <span className="mono" style={{ fontWeight: 700, color: "var(--color-primary, #0369a1)" }}>
+              <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Reference ID:</span>
+              <span className="mono" style={{ fontWeight: 700, color: "var(--color-primary, #136647)" }}>
                 {displayId}
               </span>
             </div>
 
             {/* Submitted Date */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
-              <span style={{ color: "var(--color-text-secondary, #64748b)" }}>Submitted On:</span>
-              <span style={{ color: "var(--color-text-secondary, #64748b)" }}>{displayDate}</span>
+              <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Submitted On:</span>
+              <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>{displayDate}</span>
             </div>
           </div>
 
@@ -580,7 +580,7 @@ export const WaitingApproval = () => {
                 disabled={checking}
               >
                 <Icon.RefreshCw size={15} className={checking ? "spin" : ""} />
-                <span>{checking ? "Checking Approval Statusâ€¦" : "Check Approval Status"}</span>
+                <span>{checking ? "Checking Approval Status…" : "Check Approval Status"}</span>
               </Button>
             )}
 
@@ -592,7 +592,7 @@ export const WaitingApproval = () => {
               disabled={signingOut}
             >
               <Icon.LogOut size={15} />
-              <span>{signingOut ? "Signing Outâ€¦" : "Sign Out"}</span>
+              <span>{signingOut ? "Signing Out…" : "Sign Out"}</span>
             </Button>
           </div>
         </div>

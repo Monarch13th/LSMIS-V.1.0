@@ -226,11 +226,13 @@ const Shell = () => {
         <Route path="reports/livestock" element={<Navigate to="/admin/reports" replace />} />
 
         {/* Settings (Integrated Profile, Notifications, Security & Permit Configuration) */}
-        <Route path="settings" element={<AdminSettings initialTab="profile" />} />
-        <Route path="profile" element={<AdminSettings initialTab="profile" />} />
-        <Route path="notifications" element={<AdminSettings initialTab="notifications" />} />
-        <Route path="security" element={<AdminSettings initialTab="security" />} />
-        <Route path="permit-config" element={<AdminSettings initialTab="permit-config" />} />
+        <Route path="settings" element={<AdminSettings key="admin-settings-profile" initialTab="profile" />} />
+        <Route path="profile" element={<AdminSettings key="admin-settings-profile" initialTab="profile" />} />
+        <Route path="notifications" element={<AdminSettings key="admin-settings-notifications" initialTab="notifications" />} />
+        <Route path="security" element={<AdminSettings key="admin-settings-security" initialTab="security" />} />
+        <Route path="permit-config" element={<AdminSettings key="admin-settings-permit-config" initialTab="permit-config" />} />
+        {/* Unknown admin paths fall back to the dashboard instead of the public landing page */}
+        <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
 
       {/* ============ VET ============ */}

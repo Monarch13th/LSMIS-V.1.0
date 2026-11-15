@@ -397,7 +397,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       return (
         clean !== "" &&
         clean !== "-" &&
-        clean !== "â€”" &&
+        clean !== "—" &&
         clean.toLowerCase() !== "unknown" &&
         clean.toLowerCase() !== "unknown owner" &&
         clean.toLowerCase() !== "n/a"
@@ -587,7 +587,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     if (p?.owner_id) return String(p.owner_id).trim();
 
     const ownerName = resolveOwnerName(insp);
-    if (ownerName && ownerName !== "-" && ownerName !== "â€”") {
+    if (ownerName && ownerName !== "-" && ownerName !== "—") {
       const found = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === ownerName.trim().toLowerCase()
       );
@@ -622,7 +622,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       ...baseAnimal,
       tag_number: insp.tag_number || baseAnimal.tag_number,
       species: insp.species || baseAnimal.species || "Unknown",
-      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (baseAnimal.owner_name || "-"),
+      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (baseAnimal.owner_name || "-"),
     };
   };
 
@@ -795,7 +795,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       const grp = groups.get(key);
       grp.items.push(item);
       const species = (item.species || resolveAnimal(item)?.species || "Unknown Species").trim();
-      if (species && species !== "-" && species !== "â€”" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "-" && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
 
@@ -920,7 +920,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || item.livestock_id || "",
             species: animal?.species || item.species || "Unknown",
-            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
             animal,
           };
         });
@@ -982,12 +982,12 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || "",
             species: animal?.species || "Unknown",
-            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
             condemned_parts: attachCondemnation ? payload.condemned_parts : [],
             photos: attachCondemnation ? payload.photos : [],
             ...(attachCondemnation || !payloadIsPartial
               ? {}
-              : { decision: "Approved", raw_decision: "Approved" }),
+              : { decision: "Approved", raw_decision: "Approved", findings: "Fit for human consumption, no gross pathological lesions observed." }),
             animal,
           };
         });
@@ -1075,7 +1075,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     const dateFormattedOrdinal = `${day}${suffix} day of ${month}, ${year}`;
     const resolvedOwner = resolveOwnerName(insp);
     const animal = resolveAnimal(insp);
-    const ownerName = (resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”") ? resolvedOwner : "Authorized Owner";
+    const ownerName = (resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—") ? resolvedOwner : "Authorized Owner";
     const species = insp.species || animal?.species || "Livestock";
 
     const isPartial = insp.decision === "Partial" || insp.decision === "Passed with Partial Condemnation" || insp.raw_decision === "Partial";
@@ -1121,7 +1121,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           }
           .header {
             text-align: center;
-            border-bottom: 1.5px solid #0f172a;
+            border-bottom: 1.5px solid #1A201C;
             padding-bottom: 8px;
             margin-bottom: 12px;
           }
@@ -1130,14 +1130,14 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             letter-spacing: 1.5px;
             text-transform: uppercase;
             margin: 0 0 1px 0;
-            color: #334155;
+            color: #444C47;
           }
           .header .prov {
             font-size: 9pt;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             margin: 0 0 2px 0;
-            color: #334155;
+            color: #444C47;
           }
           .header .city {
             font-size: 18pt;
@@ -1145,7 +1145,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             letter-spacing: 2.5px;
             text-transform: uppercase;
             margin: 3px 0 2px 0;
-            color: #0f172a;
+            color: #1A201C;
           }
           .header .dept {
             font-size: 9.5pt;
@@ -1153,7 +1153,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             letter-spacing: 1px;
             text-transform: uppercase;
             margin: 2px 0 0 0;
-            color: #0284c7;
+            color: #187A56;
           }
           .title-section {
             text-align: center;
@@ -1164,16 +1164,16 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             font-weight: 900;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            border-bottom: 1.5px solid #0f172a;
+            border-bottom: 1.5px solid #1A201C;
             display: inline-block;
             padding-bottom: 3px;
             margin: 0 0 2px 0;
-            color: #0f172a;
+            color: #1A201C;
           }
           .serial {
             font-family: monospace;
             font-size: 9.5pt;
-            color: #475569;
+            color: #5D6660;
             margin-top: 2px;
           }
           .body-text {
@@ -1182,7 +1182,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             font-size: 11pt;
             line-height: 1.7;
             margin: 12px 0;
-            color: #0f172a;
+            color: #1A201C;
           }
           .body-text strong {
             color: #000;
@@ -1201,7 +1201,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             font-size: 10.5pt;
             line-height: 1.6;
             margin: 14px 0 20px 0;
-            color: #334155;
+            color: #444C47;
           }
           .signatures {
             display: flex;
@@ -1214,37 +1214,37 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             width: 230px;
           }
           .sig-line {
-            border-bottom: 1.5px solid #0f172a;
+            border-bottom: 1.5px solid #1A201C;
             font-weight: 800;
             font-size: 11pt;
             padding-bottom: 2px;
             margin-bottom: 2px;
             text-transform: uppercase;
-            color: #0f172a;
+            color: #1A201C;
           }
           .sig-label {
             font-size: 8.5pt;
             font-weight: 800;
             text-transform: uppercase;
-            color: #475569;
+            color: #5D6660;
             letter-spacing: 0.5px;
           }
           .sig-sub {
             font-size: 8pt;
-            color: #94a3b8;
+            color: #9BA49E;
             margin-top: 1px;
           }
         </style>
       </head>
       <body>
         <div class="cert-container">
-          <div class="header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px;">
+          <div class="header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #1A201C; padding-bottom: 8px; margin-bottom: 12px;">
             <img src="/naga_city_seal.png" alt="City of Naga" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
             <div style="text-align: center; flex: 1;">
               <p class="rep" style="margin: 0;">Republic of the Philippines</p>
               <p class="prov" style="margin: 0 0 2px 0;">Province of Cebu</p>
               <div class="city" style="margin: 3px 0 2px 0;">City of Naga</div>
-              <p style="margin: 1px 0 0 0; font-size: 10.5px; color: #64748b;">Tinaan, City of Naga, Cebu, Philippines</p>
+              <p style="margin: 1px 0 0 0; font-size: 10.5px; color: #5D6660;">Tinaan, City of Naga, Cebu, Philippines</p>
             </div>
             <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
           </div>
@@ -1267,7 +1267,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
           </p>
 
-          <div class="stamp-text" style="color: ${isCondemned ? '#dc2626' : isPartial ? '#0284c7' : '#0f172a'};">
+          <div class="stamp-text" style="color: ${isCondemned ? '#dc2626' : isPartial ? '#0284c7' : '#1A201C'};">
             ${isPartial ? 'PASSED (WITH PARTIAL CONDEMNATION) &amp; FIT FOR HUMAN FOOD' : isCondemned ? 'CONDEMNED &amp; UNFIT FOR HUMAN CONSUMPTION' : 'PASSED &amp; FIT FOR HUMAN CONSUMPTION'}
           </div>
 
@@ -1357,18 +1357,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           }}
         >
           {/* Segmented Nav Tabs */}
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              background: "var(--color-bg)",
-              padding: 3,
-              borderRadius: 8,
-              border: "1px solid var(--color-border)",
-              flexShrink: 0,
-            }}
-          >
+          <div className="adm-seg-tabs">
             {[
               {
                 id: "awaiting",
@@ -1388,40 +1377,16 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 <button
                   key={tab.id}
                   type="button"
+                  className={`adm-seg-btn ${isActive ? "active" : ""}`}
                   onClick={() => {
                     setActiveTab(tab.id);
                     setSelectedOwnerKey(null);
                     setPage(1);
                   }}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "5px 10px",
-                    borderRadius: 7,
-                    fontSize: 12,
-                    fontWeight: isActive ? 700 : 600,
-                    border: "none",
-                    cursor: "pointer",
-                    background: isActive ? "var(--color-surface)" : "transparent",
-                    color: isActive ? "var(--color-text)" : "var(--color-text-muted)",
-                    boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
-                    transition: "all 140ms ease",
-                    whiteSpace: "nowrap",
-                  }}
                 >
                   <span style={{ display: "flex", opacity: isActive ? 1 : 0.7 }}>{tab.icon}</span>
                   <span>{tab.label}</span>
-                  <span
-                    style={{
-                      padding: "1px 6px",
-                      borderRadius: 999,
-                      fontSize: 11,
-                      fontWeight: 800,
-                      background: isActive ? "rgba(124, 58, 237, 0.15)" : "var(--color-border)",
-                      color: isActive ? "#7c3aed" : "var(--color-text-muted)",
-                    }}
-                  >
+                  <span className="adm-seg-badge">
                     {tab.count}
                   </span>
                 </button>
@@ -1593,7 +1558,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         transition: "background 140ms ease",
                         borderBottom: "1px solid var(--color-border)",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(139, 92, 246, 0.04)")}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
                       {/* Owner Name */}
@@ -1604,7 +1569,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                              background: "linear-gradient(135deg, #24966D 0%, #136647 100%)",
                               color: "#ffffff",
                               display: "flex",
                               alignItems: "center",
@@ -1630,7 +1595,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                       {/* Date Inspected */}
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#8b5cf6" }} />
+                          <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#24966D" }} />
                           <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "Undated Inspection"}</span>
                         </div>
                       </td>
@@ -1648,7 +1613,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           style={{
                             fontSize: 12.5,
                             fontWeight: 600,
-                            color: "#8b5cf6",
+                            color: "#24966D",
                           }}
                         >
                           {grp.count} carcass{grp.count > 1 ? "es" : ""}
@@ -1760,13 +1725,13 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                     return (
                       <tr
                         key={grp.key}
-                        onClick={() => setSelectedOwnerKey(grp.key)}
+                        onClick={() => handleOpenModal(allTags)}
                         style={{
                           cursor: "pointer",
                           transition: "background 140ms ease",
                           borderBottom: "1px solid var(--color-border)",
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(139, 92, 246, 0.04)")}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
                         {/* Owner Name */}
@@ -1777,7 +1742,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                                 width: 32,
                                 height: 32,
                                 borderRadius: "50%",
-                                background: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+                                background: "linear-gradient(135deg, #24966D 0%, #136647 100%)",
                                 color: "#ffffff",
                                 display: "flex",
                                 alignItems: "center",
@@ -1803,7 +1768,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         {/* Date Slaughtered */}
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#8b5cf6" }} />
+                            <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#24966D" }} />
                             <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "Recent Slaughter"}</span>
                           </div>
                         </td>
@@ -1821,7 +1786,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                             style={{
                               fontSize: 12.5,
                               fontWeight: 600,
-                              color: "#7c3aed",
+                              color: "#187A56",
                             }}
                           >
                             {grp.count} carcass{grp.count > 1 ? "es" : ""}
@@ -1837,7 +1802,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                               gap: 5,
                               fontSize: 12.5,
                               fontWeight: 600,
-                              color: "#7c3aed",
+                              color: "#187A56",
                             }}
                           >
                             <Icon.Activity size={13} /> Slaughtered - Ready for Vet
@@ -1850,8 +1815,8 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                             <button
                               type="button"
                               className="action-btn action-btn-outline"
-                              onClick={() => setSelectedOwnerKey(grp.key)}
-                              title="View Owner Records"
+                              onClick={() => handleOpenModal(allTags)}
+                              title="View & Inspect Batch"
                             >
                               <Icon.Eye size={13} />
                               <span>View</span>
@@ -2019,7 +1984,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                     padding: "7px 14px",
                     fontSize: 12.5,
                     fontWeight: 700,
-                    background: "linear-gradient(135deg, #8b5cf6, #6d28d9)",
+                    background: "linear-gradient(135deg, #24966D, #136647)",
                     color: "#ffffff",
                     display: "inline-flex",
                     alignItems: "center",
@@ -2101,7 +2066,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           </td>
                           <td style={{ padding: "12px 14px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 5, whiteSpace: "nowrap", fontSize: 12 }}>
-                              <span style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(124, 58, 237, 0.18)", color: "#8b5cf6", fontSize: 11, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                              <span style={{ width: 22, height: 22, borderRadius: "50%", background: "rgba(24, 122, 86, 0.18)", color: "#24966D", fontSize: 11, fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
                                 V
                               </span>
                               <span style={{ maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis" }} title={i.inspector_name || i.created_by || "Dr. Dave"}>
@@ -2220,7 +2185,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                             : "-"}
                         </td>
                         <td style={{ padding: "12px 14px" }}>
-                          <span style={{ fontSize: 12, fontWeight: 600, color: "#7c3aed" }}>
+                          <span style={{ fontSize: 12, fontWeight: 600, color: "#187A56" }}>
                             Slaughter Completed - Ready for Vet
                           </span>
                         </td>
@@ -2264,9 +2229,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               alignItems: "center",
               gap: 4,
               padding: "3px 4px",
-              background: "var(--color-bg, #f1f5f9)",
+              background: "var(--color-bg, #EFF2F0)",
               borderRadius: 8,
-              border: "1px solid var(--color-border, #e2e8f0)",
+              border: "1px solid var(--color-border, #E2E6E3)",
               position: "relative",
               zIndex: 10,
               flexShrink: 0,
@@ -2437,7 +2402,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               }}
             >
               <div>
-                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#8b5cf6", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                <div style={{ fontSize: 11.5, fontWeight: 800, color: "#24966D", textTransform: "uppercase", letterSpacing: "0.08em" }}>
                   Republic of the Philippines - City Veterinary Office
                 </div>
                 <div style={{ fontSize: 18, fontWeight: 800, color: "var(--color-text)", marginTop: 2 }}>

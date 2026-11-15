@@ -374,6 +374,14 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       if (fileInputRef.current) fileInputRef.current.value = "";
       setPhotoMsg({ type: "success", text: "Profile picture saved successfully!" });
 
+      try {
+        await logActivity({
+          action: `Updated profile picture for ${profile.full_name || profile.email}`,
+          module: "Settings",
+          field_changed: "avatar_url",
+        });
+      } catch (_) {}
+
       setProfileAlert({
         open: true,
         title: "Profile Picture Updated",
@@ -927,6 +935,15 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       await supabase.auth.updateUser({
         data: { two_factor_enabled: nextVal },
       });
+      try {
+        await logActivity({
+          action: `${nextVal ? "Enabled" : "Disabled"} Two-Factor Authentication for ${profile.full_name || profile.email}`,
+          module: "Security",
+          field_changed: "two_factor_enabled",
+          old_value: String(!nextVal),
+          new_value: String(nextVal),
+        });
+      } catch (_) {}
       showToast(
         nextVal
           ? "Two-Factor Authentication enabled! Verification required on your next login."
@@ -959,13 +976,13 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             style={{
               width: 44,
               height: 44,
-              border: "3.5px solid var(--color-border, #e2e8f0)",
-              borderTopColor: "var(--color-primary, #0284c7)",
+              border: "3.5px solid var(--color-border, #E2E6E3)",
+              borderTopColor: "var(--color-primary, #187A56)",
               borderRadius: "50%",
               animation: "spin 0.8s linear infinite",
             }}
           />
-          <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--color-text-muted, #64748b)" }}>
+          <span style={{ fontSize: 14.5, fontWeight: 700, color: "var(--color-text-muted, #5D6660)" }}>
             Loading Settings...
           </span>
         </div>
@@ -988,7 +1005,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         boxSizing: "border-box",
       }}
     >
-      {/* ── SETTINGS 2-COLUMN LAYOUT WITH FIXED LEFT NAVIGATION & SCROLLABLE CONTENT ── */}
+      {/* -- SETTINGS 2-COLUMN LAYOUT WITH FIXED LEFT NAVIGATION & SCROLLABLE CONTENT -- */}
       <div
         className="settings-layout-grid"
         style={{
@@ -1003,7 +1020,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           overflow: "hidden",
         }}
       >
-        {/* Left Side Navigation — stationary, fixed in viewport, never scrolls */}
+        {/* Left Side Navigation � stationary, fixed in viewport, never scrolls */}
         <div
           className="settings-sidebar-nav"
           onWheel={handleNavWheel}
@@ -1012,7 +1029,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             flexShrink: 0,
             background: "var(--color-surface, #ffffff)",
             borderRadius: 14,
-            border: "1px solid var(--color-border, #e2e8f0)",
+            border: "1px solid var(--color-border, #E2E6E3)",
             padding: "14px 10px",
             display: "flex",
             flexDirection: "column",
@@ -1031,7 +1048,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
               fontWeight: 800,
               textTransform: "uppercase",
               letterSpacing: "0.06em",
-              color: "var(--color-text-muted, #64748b)",
+              color: "var(--color-text-muted, #5D6660)",
             }}
           >
             Settings &amp; Account
@@ -1055,7 +1072,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   width: 7,
                   height: 7,
                   borderRadius: "50%",
-                  background: "#0284c7",
+                  background: "#187A56",
                   marginLeft: "auto",
                 }}
                 title="Editing profile"
@@ -1135,7 +1152,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             boxSizing: "border-box",
           }}
         >
-          {/* ── TAB 1: PROFILE SETTINGS (Matching Owner Profile Design) ── */}
+          {/* -- TAB 1: PROFILE SETTINGS (Matching Owner Profile Design) -- */}
           {activeTab === "profile" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 20 }}>
               {/* Hidden File Input for Profile Picture Upload */}
@@ -1215,7 +1232,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     <div
                       style={{
                         fontSize: 12,
-                        color: "#64748b",
+                        color: "#5D6660",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "flex-start",
@@ -1265,10 +1282,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   <div className="owner-profile-preview-card" style={{ marginTop: 10 }}>
                     <img src={previewPhotoUrl} alt="Preview" className="owner-profile-preview-img" />
                     <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
-                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #0f172a)" }}>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                         New Picture Preview
                       </div>
-                      <div style={{ fontSize: 11, color: "#64748b" }}>
+                      <div style={{ fontSize: 11, color: "#5D6660" }}>
                         Ready to save as your profile photo.
                       </div>
                     </div>
@@ -1327,7 +1344,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
               <div className="owner-profile-card">
                 <div className="owner-profile-section-title">
                   <h2 className="owner-profile-section-heading">
-                    <Icon.User size={15} style={{ color: "#0284c7" }} />
+                    <Icon.User size={15} style={{ color: "#187A56" }} />
                     <span>Personal Information</span>
                   </h2>
                   {!isEditingProfile && (
@@ -1406,7 +1423,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         disabled
                         className="owner-profile-input"
                       />
-                      <span style={{ fontSize: 10.5, color: "#94a3b8" }}>
+                      <span style={{ fontSize: 10.5, color: "#9BA49E" }}>
                         Email address is tied to your login account and cannot be modified directly.
                       </span>
                     </div>
@@ -1447,7 +1464,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       <span
                         style={{
                           fontSize: 11,
-                          color: "var(--color-text-muted, #64748b)",
+                          color: "var(--color-text-muted, #5D6660)",
                           marginTop: 4,
                           display: "block",
                         }}
@@ -1552,25 +1569,25 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   <div className="owner-profile-info-grid">
                     <div className="owner-profile-info-row">
                       <span className="owner-profile-info-label">
-                        <Icon.User size={14} style={{ color: "#0284c7" }} /> Full Name
+                        <Icon.User size={14} style={{ color: "#187A56" }} /> Full Name
                       </span>
                       <span className="owner-profile-info-val">
-                        {profile.full_name || "—"}
+                        {profile.full_name || "�"}
                       </span>
                     </div>
 
                     <div className="owner-profile-info-row">
                       <span className="owner-profile-info-label">
-                        <Icon.Mail size={14} style={{ color: "#0284c7" }} /> Email Address
+                        <Icon.Mail size={14} style={{ color: "#187A56" }} /> Email Address
                       </span>
                       <span className="owner-profile-info-val" style={{ wordBreak: "break-all" }}>
-                        {profile.email || "—"}
+                        {profile.email || "�"}
                       </span>
                     </div>
 
                     <div className="owner-profile-info-row">
                       <span className="owner-profile-info-label">
-                        <Icon.User size={14} style={{ color: "#0284c7" }} /> Portal Username
+                        <Icon.User size={14} style={{ color: "#187A56" }} /> Portal Username
                       </span>
                       <span className="owner-profile-info-val">
                         @{profile.username || "user"}
@@ -1579,7 +1596,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
 
                     <div className="owner-profile-info-row">
                       <span className="owner-profile-info-label">
-                        <Icon.Phone size={14} style={{ color: "#0284c7" }} /> Contact Number
+                        <Icon.Phone size={14} style={{ color: "#187A56" }} /> Contact Number
                       </span>
                       <span className="owner-profile-info-val">
                         {profile.phone || "Not specified"}
@@ -1588,7 +1605,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
 
                     <div className="owner-profile-info-row">
                       <span className="owner-profile-info-label">
-                        <Icon.MapPin size={14} style={{ color: "#0284c7" }} /> Station / Address
+                        <Icon.MapPin size={14} style={{ color: "#187A56" }} /> Station / Address
                       </span>
                       <span className="owner-profile-info-val">
                         {profile.address || "Not specified"}
@@ -1599,7 +1616,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       <>
                         <div className="owner-profile-info-row">
                           <span className="owner-profile-info-label">
-                            <Icon.Award size={14} style={{ color: "#0284c7" }} /> PRC License
+                            <Icon.Award size={14} style={{ color: "#187A56" }} /> PRC License
                           </span>
                           <span className="owner-profile-info-val">
                             {profile.license || "Not specified"}
@@ -1608,7 +1625,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
 
                         <div className="owner-profile-info-row">
                           <span className="owner-profile-info-label">
-                            <Icon.Stethoscope size={14} style={{ color: "#0284c7" }} /> Specialization
+                            <Icon.Stethoscope size={14} style={{ color: "#187A56" }} /> Specialization
                           </span>
                           <span className="owner-profile-info-val">
                             {profile.specialization || "Not specified"}
@@ -1626,7 +1643,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
               <div className="owner-profile-card">
                 <div className="owner-profile-section-title">
                   <h2 className="owner-profile-section-heading">
-                    <Icon.ShieldCheck size={15} style={{ color: "#0284c7" }} />
+                    <Icon.ShieldCheck size={15} style={{ color: "#187A56" }} />
                     <span>Account Information</span>
                   </h2>
                 </div>
@@ -1634,10 +1651,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 <div className="owner-profile-info-grid">
                   <div className="owner-profile-info-row">
                     <span className="owner-profile-info-label">
-                      <Icon.Calendar size={14} style={{ color: "#0284c7" }} /> Member Since
+                      <Icon.Calendar size={14} style={{ color: "#187A56" }} /> Member Since
                     </span>
                     <span className="owner-profile-info-val">
-                      {userCreatedAt ? formatDate(userCreatedAt) : "—"}
+                      {userCreatedAt ? formatDate(userCreatedAt) : "�"}
                     </span>
                   </div>
 
@@ -1652,7 +1669,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
 
                   <div className="owner-profile-info-row">
                     <span className="owner-profile-info-label">
-                      <Icon.Shield size={14} style={{ color: "#0284c7" }} /> Assigned Role
+                      <Icon.Shield size={14} style={{ color: "#187A56" }} /> Assigned Role
                     </span>
                     <span className="owner-profile-info-val">
                       {roleLabel}
@@ -1661,16 +1678,16 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
 
                   <div className="owner-profile-info-row">
                     <span className="owner-profile-info-label">
-                      <Icon.Mail size={14} style={{ color: "#0284c7" }} /> Registered Email
+                      <Icon.Mail size={14} style={{ color: "#187A56" }} /> Registered Email
                     </span>
                     <span className="owner-profile-info-val" style={{ wordBreak: "break-all" }}>
-                      {profile.email || "—"}
+                      {profile.email || "�"}
                     </span>
                   </div>
 
                   <div className="owner-profile-info-row">
                     <span className="owner-profile-info-label">
-                      <Icon.Tag size={14} style={{ color: "#0ea5e9" }} /> Personnel ID
+                      <Icon.Tag size={14} style={{ color: "#24966D" }} /> Personnel ID
                     </span>
                     <button
                       type="button"
@@ -1679,13 +1696,13 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       style={{ margin: 0 }}
                       title="Click to copy official Personnel ID"
                     >
-                      <span>{personnelId || "—"}</span>
+                      <span>{personnelId || "�"}</span>
                       {copiedPersonnelId ? (
                         <span style={{ color: "#10b981", display: "flex", alignItems: "center", gap: 2 }}>
                           <Icon.Check size={12} /> Copied
                         </span>
                       ) : (
-                        <Icon.Copy size={11} style={{ color: "#94a3b8" }} />
+                        <Icon.Copy size={11} style={{ color: "#9BA49E" }} />
                       )}
                     </button>
                   </div>
@@ -1694,7 +1711,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             </div>
           )}
 
-      {/* ── TAB 2: NOTIFICATION PREFERENCES ── */}
+      {/* -- TAB 2: NOTIFICATION PREFERENCES -- */}
       {activeTab === "notifications" && (
         <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -1705,16 +1722,16 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 alignItems: "center",
                 justifyContent: "space-between",
                 paddingBottom: 18,
-                borderBottom: "1px solid var(--color-border, #e2e8f0)",
+                borderBottom: "1px solid var(--color-border, #E2E6E3)",
                 flexWrap: "wrap",
                 gap: 12,
               }}
             >
               <div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)" }}>
+                <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)" }}>
                   Notification Delivery Preferences
                 </h2>
-                <p style={{ fontSize: 14, color: "var(--color-text-muted, #64748b)", margin: "4px 0 0" }}>
+                <p style={{ fontSize: 14, color: "var(--color-text-muted, #5D6660)", margin: "4px 0 0" }}>
                   Select the alerts delivered to your top bell icon and in-app feeds. Preferences are persisted per-user to Supabase.
                 </p>
               </div>
@@ -1728,9 +1745,9 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     borderRadius: 8,
                     fontSize: 12.5,
                     fontWeight: 700,
-                    background: "var(--color-bg, #f1f5f9)",
-                    color: "var(--color-primary, #0284c7)",
-                    border: "1px solid var(--color-border, #cbd5e1)",
+                    background: "var(--color-bg, #EFF2F0)",
+                    color: "var(--color-primary, #187A56)",
+                    border: "1px solid var(--color-border, #C2CAC4)",
                     cursor: "pointer",
                   }}
                 >
@@ -1744,9 +1761,9 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     borderRadius: 8,
                     fontSize: 12.5,
                     fontWeight: 700,
-                    background: "var(--color-bg, #f1f5f9)",
-                    color: "var(--color-text-muted, #64748b)",
-                    border: "1px solid var(--color-border, #cbd5e1)",
+                    background: "var(--color-bg, #EFF2F0)",
+                    color: "var(--color-text-muted, #5D6660)",
+                    border: "1px solid var(--color-border, #C2CAC4)",
                     cursor: "pointer",
                   }}
                 >
@@ -1761,16 +1778,16 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 {
                   key: "account_notifications",
                   icon: <Icon.Shield size={19} />,
-                  color: "#8b5cf6",
-                  bg: "rgba(139, 92, 246, 0.12)",
+                  color: "#24966D",
+                  bg: "rgba(24, 122, 86, 0.12)",
                   title: "Account Security & Session Alerts",
                   desc: "Logins, password changes, two-factor OTP verification alerts, and concurrent session events.",
                 },
                 {
                   key: "registration_updates",
                   icon: <Icon.Cow size={19} />,
-                  color: "#0284c7",
-                  bg: "rgba(2, 132, 199, 0.12)",
+                  color: "#187A56",
+                  bg: "rgba(24, 122, 86, 0.12)",
                   title: "Registration & Receiving Updates",
                   desc: "New livestock owner registrations, corral intake at facility gates, and ear tagging records.",
                 },
@@ -1793,15 +1810,15 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 {
                   key: "inspection_updates",
                   icon: <Icon.Stethoscope size={19} />,
-                  color: "#0ea5e9",
-                  bg: "rgba(14, 165, 233, 0.12)",
+                  color: "#24966D",
+                  bg: "rgba(24, 122, 86, 0.12)",
                   title: "Clinical Inspection & Condemnation Alerts",
                   desc: "Ante-mortem clinical examinations, post-mortem pathology results, condemnation notices, and carcass branding.",
                 },
                 {
                   key: "system_announcements",
                   icon: <Icon.Bell size={19} />,
-                  color: "#64748b",
+                  color: "#5D6660",
                   bg: "rgba(100, 116, 139, 0.12)",
                   title: "System Announcements & Maintenance",
                   desc: "Official municipal abattoir operating hours, emergency bulletins, and platform updates.",
@@ -1818,17 +1835,17 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       justifyContent: "space-between",
                       padding: "18px 22px",
                       borderRadius: 14,
-                      border: `1.5px solid ${isChecked ? "var(--color-border, #e2e8f0)" : "var(--color-border, #f1f5f9)"}`,
-                      background: isChecked ? "var(--color-bg, #f8fafc)" : "var(--color-surface, #ffffff)",
+                      border: `1.5px solid ${isChecked ? "var(--color-border, #E2E6E3)" : "var(--color-border, #EFF2F0)"}`,
+                      background: isChecked ? "var(--color-bg, #F9FAF8)" : "var(--color-surface, #ffffff)",
                       cursor: "pointer",
                       transition: "all 0.15s ease",
                       gap: 16,
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "var(--color-primary, #0284c7)";
+                      e.currentTarget.style.borderColor = "var(--color-primary, #187A56)";
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = isChecked ? "var(--color-border, #e2e8f0)" : "var(--color-border, #f1f5f9)";
+                      e.currentTarget.style.borderColor = isChecked ? "var(--color-border, #E2E6E3)" : "var(--color-border, #EFF2F0)";
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
@@ -1850,10 +1867,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       </div>
 
                       <div>
-                        <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
+                        <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
                           {item.title}
                         </div>
-                        <div style={{ fontSize: 13, color: "var(--color-text-muted, #64748b)", marginTop: 2, lineHeight: 1.4 }}>
+                        <div style={{ fontSize: 13, color: "var(--color-text-muted, #5D6660)", marginTop: 2, lineHeight: 1.4 }}>
                           {item.desc}
                         </div>
                       </div>
@@ -1868,7 +1885,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         width: 52,
                         height: 28,
                         borderRadius: 28,
-                        background: isChecked ? "#10b981" : "#cbd5e1",
+                        background: isChecked ? "#10b981" : "#C2CAC4",
                         transition: "background 0.2s ease",
                         flexShrink: 0,
                       }}
@@ -1899,7 +1916,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 alignItems: "center",
                 justifyContent: "space-between",
                 paddingTop: 18,
-                borderTop: "1px solid var(--color-border, #e2e8f0)",
+                borderTop: "1px solid var(--color-border, #E2E6E3)",
                 flexWrap: "wrap",
                 gap: 12,
               }}
@@ -1910,7 +1927,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     <Icon.AlertTriangle size={15} /> You have unsaved notification preferences
                   </span>
                 ) : (
-                  <span style={{ fontSize: 13, color: "var(--color-text-muted, #94a3b8)" }}>
+                  <span style={{ fontSize: 13, color: "var(--color-text-muted, #9BA49E)" }}>
                     Notification settings automatically apply to alerts sent to your profile.
                   </span>
                 )}
@@ -1939,7 +1956,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         </Card>
       )}
 
-      {/* ── TAB 3: ACCOUNT SECURITY ── */}
+      {/* -- TAB 3: ACCOUNT SECURITY -- */}
       {activeTab === "security" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
           {/* Card 1: Change Password */}
@@ -1951,7 +1968,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  borderBottom: "1px solid var(--color-border, #e2e8f0)",
+                  borderBottom: "1px solid var(--color-border, #E2E6E3)",
                   paddingBottom: 18,
                   flexWrap: "wrap",
                   gap: 12,
@@ -1963,8 +1980,8 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       width: 44,
                       height: 44,
                       borderRadius: 12,
-                      background: "rgba(2, 132, 199, 0.12)",
-                      color: "#0284c7",
+                      background: "rgba(24, 122, 86, 0.12)",
+                      color: "#187A56",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -1974,10 +1991,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     <Icon.Key size={22} />
                   </div>
                   <div>
-                    <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #0f172a)", letterSpacing: "-0.01em" }}>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
                       Change Account Password
                     </h2>
-                    <p style={{ fontSize: 13.5, color: "var(--color-text-muted, #64748b)", margin: "3px 0 0" }}>
+                    <p style={{ fontSize: 13.5, color: "var(--color-text-muted, #5D6660)", margin: "3px 0 0" }}>
                       Ensure your account uses a secure password complying with municipal abattoir security policies.
                     </p>
                   </div>
@@ -2018,7 +2035,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     <div>
                       <label
                         htmlFor="current-password-input"
-                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #0f172a)", marginBottom: 7 }}
+                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
                       >
                         Current Password <span style={{ color: "#ef4444" }}>*</span>
                       </label>
@@ -2029,7 +2046,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             left: 14,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            color: passwordErrorField === "current" ? "#ef4444" : "var(--color-text-muted, #94a3b8)",
+                            color: passwordErrorField === "current" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
                             pointerEvents: "none",
                             display: "flex",
                           }}
@@ -2053,25 +2070,25 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             borderRadius: 10,
                             border: passwordErrorField === "current"
                               ? "2px solid #ef4444"
-                              : "1.5px solid var(--color-border, #cbd5e1)",
+                              : "1.5px solid var(--color-border, #C2CAC4)",
                             boxShadow: passwordErrorField === "current"
                               ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
                               : "none",
-                            background: "var(--color-bg, #f8fafc)",
-                            color: "var(--color-text, #0f172a)",
+                            background: "var(--color-bg, #F9FAF8)",
+                            color: "var(--color-text, #1A201C)",
                             fontSize: 14.5,
                             outline: "none",
                             transition: "all 0.15s ease",
                           }}
                           onFocus={(e) => {
                             if (passwordErrorField !== "current") {
-                              e.target.style.borderColor = "var(--color-primary, #0284c7)";
-                              e.target.style.boxShadow = "0 0 0 3.5px rgba(2, 132, 199, 0.15)";
+                              e.target.style.borderColor = "var(--color-primary, #187A56)";
+                              e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
                             }
                           }}
                           onBlur={(e) => {
                             if (passwordErrorField !== "current") {
-                              e.target.style.borderColor = "var(--color-border, #cbd5e1)";
+                              e.target.style.borderColor = "var(--color-border, #C2CAC4)";
                               e.target.style.boxShadow = "none";
                             }
                           }}
@@ -2086,7 +2103,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             transform: "translateY(-50%)",
                             background: "none",
                             border: "none",
-                            color: "var(--color-text-muted, #64748b)",
+                            color: "var(--color-text-muted, #5D6660)",
                             cursor: "pointer",
                             padding: 4,
                             display: "flex",
@@ -2096,7 +2113,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           {showCurrentPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
                         </button>
                       </div>
-                      <span style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)", marginTop: 4, display: "block" }}>
+                      <span style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 4, display: "block" }}>
                         Required to verify account ownership before saving changes.
                       </span>
                     </div>
@@ -2105,7 +2122,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     <div>
                       <label
                         htmlFor="new-password-input"
-                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #0f172a)", marginBottom: 7 }}
+                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
                       >
                         New Password <span style={{ color: "#ef4444" }}>*</span>
                       </label>
@@ -2116,7 +2133,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             left: 14,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            color: passwordErrorField === "next" ? "#ef4444" : "var(--color-text-muted, #94a3b8)",
+                            color: passwordErrorField === "next" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
                             pointerEvents: "none",
                             display: "flex",
                           }}
@@ -2140,25 +2157,25 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             borderRadius: 10,
                             border: passwordErrorField === "next"
                               ? "2px solid #ef4444"
-                              : "1.5px solid var(--color-border, #cbd5e1)",
+                              : "1.5px solid var(--color-border, #C2CAC4)",
                             boxShadow: passwordErrorField === "next"
                               ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
                               : "none",
-                            background: "var(--color-bg, #f8fafc)",
-                            color: "var(--color-text, #0f172a)",
+                            background: "var(--color-bg, #F9FAF8)",
+                            color: "var(--color-text, #1A201C)",
                             fontSize: 14.5,
                             outline: "none",
                             transition: "all 0.15s ease",
                           }}
                           onFocus={(e) => {
                             if (passwordErrorField !== "next") {
-                              e.target.style.borderColor = "var(--color-primary, #0284c7)";
-                              e.target.style.boxShadow = "0 0 0 3.5px rgba(2, 132, 199, 0.15)";
+                              e.target.style.borderColor = "var(--color-primary, #187A56)";
+                              e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
                             }
                           }}
                           onBlur={(e) => {
                             if (passwordErrorField !== "next") {
-                              e.target.style.borderColor = "var(--color-border, #cbd5e1)";
+                              e.target.style.borderColor = "var(--color-border, #C2CAC4)";
                               e.target.style.boxShadow = "none";
                             }
                           }}
@@ -2173,7 +2190,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             transform: "translateY(-50%)",
                             background: "none",
                             border: "none",
-                            color: "var(--color-text-muted, #64748b)",
+                            color: "var(--color-text-muted, #5D6660)",
                             cursor: "pointer",
                             padding: 4,
                             display: "flex",
@@ -2189,7 +2206,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     <div>
                       <label
                         htmlFor="confirm-password-input"
-                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #0f172a)", marginBottom: 7 }}
+                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
                       >
                         Confirm New Password <span style={{ color: "#ef4444" }}>*</span>
                       </label>
@@ -2200,7 +2217,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             left: 14,
                             top: "50%",
                             transform: "translateY(-50%)",
-                            color: passwordErrorField === "confirm" ? "#ef4444" : "var(--color-text-muted, #94a3b8)",
+                            color: passwordErrorField === "confirm" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
                             pointerEvents: "none",
                             display: "flex",
                           }}
@@ -2229,26 +2246,26 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                                     ? pw.next === pw.confirm
                                       ? "#10b981"
                                       : "#ef4444"
-                                    : "var(--color-border, #cbd5e1)"
+                                    : "var(--color-border, #C2CAC4)"
                                 }`,
                             boxShadow: passwordErrorField === "confirm"
                               ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
                               : "none",
-                            background: "var(--color-bg, #f8fafc)",
-                            color: "var(--color-text, #0f172a)",
+                            background: "var(--color-bg, #F9FAF8)",
+                            color: "var(--color-text, #1A201C)",
                             fontSize: 14.5,
                             outline: "none",
                             transition: "all 0.15s ease",
                           }}
                           onFocus={(e) => {
                             if (passwordErrorField !== "confirm" && !pw.confirm) {
-                              e.target.style.borderColor = "var(--color-primary, #0284c7)";
-                              e.target.style.boxShadow = "0 0 0 3.5px rgba(2, 132, 199, 0.15)";
+                              e.target.style.borderColor = "var(--color-primary, #187A56)";
+                              e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
                             }
                           }}
                           onBlur={(e) => {
                             if (passwordErrorField !== "confirm" && !pw.confirm) {
-                              e.target.style.borderColor = "var(--color-border, #cbd5e1)";
+                              e.target.style.borderColor = "var(--color-border, #C2CAC4)";
                               e.target.style.boxShadow = "none";
                             }
                           }}
@@ -2263,7 +2280,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             transform: "translateY(-50%)",
                             background: "none",
                             border: "none",
-                            color: "var(--color-text-muted, #64748b)",
+                            color: "var(--color-text-muted, #5D6660)",
                             cursor: "pointer",
                             padding: 4,
                             display: "flex",
@@ -2303,7 +2320,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                                 background: "rgba(239, 68, 68, 0.1)",
                               }}
                             >
-                              ⚠ Passwords do not match
+                              ? Passwords do not match
                             </span>
                           )}
                         </div>
@@ -2323,14 +2340,14 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           borderRadius: 10,
                           border: "none",
                           background: isChangingPw
-                            ? "var(--color-border, #cbd5e1)"
-                            : "linear-gradient(135deg, #0284c7 0%, #0369a1 100%)",
-                          color: isChangingPw ? "var(--color-text-muted, #94a3b8)" : "#ffffff",
+                            ? "var(--color-border, #C2CAC4)"
+                            : "#187A56",
+                          color: isChangingPw ? "var(--color-text-muted, #9BA49E)" : "#ffffff",
                           cursor: isChangingPw ? "not-allowed" : "pointer",
                           display: "inline-flex",
                           alignItems: "center",
                           gap: 8,
-                          boxShadow: isChangingPw ? "none" : "0 4px 14px rgba(2, 132, 199, 0.3)",
+                          boxShadow: isChangingPw ? "none" : "0 4px 14px rgba(24, 122, 86, 0.3)",
                           transition: "all 0.2s ease",
                         }}
                       >
@@ -2373,9 +2390,9 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             fontSize: 13.5,
                             fontWeight: 600,
                             borderRadius: 10,
-                            border: "1.5px solid var(--color-border, #cbd5e1)",
+                            border: "1.5px solid var(--color-border, #C2CAC4)",
                             background: "transparent",
-                            color: "var(--color-text-muted, #64748b)",
+                            color: "var(--color-text-muted, #5D6660)",
                             cursor: isChangingPw ? "not-allowed" : "pointer",
                             transition: "all 0.15s ease",
                           }}
@@ -2389,9 +2406,9 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   {/* Right Column: Real-time Password Security Advisor */}
                   <div
                     style={{
-                      background: "var(--color-bg, #f8fafc)",
+                      background: "var(--color-bg, #F9FAF8)",
                       borderRadius: 12,
-                      border: "1px solid var(--color-border, #e2e8f0)",
+                      border: "1px solid var(--color-border, #E2E6E3)",
                       padding: "18px 20px",
                       display: "flex",
                       flexDirection: "column",
@@ -2404,8 +2421,8 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           width: 32,
                           height: 32,
                           borderRadius: 8,
-                          background: "rgba(2, 132, 199, 0.12)",
-                          color: "#0284c7",
+                          background: "rgba(24, 122, 86, 0.12)",
+                          color: "#187A56",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
@@ -2414,10 +2431,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         <Icon.Shield size={16} />
                       </div>
                       <div>
-                        <div style={{ fontSize: 14, fontWeight: 750, color: "var(--color-text, #0f172a)" }}>
+                        <div style={{ fontSize: 14, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
                           Security Requirements
                         </div>
-                        <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #64748b)" }}>
+                        <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)" }}>
                           National &amp; abattoir compliance standards
                         </div>
                       </div>
@@ -2430,14 +2447,14 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         marginTop: 4,
                         padding: "10px 12px",
                         borderRadius: 8,
-                        background: "rgba(2, 132, 199, 0.06)",
-                        border: "1px solid rgba(2, 132, 199, 0.15)",
+                        background: "rgba(24, 122, 86, 0.06)",
+                        border: "1px solid rgba(24, 122, 86, 0.15)",
                         fontSize: 12,
-                        color: "var(--color-text-muted, #64748b)",
+                        color: "var(--color-text-muted, #5D6660)",
                         lineHeight: 1.45,
                       }}
                     >
-                      <strong style={{ color: "#0284c7" }}>Security Tip:</strong> Use at least 8 characters with a mix of uppercase, lowercase, numbers, and special symbols to ensure maximum security.
+                      <strong style={{ color: "#187A56" }}>Security Tip:</strong> Use at least 8 characters with a mix of uppercase, lowercase, numbers, and special symbols to ensure maximum security.
                     </div>
                   </div>
                 </div>
@@ -2455,7 +2472,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         </div>
       )}
 
-          {/* ── TAB 4: MEAT PERMIT CONFIGURATION (ADMIN ONLY) ── */}
+          {/* -- TAB 4: MEAT PERMIT CONFIGURATION (ADMIN ONLY) -- */}
           {activeTab === "permit-config" && role === "admin" && (
             <PermitConfig />
           )}
