@@ -2803,9 +2803,7 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Google sign-in is website-only: hidden inside the installed Android app */}
-                  {!isNativeAndroidApp && (
-                  <>
+                  {/* Google Sign-In with OAuth */}
                   <div className="login-oauth-divider" role="separator" aria-label="Google Sign-In">
                     <span>or continue with</span>
                   </div>
@@ -2829,8 +2827,6 @@ export const Login = ({ embedded = false, initialView }) => {
                       </>
                     )}
                   </button>
-                  </>
-                  )}
 
                   {!embedded && !isInstalled && (
                     <Link to="/" className="btn-back-to-landing btn-back-to-home">
