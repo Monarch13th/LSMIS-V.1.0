@@ -108,7 +108,7 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
             Live
           </span>
           <Button size="sm" variant="ghost" onClick={() => navigate("/admin/audit-logs")}>
-            Audit Logs ?
+            Audit Logs &rarr;
           </Button>
         </div>
       }

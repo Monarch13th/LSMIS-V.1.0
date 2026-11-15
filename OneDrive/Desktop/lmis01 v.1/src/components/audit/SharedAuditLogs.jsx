@@ -580,10 +580,10 @@ export const SharedAuditLogs = ({ roleScope }) => {
                     return (
                       <tr
                         key={log.id}
-                        onClick={() => setSelectedLogId(log.id)}
+                        
                         style={{
                           transition: "background 120ms ease",
-                          cursor: "pointer",
+                          cursor: "default",
                         }}
                         onMouseEnter={(e) => {
                           e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
@@ -591,7 +591,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                         onMouseLeave={(e) => {
                           e.currentTarget.style.background = "transparent";
                         }}
-                        title="Click to inspect full audit record details"
+                        
                       >
                         {/* 1. User: Full name of the person who performed the action */}
                         <td style={{ padding: "13px 16px", whiteSpace: "nowrap", borderBottom: "1px solid var(--color-border)" }}>
