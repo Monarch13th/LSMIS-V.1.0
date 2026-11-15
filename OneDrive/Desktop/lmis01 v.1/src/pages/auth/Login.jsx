@@ -2202,7 +2202,16 @@ export const Login = ({ embedded = false, initialView }) => {
             <div className="login-brand-header">
               {isInstalled ? (
                 <div className="login-brand-header-link" style={{ cursor: "default" }}>
-                  <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
+                  <div className="logo">
+                    <img
+                      src="/logo.png?v=lsmis20261116b"
+                      onError={(e) => {
+                        if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+                      }}
+                      alt="LSMIS Official Logo"
+                      decoding="sync"
+                    />
+                  </div>
                   <div>
                     <h1>LSMIS</h1>
                     <p>Republic of the Philippines</p>
@@ -2210,7 +2219,16 @@ export const Login = ({ embedded = false, initialView }) => {
                 </div>
               ) : (
                 <Link to="/" className="login-brand-header-link" title="Return to Landing Page">
-                  <div className="logo"><img src={logoImg} alt="LSMIS Official Logo" /></div>
+                  <div className="logo">
+                    <img
+                      src="/logo.png?v=lsmis20261116b"
+                      onError={(e) => {
+                        if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+                      }}
+                      alt="LSMIS Official Logo"
+                      decoding="sync"
+                    />
+                  </div>
                   <div>
                     <h1>LSMIS</h1>
                     <p>Republic of the Philippines</p>

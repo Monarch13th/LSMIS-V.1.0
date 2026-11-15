@@ -109,17 +109,27 @@ const shouldRunStartupSequence = () => {
 
 const StartupSequenceOverlay = ({ authLoading, authInitialized }) => {
   const [stage, setStage] = useState(() => (shouldRunStartupSequence() ? "white" : "done"));
+  const [logoReady, setLogoReady] = useState(false);
   const [minGreenElapsed, setMinGreenElapsed] = useState(false);
   const [showSlowHint, setShowSlowHint] = useState(false);
 
   // Transition Step 1 (White Logo Screen) -> Step 2 (Animated Green Splash Screen)
+  // Wait until the official logo has finished decoding (or max 550ms fallback) so Step 1 is always complete and crisp.
   useEffect(() => {
     if (stage !== "white") return;
+    const fallbackTimer = setTimeout(() => {
+      setLogoReady(true);
+    }, 450);
+    return () => clearTimeout(fallbackTimer);
+  }, [stage]);
+
+  useEffect(() => {
+    if (stage !== "white" || !logoReady) return;
     const toGreenTimer = setTimeout(() => {
       setStage("green");
-    }, 280);
+    }, 260);
     return () => clearTimeout(toGreenTimer);
-  }, [stage]);
+  }, [stage, logoReady]);
 
   // Step 2 minimum smooth animation window + slow network indicator + max safety cap
   useEffect(() => {
@@ -165,8 +175,15 @@ const StartupSequenceOverlay = ({ authLoading, authInitialized }) => {
       <div className="lsmis-startup-white-screen" role="status" aria-live="polite" aria-label="Opening LSMIS">
         <img
           src={STARTUP_LOGO_SRC}
+          ref={(el) => {
+            if (el && el.complete && el.naturalWidth > 0 && !logoReady) {
+              setLogoReady(true);
+            }
+          }}
+          onLoad={() => setLogoReady(true)}
           onError={(e) => {
             if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+            setLogoReady(true);
           }}
           alt="LSMIS Official Anniversary Logo"
           className="lsmis-startup-white-logo"

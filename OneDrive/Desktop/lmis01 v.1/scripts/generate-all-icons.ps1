@@ -182,11 +182,11 @@ foreach ($splash in $splashes) {
     Write-Host "Generated $($splash.Dir)/splash.png ($w x $h, centered logo $logoSize x $logoSize on white)"
 }
 
-# 4. Optimize web logo.png and src/assets/logo.png to 512x512 (preserving transparent outer corners & full quality, 4x faster load)
-$bmpLogoOpt = [System.Drawing.Bitmap]::new(512, 512, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+# 4. Optimize web logo.png and src/assets/logo.png to 256x256 (preserving transparent outer corners & full quality, 14x smaller for instant first-frame load)
+$bmpLogoOpt = [System.Drawing.Bitmap]::new(256, 256, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $gLogoOpt = Get-HQGraphics $bmpLogoOpt
 $gLogoOpt.Clear([System.Drawing.Color]::Transparent)
-$gLogoOpt.DrawImage($sourceImg, 0, 0, 512, 512)
+$gLogoOpt.DrawImage($sourceImg, 0, 0, 256, 256)
 $gLogoOpt.Dispose()
 
 $sourceImg.Dispose()
@@ -194,5 +194,5 @@ $sourceImg.Dispose()
 $bmpLogoOpt.Save((Join-Path $projectRoot "public\logo.png"), [System.Drawing.Imaging.ImageFormat]::Png)
 $bmpLogoOpt.Save((Join-Path $projectRoot "src\assets\logo.png"), [System.Drawing.Imaging.ImageFormat]::Png)
 $bmpLogoOpt.Dispose()
-Write-Host "Optimized public/logo.png and src/assets/logo.png (512x512)"
+Write-Host "Optimized public/logo.png and src/assets/logo.png (256x256)"
 Write-Host "All icons and splash screens successfully generated!"
