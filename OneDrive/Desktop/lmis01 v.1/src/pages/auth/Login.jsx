@@ -83,7 +83,7 @@ export const Login = ({ embedded = false, initialView }) => {
         if (window.location.pathname === "/login") {
           window.history.replaceState(null, "", "/login");
         }
-      } catch (_) {}
+      } catch (_) { }
     }
   }, [isInstalled]);
   const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("lsmis_remember_me") === "true");
@@ -414,7 +414,7 @@ export const Login = ({ embedded = false, initialView }) => {
       try {
         const { data } = await supabase.auth.getSession();
         if (data?.session?.user || oauthHandledRef.current) return;
-      } catch (_) {}
+      } catch (_) { }
 
       // Ignore if OAuth was just initiated within the last 1.5s (redirect still starting)
       if (Date.now() - Number(inFlightTs) < 1500) return;
@@ -559,7 +559,7 @@ export const Login = ({ embedded = false, initialView }) => {
         try {
           const secRes = await authSecurityService.registerActiveSession(cleanEmail, activeSessionId, clientSessionId);
           if (secRes?.is_active_elsewhere) {
-            try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+            try { await supabase.auth.signOut({ scope: "local" }); } catch (_) { }
             setGoogleLoginLoading(false);
             inFlightOAuthRef.current = false;
             ownerAuthService.cleanGoogleOAuthState();
@@ -577,7 +577,7 @@ export const Login = ({ embedded = false, initialView }) => {
         authSecurityService.setClientSessionId(activeSessionId);
         try {
           sessionStorage.setItem("lsmis_active_session_id", activeSessionId);
-        } catch (_) {}
+        } catch (_) { }
 
         const loginTimeIso = activeSessionUpdatedAt || new Date().toISOString();
         const session = {
@@ -674,12 +674,12 @@ export const Login = ({ embedded = false, initialView }) => {
         if (isCancelled) return;
         setGoogleLoginLoading(false);
         inFlightOAuthRef.current = false;
-        try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+        try { await supabase.auth.signOut({ scope: "local" }); } catch (_) { }
 
         // Make sure any temporary or mismatched session in authStore/sessionStorage is purged
         try {
           sessionStorage.removeItem(STORAGE_KEYS.SESSION);
-        } catch (_) {}
+        } catch (_) { }
         authStore.set({ session: null, loading: false, isInitialized: true });
 
         setView("signin");
@@ -750,7 +750,7 @@ export const Login = ({ embedded = false, initialView }) => {
             await finalizeGoogleOAuth(data.session);
             return;
           }
-        } catch (_) {}
+        } catch (_) { }
         if (!oauthHandledRef.current) {
           ownerAuthService.cleanGoogleOAuthState();
           inFlightOAuthRef.current = false;
@@ -848,7 +848,7 @@ export const Login = ({ embedded = false, initialView }) => {
                 name = dbUser.full_name || name;
                 userId = dbUser.id || userId;
               }
-            } catch (_) {}
+            } catch (_) { }
 
             const activeSessionId = authSecurityService.getClientSessionId() || uuid();
             const session = {
@@ -1184,7 +1184,7 @@ export const Login = ({ embedded = false, initialView }) => {
       setRegisteredOwnerInfo(pendingInfo);
       try {
         sessionStorage.setItem("lsmis_pending_owner", JSON.stringify(pendingInfo));
-      } catch (_) {}
+      } catch (_) { }
 
       // Clear all registration input fields and validations immediately so that stale form data does not persist
       setRegName("");
@@ -1307,7 +1307,7 @@ export const Login = ({ embedded = false, initialView }) => {
       const plannedSessionId = clientSessionId || uuid();
       try {
         sessionStorage.setItem("lsmis_pending_session_id", plannedSessionId);
-      } catch (_) {}
+      } catch (_) { }
 
       // 3. Check Owner Account Status if identifier is an owner (fetched in parallel above)
       let ownerAcct = ownerAcctInitial;
@@ -1565,8 +1565,8 @@ export const Login = ({ embedded = false, initialView }) => {
       try {
         const secRes = await authSecurityService.registerActiveSession(cleanEmail, activeSessionId, clientSessionId);
         if (secRes?.is_active_elsewhere) {
-          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
-          try { sessionStorage.removeItem("lsmis_pending_session_id"); } catch (_) {}
+          try { await supabase.auth.signOut({ scope: "local" }); } catch (_) { }
+          try { sessionStorage.removeItem("lsmis_pending_session_id"); } catch (_) { }
           setLoading(false);
           setError(secRes?.message || "This account is currently being used on another device. Please try again later.");
           triggerShake();
@@ -1586,7 +1586,7 @@ export const Login = ({ embedded = false, initialView }) => {
       try {
         sessionStorage.removeItem("lsmis_pending_session_id");
         sessionStorage.setItem("lsmis_active_session_id", activeSessionId);
-      } catch (_) {}
+      } catch (_) { }
 
       const loginTimeIso = activeSessionUpdatedAt || new Date().toISOString();
       const effectiveName = matchedOwner?.name || dbUser?.full_name || name;
@@ -1823,7 +1823,7 @@ export const Login = ({ embedded = false, initialView }) => {
   const handleCancel2FA = async () => {
     try {
       await supabase.auth.signOut({ scope: "local" });
-    } catch (_) {}
+    } catch (_) { }
     sessionStorage.removeItem(STORAGE_KEYS.SESSION);
     authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: false });
     setPending2FA(null);
@@ -1881,7 +1881,7 @@ export const Login = ({ embedded = false, initialView }) => {
       if (pending2FA.factorId) {
         try {
           await supabase.auth.mfa.unenroll({ factorId: pending2FA.factorId });
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // Update user metadata
@@ -1892,7 +1892,7 @@ export const Login = ({ embedded = false, initialView }) => {
             recovery_code_hashes: updatedHashes,
           },
         });
-      } catch (_) {}
+      } catch (_) { }
 
       // Clean local storage flag
       const cleanEmail = pending2FA.cleanEmail;
@@ -1917,7 +1917,7 @@ export const Login = ({ embedded = false, initialView }) => {
           new_value: "2FA Reset via Recovery Code",
           field_changed: "mfa_recovery",
         }).then();
-      } catch (_) {}
+      } catch (_) { }
 
       setShowRecoveryModal(false);
       setRecoveryCodeInput("");

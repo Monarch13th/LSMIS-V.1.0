@@ -22,25 +22,29 @@ function Get-HQGraphics($bitmap) {
 }
 
 # 1. PWA & Web Assets
-# icon-192.png (transparent)
+# icon-192.png (clean white background, centered logo with safe padding)
 $bmp192 = [System.Drawing.Bitmap]::new(192, 192, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $g192 = Get-HQGraphics $bmp192
-$g192.Clear([System.Drawing.Color]::Transparent)
-$g192.DrawImage($sourceImg, 0, 0, 192, 192)
+$g192.Clear([System.Drawing.Color]::White)
+$pad192 = 16
+$size192 = 160
+$g192.DrawImage($sourceImg, $pad192, $pad192, $size192, $size192)
 $g192.Dispose()
 $bmp192.Save((Join-Path $projectRoot "public\icon-192.png"), [System.Drawing.Imaging.ImageFormat]::Png)
 $bmp192.Dispose()
-Write-Host "Generated public/icon-192.png"
+Write-Host "Generated public/icon-192.png (white background)"
 
-# icon-512.png (transparent)
+# icon-512.png (clean white background, centered logo with safe padding)
 $bmp512 = [System.Drawing.Bitmap]::new(512, 512, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $g512 = Get-HQGraphics $bmp512
-$g512.Clear([System.Drawing.Color]::Transparent)
-$g512.DrawImage($sourceImg, 0, 0, 512, 512)
+$g512.Clear([System.Drawing.Color]::White)
+$pad512 = 44
+$size512 = 424
+$g512.DrawImage($sourceImg, $pad512, $pad512, $size512, $size512)
 $g512.Dispose()
 $bmp512.Save((Join-Path $projectRoot "public\icon-512.png"), [System.Drawing.Imaging.ImageFormat]::Png)
 $bmp512.Dispose()
-Write-Host "Generated public/icon-512.png"
+Write-Host "Generated public/icon-512.png (white background)"
 
 # icon-maskable-512.png (with safe-zone: 80% circle on white background)
 $bmpMask = [System.Drawing.Bitmap]::new(512, 512, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -119,13 +123,13 @@ foreach ($density in $mipmapDensities) {
     $bmpRound.Save((Join-Path $dir "ic_launcher_round.png"), [System.Drawing.Imaging.ImageFormat]::Png)
     $bmpRound.Dispose()
 
-    # ic_launcher_foreground.png (Adaptive icon foreground: transparent background, logo centered within safe zone)
+    # ic_launcher_foreground.png (Adaptive icon foreground: clean white background, logo centered within safe zone)
     $fs = $density.ForeSize
     $safe = $density.SafeSize
     $offset = [int](($fs - $safe) / 2)
     $bmpFore = [System.Drawing.Bitmap]::new($fs, $fs, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     $gFore = Get-HQGraphics $bmpFore
-    $gFore.Clear([System.Drawing.Color]::Transparent)
+    $gFore.Clear([System.Drawing.Color]::White)
     $gFore.DrawImage($sourceImg, $offset, $offset, $safe, $safe)
     $gFore.Dispose()
     $bmpFore.Save((Join-Path $dir "ic_launcher_foreground.png"), [System.Drawing.Imaging.ImageFormat]::Png)
@@ -134,7 +138,7 @@ foreach ($density in $mipmapDensities) {
     Write-Host "Generated $($density.Name) icons (ic_launcher, ic_launcher_round, ic_launcher_foreground)"
 }
 
-# 3. Android Splash Screens
+# 3. Android Splash Screens (Clean white background with centered official LSMIS anniversary logo)
 $splashes = @(
     @{ Dir = "drawable"; W = 480; H = 320 },
     @{ Dir = "drawable-land-mdpi"; W = 480; H = 320 },
@@ -160,15 +164,35 @@ foreach ($splash in $splashes) {
     $bmpSplash = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     $gSplash = Get-HQGraphics $bmpSplash
     
-    # Pure white background with no splash logo
+    # Pure white background matching Step 1 startup requirement
     $gSplash.Clear([System.Drawing.Color]::White)
+    
+    # Center the official logo preserving 1:1 proportions (~38% of smaller dimension)
+    $minDim = [Math]::Min($w, $h)
+    $logoSize = [int]($minDim * 0.38)
+    $posX = [int](($w - $logoSize) / 2)
+    $posY = [int](($h - $logoSize) / 2)
+    
+    $gSplash.DrawImage($sourceImg, $posX, $posY, $logoSize, $logoSize)
     $gSplash.Dispose()
     
     $bmpSplash.Save((Join-Path $dir "splash.png"), [System.Drawing.Imaging.ImageFormat]::Png)
     $bmpSplash.Dispose()
     
-    Write-Host "Generated $($splash.Dir)/splash.png ($w x $h, clean white)"
+    Write-Host "Generated $($splash.Dir)/splash.png ($w x $h, centered logo $logoSize x $logoSize on white)"
 }
 
+# 4. Optimize web logo.png and src/assets/logo.png to 512x512 (preserving transparent outer corners & full quality, 4x faster load)
+$bmpLogoOpt = [System.Drawing.Bitmap]::new(512, 512, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+$gLogoOpt = Get-HQGraphics $bmpLogoOpt
+$gLogoOpt.Clear([System.Drawing.Color]::Transparent)
+$gLogoOpt.DrawImage($sourceImg, 0, 0, 512, 512)
+$gLogoOpt.Dispose()
+
 $sourceImg.Dispose()
+
+$bmpLogoOpt.Save((Join-Path $projectRoot "public\logo.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+$bmpLogoOpt.Save((Join-Path $projectRoot "src\assets\logo.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+$bmpLogoOpt.Dispose()
+Write-Host "Optimized public/logo.png and src/assets/logo.png (512x512)"
 Write-Host "All icons and splash screens successfully generated!"

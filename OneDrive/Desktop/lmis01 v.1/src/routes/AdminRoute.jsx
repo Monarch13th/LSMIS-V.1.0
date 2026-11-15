@@ -48,8 +48,8 @@ export const AdminRoute = ({ children }) => {
   // Wait until auth initialization and session resolution have fully completed
   if (loading || !isInitialized) {
     return (
-      <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "var(--color-bg)" }}>
-        <div style={{ fontSize: 13, color: "var(--color-text-muted)", fontWeight: 600 }}>
+      <div style={{ display: "flex", height: "100vh", alignItems: "center", justifyContent: "center", background: "#ffffff" }}>
+        <div style={{ fontSize: 13, color: "#475569", fontWeight: 600 }}>
           Verifying security authorization…
         </div>
       </div>

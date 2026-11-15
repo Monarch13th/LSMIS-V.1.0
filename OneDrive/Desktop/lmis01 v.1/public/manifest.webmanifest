@@ -1,30 +1,30 @@
 {
-  "id": "/?v=20261115k",
+  "id": "/?v=lsmis20261116b",
   "name": "LSMIS - Livestock Slaughter & Meat Inspection System",
   "short_name": "LSMIS",
   "description": "Livestock Slaughter and Meat Inspection Management System for Tinaan, City of Naga, Cebu, Philippines.",
-  "start_url": "/?source=pwa&v=20261115k",
+  "start_url": "/?source=pwa&v=lsmis20261116b",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
   "orientation": "portrait-primary",
-  "background_color": "#ffffff",
+  "background_color": "#FFFFFF",
   "theme_color": "#007A53",
   "icons": [
     {
-      "src": "/icon-192.png",
+      "src": "/icon-192.png?v=lsmis20261116b",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512.png?v=lsmis20261116b",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-512.png",
+      "src": "/icon-maskable-512.png?v=lsmis20261116b",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"

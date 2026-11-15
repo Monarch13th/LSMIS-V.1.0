@@ -13,7 +13,6 @@ import com.getcapacitor.BridgeWebViewClient;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Enforce pure white background immediately on native Android activity startup
         try {
             getWindow().getDecorView().setBackgroundColor(Color.WHITE);
         } catch (Exception ignored) {}

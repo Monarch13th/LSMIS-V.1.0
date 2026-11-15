@@ -2,6 +2,15 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate, no-cache"
+        }
+      ]
+    },
+    {
       "source": "/downloads/(.*)\\.apk",
       "headers": [
         {
@@ -15,11 +24,20 @@
       ]
     },
     {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
       "source": "/(logo|apple-touch-icon|icon-192|icon-512|icon-maskable-512|favicon)\\.(png|jpg|ico)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate, no-cache"
+          "value": "public, max-age=3600, stale-while-revalidate=86400"
         }
       ]
     },
@@ -58,20 +76,11 @@
           "value": "public, max-age=0, must-revalidate, no-cache"
         }
       ]
-    },
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate, no-cache"
-        }
-      ]
     }
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!assets/|downloads/|sw\\.js|version\\.json|manifest\\.webmanifest|favicon\\.ico|logo\\.png|logo\\.jpg|apple-touch-icon\\.png|icon-192\\.png|icon-512\\.png|icon-maskable-512\\.png).*)",
       "destination": "/index.html"
     }
   ]

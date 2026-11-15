@@ -2,10 +2,10 @@
  * Build ID: __BUILD_ID__
  *
  * Caching Strategy:
- *  - Navigations (HTML shell): NETWORK-FIRST. Fresh server response is served online;
- *    cached offline fallback is used ONLY if network is unreachable.
- *  - Static assets (images, icons): Stale-While-Revalidate.
- *  - Manifest: Network-first.
+ *  - Navigations (HTML shell): Fast Network-First with 1.0s cache fallback so installed app startup is instantaneous.
+ *  - Hashed build assets (/assets/*): Cache-First (content-hashed by Vite).
+ *  - Brand logos, icons, and static images: Stale-While-Revalidate (instant paint from cache + background refresh).
+ *  - Manifest: Network-First with cache fallback.
  *  - Never cached: Supabase, Google Auth, external origins, /downloads/* (APKs), /sw.js, /version.json.
  *  - Cache lifecycle: On activation, all old "lsmis-pwa-*" caches are permanently purged.
  */
@@ -14,20 +14,31 @@ const BUILD_ID = "__BUILD_ID__";
 const CACHE_PREFIX = "lsmis-pwa-";
 const CACHE_NAME = `${CACHE_PREFIX}${BUILD_ID}`;
 const OFFLINE_FALLBACK_URL = "/index.html";
+const PRECACHE_ASSETS = [
+  "/index.html",
+  "/logo.png?v=lsmis20261116b",
+  "/logo.png",
+  "/icon-192.png?v=lsmis20261116b",
+  "/icon-512.png?v=lsmis20261116b",
+  "/icon-maskable-512.png?v=lsmis20261116b",
+  "/apple-touch-icon.png?v=lsmis20261116b"
+];
 
-// 1. Install phase: pre-cache the fresh application shell and activate immediately
+// 1. Install phase: pre-cache the fresh application shell & official logo assets and activate immediately
 self.addEventListener("install", (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      try {
-        const response = await fetch(OFFLINE_FALLBACK_URL, { cache: "reload" });
-        if (response && response.ok) {
-          await cache.put(OFFLINE_FALLBACK_URL, response.clone());
-        }
-      } catch (err) {
-        console.warn("[LSMIS SW] Offline fallback pre-caching failed:", err);
-      }
+      await Promise.allSettled(
+        PRECACHE_ASSETS.map(async (assetUrl) => {
+          try {
+            const response = await fetch(assetUrl, { cache: "reload" });
+            if (response && response.ok) {
+              await cache.put(assetUrl, response.clone());
+            }
+          } catch (_) {}
+        })
+      );
     })
   );
 });
@@ -45,10 +56,8 @@ self.addEventListener("activate", (event) => {
             return caches.delete(k);
           })
       );
-      // Immediately take control of open clients
       await self.clients.claim();
 
-      // Broadcast update to open windows
       try {
         const clients = await self.clients.matchAll({ type: "window" });
         for (const client of clients) {
@@ -95,41 +104,72 @@ self.addEventListener("fetch", (event) => {
   // Never cache service worker or version descriptor
   if (url.pathname === "/sw.js" || url.pathname === "/version.json") return;
 
-  // A. Page navigations: NETWORK FIRST, with cache fallback
+  // A. Page navigations: Fast Network-First with 1.0s timeout fallback to cached shell
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
-        try {
-          // Direct network fetch with cache: "no-cache" so online requests always get the fresh deployment
-          const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
-          if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
-            // Update offline cache with the fresh response
-            const clone = fresh.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(OFFLINE_FALLBACK_URL, clone);
+        const cache = await caches.open(CACHE_NAME);
+        const cached = (await cache.match(req.url)) || (await cache.match(OFFLINE_FALLBACK_URL));
+
+        const networkFetch = (async () => {
+          try {
+            const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
+            if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
+              const clone = fresh.clone();
+              cache.put(OFFLINE_FALLBACK_URL, clone).catch(() => {});
               try {
-                cache.put(req.url, fresh.clone());
+                cache.put(req.url, fresh.clone()).catch(() => {});
               } catch (_) {}
-            }).catch(() => {});
+              return fresh;
+            }
             return fresh;
+          } catch (_) {
+            return null;
           }
-          return fresh;
-        } catch (fetchErr) {
-          // Network failed (offline): serve cached offline fallback
-          const cache = await caches.open(CACHE_NAME);
-          const cached = (await cache.match(req.url)) || (await cache.match(OFFLINE_FALLBACK_URL));
-          if (cached) return cached;
-          return new Response("LSMIS is currently offline. Please check your connection and try again.", {
-            status: 503,
-            headers: { "Content-Type": "text/plain; charset=utf-8" },
-          });
+        })();
+
+        if (cached) {
+          const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 1000));
+          const fastRes = await Promise.race([networkFetch, timeoutPromise]);
+          if (fastRes && fastRes.ok) {
+            return fastRes;
+          }
+          return cached;
+        }
+
+        const netRes = await networkFetch;
+        if (netRes) return netRes;
+        return new Response("LSMIS is currently offline. Please check your connection and try again.", {
+          status: 503,
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        });
+      })()
+    );
+    return;
+  }
+
+  // B. Hashed Vite build assets (/assets/*): Cache-First for instant startup
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(req);
+        if (cached) return cached;
+        try {
+          const res = await fetch(req);
+          if (res && res.ok) {
+            cache.put(req, res.clone()).catch(() => {});
+          }
+          return res;
+        } catch (err) {
+          return cached || Response.error();
         }
       })()
     );
     return;
   }
 
-  // B. Webmanifest: Network-first
+  // C. Webmanifest: Network-first with cache fallback
   if (url.pathname.endsWith(".webmanifest")) {
     event.respondWith(
       fetch(req)
@@ -145,39 +185,17 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // C. Brand logos and identity assets: Network-first to prevent stale logo caching
-  if (/(?:logo|icon|apple-touch-icon|favicon)\.(?:png|jpg|jpeg|webp|ico)/i.test(url.pathname)) {
-    event.respondWith(
-      (async () => {
-        try {
-          const fresh = await fetch(req, { cache: "no-cache" }).catch(() => fetch(req));
-          if (fresh && (fresh.ok || fresh.type === "opaqueredirect")) {
-            const cache = await caches.open(CACHE_NAME);
-            cache.put(req, fresh.clone()).catch(() => {});
-            return fresh;
-          }
-          const cache = await caches.open(CACHE_NAME);
-          const cached = await cache.match(req);
-          return cached || fresh;
-        } catch (_) {
-          const cache = await caches.open(CACHE_NAME);
-          return cache.match(req);
-        }
-      })()
-    );
-    return;
-  }
-
-  // D. Static public assets: Stale-While-Revalidate
+  // D. Brand logos, icons, and static images: Stale-While-Revalidate (instant load from cache + background update)
   if (/\.(?:png|jpg|jpeg|webp|svg|ico)$/i.test(url.pathname)) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
-        const cached = await cache.match(req);
+        const cached = (await cache.match(req)) || (await cache.match(url.pathname));
         const networkPromise = fetch(req)
           .then((networkRes) => {
             if (networkRes && networkRes.ok) {
-              cache.put(req, networkRes.clone());
+              cache.put(req, networkRes.clone()).catch(() => {});
+              cache.put(url.pathname, networkRes.clone()).catch(() => {});
             }
             return networkRes;
           })

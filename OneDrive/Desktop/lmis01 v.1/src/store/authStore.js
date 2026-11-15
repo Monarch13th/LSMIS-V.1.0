@@ -81,11 +81,14 @@ const getInitialSession = () => {
 };
 
 const initialCached = getInitialSession();
+const hasValidCachedSession = Boolean(
+  initialCached && initialCached.role && initialCached.session_id
+);
 
 export const authStore = createStore({
   session: initialCached,
-  loading: !initialCached,
-  isInitialized: false,
+  loading: !hasValidCachedSession,
+  isInitialized: hasValidCachedSession,
 });
 
 const isGoogleOAuthHandshakeInProgress = () => {
@@ -358,9 +361,10 @@ export const initializeAuth = async () => {
   isAuthInitialized = true;
 
   try {
+    // Fast 1800ms safety timeout race so slow mobile networks never block app startup
     const sessionPromise = supabase.auth.getSession();
     const timeoutPromise = new Promise((resolve) =>
-      setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 2500)
+      setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 1800)
     );
     const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
     if (error && error.message !== "Auth timeout") {
@@ -374,17 +378,21 @@ export const initializeAuth = async () => {
 
     const sbSession = data?.session;
     if (sbSession?.user) {
-      // Enforce Supabase Auth MFA Assurance Level (AAL2)
-      try {
-        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-        if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
-          // User has enabled 2FA but current session is only AAL1 (unverified)!
-          removeSessionStorageItem(STORAGE_KEYS.SESSION);
-          authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: true });
-          return;
+      // Only check MFA assurance level if user has verified MFA factors
+      const hasVerifiedFactors =
+        Array.isArray(sbSession.user.factors) &&
+        sbSession.user.factors.some((f) => f?.status === "verified");
+      if (hasVerifiedFactors) {
+        try {
+          const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+          if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+            removeSessionStorageItem(STORAGE_KEYS.SESSION);
+            authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: true });
+            return;
+          }
+        } catch (aalErr) {
+          console.warn("MFA assurance check error:", aalErr);
         }
-      } catch (aalErr) {
-        console.warn("MFA assurance check error:", aalErr);
       }
 
       const cached = getInitialSession();
@@ -430,6 +438,9 @@ export const initializeAuth = async () => {
   // Subscribe to Supabase auth state transitions
   try {
     supabase.auth.onAuthStateChange(async (event, sbSession) => {
+      // INITIAL_SESSION is already handled by initializeAuth() above; skip duplicate queries
+      if (event === "INITIAL_SESSION") return;
+
       if (event === "SIGNED_OUT") {
         try {
           removeSessionStorageItem(STORAGE_KEYS.SESSION);
@@ -459,13 +470,18 @@ export const initializeAuth = async () => {
       }
 
       if (sbSession?.user) {
-        try {
-          const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-          if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
-            authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: true });
-            return;
-          }
-        } catch (_) {}
+        const hasVerifiedFactors =
+          Array.isArray(sbSession.user.factors) &&
+          sbSession.user.factors.some((f) => f?.status === "verified");
+        if (hasVerifiedFactors) {
+          try {
+            const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+            if (aalData?.nextLevel === "aal2" && aalData?.currentLevel !== "aal2") {
+              authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: true });
+              return;
+            }
+          } catch (_) {}
+        }
 
         // If an active session is already loaded in authStore with a session_id and matches the user, don't overwrite it
         const currentStoreSession = authStore.get()?.session;

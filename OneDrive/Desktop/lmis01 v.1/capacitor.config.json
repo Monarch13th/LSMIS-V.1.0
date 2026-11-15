@@ -3,6 +3,7 @@
   "appName": "LSMIS",
   "webDir": "dist",
   "bundledWebRuntime": false,
+  "backgroundColor": "#ffffff",
   "server": {
     "url": "https://lsmis.vercel.app",
     "androidScheme": "https",
@@ -17,18 +18,22 @@
       "*.gstatic.com"
     ]
   },
-  "android": {
-    "allowMixedContent": true,
-    "captureInput": true,
-    "webContentsDebuggingEnabled": false
-  },
   "plugins": {
     "SplashScreen": {
-      "launchShowDuration": 0,
+      "launchShowDuration": 600,
       "launchAutoHide": true,
       "backgroundColor": "#ffffff",
       "androidSplashResourceName": "splash",
-      "showSpinner": false
+      "androidScaleType": "CENTER_INSIDE",
+      "showSpinner": false,
+      "splashFullScreen": false,
+      "splashImmersive": false
     }
+  },
+  "android": {
+    "backgroundColor": "#ffffff",
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
   }
 }

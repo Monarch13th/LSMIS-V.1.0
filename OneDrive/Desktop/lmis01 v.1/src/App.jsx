@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import { ToastProvider } from "./components/notifications/Toast";
@@ -83,29 +83,167 @@ import { initialOAuthCallback } from "./services/supabaseClient";
 import { isInstalledApp } from "./utils/capacitor";
 
 /**
+ * Unified 4-Step Startup Sequence for the installed LSMIS application:
+ * STEP 1 ("white"): Clean white (#FFFFFF) screen with centered official LSMIS anniversary logo (no text/borders).
+ * STEP 2 ("green"): Smooth transition to the animated green LSMIS splash screen (fade-in + scale-up logo + loader).
+ * STEP 3 (parallel): Initialize Supabase authentication session & application config.
+ * STEP 4 ("fading" -> "done"): Reveal the target page (Login or Role Dashboard) already mounted underneath.
+ */
+const STARTUP_LOGO_SRC = "/logo.png?v=lsmis20261116b";
+
+const shouldRunStartupSequence = () => {
+  if (typeof window === "undefined") return false;
+  try {
+    if (sessionStorage.getItem("lsmis_launch_splash_seen") === "true") {
+      return false;
+    }
+    if (isInstalledApp()) return true;
+    const isMobileViewport = window.matchMedia?.("(max-width: 768px)")?.matches;
+    const pathname = window.location.pathname || "/";
+    if (isMobileViewport && (pathname === "/login" || pathname === "/register")) {
+      return true;
+    }
+  } catch (_) {}
+  return false;
+};
+
+const StartupSequenceOverlay = ({ authLoading, authInitialized }) => {
+  const [stage, setStage] = useState(() => (shouldRunStartupSequence() ? "white" : "done"));
+  const [minGreenElapsed, setMinGreenElapsed] = useState(false);
+  const [showSlowHint, setShowSlowHint] = useState(false);
+
+  // Transition Step 1 (White Logo Screen) -> Step 2 (Animated Green Splash Screen)
+  useEffect(() => {
+    if (stage !== "white") return;
+    const toGreenTimer = setTimeout(() => {
+      setStage("green");
+    }, 280);
+    return () => clearTimeout(toGreenTimer);
+  }, [stage]);
+
+  // Step 2 minimum smooth animation window + slow network indicator + max safety cap
+  useEffect(() => {
+    if (stage !== "green") return;
+    const minGreenTimer = setTimeout(() => {
+      setMinGreenElapsed(true);
+    }, 560);
+    const slowHintTimer = setTimeout(() => {
+      setShowSlowHint(true);
+    }, 850);
+    const maxSafetyTimer = setTimeout(() => {
+      setStage("fading");
+    }, 1800);
+    return () => {
+      clearTimeout(minGreenTimer);
+      clearTimeout(slowHintTimer);
+      clearTimeout(maxSafetyTimer);
+    };
+  }, [stage]);
+
+  // Step 3 -> Step 4: As soon as the green splash animation finishes AND Supabase auth is ready, fade out
+  useEffect(() => {
+    if (stage === "green" && minGreenElapsed && authInitialized && !authLoading) {
+      setStage("fading");
+    }
+  }, [stage, minGreenElapsed, authInitialized, authLoading]);
+
+  useEffect(() => {
+    if (stage !== "fading") return;
+    try {
+      sessionStorage.setItem("lsmis_launch_splash_seen", "true");
+    } catch (_) {}
+    const doneTimer = setTimeout(() => {
+      setStage("done");
+    }, 180);
+    return () => clearTimeout(doneTimer);
+  }, [stage]);
+
+  if (stage === "done") return null;
+
+  if (stage === "white") {
+    return (
+      <div className="lsmis-startup-white-screen" role="status" aria-live="polite" aria-label="Opening LSMIS">
+        <img
+          src={STARTUP_LOGO_SRC}
+          onError={(e) => {
+            if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+          }}
+          alt="LSMIS Official Anniversary Logo"
+          className="lsmis-startup-white-logo"
+          width="140"
+          height="140"
+          decoding="sync"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`lsmis-launch-splash ${stage === "fading" ? "fade-out" : ""}`}
+      role="status"
+      aria-live="polite"
+    >
+      <div className="launch-splash-content">
+        <div className="launch-splash-logo-wrap">
+          <img
+            src={STARTUP_LOGO_SRC}
+            onError={(e) => {
+              if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+            }}
+            alt="LSMIS Official Seal"
+            className="launch-splash-logo"
+            width="92"
+            height="92"
+            decoding="sync"
+          />
+        </div>
+        <div className="launch-splash-text">
+          <h1 className="launch-splash-title">LSMIS</h1>
+          <p className="launch-splash-sub">Livestock Slaughter &amp; Meat Inspection System</p>
+          <span className="launch-splash-loc">City Government of Naga, Cebu</span>
+        </div>
+        <div className="launch-splash-loader" aria-label="Loading application">
+          <div className="launch-splash-loader-bar" />
+        </div>
+        {showSlowHint && (!authInitialized || authLoading) && (
+          <span className="launch-splash-status">Initializing session…</span>
+        )}
+      </div>
+    </div>
+  );
+};
+
+/**
  * "/" entry point. Browser tabs get the public Landing Page. The installed APK / installed PWA
- * never renders it: a neutral splash is shown until Supabase confirms the session, then the user
- * is sent to their role dashboard or the Login page (no Landing Page flash).
+ * never renders it: while Supabase confirms the session, a clean fallback is maintained, and as soon
+ * as auth is initialized (or after the safety timeout), the user is routed to their role dashboard or Login.
  */
 const LandingGate = () => {
   const { role, isAuthenticated, loading, isInitialized } = useAuth();
+  const [gateTimeout, setGateTimeout] = useState(false);
+
+  useEffect(() => {
+    if (!isInstalledApp()) return;
+    if (!loading && isInitialized) return;
+    const t = setTimeout(() => setGateTimeout(true), 1600);
+    return () => clearTimeout(t);
+  }, [loading, isInitialized]);
+
   if (!isInstalledApp()) return <LandingPage />;
-  if (loading || !isInitialized) {
+  if ((loading || !isInitialized) && !gateTimeout) {
     return (
-      <div className="lsmis-launch-splash" role="status" aria-live="polite">
-        <div className="launch-splash-content">
-          <div className="launch-splash-logo-wrap">
-            <img src={logoImg} alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
-          </div>
-          <div className="launch-splash-text">
-            <h1 className="launch-splash-title">LSMIS</h1>
-            <p className="launch-splash-sub">Livestock Slaughter &amp; Meat Inspection System</p>
-            <span className="launch-splash-loc">City Government of Naga, Cebu</span>
-          </div>
-          <div className="launch-splash-loader">
-            <div className="launch-splash-loader-bar" />
-          </div>
-        </div>
+      <div className="lsmis-startup-white-screen" role="status" aria-live="polite">
+        <img
+          src={STARTUP_LOGO_SRC}
+          onError={(e) => {
+            if (e.currentTarget.src !== logoImg) e.currentTarget.src = logoImg;
+          }}
+          alt="LSMIS Official Anniversary Logo"
+          className="lsmis-startup-white-logo"
+          width="140"
+          height="140"
+        />
       </div>
     );
   }
@@ -177,8 +315,10 @@ const Shell = () => {
   }, [navigate, isAuthenticated, role, authLoading, authInitialized]);
 
   return (
-    <Routes>
-      <Route path="/" element={<LandingGate />} />
+    <>
+      <StartupSequenceOverlay authLoading={authLoading} authInitialized={authInitialized} />
+      <Routes>
+        <Route path="/" element={<LandingGate />} />
       <Route path="/dashboard" element={<LivestockInspectionDashboard />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Login initialView="register" />} />
@@ -357,7 +497,8 @@ const Shell = () => {
       <Route path="/waiting-approval" element={<Navigate to="/owner/waiting-approval" replace />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 };
 
