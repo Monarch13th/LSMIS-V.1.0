@@ -6,7 +6,7 @@ import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
 
 // Photography Assets (Public URLs for parallel preloading & PWA caching)
-const logoImg = "/logo.png";
+const logoImg = "/logo.png?v=20261115";
 const heroInspectorImg = "/hero-inspector.jpg";
 const aboutVetImg = "/about-veterinarian.jpg";
 const inspectionImg = "/inspection-postmortem.jpg";
