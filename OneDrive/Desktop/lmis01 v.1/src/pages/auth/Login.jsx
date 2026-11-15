@@ -2848,23 +2848,6 @@ export const Login = ({ embedded = false, initialView }) => {
               <>
                 {/* Owner Registration View */}
                 <form onSubmit={submitOwnerRegistration} className={`login-form-body ${regShake ? "form-shake" : ""}`} noValidate autoComplete="off">
-                  {/* Top-Left Visible Back Navigation to Sign In */}
-                  <div className="login-reg-top-nav">
-                    <button
-                      type="button"
-                      onClick={switchToSignin}
-                      className="login-reg-back-btn"
-                      aria-label="Return to Sign In"
-                      title="Return to Sign In"
-                    >
-                      <Icon.ArrowLeft size={16} />
-                      <span>Back to Login</span>
-                    </button>
-                    <span className="login-reg-badge">
-                      Owner Account Setup
-                    </span>
-                  </div>
-
                   <div className="login-form-head">
                     <h1>Register as Owner</h1>
                     <p className="subtitle">Create an official abattoir account to track livestock, slaughter progress, and clearances</p>
@@ -3207,14 +3190,16 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Back to Sign In directly below Submit */}
+                  {/* Back to Login Button positioned directly below Submit */}
                   <button
                     type="button"
-                    className="btn-back-to-landing"
+                    className="btn-back-to-landing login-reg-back-submit-btn"
                     onClick={switchToSignin}
+                    aria-label="Back to Login"
+                    title="Back to Login"
                   >
                     <Icon.ArrowLeft size={16} />
-                    <span>Already have an account? Sign In</span>
+                    <span>Back to Login</span>
                   </button>
                 </form>
               </>
