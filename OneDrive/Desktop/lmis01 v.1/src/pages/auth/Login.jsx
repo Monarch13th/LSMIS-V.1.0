@@ -76,39 +76,6 @@ export const Login = ({ embedded = false, initialView }) => {
   // Installed mobile application detection (Capacitor Android APK or installed standalone PWA)
   const isInstalled = isInstalledApp();
 
-  // Smooth, professional opening animation when launching the installed mobile application
-  const [showLaunchSplash, setShowLaunchSplash] = useState(() => {
-    if (!isInstalled) return false;
-    try {
-      if (sessionStorage.getItem("lsmis_launch_splash_seen") === "true") {
-        return false;
-      }
-      return true;
-    } catch (_) {
-      return false;
-    }
-  });
-  const [splashFadingOut, setSplashFadingOut] = useState(false);
-
-  useEffect(() => {
-    if (!showLaunchSplash) return;
-    const holdTimer = setTimeout(() => {
-      setSplashFadingOut(true);
-    }, 1100);
-
-    const endTimer = setTimeout(() => {
-      setShowLaunchSplash(false);
-      try {
-        sessionStorage.setItem("lsmis_launch_splash_seen", "true");
-      } catch (_) {}
-    }, 1450);
-
-    return () => {
-      clearTimeout(holdTimer);
-      clearTimeout(endTimer);
-    };
-  }, [showLaunchSplash]);
-
   // Lock history in installed mobile app so back action does not navigate to landing page
   useEffect(() => {
     if (isInstalled) {
@@ -582,15 +549,7 @@ export const Login = ({ embedded = false, initialView }) => {
         const userId = result.userId;
         const avatarUrl = result.avatarUrl;
         const googleId = result.googleData.googleId;
-
-        // Cover gradient
-        let cover_gradient = null;
-        try {
-          const storedProfile = localStorage.getItem("lmis_profile_" + cleanEmail);
-          if (storedProfile) {
-            cover_gradient = JSON.parse(storedProfile).cover_gradient;
-          }
-        } catch (_) { }
+        const cover_gradient = null;
 
         // Register Single Active Session
         const clientSessionId = authSecurityService.getClientSessionId();
@@ -1597,14 +1556,7 @@ export const Login = ({ embedded = false, initialView }) => {
         }
       }
 
-      // Cover gradient
-      let cover_gradient = null;
-      try {
-        const storedProfile = localStorage.getItem("lmis_profile_" + cleanEmail);
-        if (storedProfile) {
-          cover_gradient = JSON.parse(storedProfile).cover_gradient;
-        }
-      } catch (e) { }
+      const cover_gradient = null;
 
       // Register Single Active Session across all roles (Admin, Vet, Staff, Owner)
       let activeSessionId = plannedSessionId || uuid();
@@ -2243,25 +2195,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
   return (
     <div className={`login-page lsmis-login${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""} is-view-${view}`}>
-      {/* Professional Opening Animation for Installed Mobile App */}
-      {showLaunchSplash && (
-        <div className={`lsmis-launch-splash ${splashFadingOut ? "fade-out" : ""}`} role="status" aria-live="polite">
-          <div className="launch-splash-content">
-            <div className="launch-splash-logo-wrap">
-              <img src={logoImg} alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
-            </div>
-            <div className="launch-splash-text">
-              <h1 className="launch-splash-title">LSMIS</h1>
-              <p className="launch-splash-sub">Livestock Slaughter &amp; Meat Inspection System</p>
-              <span className="launch-splash-loc">City Government of Naga, Cebu</span>
-            </div>
-            <div className="launch-splash-loader">
-              <div className="launch-splash-loader-bar" />
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="login-container">
         {/* Left brand panel */}
         <div className="login-brand">

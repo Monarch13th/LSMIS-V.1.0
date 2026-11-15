@@ -17,21 +17,18 @@
       "*.gstatic.com"
     ]
   },
-  "plugins": {
-    "SplashScreen": {
-      "launchShowDuration": 1200,
-      "launchAutoHide": true,
-      "backgroundColor": "#ffffff",
-      "androidSplashResourceName": "splash",
-      "androidScaleType": "CENTER_INSIDE",
-      "showSpinner": false,
-      "splashFullScreen": false,
-      "splashImmersive": false
-    }
-  },
   "android": {
     "allowMixedContent": true,
     "captureInput": true,
     "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0,
+      "launchAutoHide": true,
+      "backgroundColor": "#ffffff",
+      "androidSplashResourceName": "splash",
+      "showSpinner": false
+    }
   }
 }

@@ -87,24 +87,16 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       }
     }
     const email = s?.email || "";
-    let storedLocal = {};
-    if (email) {
-      try {
-        storedLocal = JSON.parse(localStorage.getItem("lmis_profile_" + email) || "{}");
-      } catch {
-        storedLocal = {};
-      }
-    }
     return {
-      full_name: s?.name || s?.full_name || storedLocal.full_name || "",
+      full_name: s?.name || s?.full_name || "",
       email: email,
-      username: s?.username || storedLocal.username || (email ? email.split("@")[0] : "") || "",
+      username: s?.username || (email ? email.split("@")[0] : "") || "",
       role: s?.role || role,
-      phone: s?.phone || s?.contact || storedLocal.phone || "",
-      address: s?.address || storedLocal.address || "",
-      license: s?.license || storedLocal.license || "",
-      specialization: s?.specialization || storedLocal.specialization || "",
-      avatar_url: s?.avatar_url || storedLocal.avatar_url || "",
+      phone: s?.phone || s?.contact || "",
+      address: s?.address || "",
+      license: s?.license || "",
+      specialization: s?.specialization || "",
+      avatar_url: s?.avatar_url || "",
     };
   };
 
@@ -312,9 +304,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         }
 
         const userMeta = user?.user_metadata || {};
-        const storedLocal = JSON.parse(
-          localStorage.getItem("lmis_profile_" + email) || "{}"
-        );
 
         const currentRole =
           dbUser?.role || (dbOwner ? "owner" : session?.role || role);
@@ -325,7 +314,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             dbOwner?.name ||
             userMeta?.full_name ||
             userMeta?.name ||
-            storedLocal?.full_name ||
             session?.name ||
             "",
           email: email,
@@ -333,30 +321,30 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             dbUser?.username ||
             dbOwner?.username ||
             userMeta?.username ||
-            storedLocal?.username ||
             email.split("@")[0] ||
             "",
           role: currentRole,
           phone:
+            dbUser?.phone ||
+            dbUser?.contact ||
             dbOwner?.contact ||
             userMeta?.contact ||
             userMeta?.phone ||
-            storedLocal?.phone ||
             "",
           address:
+            dbUser?.address ||
             dbOwner?.address ||
             userMeta?.address ||
-            storedLocal?.address ||
             "",
-          license: userMeta?.license || storedLocal?.license || "",
+          license: dbUser?.license || userMeta?.license || "",
           specialization:
-            userMeta?.specialization || storedLocal?.specialization || "",
+            dbUser?.specialization || userMeta?.specialization || "",
           avatar_url:
             dbUser?.avatar_url ||
             dbOwner?.avatar_url ||
             userMeta?.avatar_url ||
             userMeta?.picture ||
-            storedLocal?.avatar_url ||
+            session?.avatar_url ||
             "",
         };
 

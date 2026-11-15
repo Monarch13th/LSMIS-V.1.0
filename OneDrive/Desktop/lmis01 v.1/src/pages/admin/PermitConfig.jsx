@@ -136,10 +136,8 @@ export const PermitConfig = () => {
         });
       } catch (_) {}
     } catch (err) {
-      console.error("Failed to save permit config:", err);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(form));
-      setSaved(true);
-      showToast("Saved locally (database unavailable)", "warning");
+      console.error("Failed to save permit config to Supabase:", err);
+      showToast("Failed to save permit configuration to database: " + (err.message || "Database connection error"), "error");
     } finally {
       setSaving(false);
     }

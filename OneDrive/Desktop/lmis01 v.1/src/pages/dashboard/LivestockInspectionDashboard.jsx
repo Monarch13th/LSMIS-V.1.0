@@ -3,577 +3,114 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "../../components/icons";
 import { TagBadge } from "../../components/ui/TagBadge";
 import { useTheme } from "../../hooks/useTheme";
+import { useSupabase } from "../../hooks/useSupabase";
+import { TABLES } from "../../utils/constants";
 import "../../styles/inspection_dashboard.css";
 
 // ==========================================================================
-// REALISTIC MOCK DATASETS (Philippine Abattoir / Veterinary Operations)
+// LIVE PRODUCTION SUPABASE DATABASE DASHBOARD
 // ==========================================================================
 
-const MOCK_LIVESTOCK = [
-  {
-    id: "LS-101",
-    tag_number: "SW-2026-0811",
-    species: "Swine",
-    breed: "Large White Cross",
-    gender: "Female",
-    weight: "108 kg",
-    owner_name: "Juan Dela Cruz",
-    origin: "San Ildefonso, Bulacan",
-    holding_pen: "Pen A-2",
-    arrival_date: "2026-09-14 06:15",
-    health_status: "Healthy",
-    workflow_stage: "Slaughter Scheduled",
-  },
-  {
-    id: "LS-102",
-    tag_number: "SW-2026-0812",
-    species: "Swine",
-    breed: "Landrace",
-    gender: "Male",
-    weight: "115 kg",
-    owner_name: "Maria Theresa Santos",
-    origin: "Santa Maria, Bulacan",
-    holding_pen: "Pen A-2",
-    arrival_date: "2026-09-14 06:20",
-    health_status: "Healthy",
-    workflow_stage: "Ante-Mortem Passed",
-  },
-  {
-    id: "LS-103",
-    tag_number: "SW-2026-0814",
-    species: "Swine",
-    breed: "Duroc Jersey",
-    gender: "Male",
-    weight: "98 kg",
-    owner_name: "Eduardo Navarro",
-    origin: "San Rafael, Bulacan",
-    holding_pen: "Pen A-4 (Isolation)",
-    arrival_date: "2026-09-14 06:45",
-    health_status: "Quarantined",
-    workflow_stage: "Suspect Holding",
-  },
-  {
-    id: "LS-104",
-    tag_number: "CT-2026-0419",
-    species: "Cattle",
-    breed: "Brahman Cross",
-    gender: "Male",
-    weight: "385 kg",
-    owner_name: "Rodrigo Alcantara",
-    origin: "Padre Garcia, Batangas",
-    holding_pen: "Pen B-1",
-    arrival_date: "2026-09-13 18:30",
-    health_status: "Healthy",
-    workflow_stage: "Ready for Slaughter",
-  },
-  {
-    id: "LS-105",
-    tag_number: "CT-2026-0420",
-    species: "Cattle",
-    breed: "Batangas Native",
-    gender: "Female",
-    weight: "340 kg",
-    owner_name: "Lourdes Mendoza",
-    origin: "Rosario, Batangas",
-    holding_pen: "Pen B-1",
-    arrival_date: "2026-09-13 18:40",
-    health_status: "Healthy",
-    workflow_stage: "Ante-Mortem Passed",
-  },
-  {
-    id: "LS-106",
-    tag_number: "CT-2026-0422",
-    species: "Cattle",
-    breed: "Simmental Cross",
-    gender: "Male",
-    weight: "420 kg",
-    owner_name: "Antonio Valenzuela",
-    origin: "Tiaong, Quezon",
-    holding_pen: "Pen B-2",
-    arrival_date: "2026-09-13 19:10",
-    health_status: "Condemned",
-    workflow_stage: "Post-Mortem Barred",
-  },
-  {
-    id: "LS-107",
-    tag_number: "CB-2026-0105",
-    species: "Carabao",
-    breed: "Philippine Carabao",
-    gender: "Female",
-    weight: "440 kg",
-    owner_name: "Danilo Ramos",
-    origin: "Echague, Isabela",
-    holding_pen: "Pen C-1",
-    arrival_date: "2026-09-13 17:00",
-    health_status: "Healthy",
-    workflow_stage: "Resting / Lairage",
-  },
-  {
-    id: "LS-108",
-    tag_number: "GT-2026-0092",
-    species: "Goat",
-    breed: "Anglo-Nubian Cross",
-    gender: "Male",
-    weight: "38 kg",
-    owner_name: "Corazon Aquino-Lim",
-    origin: "Capas, Tarlac",
-    holding_pen: "Pen C-2",
-    arrival_date: "2026-09-14 07:15",
-    health_status: "Healthy",
-    workflow_stage: "Ante-Mortem Inspection",
-  },
-  {
-    id: "LS-109",
-    tag_number: "SW-2026-0818",
-    species: "Swine",
-    breed: "Pietrain Cross",
-    gender: "Female",
-    weight: "102 kg",
-    owner_name: "Vicente Morales",
-    origin: "Magalang, Pampanga",
-    holding_pen: "Pen A-3",
-    arrival_date: "2026-09-14 07:30",
-    health_status: "Healthy",
-    workflow_stage: "Intake Verified",
-  },
-  {
-    id: "LS-110",
-    tag_number: "SW-2026-0820",
-    species: "Swine",
-    breed: "Large White",
-    gender: "Male",
-    weight: "112 kg",
-    owner_name: "Felipe Gomez",
-    origin: "San Jose Del Monte",
-    holding_pen: "Pen A-3",
-    arrival_date: "2026-09-14 07:45",
-    health_status: "Healthy",
-    workflow_stage: "Marking & Stamping",
-  }
-];
-
-const MOCK_CERTIFICATIONS_ANTE = [
-  {
-    cert_id: "AM-2026-0941",
-    tag_number: "SW-2026-0811",
-    species: "Swine",
-    owner: "Juan Dela Cruz",
-    inspection_date: "2026-09-14 07:10",
-    inspector_name: "Dr. Aris Santos",
-    inspector_license: "PRC-VET-004419",
-    temperature: "39.1°C",
-    clinical_notes: "Alert, active, normal respiration. No gait anomalies or skin erythema.",
-    decision: "Passed",
-    facility: "Line 1 - Swine Lairage Bay",
-  },
-  {
-    cert_id: "AM-2026-0942",
-    tag_number: "SW-2026-0812",
-    species: "Swine",
-    owner: "Maria Theresa Santos",
-    inspection_date: "2026-09-14 07:15",
-    inspector_name: "Dr. Aris Santos",
-    inspector_license: "PRC-VET-004419",
-    temperature: "39.2°C",
-    clinical_notes: "Clear eyes, normal posture, good hydration. Sound condition.",
-    decision: "Passed",
-    facility: "Line 1 - Swine Lairage Bay",
-  },
-  {
-    cert_id: "AM-2026-0943",
-    tag_number: "SW-2026-0814",
-    species: "Swine",
-    owner: "Eduardo Navarro",
-    inspection_date: "2026-09-14 07:35",
-    inspector_name: "Dr. Ma. Elena Cruz",
-    inspector_license: "PRC-VET-005128",
-    temperature: "40.8°C",
-    clinical_notes: "Elevated rectal temp, lethargic, rapid respiration, suspected heat prostration.",
-    decision: "Suspect",
-    facility: "Bay 4 - Quarantine Holding",
-  },
-  {
-    cert_id: "AM-2026-0944",
-    tag_number: "CT-2026-0419",
-    species: "Cattle",
-    owner: "Rodrigo Alcantara",
-    inspection_date: "2026-09-14 06:30",
-    inspector_name: "Dr. Ma. Elena Cruz",
-    inspector_license: "PRC-VET-005128",
-    temperature: "38.6°C",
-    clinical_notes: "Bright demeanor, rhythmic breathing, rumen motility normal. Clean hide.",
-    decision: "Passed",
-    facility: "Line 2 - Large Animal Chute",
-  },
-  {
-    cert_id: "AM-2026-0945",
-    tag_number: "CT-2026-0420",
-    species: "Cattle",
-    owner: "Lourdes Mendoza",
-    inspection_date: "2026-09-14 06:45",
-    inspector_name: "Dr. Ma. Elena Cruz",
-    inspector_license: "PRC-VET-005128",
-    temperature: "38.7°C",
-    clinical_notes: "Symmetrical gait, clear nasal discharge, normal lymph nodes.",
-    decision: "Passed",
-    facility: "Line 2 - Large Animal Chute",
-  },
-  {
-    cert_id: "AM-2026-0946",
-    tag_number: "CB-2026-0105",
-    species: "Carabao",
-    owner: "Danilo Ramos",
-    inspection_date: "2026-09-14 07:50",
-    inspector_name: "Dr. Aris Santos",
-    inspector_license: "PRC-VET-004419",
-    temperature: "38.4°C",
-    clinical_notes: "Sturdy condition, resting peacefully. 12-hour resting period completed.",
-    decision: "Passed",
-    facility: "Line 2 - Large Animal Chute",
-  },
-  {
-    cert_id: "AM-2026-0947",
-    tag_number: "GT-2026-0092",
-    species: "Goat",
-    owner: "Corazon Aquino-Lim",
-    inspection_date: "2026-09-14 08:05",
-    inspector_name: "Dr. Aris Santos",
-    inspector_license: "PRC-VET-004419",
-    temperature: "39.4°C",
-    clinical_notes: "Active, responsive, no oronasal discharge. Fleece dry and clean.",
-    decision: "Passed",
-    facility: "Small Stock Inspection Gate",
-  }
-];
-
-const MOCK_CERTIFICATIONS_POST = [
-  {
-    cert_id: "PM-2026-0511",
-    tag_number: "SW-2026-0811",
-    carcass_weight: "82.4 kg",
-    species: "Swine",
-    owner: "Juan Dela Cruz",
-    inspection_date: "2026-09-14 09:15",
-    inspector_name: "Dr. Aris Santos",
-    meat_inspector: "Insp. Bernardo Dizon",
-    viscera_findings: "Liver, heart, spleen normal. Mesenteric lymph nodes clear.",
-    carcass_condition: "Well-bled, clean dressing, good fat firmness. Zero contamination.",
-    decision: "Passed",
-    stamp_code: "NMIS-INSP-PASS-01",
-  },
-  {
-    cert_id: "PM-2026-0512",
-    tag_number: "SW-2026-0808",
-    carcass_weight: "79.8 kg",
-    species: "Swine",
-    owner: "Vicente Morales",
-    inspection_date: "2026-09-14 09:25",
-    inspector_name: "Dr. Aris Santos",
-    meat_inspector: "Insp. Bernardo Dizon",
-    viscera_findings: "Localized liver milk spots (Ascaris suum migration). Liver excised.",
-    carcass_condition: "Carcass muscular and skeletal integrity sound. Passed with partial trim.",
-    decision: "Passed (Partial)",
-    stamp_code: "NMIS-INSP-PART-04",
-  },
-  {
-    cert_id: "PM-2026-0513",
-    tag_number: "CT-2026-0422",
-    carcass_weight: "264.0 kg",
-    species: "Cattle",
-    owner: "Antonio Valenzuela",
-    inspection_date: "2026-09-14 08:50",
-    inspector_name: "Dr. Ma. Elena Cruz",
-    meat_inspector: "Insp. Teresa Ocampo",
-    viscera_findings: "Extensive hepatic fibrosis, diffuse bile duct calcification (Fascioliasis).",
-    carcass_condition: "Generalized icterus detected in adipose tissue and serous membranes. Severe.",
-    decision: "Condemned",
-    stamp_code: "NMIS-CONDEMNED-09",
-  },
-  {
-    cert_id: "PM-2026-0514",
-    tag_number: "CT-2026-0417",
-    carcass_weight: "248.5 kg",
-    species: "Cattle",
-    owner: "Rodrigo Alcantara",
-    inspection_date: "2026-09-14 09:40",
-    inspector_name: "Dr. Ma. Elena Cruz",
-    meat_inspector: "Insp. Teresa Ocampo",
-    viscera_findings: "Lungs, heart, kidneys, reticulorumen clean. No parasitic cysts.",
-    carcass_condition: "Grade A carcass conformation, clean spinal split, good chill temp (4°C).",
-    decision: "Passed",
-    stamp_code: "NMIS-INSP-PASS-01",
-  },
-  {
-    cert_id: "PM-2026-0515",
-    tag_number: "CB-2026-0102",
-    carcass_weight: "278.2 kg",
-    species: "Carabao",
-    owner: "Danilo Ramos",
-    inspection_date: "2026-09-14 10:05",
-    inspector_name: "Dr. Aris Santos",
-    meat_inspector: "Insp. Bernardo Dizon",
-    viscera_findings: "Normal gastrointestinal viscera, heart and pericardium clean.",
-    carcass_condition: "Healthy lean color, adequately bled, stamp affixed at quarters.",
-    decision: "Passed",
-    stamp_code: "NMIS-INSP-PASS-01",
-  }
-];
-
-const MOCK_PERMITS = [
-  {
-    permit_no: "TP-2026-0419",
-    type: "Livestock Transit Permit",
-    entity: "Batangas Cattle Consignment (8 Head)",
-    issued_by: "Provincial Vet Office - Batangas",
-    issue_date: "2026-09-13",
-    expiry_date: "2026-09-15",
-    validity: "Valid",
-    origin: "Padre Garcia, Batangas",
-    destination: "City Central Abattoir",
-    carrier_plate: "NBF-8921",
-  },
-  {
-    permit_no: "VHC-2026-1102",
-    type: "Veterinary Health Certificate",
-    entity: "Bulacan Swine Batch 2026-A (25 Head)",
-    issued_by: "BAI Veterinary Quarantine Office",
-    issue_date: "2026-09-12",
-    expiry_date: "2026-09-15",
-    validity: "Valid",
-    origin: "San Ildefonso, Bulacan",
-    destination: "City Central Abattoir",
-    carrier_plate: "CAP-4432",
-  },
-  {
-    permit_no: "TP-2026-0399",
-    type: "Livestock Transit Permit",
-    entity: "Swine Consignment - San Rafael",
-    issued_by: "Municipal Agricultural Office",
-    issue_date: "2026-09-10",
-    expiry_date: "2026-09-12",
-    validity: "Expired",
-    origin: "San Rafael, Bulacan",
-    destination: "City Central Abattoir",
-    carrier_plate: "WXY-9021",
-  },
-  {
-    permit_no: "FAC-2026-0084",
-    type: "Facility Sanitation Clearance",
-    entity: "Abattoir Main Slaughter Floor & Hanging Rails",
-    issued_by: "City Health & Sanitation Dept",
-    issue_date: "2026-09-01",
-    expiry_date: "2026-09-30",
-    validity: "Valid",
-    origin: "On-Site Facility",
-    destination: "Slaughterhouse Complex",
-    carrier_plate: "N/A - Facility",
-  },
-  {
-    permit_no: "MIC-2026-0914",
-    type: "Meat Inspection Certificate",
-    entity: "Carcass Batch SW-2026-0811 / 0812 (162.2 kg)",
-    issued_by: "City Abattoir Administration",
-    issue_date: "2026-09-14",
-    expiry_date: "2026-09-15",
-    validity: "Valid",
-    origin: "Tinaan, City of Naga, Cebu, Philippines",
-    destination: "City Public Wet Market",
-    carrier_plate: "REFRIG-VAN-04",
-  },
-  {
-    permit_no: "TP-2026-0428",
-    type: "Livestock Transit Permit",
-    entity: "Carabao Transport - Cagayan Valley",
-    issued_by: "BAI Region II Quarantine Station",
-    issue_date: "2026-09-13",
-    expiry_date: "2026-09-16",
-    validity: "Valid",
-    origin: "Echague, Isabela",
-    destination: "Tinaan, City of Naga, Cebu, Philippines",
-    carrier_plate: "ABC-1945",
-  },
-  {
-    permit_no: "DSP-2026-0312",
-    type: "Meat Transfer & Dispatch Clearance",
-    entity: "Consigned Beef Quarters (512 kg)",
-    issued_by: "City Meat Inspection Service",
-    issue_date: "2026-09-14",
-    expiry_date: "2026-09-14",
-    validity: "Pending",
-    origin: "Tinaan, City of Naga, Cebu, Philippines",
-    destination: "Metro Cold Storage Facility",
-    carrier_plate: "TRK-6712",
-  }
-];
-
-const MOCK_PAYMENTS = [
-  {
-    txn_id: "TXN-2026-8812",
-    tag_ref: "SW-2026-0811",
-    owner: "Juan Dela Cruz",
-    fee_type: "Slaughter & Meat Inspection Fee",
-    amount: 520.00,
-    payment_method: "Cash",
-    or_number: "OR-2026-4418",
-    payment_date: "2026-09-14 08:30",
-    status: "Paid",
-    cashier: "Staff M. Bautista",
-  },
-  {
-    txn_id: "TXN-2026-8813",
-    tag_ref: "SW-2026-0812",
-    owner: "Maria Theresa Santos",
-    fee_type: "Slaughter & Meat Inspection Fee",
-    amount: 540.00,
-    payment_method: "GCash",
-    or_number: "OR-2026-4419",
-    payment_date: "2026-09-14 08:45",
-    status: "Paid",
-    cashier: "Staff M. Bautista",
-  },
-  {
-    txn_id: "TXN-2026-8814",
-    tag_ref: "CT-2026-0419",
-    owner: "Rodrigo Alcantara",
-    fee_type: "Bovine Slaughter & Lairage Fee",
-    amount: 1450.00,
-    payment_method: "Bank Transfer (LandBank)",
-    or_number: "OR-2026-4420",
-    payment_date: "2026-09-14 09:00",
-    status: "Paid",
-    cashier: "Staff J. Perez",
-  },
-  {
-    txn_id: "TXN-2026-8809",
-    tag_ref: "SW-2026-0809",
-    owner: "Eduardo Navarro",
-    fee_type: "Ante-Mortem & Holding Fee",
-    amount: 1850.00,
-    payment_method: "Awaiting Payment",
-    or_number: "PENDING-OR",
-    payment_date: "2026-09-14 07:00",
-    status: "Unpaid",
-    cashier: "Unassigned",
-  },
-  {
-    txn_id: "TXN-2026-8815",
-    tag_ref: "CT-2026-0422",
-    owner: "Antonio Valenzuela",
-    fee_type: "Condemned Carcass Disposal Fee",
-    amount: 650.00,
-    payment_method: "GCash",
-    or_number: "OR-2026-4423",
-    payment_date: "2026-09-14 09:30",
-    status: "Paid",
-    cashier: "Staff J. Perez",
-  },
-  {
-    txn_id: "TXN-2026-8801",
-    tag_ref: "CB-2026-0098",
-    owner: "Danilo Ramos",
-    fee_type: "Overnight Corral Lairage",
-    amount: 300.00,
-    payment_method: "Cash Refunded",
-    or_number: "RF-2026-0012",
-    payment_date: "2026-09-13 16:00",
-    status: "Refunded",
-    cashier: "Staff M. Bautista",
-  },
-  {
-    txn_id: "TXN-2026-8816",
-    tag_ref: "GT-2026-0092",
-    owner: "Corazon Aquino-Lim",
-    fee_type: "Caprine Inspection & Slaughter",
-    amount: 220.00,
-    payment_method: "Cash",
-    or_number: "OR-2026-4424",
-    payment_date: "2026-09-14 09:45",
-    status: "Paid",
-    cashier: "Staff M. Bautista",
-  }
-];
-
-const INITIAL_ALERTS = [
-  {
-    id: "ALT-01",
-    severity: "critical",
-    title: "Febrile Live Animal in Holding Pen",
-    message: "Tag SW-2026-0814 registered 40.8°C rectal temp. Quarantined in Bay 4. Barred from slaughter line pending lab screen.",
-    timestamp: "18m ago",
-    tag_ref: "SW-2026-0814",
-    tab_target: "certifications",
-  },
-  {
-    id: "ALT-02",
-    severity: "critical",
-    title: "Expired Transit Permit Detected",
-    message: "Permit TP-2026-0399 expired on 2026-09-12. Livestock transport carrier held at intake checkpoint.",
-    timestamp: "32m ago",
-    tag_ref: "TP-2026-0399",
-    tab_target: "permits",
-  },
-  {
-    id: "ALT-03",
-    severity: "critical",
-    title: "Total Carcass Condemnation Issued",
-    message: "Carcass CT-2026-0422 condemned due to generalized icterus and hepatic fascioliasis. Denaturing scheduled at digester.",
-    timestamp: "1h ago",
-    tag_ref: "CT-2026-0422",
-    tab_target: "certifications",
-  },
-  {
-    id: "ALT-04",
-    severity: "warning",
-    title: "Unpaid Slaughter Processing Fee",
-    message: "Consignment TXN-2026-8809 (?1,850.00) pending payment past 24h SLA. Meat release lock applied.",
-    timestamp: "45m ago",
-    tag_ref: "TXN-2026-8809",
-    tab_target: "payments",
-  },
-  {
-    id: "ALT-05",
-    severity: "warning",
-    title: "Transit Clearance Expiring in < 36h",
-    message: "Veterinary Health Certificate VHC-2026-1102 for Bulacan Swine consignment expires tomorrow afternoon.",
-    timestamp: "2h ago",
-    tag_ref: "VHC-2026-1102",
-    tab_target: "permits",
-  },
-  {
-    id: "ALT-06",
-    severity: "warning",
-    title: "Pen B-2 High Capacity Alert",
-    message: "Bovine holding pen B-2 reaches 92% capacity (11/12 head). Divert incoming cattle transports to Corral B-3.",
-    timestamp: "3h ago",
-    tag_ref: "Pen B-2",
-    tab_target: "tracker",
-  },
-  {
-    id: "ALT-07",
-    severity: "info",
-    title: "Intake Batch Check-in Completed",
-    message: "15 Head Swine checked in from San Jose Del Monte. Health certificates verified and ear tags logged.",
-    timestamp: "3h ago",
-    tag_ref: "SW-2026-0811",
-    tab_target: "tracker",
-  },
-  {
-    id: "ALT-08",
-    severity: "info",
-    title: "Official Meat Inspection Certificate Issued",
-    message: "Certificate #MIC-2026-0914 signed by Dr. Aris Santos for 162.2 kg inspected pork quarters.",
-    timestamp: "4h ago",
-    tag_ref: "MIC-2026-0914",
-    tab_target: "permits",
-  }
-];
-
-// ==========================================================================
-// COMPONENT
-// ==========================================================================
 export const LivestockInspectionDashboard = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
+
+  // Live Supabase Database Connections
+  const { data: dbLivestock = [] } = useSupabase(TABLES.LIVESTOCK);
+  const { data: dbAnteMortem = [] } = useSupabase(TABLES.ANTE_MORTEM);
+  const { data: dbPostMortem = [] } = useSupabase(TABLES.POST_MORTEM);
+  const { data: dbPermits = [] } = useSupabase(TABLES.PERMITS);
+  const { data: dbPayments = [] } = useSupabase(TABLES.PAYMENTS);
+  const { data: dbNotifications = [] } = useSupabase(TABLES.NOTIFICATIONS);
+
+  // Normalize real Supabase records into standard view models
+  const liveLivestock = useMemo(() => {
+    return dbLivestock.map((l) => ({
+      id: l.id,
+      tag_number: l.tag_number || "N/A",
+      species: l.species || "Swine",
+      breed: l.breed || l.species || "N/A",
+      gender: l.gender || l.sex || "N/A",
+      weight: l.weight ? `${l.weight} kg` : "N/A",
+      owner_name: l.owner_name || "N/A",
+      origin: l.origin || l.address || "City of Naga",
+      holding_pen: l.holding_pen || l.pen || "General Holding",
+      arrival_date: l.registered_at || l.received_date || l.created_at || "N/A",
+      health_status: l.health_status || (l.status === "Condemned" ? "Suspect" : "Healthy"),
+      workflow_stage: l.status || "Intake Received",
+    }));
+  }, [dbLivestock]);
+
+  const liveAnteCertifications = useMemo(() => {
+    return dbAnteMortem.map((am) => ({
+      id: am.id,
+      cert_id: am.cert_number || `AM-${String(am.id).slice(0, 8)}`,
+      tag_number: am.tag_number || "N/A",
+      species: am.species || "Livestock",
+      owner: am.owner_name || "N/A",
+      decision: am.decision || "Passed for Slaughter",
+      temperature: am.temperature ? `${am.temperature}°C` : "Normal",
+      inspection_date: am.inspection_date || am.created_at || "N/A",
+      inspector_name: am.inspector_name || am.veterinarian || "City Meat Inspector",
+      clinical_notes: am.notes || am.findings || "No abnormal signs. Cleared.",
+    }));
+  }, [dbAnteMortem]);
+
+  const livePostCertifications = useMemo(() => {
+    return dbPostMortem.map((pm) => ({
+      id: pm.id,
+      cert_id: pm.cert_number || `PM-${String(pm.id).slice(0, 8)}`,
+      tag_number: pm.tag_number || "N/A",
+      species: pm.species || "Livestock",
+      owner: pm.owner_name || "N/A",
+      decision: pm.decision || "Fit for Human Consumption",
+      stamp_code: pm.stamp_code || "NMIS-PASSED-NAGA",
+      carcass_weight: pm.carcass_weight ? `${pm.carcass_weight} kg` : "N/A",
+      viscera_findings: pm.viscera_findings || "Normal",
+      carcass_condition: pm.carcass_condition || "Sound & wholesome",
+      inspector_name: pm.inspector_name || pm.veterinarian || "Licensed Abattoir Vet",
+    }));
+  }, [dbPostMortem]);
+
+  const livePermits = useMemo(() => {
+    return dbPermits.map((p) => ({
+      id: p.id,
+      permit_no: p.permit_number || p.permit_no || `MIC-${String(p.id).slice(0, 8)}`,
+      type: p.permit_type || "Meat Inspection Certificate (MIC)",
+      entity: p.owner_name || p.consignee || "Registered Consignee",
+      validity: p.status === "Approved" || p.status === "Active" ? "Valid" : p.status || "Pending",
+      issued_by: p.issued_by || "City Veterinary Office",
+      origin: p.origin || "City of Naga Slaughterhouse",
+      destination: p.destination || "Local Meat Market",
+      carrier_plate: p.carrier_plate || p.vehicle_plate || "N/A",
+    }));
+  }, [dbPermits]);
+
+  const livePayments = useMemo(() => {
+    return dbPayments.map((py) => ({
+      id: py.id,
+      txn_id: py.transaction_id || `TXN-${String(py.id).slice(0, 8)}`,
+      tag_ref: py.tag_number || "N/A",
+      owner: py.owner_name || "N/A",
+      fee_type: py.fee_type || "Slaughterhouse Fee",
+      or_number: py.or_number || py.official_receipt || "OR-PENDING",
+      payment_method: py.payment_method || "Cash",
+      status: py.status || "Paid",
+      amount: typeof py.amount === "number" ? `₱${py.amount.toLocaleString("en-PH", { minimumFractionDigits: 2 })}` : (py.amount || "₱0.00"),
+    }));
+  }, [dbPayments]);
+
+  const liveAlerts = useMemo(() => {
+    return dbNotifications.slice(0, 15).map((n) => ({
+      id: n.id,
+      severity: n.type === "danger" || n.severity === "critical" ? "critical" : n.type === "warning" ? "warning" : "info",
+      title: n.title || "Abattoir Notification",
+      message: n.message || n.content || "",
+      timestamp: n.created_at ? new Date(n.created_at).toLocaleTimeString("en-PH", { hour: "numeric", minute: "2-digit" }) : "Recent",
+      tag_ref: n.tag_number || "LSMIS",
+      tab_target: (n.module || "").toLowerCase().includes("permit") ? "permits" : (n.module || "").toLowerCase().includes("pay") ? "payments" : "tracker",
+    }));
+  }, [dbNotifications]);
 
   // Navigation & View State
   const [activeTab, setActiveTab] = useState("tracker"); // tracker | certifications | permits | payments
@@ -583,7 +120,8 @@ export const LivestockInspectionDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("All");
 
   // Alert System State
-  const [alerts, setAlerts] = useState(INITIAL_ALERTS);
+  const [alerts, setAlerts] = useState([]);
+  useEffect(() => { setAlerts(liveAlerts); }, [liveAlerts]);
   const [alertFilter, setAlertFilter] = useState("all"); // all | critical | warning | info
   const [isAlertDrawerOpen, setIsAlertDrawerOpen] = useState(false);
 
@@ -638,7 +176,7 @@ export const LivestockInspectionDashboard = () => {
 
   // 1. Livestock Tracker Data
   const filteredLivestock = useMemo(() => {
-    return MOCK_LIVESTOCK.filter((item) => {
+    return liveLivestock.filter((item) => {
       const matchSpecies = speciesFilter === "All" || item.species === speciesFilter;
       const matchStatus = statusFilter === "All" || item.health_status.toLowerCase() === statusFilter.toLowerCase();
       const matchSearch =
@@ -655,7 +193,7 @@ export const LivestockInspectionDashboard = () => {
 
   // 2. Certifications Data
   const filteredAnteCertifications = useMemo(() => {
-    return MOCK_CERTIFICATIONS_ANTE.filter((item) => {
+    return liveAnteCertifications.filter((item) => {
       const matchSpecies = speciesFilter === "All" || item.species === speciesFilter;
       const matchStatus = statusFilter === "All" || item.decision.toLowerCase() === statusFilter.toLowerCase();
       const matchSearch =
@@ -671,7 +209,7 @@ export const LivestockInspectionDashboard = () => {
   }, [query, speciesFilter, statusFilter]);
 
   const filteredPostCertifications = useMemo(() => {
-    return MOCK_CERTIFICATIONS_POST.filter((item) => {
+    return livePostCertifications.filter((item) => {
       const matchSpecies = speciesFilter === "All" || item.species === speciesFilter;
       const matchStatus = statusFilter === "All" || item.decision.toLowerCase().includes(statusFilter.toLowerCase());
       const matchSearch =
@@ -689,7 +227,7 @@ export const LivestockInspectionDashboard = () => {
 
   // 3. Permit Records Data
   const filteredPermits = useMemo(() => {
-    return MOCK_PERMITS.filter((item) => {
+    return livePermits.filter((item) => {
       const matchStatus = statusFilter === "All" || item.validity.toLowerCase() === statusFilter.toLowerCase();
       const matchSearch =
         !query ||
@@ -706,7 +244,7 @@ export const LivestockInspectionDashboard = () => {
 
   // 4. Payment Records Data
   const filteredPayments = useMemo(() => {
-    return MOCK_PAYMENTS.filter((item) => {
+    return livePayments.filter((item) => {
       const matchStatus = statusFilter === "All" || item.status.toLowerCase() === statusFilter.toLowerCase();
       const matchSearch =
         !query ||

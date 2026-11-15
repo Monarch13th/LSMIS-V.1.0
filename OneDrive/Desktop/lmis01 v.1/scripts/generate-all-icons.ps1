@@ -160,22 +160,14 @@ foreach ($splash in $splashes) {
     $bmpSplash = [System.Drawing.Bitmap]::new($w, $h, [System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
     $gSplash = Get-HQGraphics $bmpSplash
     
-    # White background matching clean theme
+    # Pure white background with no splash logo
     $gSplash.Clear([System.Drawing.Color]::White)
-    
-    # Center the logo: diameter is ~40-45% of the smaller dimension
-    $minDim = [Math]::Min($w, $h)
-    $logoSize = [int]($minDim * 0.45)
-    $posX = [int](($w - $logoSize) / 2)
-    $posY = [int](($h - $logoSize) / 2)
-    
-    $gSplash.DrawImage($sourceImg, $posX, $posY, $logoSize, $logoSize)
     $gSplash.Dispose()
     
     $bmpSplash.Save((Join-Path $dir "splash.png"), [System.Drawing.Imaging.ImageFormat]::Png)
     $bmpSplash.Dispose()
     
-    Write-Host "Generated $($splash.Dir)/splash.png ($w x $h, logo $logoSize x $logoSize)"
+    Write-Host "Generated $($splash.Dir)/splash.png ($w x $h, clean white)"
 }
 
 $sourceImg.Dispose()

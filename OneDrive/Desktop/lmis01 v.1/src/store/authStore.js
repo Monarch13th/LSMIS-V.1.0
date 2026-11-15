@@ -81,14 +81,11 @@ const getInitialSession = () => {
 };
 
 const initialCached = getInitialSession();
-const hasValidCachedSession = Boolean(
-  initialCached && initialCached.role && initialCached.session_id
-);
 
 export const authStore = createStore({
   session: initialCached,
-  loading: !hasValidCachedSession,
-  isInitialized: hasValidCachedSession,
+  loading: !initialCached,
+  isInitialized: false,
 });
 
 const isGoogleOAuthHandshakeInProgress = () => {
@@ -361,10 +358,9 @@ export const initializeAuth = async () => {
   isAuthInitialized = true;
 
   try {
-    // Fast 1500ms safety timeout race to prevent indefinite splash screen blocking
     const sessionPromise = supabase.auth.getSession();
     const timeoutPromise = new Promise((resolve) =>
-      setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 1500)
+      setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 2500)
     );
     const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
     if (error && error.message !== "Auth timeout") {
@@ -378,18 +374,6 @@ export const initializeAuth = async () => {
 
     const sbSession = data?.session;
     if (sbSession?.user) {
-      const cached = getInitialSession();
-      // If cached session exists and is valid, use it immediately to avoid unnecessary reinitialization
-      if (
-        cached &&
-        cached.role &&
-        cached.session_id &&
-        (cached.user_id === sbSession.user.id || cached.email?.toLowerCase() === (sbSession.user.email || "").toLowerCase().trim())
-      ) {
-        authStore.set({ session: cached, loading: false, isInitialized: true });
-        return;
-      }
-
       // Enforce Supabase Auth MFA Assurance Level (AAL2)
       try {
         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -403,16 +387,27 @@ export const initializeAuth = async () => {
         console.warn("MFA assurance check error:", aalErr);
       }
 
-      const resolved = await resolveUserSession(sbSession.user, cached);
-      if (resolved) {
-        try {
-          setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(resolved));
-        } catch (_) { }
-        authStore.set({ session: resolved, loading: false, isInitialized: true });
-      } else if (cached && cached.role) {
+      const cached = getInitialSession();
+      // If cached session exists and is valid, use it immediately to avoid unnecessary reinitialization
+      if (
+        cached &&
+        cached.role &&
+        cached.session_id &&
+        (cached.user_id === sbSession.user.id || cached.email?.toLowerCase() === (sbSession.user.email || "").toLowerCase().trim())
+      ) {
         authStore.set({ session: cached, loading: false, isInitialized: true });
       } else {
-        authStore.set({ session: null, loading: false, isInitialized: true });
+        const resolved = await resolveUserSession(sbSession.user, cached);
+        if (resolved) {
+          try {
+            setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(resolved));
+          } catch (_) { }
+          authStore.set({ session: resolved, loading: false, isInitialized: true });
+        } else if (cached && cached.role) {
+          authStore.set({ session: cached, loading: false, isInitialized: true });
+        } else {
+          authStore.set({ session: null, loading: false, isInitialized: true });
+        }
       }
     } else {
       // No active session in Supabase Auth

@@ -14,26 +14,20 @@ const TERMINATION_SIGNAL_KEY = "lsmis_session_termination_signal";
 const PRESENCE_CHANNEL = "lsmis_presence_channel";
 const AUDIT_MIRROR_KEY = "lsmis_personnel_audit_mirror_v1";
 
-const appendAuditMirror = (logEntry) => {
-  if (!logEntry || typeof window === "undefined") return;
+// Auto-purge legacy audit mirror from client localStorage so Supabase audit_logs table remains sole source of truth
+if (typeof window !== "undefined") {
   try {
-    const raw = localStorage.getItem(AUDIT_MIRROR_KEY);
-    const list = raw ? JSON.parse(raw) : [];
-    const safeList = Array.isArray(list) ? list : [];
-    const next = [logEntry, ...safeList.filter((item) => item && item.id !== logEntry.id)].slice(0, 600);
-    localStorage.setItem(AUDIT_MIRROR_KEY, JSON.stringify(next));
+    localStorage.removeItem(AUDIT_MIRROR_KEY);
   } catch (_) {}
+}
+
+const appendAuditMirror = (_logEntry) => {
+  // Obsoleted: Supabase audit_logs PostgreSQL table is the single source of truth
 };
 
 const readAuditMirror = () => {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(AUDIT_MIRROR_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  // Obsoleted: Supabase audit_logs PostgreSQL table is the single source of truth
+  return [];
 };
 
 /**
@@ -927,50 +921,6 @@ export const logActivity = async ({
     timestamp: manilaIsoTimestamp,
   };
 
-  appendAuditMirror(newLog);
-  _operationalAuditCache.timestamp = 0;
-
-  // Also persist cross-role personnel audit stream to system_settings so Admin sees all roles regardless of legacy RLS
-  if (actor.userRole === "admin" || actor.userRole === "vet" || actor.userRole === "staff") {
-    (async () => {
-      try {
-        const { data: sysRow } = await supabase
-          .from(TABLES.SETTINGS)
-          .select("email")
-          .eq("id", "lsmis_personnel_audit_stream")
-          .maybeSingle();
-        let existingList = [];
-        if (sysRow?.email) {
-          try {
-            const parsed = JSON.parse(sysRow.email);
-            if (Array.isArray(parsed)) existingList = parsed;
-          } catch (_) {}
-        }
-        const compactEntry = {
-          id: newLog.id,
-          user_id: newLog.user_id,
-          user: newLog.user,
-          role: newLog.role,
-          action: newLog.action,
-          module: newLog.module,
-          tag_number: newLog.tag_number,
-          old_value: newLog.old_value ? String(newLog.old_value).slice(0, 300) : null,
-          new_value: newLog.new_value ? String(newLog.new_value).slice(0, 300) : null,
-          field_changed: newLog.field_changed,
-          security_event: newLog.security_event,
-          severity: newLog.severity,
-          timestamp: newLog.timestamp,
-        };
-        const updatedList = [compactEntry, ...existingList.filter((i) => i && i.id !== newLog.id)].slice(0, 250);
-        await supabase.from(TABLES.SETTINGS).upsert({
-          id: "lsmis_personnel_audit_stream",
-          system_name: "LSMIS Personnel Audit Stream",
-          email: JSON.stringify(updatedList),
-        });
-      } catch (_) {}
-    })();
-  }
-
   try {
     let { error } = await supabase.from(TABLES.AUDIT_LOGS).insert(newLog);
     if (error && /user_id/i.test(`${error.message || ""} ${error.details || ""}`)) {
@@ -1401,19 +1351,6 @@ export const getAuditLogById = async (id) => {
       return { data: enrichAuditRecord(data, directory), error: null };
     }
 
-    // Fallback to local mirror if record is in cross-tab local mirror
-    const mirrorMatch = readAuditMirror().find((item) => item && String(item.id) === String(id));
-    if (mirrorMatch) {
-      return { data: enrichAuditRecord(mirrorMatch, directory), error: null };
-    }
-
-    // Fallback to synthesized operational personnel audit records
-    const opsRecords = await fetchOperationalPersonnelAuditLogs(directory);
-    const opsMatch = opsRecords.find((item) => item && String(item.id) === String(id));
-    if (opsMatch) {
-      return { data: enrichAuditRecord(opsMatch, directory), error: null };
-    }
-
     if (error) {
       console.warn("getAuditLogById error:", error);
       return { data: null, error };
@@ -1453,11 +1390,9 @@ export const fetchAllEnrichedPersonnelAuditLogs = async (roleScope = null) => {
     console.warn("fetchAllEnrichedPersonnelAuditLogs query warning:", error);
   }
 
-  // Merge database records with local cross-tab mirror and operational personnel activity records
+  // Live Supabase audit_logs PostgreSQL database table is the authoritative single source of truth
   const dbRows = Array.isArray(data) ? data : [];
-  const mirrorRows = readAuditMirror();
-  const opsRows = isCentralizedAdminView ? await fetchOperationalPersonnelAuditLogs(directory) : [];
-  const combinedRaw = [...dbRows, ...mirrorRows, ...opsRows];
+  const combinedRaw = [...dbRows];
 
   const enriched = combinedRaw
     .map((row) => enrichAuditRecord(row, directory))

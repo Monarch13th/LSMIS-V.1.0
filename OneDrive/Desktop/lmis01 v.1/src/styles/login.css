@@ -1859,14 +1859,14 @@
 }
 
 .launch-splash-logo-wrap {
-  width: clamp(100px, 28vw, 130px);
-  height: clamp(100px, 28vw, 130px);
+  width: 96px;
+  height: 96px;
   border-radius: 0;
   padding: 0;
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1886,7 +1886,7 @@
   border-radius: 0;
   object-fit: contain;
   display: block;
-  filter: none !important; /* Preserves official colors and details without dark overlays or shadows */
+  filter: none !important;
 }
 
 .launch-splash-text {
