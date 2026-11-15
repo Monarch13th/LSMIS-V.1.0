@@ -133,7 +133,7 @@ const STATUS_FILTERS = [
 ];
 
 const toManilaDateStr = (val) => {
-  if (!val || val === "—") return "";
+  if (!val || val === "â€”") return "";
   try {
     const d = new Date(val);
     if (isNaN(d.getTime())) return "";
@@ -144,7 +144,7 @@ const toManilaDateStr = (val) => {
 };
 
 const toTimestampMs = (val) => {
-  if (!val || val === "—") return 0;
+  if (!val || val === "â€”") return 0;
   const d = new Date(val);
   return isNaN(d.getTime()) ? 0 : d.getTime();
 };
@@ -525,8 +525,8 @@ export const RoleReportsModule = ({
           (oObj?.first_name ? `${oObj.first_name} ${oObj.last_name || ""}`.trim() : "") ||
           oname ||
           "Registered Producer",
-        contact: oObj?.contact || oObj?.phone || oObj?.mobile || a?.owner_contact || "—",
-        address: oObj?.address || a?.owner_address || "—",
+        contact: oObj?.contact || oObj?.phone || oObj?.mobile || a?.owner_contact || "â€”",
+        address: oObj?.address || a?.owner_address || "â€”",
         avatar_url: oObj?.avatar_url || a?.owner_avatar || a?.avatar_url || null,
       };
     };
@@ -618,7 +618,7 @@ export const RoleReportsModule = ({
       return true;
     };
 
-    // 1. ADMIN — ALL SYSTEM TRANSACTIONS
+    // 1. ADMIN â€¢ ALL SYSTEM TRANSACTIONS
     if (normalizedRole === "admin" && activeType === "transactions") {
       return (livestock || []).map((l) => {
         const tagKey = String(l.tag_number || "").trim().toLowerCase();
@@ -631,7 +631,7 @@ export const RoleReportsModule = ({
         const dsp = dispatchByTag.get(tagKey);
 
         const weightKg = Number(cw?.total_weight || cw?.cold_weight || l.weight || 0);
-        const permitNo = pmt?.permit_no || l.permit_no || "—";
+        const permitNo = pmt?.permit_no || l.permit_no || "â€”";
         const latestDate =
           dsp?.created_at ||
           l.permit_issued_at ||
@@ -657,16 +657,16 @@ export const RoleReportsModule = ({
           pr?.status === "Completed" ? "Slaughtered" : pr?.operator ? `Floor (${pr.operator})` : null,
           pm ? `PM: ${pm.decision}` : null,
           weightKg > 0 ? `${weightKg.toFixed(1)} kg` : null,
-          permitNo !== "—" ? `Permit: ${permitNo}` : null,
+          permitNo !== "â€”" ? `Permit: ${permitNo}` : null,
         ]
           .filter(Boolean)
-          .join(" · ");
+          .join(" â€¢ ");
 
         return {
           id: l.id || l.tag_number,
           reportTitle: "System Transaction",
-          stageLabel: permitNo !== "—" ? "Meat Permit Issued" : weightKg > 0 ? "Carcass Weighed" : pm ? "Post-Mortem" : pr ? "Slaughter" : am ? "Ante-Mortem" : !awaiting ? "Animal Marking" : "Registration",
-          tag_number: l.tag_number || "—",
+          stageLabel: permitNo !== "â€”" ? "Meat Permit Issued" : weightKg > 0 ? "Carcass Weighed" : pm ? "Post-Mortem" : pr ? "Slaughter" : am ? "Ante-Mortem" : !awaiting ? "Animal Marking" : "Registration",
+          tag_number: l.tag_number || "â€”",
           species: l.species || "Livestock",
           sex: formatSex(l.sex),
           owner_id: owner.id,
@@ -699,7 +699,7 @@ export const RoleReportsModule = ({
           id: l.id || l.tag_number,
           reportTitle: "Registration & Marking",
           stageLabel: awaiting ? "Registration" : "Animal Marking",
-          tag_number: l.tag_number || "—",
+          tag_number: l.tag_number || "â€”",
           species: l.species || "Livestock",
           sex: formatSex(l.sex),
           mark_type: markType,
@@ -707,7 +707,7 @@ export const RoleReportsModule = ({
           owner_name: owner.name,
           owner_contact: owner.contact,
           owner_address: owner.address,
-          details: `${l.species || "Livestock"} (${formatSex(l.sex)}) · Type of Marking: ${markType}`,
+          details: `${l.species || "Livestock"} (${formatSex(l.sex)}) â€¢ Type of Marking: ${markType}`,
           weight_kg: Number(l.weight || 0),
           personnel: actor,
           date: ts,
@@ -769,7 +769,7 @@ export const RoleReportsModule = ({
             id: key,
             reportTitle: "Ante-Mortem Inspection",
             stageLabel: "Ante-Mortem",
-            tag_number: a.tag_number || "—",
+            tag_number: a.tag_number || "â€”",
             species: a.species || animal?.species || "Livestock",
             sex: formatSex(a.sex || animal?.sex),
             owner_id: owner.id,
@@ -827,7 +827,7 @@ export const RoleReportsModule = ({
             id: key,
             reportTitle: "Ante-Mortem Inspection",
             stageLabel: "Ante-Mortem",
-            tag_number: l.tag_number || "—",
+            tag_number: l.tag_number || "â€”",
             species: l.species || "Livestock",
             sex: formatSex(l.sex),
             owner_id: owner.id,
@@ -871,7 +871,7 @@ export const RoleReportsModule = ({
             id: key,
             reportTitle: "Post-Mortem Inspection",
             stageLabel: "Post-Mortem",
-            tag_number: p.tag_number || "—",
+            tag_number: p.tag_number || "â€”",
             species: p.species || animal?.species || "Livestock",
             sex: formatSex(p.sex || animal?.sex),
             owner_id: owner.id,
@@ -908,14 +908,14 @@ export const RoleReportsModule = ({
             id: key,
             reportTitle: `${stage} Condemnation`,
             stageLabel: `${stage} Condemnation`,
-            tag_number: c.tag_number || "—",
+            tag_number: c.tag_number || "â€”",
             species: c.species || animal?.species || "Livestock",
             sex: formatSex(c.sex || animal?.sex),
             owner_id: owner.id,
             owner_name: owner.name,
             owner_contact: owner.contact,
             owner_address: owner.address,
-            details: `Part: ${partLabel} · Reason: ${c.reason || "Pathological finding"} (${c.quantity || (w > 0 ? `${w} kg` : "1 Head")})`,
+            details: `Part: ${partLabel} â€¢ Reason: ${c.reason || "Pathological finding"} (${c.quantity || (w > 0 ? `${w} kg` : "1 Head")})`,
             weight_kg: w,
             personnel: c.inspector || "Veterinary Inspector",
             date: c.created_at || c.date,
@@ -938,14 +938,14 @@ export const RoleReportsModule = ({
           id: c.id || c.tag_number,
           reportTitle: "Carcass Weighing & Branding",
           stageLabel: "Carcass Weighing",
-          tag_number: c.tag_number || "—",
+          tag_number: c.tag_number || "â€”",
           species: c.species || animal?.species || "Livestock",
           sex: formatSex(c.sex || animal?.sex),
           owner_id: owner.id,
           owner_name: owner.name,
           owner_contact: owner.contact,
           owner_address: owner.address,
-          details: `Weight: ${w.toFixed(1)} kg · Grade: ${c.grade || "A"} · Brand: ${c.brand_code || "NAGA-PASSED"}`,
+          details: `Weight: ${w.toFixed(1)} kg â€¢ Grade: ${c.grade || "A"} â€¢ Brand: ${c.brand_code || "NAGA-PASSED"}`,
           weight_kg: w,
           personnel: c.weighed_by || c.inspector_name || "Veterinary Personnel",
           date: c.weighed_at || c.created_at || c.date,
@@ -977,14 +977,14 @@ export const RoleReportsModule = ({
           id: c.id || `${stage}-${tagKey}`,
           reportTitle: `${stage} Condemnation`,
           stageLabel: stage,
-          tag_number: c.tag_number || "—",
+          tag_number: c.tag_number || "â€”",
           species: c.species || animal?.species || "Livestock",
           sex: formatSex(c.sex || animal?.sex),
           owner_id: owner.id,
           owner_name: owner.name,
           owner_contact: owner.contact,
           owner_address: owner.address,
-          details: `Part: ${partLabel} · Reason: ${c.reason || "Pathological finding"} (${c.quantity || (w > 0 ? `${w} kg` : "1 Head")})`,
+          details: `Part: ${partLabel} â€¢ Reason: ${c.reason || "Pathological finding"} (${c.quantity || (w > 0 ? `${w} kg` : "1 Head")})`,
           weight_kg: w,
           personnel: c.inspector || "Veterinary Inspector",
           date: c.created_at || c.date,
@@ -1005,14 +1005,14 @@ export const RoleReportsModule = ({
           id: `ante-cond-${a.id || tagKey}`,
           reportTitle: "Ante-Mortem Condemnation",
           stageLabel: "Ante-Mortem",
-          tag_number: a.tag_number || "—",
+          tag_number: a.tag_number || "â€”",
           species: a.species || animal?.species || "Livestock",
           sex: formatSex(a.sex || animal?.sex),
           owner_id: owner.id,
           owner_name: owner.name,
           owner_contact: owner.contact,
           owner_address: owner.address,
-          details: `Live Animal · Reason: ${a.findings || a.remarks || "Condemned at screening"}`,
+          details: `Live Animal â€¢ Reason: ${a.findings || a.remarks || "Condemned at screening"}`,
           weight_kg: 0,
           personnel: a.inspector_name || "Veterinary Inspector",
           date: a.created_at || a.date,
@@ -1040,14 +1040,14 @@ export const RoleReportsModule = ({
             id: `post-cond-${p.id || tagKey}`,
             reportTitle: "Post-Mortem Condemnation",
             stageLabel: "Post-Mortem",
-            tag_number: p.tag_number || "—",
+            tag_number: p.tag_number || "â€”",
             species: p.species || animal?.species || "Livestock",
             sex: formatSex(p.sex || animal?.sex),
             owner_id: owner.id,
             owner_name: owner.name,
             owner_contact: owner.contact,
             owner_address: owner.address,
-            details: `Whole Carcass · Reason: ${p.findings || p.remarks || "Condemned at post-mortem"}`,
+            details: `Whole Carcass â€¢ Reason: ${p.findings || p.remarks || "Condemned at post-mortem"}`,
             weight_kg: 0,
             personnel: p.inspector_name || "Veterinary Inspector",
             date: p.created_at || p.inspected_at || p.date,
@@ -1062,14 +1062,14 @@ export const RoleReportsModule = ({
             id: `post-part-${p.id || tagKey}`,
             reportTitle: "Post-Mortem Condemnation",
             stageLabel: "Post-Mortem",
-            tag_number: p.tag_number || "—",
+            tag_number: p.tag_number || "â€”",
             species: p.species || animal?.species || "Livestock",
             sex: formatSex(p.sex || animal?.sex),
             owner_id: owner.id,
             owner_name: owner.name,
             owner_contact: owner.contact,
             owner_address: owner.address,
-            details: `Part: ${parts} · Reason: ${p.findings || p.remarks || "Partial condemnation"}`,
+            details: `Part: ${parts} â€¢ Reason: ${p.findings || p.remarks || "Partial condemnation"}`,
             weight_kg: 0,
             personnel: p.inspector_name || "Veterinary Inspector",
             date: p.created_at || p.inspected_at || p.date,
@@ -1116,14 +1116,14 @@ export const RoleReportsModule = ({
           id: proc.id || sr.id || tagKey,
           reportTitle: normalizedRole === "staff" ? "Team Operator and Slaughter" : "Slaughter Processing",
           stageLabel: `Team: ${operatorTeam}`,
-          tag_number: proc.tag_number || sr.tag_number || "—",
+          tag_number: proc.tag_number || sr.tag_number || "â€”",
           species: proc.species || animal?.species || "Livestock",
           sex: formatSex(animal?.sex),
           owner_id: owner.id,
           owner_name: owner.name,
           owner_contact: owner.contact,
           owner_address: owner.address,
-          details: `Assigned Team: ${operatorTeam}${w > 0 ? ` · Carcass Weight: ${w.toFixed(1)} kg` : ""}`,
+          details: `Assigned Team: ${operatorTeam}${w > 0 ? ` â€¢ Carcass Weight: ${w.toFixed(1)} kg` : ""}`,
           weight_kg: w,
           personnel: actor !== operatorTeam ? `${operatorTeam} (${actor})` : operatorTeam,
           date: ts,
@@ -1170,14 +1170,14 @@ export const RoleReportsModule = ({
           id: pmt?.id || `pmt-${l.id || tagKey}`,
           reportTitle: "Meat Permit",
           stageLabel: isIssued ? "Permit Issued" : "Ready for Permit",
-          tag_number: l.tag_number || "—",
+          tag_number: l.tag_number || "â€”",
           species: l.species || cw?.species || "Livestock",
           sex: formatSex(l.sex || cw?.sex),
           owner_id: owner.id,
           owner_name: owner.name,
           owner_contact: owner.contact,
           owner_address: owner.address,
-          details: `Permit #: ${permitNo}${w > 0 ? ` · Certified Weight: ${w.toFixed(1)} kg` : ""}${cw?.brand_code ? ` · Brand: ${cw.brand_code}` : ""}`,
+          details: `Permit #: ${permitNo}${w > 0 ? ` â€¢ Certified Weight: ${w.toFixed(1)} kg` : ""}${cw?.brand_code ? ` â€¢ Brand: ${cw.brand_code}` : ""}`,
           weight_kg: w,
           personnel: pmt?.issued_by || dsp?.released_by || extractStaffActor(l, "permit") || "Staff Personnel",
           date: dsp?.created_at || pmt?.issued_at || l.permit_issued_at || cw?.weighed_at || l.updated_at || l.created_at,
@@ -1189,7 +1189,7 @@ export const RoleReportsModule = ({
       return list;
     }
 
-    // 8. ADMIN — VET & STAFF PERSONNEL ACTIVITY SUMMARY ('personnel')
+    // 8. ADMIN â€¢ VET & STAFF PERSONNEL ACTIVITY SUMMARY ('personnel')
     if (normalizedRole === "admin" && activeType === "personnel") {
       return (auditLogs || [])
         .filter((log) => {
@@ -1377,8 +1377,8 @@ export const RoleReportsModule = ({
           key,
           owner_name: item.owner_name || "Registered Producer",
           owner_avatar: avatarUrl,
-          owner_contact: item.owner_contact || "—",
-          owner_address: item.owner_address || "—",
+          owner_contact: item.owner_contact || "â€”",
+          owner_address: item.owner_address || "â€”",
           stageLabel: item.stageLabel || item.reportTitle,
           reportTitle: item.reportTitle,
           speciesList: [],
@@ -1402,7 +1402,7 @@ export const RoleReportsModule = ({
       if (!grp.speciesList.includes(sp)) grp.speciesList.push(sp);
       grp.speciesCounts[sp] = (grp.speciesCounts[sp] || 0) + 1;
 
-      if (item.personnel && item.personnel !== "—") {
+      if (item.personnel && item.personnel !== "â€”") {
         grp.personnelSet.add(item.personnel);
       }
       grp.totalWeight += Number(item.weight_kg || 0);
@@ -1755,17 +1755,17 @@ export const RoleReportsModule = ({
     const csvRows = rowsToExport.map((r) =>
       [
         r.reportTitle || activeReportMeta.title,
-        r.owner_name || "—",
-        r.owner_contact || "—",
-        r.tag_number || "—",
-        r.species || "—",
-        r.sex || "—",
-        r.stageLabel || "—",
-        isRegMarking ? (r.raw?.mark_type || "Ear Tag") : (r.details || "—"),
-        r.weight_kg > 0 ? Number(r.weight_kg).toFixed(2) : "—",
-        r.personnel || "—",
-        r.date ? formatPhDateTime(r.date) : "—",
-        r.status || "—",
+        r.owner_name || "â€”",
+        r.owner_contact || "â€”",
+        r.tag_number || "â€”",
+        r.species || "â€”",
+        r.sex || "â€”",
+        r.stageLabel || "â€”",
+        isRegMarking ? (r.raw?.mark_type || "Ear Tag") : (r.details || "â€”"),
+        r.weight_kg > 0 ? Number(r.weight_kg).toFixed(2) : "â€”",
+        r.personnel || "â€”",
+        r.date ? formatPhDateTime(r.date) : "â€”",
+        r.status || "â€”",
       ]
         .map((val) => `"${String(val ?? "").replace(/"/g, '""')}"`)
         .join(",")
@@ -1800,7 +1800,7 @@ export const RoleReportsModule = ({
     const dateRangeText = getDateRangeDescription();
 
     const escapeHtml = (str) =>
-      String(str ?? "—")
+      String(str ?? "â€”")
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -1813,11 +1813,11 @@ export const RoleReportsModule = ({
           <td style="text-align:center;">${idx + 1}</td>
           <td style="font-weight:700;">${escapeHtml(r.owner_name)}</td>
           <td style="font-family:monospace;font-weight:700;">${escapeHtml(r.tag_number)}</td>
-          <td>${escapeHtml(r.species)} ${r.sex && r.sex !== "—" ? `(${escapeHtml(r.sex)})` : ""}</td>
+          <td>${escapeHtml(r.species)} ${r.sex && r.sex !== "â€”" ? `(${escapeHtml(r.sex)})` : ""}</td>
           <td>${escapeHtml(r.stageLabel)}</td>
-          <td>${escapeHtml(isRegMarking ? (r.raw?.mark_type || "Ear Tag") : (r.details || "—"))}</td>
+          <td>${escapeHtml(isRegMarking ? (r.raw?.mark_type || "Ear Tag") : (r.details || "â€”"))}</td>
           <td>${escapeHtml(r.personnel)}</td>
-          <td>${escapeHtml(r.date ? formatPhDateTime(r.date) : "—")}</td>
+          <td>${escapeHtml(r.date ? formatPhDateTime(r.date) : "â€”")}</td>
           <td style="font-weight:700;">${escapeHtml(r.status)}</td>
         </tr>`
       )
@@ -1855,7 +1855,7 @@ export const RoleReportsModule = ({
       </head>
       <body>
         <div class="header">
-          <p>Republic of the Philippines · Province of Cebu · City of Naga</p>
+          <p>Republic of the Philippines â€¢ Province of Cebu â€¢ City of Naga</p>
           <h2>LSMIS Operations Report</h2>
           <p style="margin: 3px 0 0 0; font-size: 11px; color: #5D6660;">Tinaan, City of Naga, Cebu, Philippines</p>
           <h3>${escapeHtml(reportTitle)}</h3>
@@ -2023,7 +2023,7 @@ export const RoleReportsModule = ({
           minHeight: 0,
         }}
       >
-        {/* Search & Filter Toolbar — Strictly Single Line & Auto-Compressing */}
+        {/* Search & Filter Toolbar â€¢ Strictly Single Line & Auto-Compressing */}
         <div
           ref={toolbarRef}
           className="records-fixed-header"
@@ -2329,13 +2329,13 @@ export const RoleReportsModule = ({
                               {grp.owner_name}
                             </div>
                             <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", marginTop: 2 }}>
-                              {grp.owner_contact !== "—" ? grp.owner_contact : grp.personnelSummary}
+                              {grp.owner_contact !== "â€”" ? grp.owner_contact : grp.personnelSummary}
                             </div>
                           </div>
                         </div>
                       </td>
 
-                      {/* Stage — Clean plain text without pill border */}
+                      {/* Stage â€¢ Clean plain text without pill border */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle" }}>
                         <span
                           style={{
@@ -2355,11 +2355,11 @@ export const RoleReportsModule = ({
                       <td style={{ padding: "14px 18px", verticalAlign: "middle", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.75, color: "#187A56", flexShrink: 0 }} />
-                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "—"}</span>
+                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "â€”"}</span>
                         </div>
                       </td>
 
-                      {/* Species — Clean inline comma-separated text without counts */}
+                      {/* Species â€¢ Clean inline comma-separated text without counts */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                           {(grp.speciesList || []).join(", ") || "Livestock"}
@@ -2373,7 +2373,7 @@ export const RoleReportsModule = ({
                         </span>
                       </td>
 
-                      {/* Status Summary — Clean color-coded status dots without pill borders */}
+                      {/* Status Summary â€¢ Clean color-coded status dots without pill borders */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle" }}>
                         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 12px" }}>
                           {grp.completedCount > 0 && (
@@ -2435,9 +2435,9 @@ export const RoleReportsModule = ({
         }}
         title={
           selectedRecord
-            ? `Report Record Details — Tag #${selectedRecord.tag_number || ""}`
+            ? `Report Record Details â€¢ Tag #${selectedRecord.tag_number || ""}`
             : selectedOwnerView
-            ? `${activeReportMeta.title} — ${selectedOwnerView.owner_name}`
+            ? `${activeReportMeta.title} â€¢ ${selectedOwnerView.owner_name}`
             : "Report Details"
         }
         size="xl"
@@ -2480,7 +2480,7 @@ export const RoleReportsModule = ({
                   onClick={() =>
                     handleExportPDF(
                       selectedOwnerView.items,
-                      `${activeReportMeta.title} — ${selectedOwnerView.owner_name}`,
+                      `${activeReportMeta.title} â€¢ ${selectedOwnerView.owner_name}`,
                       selectedOwnerView.owner_name
                     )
                   }
@@ -2506,19 +2506,19 @@ export const RoleReportsModule = ({
         }
       >
         {selectedRecord ? (
-          /* Level 2: Single Record Dossier — Clean Unified List View (Instead of fragmented boxes) */
+          /* Level 2: Single Record Dossier â€¢ Clean Unified List View (Instead of fragmented boxes) */
           (() => {
             const recStatus = getStatusDotStyle(selectedRecord.status);
             const detailItems = [
               {
                 icon: <Icon.User size={13} />,
                 label: "Owner / Producer",
-                value: selectedRecord.owner_name || "—",
+                value: selectedRecord.owner_name || "â€”",
               },
               {
                 icon: <Icon.Phone size={13} />,
                 label: "Contact",
-                value: selectedRecord.owner_contact || "—",
+                value: selectedRecord.owner_contact || "â€”",
               },
               {
                 icon: <Icon.Tag size={13} />,
@@ -2546,7 +2546,7 @@ export const RoleReportsModule = ({
                       cursor: "pointer",
                     }}
                   >
-                    <span>{selectedRecord.tag_number || "—"}</span>
+                    <span>{selectedRecord.tag_number || "â€”"}</span>
                     <Icon.Copy size={11} style={{ opacity: 0.6 }} />
                   </span>
                 ),
@@ -2554,14 +2554,14 @@ export const RoleReportsModule = ({
               {
                 icon: <Icon.Cow size={13} />,
                 label: "Species & Sex",
-                value: `${selectedRecord.species || "—"} (${selectedRecord.sex || "—"})`,
+                value: `${selectedRecord.species || "â€”"} (${selectedRecord.sex || "â€”"})`,
               },
               {
                 icon: <Icon.Activity size={13} />,
                 label: "Stage",
                 value: (
                   <span style={{ color: "#187A56", fontWeight: 700 }}>
-                    {selectedRecord.stageLabel || selectedRecord.reportTitle || "—"}
+                    {selectedRecord.stageLabel || selectedRecord.reportTitle || "â€”"}
                   </span>
                 ),
               },
@@ -2591,14 +2591,14 @@ export const RoleReportsModule = ({
               {
                 icon: <Icon.UserCheck size={13} />,
                 label: "Responsible Personnel",
-                value: selectedRecord.personnel || "—",
+                value: selectedRecord.personnel || "â€”",
               },
               {
                 icon: <Icon.Calendar size={13} />,
                 label: "Date & Time (Asia/Manila)",
                 value: (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    {selectedRecord.date ? formatPhDateTime(selectedRecord.date) : "—"}
+                    {selectedRecord.date ? formatPhDateTime(selectedRecord.date) : "â€”"}
                   </span>
                 ),
               },
@@ -2662,7 +2662,7 @@ export const RoleReportsModule = ({
                       <Icon.Copy size={11} style={{ opacity: 0.6, marginLeft: 2 }} />
                     </span>
                     <span style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>
-                      {selectedRecord.species} {selectedRecord.sex ? `· ${selectedRecord.sex}` : ""}
+                      {selectedRecord.species} {selectedRecord.sex ? `â€” ${selectedRecord.sex}` : ""}
                     </span>
                   </div>
 
@@ -2818,7 +2818,7 @@ export const RoleReportsModule = ({
                           </div>
                         </td>
                         <td style={{ width: "18%", minWidth: 160, padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)", whiteSpace: "nowrap" }}>
-                          {item.date ? formatPhDateTime(item.date) : "—"}
+                          {item.date ? formatPhDateTime(item.date) : "â€”"}
                         </td>
                         <td style={{ width: "15%", minWidth: 140, padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)" }}>
                           {isRegMarking ? (

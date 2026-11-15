@@ -18,7 +18,7 @@ import { authSecurityService } from "../../services/authSecurityService";
 import { mfaService } from "../../services/mfaService";
 import { useAuth } from "../../hooks/useAuth";
 import { scrollToFirstError } from "../../utils/formValidation";
-import logoImg from "../../assets/logo.jpg";
+import logoImg from "../../assets/logo.png";
 
 // Official Google 4-Color "G" Brand Logo
 const GoogleLogo = ({ size = 19 }) => (
@@ -1683,7 +1683,7 @@ export const Login = ({ embedded = false, initialView }) => {
       // DB Activity logging & Presence Registration
       try {
         supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
-        // Immediately register a fresh active session — shows user Online right away
+        // Immediately register a fresh active session â€¢ shows user Online right away
         registerLoginSession({ name, email: cleanEmail, role, module: "Dashboard", loginTime: loginTimeIso });
         logActivity({
           action: `User logged in (${name} - ${role})`,
@@ -2260,7 +2260,7 @@ export const Login = ({ embedded = false, initialView }) => {
             <div className="login-brand-hero">
               <h2>Livestock Slaughter and Meat Inspection Management System</h2>
               <p>
-                City Government of Naga, Cebu · City Abattoir Complex. Providing certified animal traceability, veterinary meat inspection clearances, and automated statutory fee assessment.
+                City Government of Naga, Cebu â€¢ City Abattoir Complex. Providing certified animal traceability, veterinary meat inspection clearances, and automated statutory fee assessment.
               </p>
             </div>
             <div className="login-features">
@@ -2375,7 +2375,7 @@ export const Login = ({ embedded = false, initialView }) => {
                           setTwoFaCode(val);
                           if (twoFaError) setTwoFaError("");
                         }}
-                        placeholder="••••••"
+                        placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
                         style={{
                           textAlign: "center",
                           fontSize: 26,
@@ -3407,7 +3407,7 @@ export const Login = ({ embedded = false, initialView }) => {
                         onKeyDown={(e) => {
                           if (e.key === "Enter") e.preventDefault();
                         }}
-                        placeholder="• • • • • •"
+                        placeholder="â€¢ â€¢ â€¢ â€¢ â€¢ â€¢"
                         required
                       />
                     </div>

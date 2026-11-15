@@ -563,7 +563,7 @@ export const OwnerDashboard = () => {
         resultLabel: matchedAnimal.progress?.isPartialCondemned ? "Passed with Partial Condemnation" : "Condemned",
         scope: matchedAnimal.progress?.isPartialCondemned ? "partial" : "whole",
         locationArea: "Tinaan, City of Naga, Cebu, Philippines",
-        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "—",
+        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "â€”",
         inspectionDateFormatted: formatPhDateTime(new Date()),
         vetName: "Official Meat Inspection Service (Veterinarian)",
         pathologyReasons: "Veterinary condemnation decision recorded.",
@@ -710,7 +710,7 @@ export const OwnerDashboard = () => {
         {/* 1. Total Registered */}
         <div
           onClick={() => setTodayStatusFilter("all")}
-          data-ag-tip={`${totalCount} total registered livestock (${todayEnrichedAnimals.length} today) — click to show all`}
+          data-ag-tip={`${totalCount} total registered livestock (${todayEnrichedAnimals.length} today) â€¢ click to show all`}
           data-ag-tip-pos="left"
           style={{
             padding: "12px 14px",
@@ -739,7 +739,7 @@ export const OwnerDashboard = () => {
         {/* 2. For Inspection */}
         <div
           onClick={() => setTodayStatusFilter("inspection")}
-          data-ag-tip={`${forInspectionCount} livestock awaiting veterinary inspection — click to filter`}
+          data-ag-tip={`${forInspectionCount} livestock awaiting veterinary inspection â€¢ click to filter`}
           data-ag-tip-pos="right"
           style={{
             padding: "12px 14px",
@@ -768,7 +768,7 @@ export const OwnerDashboard = () => {
         {/* 3. Approved Livestock */}
         <div
           onClick={() => setTodayStatusFilter("cleared")}
-          data-ag-tip={`${approvedCount} livestock passed inspection — click to filter cleared`}
+          data-ag-tip={`${approvedCount} livestock passed inspection â€¢ click to filter cleared`}
           data-ag-tip-pos="left"
           style={{
             padding: "12px 14px",
@@ -797,7 +797,7 @@ export const OwnerDashboard = () => {
         {/* 4. Condemned Livestock */}
         <div
           onClick={() => setTodayStatusFilter("condemned")}
-          data-ag-tip={`${condemnedCount} condemned / rejected livestock — click to filter`}
+          data-ag-tip={`${condemnedCount} condemned / rejected livestock â€¢ click to filter`}
           data-ag-tip-pos="right"
           style={{
             padding: "12px 14px",
@@ -991,7 +991,7 @@ export const OwnerDashboard = () => {
           </div>
         ) : filteredTodayAnimals.length === 0 ? (
           <div style={{ textAlign: "center", padding: "28px 12px", color: "#5D6660" }}>
-            <span style={{ fontSize: 32, display: "block", marginBottom: 6 }}>??</span>
+            <Icon.Inbox size={36} style={{ color: "var(--color-text-muted)", display: "block", margin: "0 auto 6px" }} />
             <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
               No livestock registered today.
             </div>
@@ -1224,16 +1224,16 @@ export const OwnerDashboard = () => {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--color-text-muted, #5D6660)", flexWrap: "wrap" }}>
                     <span style={{ fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                       {a.species}
-                      {a.breed && a.breed !== "Standard" ? ` · ${a.breed}` : ""}
+                      {a.breed && a.breed !== "Standard" ? ` â€¢ ${a.breed}` : ""}
                     </span>
-                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>•</span>
+                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>â€”</span>
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                       <span style={{ color: "var(--color-text-muted, #9BA49E)", fontWeight: 500 }}>Sex:</span>
                       <strong style={{ color: "var(--color-text, #444C47)", fontWeight: 700 }}>{formatSex(a.sex)}</strong>
                     </span>
                     {carcassWeight && (
                       <>
-                        <span style={{ color: "var(--color-border, #C2CAC4)" }}>•</span>
+                        <span style={{ color: "var(--color-border, #C2CAC4)" }}>â€”</span>
                         <span style={{ color: "#059669", fontWeight: 700 }}>{carcassWeight} kg</span>
                       </>
                     )}
@@ -1358,7 +1358,7 @@ export const OwnerDashboard = () => {
                 }}
               >
                 <span>
-                  Showing {(todayPage - 1) * todayPageSize + 1}–{Math.min(todayPage * todayPageSize, filteredTodayAnimals.length)} of {filteredTodayAnimals.length}
+                  Showing {(todayPage - 1) * todayPageSize + 1}â€”{Math.min(todayPage * todayPageSize, filteredTodayAnimals.length)} of {filteredTodayAnimals.length}
                 </span>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1686,7 +1686,7 @@ export const OwnerDashboard = () => {
                   </div>
                   <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginTop: 2 }}>
                     {selectedAnimal.species}
-                    {selectedAnimal.breed && selectedAnimal.breed !== "Standard" ? ` · ${selectedAnimal.breed}` : ""}
+                    {selectedAnimal.breed && selectedAnimal.breed !== "Standard" ? ` â€¢ ${selectedAnimal.breed}` : ""}
                   </div>
                 </div>
 
@@ -1812,7 +1812,7 @@ export const OwnerDashboard = () => {
                               flexShrink: 0,
                             }}
                           >
-                            {isDone ? "?" : isRej ? "?" : st.id}
+                            {isDone ? <Icon.Check size={12} strokeWidth={3} /> : isRej ? <Icon.X size={12} strokeWidth={3} /> : st.id}
                           </span>
                           <div>
                             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
@@ -1820,7 +1820,7 @@ export const OwnerDashboard = () => {
                             </div>
                             <div style={{ fontSize: 10.5, color: "var(--color-text-muted, #5D6660)", marginTop: 1 }}>
                               {st.sublabel || (isDone ? "Completed" : isCurr ? "In Progress" : "Pending")}
-                              {st.actor ? ` · ${st.actor}` : ""}
+                              {st.actor ? ` â€¢ ${st.actor}` : ""}
                             </div>
                           </div>
                         </div>
@@ -2000,7 +2000,7 @@ export const OwnerDashboard = () => {
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                 <span style={{ color: "#5D6660" }}>Livestock Tag:</span>
-                <strong>{selectedPermit.tag_number || "—"}</strong>
+                <strong>{selectedPermit.tag_number || "â€”"}</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                 <span style={{ color: "#5D6660" }}>Species:</span>

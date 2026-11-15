@@ -1020,7 +1020,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           overflow: "hidden",
         }}
       >
-        {/* Left Side Navigation — stationary, fixed in viewport, never scrolls */}
+        {/* Left Side Navigation â€¢ stationary, fixed in viewport, never scrolls */}
         <div
           className="settings-sidebar-nav"
           onWheel={handleNavWheel}
@@ -1572,7 +1572,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         <Icon.User size={14} style={{ color: "#187A56" }} /> Full Name
                       </span>
                       <span className="owner-profile-info-val">
-                        {profile.full_name || "—"}
+                        {profile.full_name || "â€”"}
                       </span>
                     </div>
 
@@ -1581,7 +1581,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         <Icon.Mail size={14} style={{ color: "#187A56" }} /> Email Address
                       </span>
                       <span className="owner-profile-info-val" style={{ wordBreak: "break-all" }}>
-                        {profile.email || "—"}
+                        {profile.email || "â€”"}
                       </span>
                     </div>
 
@@ -1654,7 +1654,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       <Icon.Calendar size={14} style={{ color: "#187A56" }} /> Member Since
                     </span>
                     <span className="owner-profile-info-val">
-                      {userCreatedAt ? formatDate(userCreatedAt) : "—"}
+                      {userCreatedAt ? formatDate(userCreatedAt) : "â€”"}
                     </span>
                   </div>
 
@@ -1681,7 +1681,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       <Icon.Mail size={14} style={{ color: "#187A56" }} /> Registered Email
                     </span>
                     <span className="owner-profile-info-val" style={{ wordBreak: "break-all" }}>
-                      {profile.email || "—"}
+                      {profile.email || "â€”"}
                     </span>
                   </div>
 
@@ -1696,7 +1696,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       style={{ margin: 0 }}
                       title="Click to copy official Personnel ID"
                     >
-                      <span>{personnelId || "—"}</span>
+                      <span>{personnelId || "â€”"}</span>
                       {copiedPersonnelId ? (
                         <span style={{ color: "#10b981", display: "flex", alignItems: "center", gap: 2 }}>
                           <Icon.Check size={12} /> Copied

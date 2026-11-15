@@ -16,7 +16,7 @@ import { initials } from "../../utils/helpers";
 const resolveTagNumbers = (log) => {
   if (!log) return [];
   const found = new Set();
-  if (log.tag_number && log.tag_number !== "—" && log.tag_number !== "null") {
+  if (log.tag_number && log.tag_number !== "â€”" && log.tag_number !== "null") {
     log.tag_number.split(",").forEach((t) => {
       const trimmed = t.trim();
       if (trimmed) found.add(trimmed);

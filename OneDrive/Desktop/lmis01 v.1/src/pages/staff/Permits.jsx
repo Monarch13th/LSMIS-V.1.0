@@ -1045,7 +1045,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         animalStatus === "weighed" ||
         animalWfStatus === "WEIGHED" ||
         Boolean(animal?.weighed_at);
-      const brandCode = carc?.brand_code || (carc ? `CAR-${displayTag}` : "—");
+      const brandCode = carc?.brand_code || (carc ? `CAR-${displayTag}` : "â€”");
 
       // Post-mortem clearance check
       const pmDecision = String(pm?.decision || animal?.post_mortem_decision || "Passed").toLowerCase();
@@ -1162,7 +1162,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       grp.items.push(itemRecord);
       if (!grp.tags.includes(displayTag)) grp.tags.push(displayTag);
       if (!grp.speciesList.includes(species)) grp.speciesList.push(species);
-      if (brandCode && brandCode !== "—" && !grp.receipts.includes(brandCode)) grp.receipts.push(brandCode);
+      if (brandCode && brandCode !== "â€”" && !grp.receipts.includes(brandCode)) grp.receipts.push(brandCode);
       if (perm?.permit_no && !grp.receipts.includes(perm.permit_no)) grp.receipts.push(perm.permit_no);
       if (perm) {
         if (!grp.permit) grp.permit = perm;
@@ -1260,7 +1260,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
   }, [carcass, payments, dbPermits, slaughterRecords, slaughterProcessing, livestock, dispatches, fees]);
 
-  const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "—";
+  const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "â€”";
 
   const resolvedPermit = useMemo(() => {
     if (!selectedGroup) return null;
@@ -1347,7 +1347,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         const ownerKey = (batchGrp.owner_id || batchGrp.owner_name || "unknown_owner").trim().toLowerCase();
         const groupKey = `issued_${ownerKey}_${weighingKey}`;
 
-        const itemPermitNo = it.permit_no || perm?.permit_no || animal?.permit_no || batchGrp.permit_no || "—";
+        const itemPermitNo = it.permit_no || perm?.permit_no || animal?.permit_no || batchGrp.permit_no || "â€”";
         const itemPermitIssuedAt = it.permit_issued_at || perm?.issued_at || perm?.created_at || animal?.permit_issued_at || null;
         const itemPermitIssuedBy = it.permit_issued_by || perm?.issued_by || animal?.permit_issued_by || "Jenel Selgas";
 
@@ -1393,9 +1393,9 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
             species: it.species || batchGrp.species || "Hog",
             amount: 0,
             totalAmount: 0,
-            receipt_no: itemPermitNo !== "—" ? itemPermitNo : batchGrp.receipt_no,
+            receipt_no: itemPermitNo !== "â€”" ? itemPermitNo : batchGrp.receipt_no,
             receipts: [],
-            permit_no: itemPermitNo !== "—" ? itemPermitNo : batchGrp.permit_no,
+            permit_no: itemPermitNo !== "â€”" ? itemPermitNo : batchGrp.permit_no,
             permit_id: perm?.id || batchGrp.permit_id || null,
             permit_issued: true,
             isIssued: true,
@@ -1407,8 +1407,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         grp.items.push(enrichedItem);
         if (!grp.tags.includes(it.tag_number)) grp.tags.push(it.tag_number);
         if (it.species && !grp.speciesList.includes(it.species)) grp.speciesList.push(it.species);
-        if (it.brand_code && it.brand_code !== "—" && !grp.receipts.includes(it.brand_code)) grp.receipts.push(it.brand_code);
-        if (itemPermitNo && itemPermitNo !== "—" && !grp.receipts.includes(itemPermitNo)) grp.receipts.push(itemPermitNo);
+        if (it.brand_code && it.brand_code !== "â€”" && !grp.receipts.includes(it.brand_code)) grp.receipts.push(it.brand_code);
+        if (itemPermitNo && itemPermitNo !== "â€”" && !grp.receipts.includes(itemPermitNo)) grp.receipts.push(itemPermitNo);
         grp.amount += (it.feeAmount || 0);
         grp.totalAmount += (it.feeAmount || 0);
 
@@ -1943,10 +1943,10 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                         ? formatPhDateTime(grp.weighing_date_time)
                         : (grp.permit_issued_at
                             ? formatPhDateTime(grp.permit_issued_at)
-                            : (grp.rawTimestamp ? formatPhDateTime(grp.rawTimestamp) : "—")))
+                            : (grp.rawTimestamp ? formatPhDateTime(grp.rawTimestamp) : "â€”")))
                     : (grp.slaughter_date_time
                         ? formatPhDateTime(grp.slaughter_date_time)
-                        : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "—"));
+                        : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "â€”"));
                   const rawPermitNo = grp.permit_no || (grp.receipts || []).find((r) => String(r).startsWith("MIC-")) || "";
                   const basePermitNo = rawPermitNo ? rawPermitNo.split("-").slice(0, 3).join("-") : "";
 
@@ -1999,7 +1999,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                                   flexShrink: 0,
                                 }}
                               >
-                                {(grp.owner_name || "?")
+                                {(grp.owner_name || "â€”")
                                   .split(" ")
                                   .map((w) => w[0])
                                   .join("")
@@ -2067,7 +2067,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                               {basePermitNo}
                             </span>
                           ) : (
-                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
+                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>â€”</span>
                           )}
                         </td>
 
@@ -2259,7 +2259,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       <Modal
         open={Boolean(viewingBatch)}
         onClose={() => setViewingBatch(null)}
-        title={`Meat Permit Records — ${viewingBatch?.owner_name || ""}`}
+        title={`Meat Permit Records â€¢ ${viewingBatch?.owner_name || ""}`}
         size="xl"
         footer={
           viewingBatch && (() => {
@@ -2404,9 +2404,9 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
-                            {it.brand_code || "—"}
+                            {it.brand_code || "â€”"}
                           </td>
-                          <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{it.species || "—"}</td>
+                          <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{it.species || "â€”"}</td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{sexLabel}</td>
                           <td style={{ padding: "12px 14px", textAlign: "right", fontSize: 12.5, fontWeight: 700, color: "var(--color-text)" }}>
                             {it.hasCarcassWeight ? `${Number(it.carcass_weight).toFixed(2)} kg` : <span style={{ color: "#ef4444" }}>Unweighed</span>}
@@ -2468,7 +2468,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       })()}
 
 
-      <Modal open={!!selectedGroup} onClose={() => setSelectedGroup(null)} title={permitModalMode === "print" ? "Print Preview — Meat Permit" : "Official Meat Permit"} size="lg"
+      <Modal open={!!selectedGroup} onClose={() => setSelectedGroup(null)} title={permitModalMode === "print" ? "Print Preview â€¢ Meat Permit" : "Official Meat Permit"} size="lg"
         footer={
           <div className="no-print" style={{ display: "flex", gap: 10, justifyContent: "flex-end", alignItems: "center", width: "100%", flexWrap: "wrap" }}>
             <Button variant="outline" onClick={() => setSelectedGroup(null)}>Close</Button>

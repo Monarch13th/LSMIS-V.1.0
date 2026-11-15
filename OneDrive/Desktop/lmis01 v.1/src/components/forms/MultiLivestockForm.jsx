@@ -172,7 +172,7 @@ export const MultiLivestockForm = ({
       const species = item.species || "Unspecified";
       const sex = item.sex && item.sex !== "Unspecified" ? ` (${item.sex})` : "";
       const category = `${species}${sex}`;
-      const ageStr = item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "�");
+      const ageStr = item.age || (item.age_value ? formatAgeString(item.age_value, item.age_unit) : "—");
       const key = `${category}|||${ageStr}`;
       const qty = parseInt(item.quantity, 10) || 0;
       if (map.has(key)) {
@@ -699,7 +699,7 @@ export const MultiLivestockForm = ({
                         borderColor: errors[`sex_${entry.id}`] && !entry.sex ? "#ef4444" : undefined,
                       }}
                     >
-                      <span style={{ fontSize: 14 }}>?</span>
+                      <span style={{ fontSize: 14 }}>♂</span>
                       <span>Male</span>
                     </button>
                     <button
@@ -710,7 +710,7 @@ export const MultiLivestockForm = ({
                         borderColor: errors[`sex_${entry.id}`] && !entry.sex ? "#ef4444" : undefined,
                       }}
                     >
-                      <span style={{ fontSize: 14 }}>?</span>
+                      <span style={{ fontSize: 14 }}>♀</span>
                       <span>Female</span>
                     </button>
                   </div>

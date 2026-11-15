@@ -607,7 +607,7 @@ export const OwnerProfile = () => {
     session?.avatar_url ||
     "";
 
-  const registeredEmail = owner?.email || authUser?.email || session?.email || "—";
+  const registeredEmail = owner?.email || authUser?.email || session?.email || "â€”";
   const displayName = form.name || owner?.name || session?.name || "Livestock Owner";
   const isGoogleAuth = Boolean(
     owner?.auth_provider === "google" ||

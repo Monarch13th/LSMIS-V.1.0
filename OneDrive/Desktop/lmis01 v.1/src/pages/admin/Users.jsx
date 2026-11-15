@@ -684,9 +684,9 @@ export const Users = () => {
                               overflow: "hidden",
                               textOverflow: "ellipsis",
                             }}
-                            title={`${u.username ? `@${u.username} · ` : ""}${u.email || ""}`}
+                            title={`${u.username ? `@${u.username} â€¢ ` : ""}${u.email || ""}`}
                           >
-                            {u.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{u.username} · </span>}
+                            {u.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{u.username} â€¢ </span>}
                             <span>{u.email || "No email"}</span>
                           </div>
                         </div>

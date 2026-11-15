@@ -128,7 +128,7 @@
 /* Card action buttons should never wrap awkwardly on narrow cards */
 .dash .card-header { flex-wrap: wrap; gap: 8px; }
 
-/* Admin dashboard � single-frame, no page scroll (desktop) */
+/* Admin dashboard • single-frame, no page scroll (desktop) */
 .adm-dash { display: flex; flex-direction: column; gap: 14px; min-width: 0; height: calc(100vh - var(--header-height, 68px) - 48px); min-height: 460px; }
 .adm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
 .adm-title { margin: 0; font-size: 20px; font-weight: 800; color: var(--color-text); }

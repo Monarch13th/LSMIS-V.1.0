@@ -172,7 +172,7 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                         <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", lineHeight: 1.35 }}>
                           {r.action || "Activity recorded"}
                         </span>
-                        {r.tag_number && r.tag_number !== "—" && r.tag_number !== "null" && (
+                        {r.tag_number && r.tag_number !== "â€”" && r.tag_number !== "null" && (
                           <TagBadge tag={r.tag_number} />
                         )}
                       </div>
@@ -227,7 +227,7 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                                 ? dt.time
                                 : "";
                           if (dt?.date && dt.date !== "undefined" && dt.date !== "null" && dt.full !== "Not recorded") {
-                            return validTime ? `${dt.date} • ${validTime}` : dt.date;
+                            return validTime ? `${dt.date} â€¢ ${validTime}` : dt.date;
                           }
                           return formatManilaDateTime(r.timestamp || r.created_at);
                         })()}

@@ -181,7 +181,7 @@ export const ConfirmAdminPasswordModal = ({
                 type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={(e) => { setPassword(e.target.value); setError(null); }}
-                placeholder="••••••••••••"
+                placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                 disabled={loading}
                 style={{
                   width: "100%",

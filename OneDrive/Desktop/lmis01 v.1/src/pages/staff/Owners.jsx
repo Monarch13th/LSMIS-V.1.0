@@ -409,13 +409,13 @@ export const Owners = ({ initialTab = "owners" }) => {
     const headers = "Official ID,System ID,Full Name,Contact Number,Email,Address,Status,Registered Date,Active Livestock";
     const rows = (filtered && filtered.length > 0 ? filtered : data).map((o) => {
       const officialId = formatOwnerId(o);
-      const id = o.id || "—";
-      const name = o.name ? o.name.replace(/"/g, '""') : "—";
-      const contact = o.contact || "—";
-      const email = o.email || "—";
-      const address = o.address ? o.address.replace(/"/g, '""') : "—";
+      const id = o.id || "â€”";
+      const name = o.name ? o.name.replace(/"/g, '""') : "â€”";
+      const contact = o.contact || "â€”";
+      const email = o.email || "â€”";
+      const address = o.address ? o.address.replace(/"/g, '""') : "â€”";
       const status = o.status || "Approved";
-      const regDate = formatDate(o.registered_date || o.created_at) || "—";
+      const regDate = formatDate(o.registered_date || o.created_at) || "â€”";
       const count = getOwnerAnimalsCount(o);
       return `"${officialId}","${id}","${name}","${contact}","${email}","${address}","${status}","${regDate}","${count}"`;
     });
@@ -919,7 +919,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         <div>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--color-text)", fontSize: 13, fontWeight: 600 }}>
                             <Icon.Phone size={13} style={{ color: "#24966D", flexShrink: 0 }} />
-                            <span style={{ fontFamily: "monospace" }}>{o.contact || "—"}</span>
+                            <span style={{ fontFamily: "monospace" }}>{o.contact || "â€”"}</span>
                           </div>
                           {o.email && (
                             <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5, color: "var(--color-text-muted)", marginTop: 2 }}>
@@ -937,7 +937,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
                           <Icon.MapPin size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0, marginTop: 3 }} />
                           <span style={{ fontSize: 12.5, color: "var(--color-text)", lineHeight: 1.4 }} className="truncate" title={o.address}>
-                            {o.address || "—"}
+                            {o.address || "â€”"}
                           </span>
                         </div>
                       </td>
@@ -1263,7 +1263,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         {detailModalOwner.contact}
                       </a>
                     ) : (
-                      "—"
+                      "â€”"
                     )}
                   </div>
                 </div>
@@ -1310,7 +1310,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                         {detailModalOwner.email}
                       </a>
                     ) : (
-                      "—"
+                      "â€”"
                     )}
                   </div>
                 </div>
@@ -1348,7 +1348,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     Address
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3, lineHeight: 1.35 }} title={detailModalOwner.address}>
-                    {detailModalOwner.address || "—"}
+                    {detailModalOwner.address || "â€”"}
                   </div>
                 </div>
               </div>
@@ -1385,7 +1385,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     Registration Date
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)", marginTop: 3 }}>
-                    {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "—"}
+                    {formatDate(detailModalOwner.registered_date || detailModalOwner.created_at) || "â€”"}
                   </div>
                 </div>
               </div>
@@ -1422,7 +1422,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                     background: "var(--color-bg)",
                   }}
                 >
-                  <div style={{ fontSize: 24, marginBottom: 4 }}>??</div>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}><Icon.Inbox size={28} style={{ color: "var(--color-text-muted)" }} /></div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>No livestock registered yet</div>
                   <p style={{ fontSize: 12, color: "var(--color-text-muted)", margin: "4px 0 0 0" }}>
                     This owner does not have any active livestock in the abattoir queue.
@@ -1456,7 +1456,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                               {a.tag_number || a.id}
                             </td>
                             <td style={{ padding: "9px 12px", color: "var(--color-text)" }}>
-                              {a.species || "—"}
+                              {a.species || "â€”"}
                             </td>
                             <td style={{ padding: "9px 12px", fontWeight: 600, color: "var(--color-text)" }}>
                               {formatSex(a.sex)}
@@ -1528,7 +1528,7 @@ export const Owners = ({ initialTab = "owners" }) => {
       <Modal
         open={!!intakeModalOwner}
         onClose={() => setIntakeModalOwner(null)}
-        title={intakeModalOwner ? `Register Incoming Livestock — ${intakeModalOwner.name}` : "Register Incoming Livestock"}
+        title={intakeModalOwner ? `Register Incoming Livestock â€¢ ${intakeModalOwner.name}` : "Register Incoming Livestock"}
         dialogStyle={{
           maxWidth: 820,
           width: "95vw",

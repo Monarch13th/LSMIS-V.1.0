@@ -9,7 +9,7 @@ import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 
 /**
- * Owner Records — view-only complete livestock history for the authenticated owner.
+ * Owner Records â€¢ view-only complete livestock history for the authenticated owner.
  * Permits and payments are intentionally not shown here.
  */
 export const OwnerRecords = () => {
@@ -331,7 +331,7 @@ export const OwnerRecords = () => {
         resultLabel: matchedAnimal.progress?.isPartialCondemned ? "Passed with Partial Condemnation" : "Condemned",
         scope: matchedAnimal.progress?.isPartialCondemned ? "partial" : "whole",
         locationArea: "Tinaan, City of Naga, Cebu, Philippines",
-        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "—",
+        totalWeightQty: matchedAnimal.weight ? `${matchedAnimal.weight} kg` : "â€”",
         inspectionDateFormatted: formatPhDateTime(new Date()),
         vetName: "Official Meat Inspection Service (Veterinarian)",
         pathologyReasons: "Veterinary condemnation decision recorded.",
@@ -362,7 +362,7 @@ export const OwnerRecords = () => {
         {/* Title row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontSize: 17 }}>??</span>
+            <Icon.FileText size={18} style={{ color: "var(--color-primary)" }} />
             <h1 style={{ fontSize: 15, fontWeight: 900, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
               Records
             </h1>
@@ -806,7 +806,7 @@ export const OwnerRecords = () => {
                       </strong>
                     </span>
 
-                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>•</span>
+                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>â€”</span>
 
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                       <Icon.Clock size={12} style={{ color: "#24966D", flexShrink: 0 }} />
@@ -817,7 +817,7 @@ export const OwnerRecords = () => {
 
                     {progress.markTimestampFormatted && (
                       <>
-                        <span style={{ color: "var(--color-border, #C2CAC4)" }}>•</span>
+                        <span style={{ color: "var(--color-border, #C2CAC4)" }}>â€”</span>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                           <Icon.Tag size={12} style={{ color: progress.isReturnedToMarking ? "#f59e0b" : "#10b981", flexShrink: 0 }} />
                           <span style={{ fontWeight: 600 }}>
@@ -931,7 +931,7 @@ export const OwnerRecords = () => {
                                 color: isCompleted || isRejected || isCurrent ? "#ffffff" : "#9BA49E",
                               }}
                             >
-                              {isCompleted ? "?" : isRejected ? "?" : stg.id}
+                              {isCompleted ? <Icon.Check size={11} strokeWidth={3} /> : isRejected ? <Icon.X size={11} strokeWidth={3} /> : stg.id}
                             </div>
                             <span
                               style={{
@@ -1256,7 +1256,7 @@ export const OwnerRecords = () => {
                   </div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #1A201C)", marginTop: 2 }}>
                     {selectedLivestock.species}
-                    {selectedLivestock.breed && selectedLivestock.breed !== "Standard" ? ` · ${selectedLivestock.breed}` : ""}
+                    {selectedLivestock.breed && selectedLivestock.breed !== "Standard" ? ` â€¢ ${selectedLivestock.breed}` : ""}
                   </div>
                 </div>
 
@@ -1383,7 +1383,7 @@ export const OwnerRecords = () => {
                               flexShrink: 0,
                             }}
                           >
-                            {isDone ? "?" : isRej ? "?" : st.id}
+                            {isDone ? <Icon.Check size={12} strokeWidth={3} /> : isRej ? <Icon.X size={12} strokeWidth={3} /> : st.id}
                           </span>
                           <div>
                             <div style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>

@@ -162,7 +162,7 @@ export const OwnerNotifications = () => {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <span style={{ fontSize: 17 }}>??</span>
+          <Icon.Bell size={18} style={{ color: "var(--color-primary)" }} />
           <h1 style={{ fontSize: 15, fontWeight: 900, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
             Notifications
           </h1>
@@ -257,7 +257,7 @@ export const OwnerNotifications = () => {
         </div>
       ) : notifs.length === 0 ? (
         <div className="owner-section-card" style={{ textAlign: "center", padding: 32 }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>??</div>
+          <Icon.Bell size={32} style={{ color: "var(--color-text-muted)", marginBottom: 8 }} />
           <h3 style={{ fontSize: 13, fontWeight: 800, margin: "0 0 4px 0", color: "var(--color-text, #1A201C)" }}>
             No notifications
           </h3>

@@ -63,18 +63,18 @@ const getModuleBadge = (mod) => {
 };
 
 const thStyle = {
-  padding: "13px 16px",
+  padding: "12px 16px",
   fontSize: 11,
   fontWeight: 800,
   textTransform: "uppercase",
-  letterSpacing: "0.05em",
+  letterSpacing: "0.06em",
   color: "var(--color-text-muted)",
   background: "var(--color-bg)",
   whiteSpace: "nowrap",
   position: "sticky",
   top: 0,
   zIndex: 10,
-  boxShadow: "0 1.5px 0 var(--color-border)",
+  borderBottom: "1px solid var(--color-border)",
 };
 
 export const SharedAuditLogs = ({ roleScope }) => {
@@ -248,13 +248,13 @@ export const SharedAuditLogs = ({ roleScope }) => {
 
   return (
     <div className="audit-logs-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* Top Header & Filter Bar — Fixed, does NOT scroll */}
+      {/* Top Header & Filter Bar â€” Fixed, does NOT scroll */}
       <div
         className="records-fixed-header"
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 12,
+          gap: isAdminScope ? 12 : 0,
           padding: "14px 18px",
           borderBottom: "1px solid var(--color-border)",
           background: "var(--color-surface)",
@@ -262,213 +262,211 @@ export const SharedAuditLogs = ({ roleScope }) => {
           zIndex: 20,
         }}
       >
-          {/* Row 1: Title + Role Filter Tabs */}
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              flexWrap: "wrap",
-              gap: 12,
-            }}
-          >
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-              <span
-                style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 9,
-                  background: "rgba(24, 122, 86, 0.12)",
-                  color: "#187A56",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon.Clock size={17} />
-              </span>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{ fontSize: 15, fontWeight: 800, color: "var(--color-text)" }}>
-                    {roleDisplayTitle}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      padding: "2px 8px",
-                      borderRadius: 999,
-                      background: "var(--color-bg)",
-                      color: "var(--color-text-muted)",
-                      border: "1px solid var(--color-border)",
-                    }}
-                  >
-                    {totalCount} {totalCount === 1 ? "record" : "records"}
-                  </span>
-                </div>
-                <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 1 }}>
-                  {roleSubtitle}
-                </div>
-              </div>
-            </div>
-
-            {/* Role Filter (Left) + Search Input & Refresh (Right) */}
-            <div
+        {/* Main Toolbar Row: Identity on Left, Search + Actions on Right */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 12,
+            minHeight: 40,
+          }}
+        >
+          {/* Left: Icon + Title + Count Badge + Subtitle */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 10, minWidth: 260 }}>
+            <span
               style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: "rgba(24, 122, 86, 0.12)",
+                color: "#187A56",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: isAdminScope ? "space-between" : "flex-end",
-                gap: 8,
-                flexWrap: "wrap",
-                flex: "1 1 100%",
+                justifyContent: "center",
+                flexShrink: 0,
               }}
             >
-              {isAdminScope && (
-                <div
+              <Icon.Clock size={18} />
+            </span>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 15.5, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.01em" }}>
+                  {roleDisplayTitle}
+                </span>
+                <span
                   style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    padding: 3,
-                    borderRadius: 9,
+                    fontSize: 11.5,
+                    fontWeight: 700,
+                    padding: "2px 8px",
+                    borderRadius: 999,
                     background: "var(--color-bg)",
+                    color: "var(--color-text-muted)",
                     border: "1px solid var(--color-border)",
                   }}
                 >
-                  {[
-                    { key: "all", label: "All Roles", count: roleStats.total },
-                    { key: "admin", label: "Admin", count: roleStats.adminCount },
-                    { key: "vet", label: "Veterinarian", count: roleStats.vetCount },
-                    { key: "staff", label: "Staff", count: roleStats.staffCount },
-                  ].map((tab) => {
-                    const active = roleFilter === tab.key;
-                    return (
-                      <button
-                        key={tab.key}
-                        type="button"
-                        onClick={() => handleRoleFilterChange(tab.key)}
-                        style={{
-                          height: 28,
-                          padding: "0 10px",
-                          borderRadius: 6,
-                          border: "none",
-                          fontSize: 12,
-                          fontWeight: active ? 700 : 600,
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 5,
-                          background: active ? "var(--color-surface)" : "transparent",
-                          color: active ? "var(--color-text)" : "var(--color-text-muted)",
-                          boxShadow: active ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
-                          transition: "all 140ms ease",
-                        }}
-                      >
-                        <span>{tab.label}</span>
-                        <span
-                          style={{
-                            fontSize: 10.5,
-                            fontWeight: 700,
-                            padding: "1px 5px",
-                            borderRadius: 999,
-                            background: active ? "rgba(24, 122, 86, 0.14)" : "rgba(148, 163, 184, 0.14)",
-                            color: active ? "var(--color-primary)" : "var(--color-text-muted)",
-                          }}
-                        >
-                          {tab.count}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
-                <div style={{ position: "relative", width: 280, maxWidth: "100%" }}>
-                  <span
-                    style={{
-                      position: "absolute",
-                      left: 11,
-                      top: "50%",
-                      transform: "translateY(-50%)",
-                      color: "var(--color-text-muted)",
-                      display: "flex",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <Icon.Search size={14} />
-                  </span>
-                  <input
-                    type="text"
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                    placeholder="Search user, action, role, module..."
-                    style={{
-                      width: "100%",
-                      height: 36,
-                      padding: "0 30px 0 34px",
-                      borderRadius: 8,
-                      border: "1px solid var(--color-border)",
-                      fontSize: 12.5,
-                      outline: "none",
-                      background: "var(--color-bg)",
-                      color: "var(--color-text)",
-                    }}
-                  />
-                  {searchInput && (
-                    <button
-                      type="button"
-                      onClick={handleClearSearch}
-                      style={{
-                        position: "absolute",
-                        right: 8,
-                        top: "50%",
-                        transform: "translateY(-50%)",
-                        background: "transparent",
-                        border: "none",
-                        cursor: "pointer",
-                        color: "var(--color-text-muted)",
-                        padding: 2,
-                        display: "flex",
-                      }}
-                      title="Clear search"
-                    >
-                      <Icon.X size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={fetchAuditLogs}
-                  disabled={loading}
-                  style={{
-                    width: 36,
-                    height: 36,
-                    padding: 0,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    borderRadius: 8,
-                    flexShrink: 0,
-                    cursor: loading ? "not-allowed" : "pointer",
-                    color: "var(--color-text)",
-                    borderColor: "var(--color-border)",
-                    background: "var(--color-surface)",
-                  }}
-                  title={loading ? "Refreshing audit logs..." : "Refresh audit logs"}
-                  aria-label="Refresh audit logs"
-                >
-                  <Icon.RefreshCw size={15} className={loading ? "animate-spin" : ""} style={{ color: "currentColor" }} />
-                </Button>
+                  {totalCount} {totalCount === 1 ? "record" : "records"}
+                </span>
+              </div>
+              <div style={{ fontSize: 12, color: "var(--color-text-muted)", marginTop: 2 }}>
+                {roleSubtitle}
               </div>
             </div>
           </div>
+
+          {/* Right: Search Input & Refresh Button (Aligned inline on the same row!) */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, marginLeft: "auto" }}>
+            <div style={{ position: "relative", width: 280, maxWidth: "100%" }}>
+              <span
+                style={{
+                  position: "absolute",
+                  left: 11,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "var(--color-text-muted)",
+                  display: "flex",
+                  pointerEvents: "none",
+                }}
+              >
+                <Icon.Search size={14} />
+              </span>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={handleSearchChange}
+                placeholder="Search user, action, role, module..."
+                style={{
+                  width: "100%",
+                  height: 36,
+                  padding: "0 30px 0 34px",
+                  borderRadius: 8,
+                  border: "1px solid var(--color-border)",
+                  fontSize: 12.5,
+                  outline: "none",
+                  background: "var(--color-bg)",
+                  color: "var(--color-text)",
+                  boxSizing: "border-box",
+                }}
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "var(--color-text-muted)",
+                    padding: 2,
+                    display: "flex",
+                  }}
+                  title="Clear search"
+                >
+                  <Icon.X size={13} />
+                </button>
+              )}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchAuditLogs}
+              disabled={loading}
+              style={{
+                width: 36,
+                height: 36,
+                padding: 0,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 8,
+                flexShrink: 0,
+                cursor: loading ? "not-allowed" : "pointer",
+                color: "var(--color-text)",
+                borderColor: "var(--color-border)",
+                background: "var(--color-surface)",
+              }}
+              title={loading ? "Refreshing audit logs..." : "Refresh audit logs"}
+              aria-label="Refresh audit logs"
+            >
+              <Icon.RefreshCw size={15} className={loading ? "animate-spin" : ""} style={{ color: "currentColor" }} />
+            </Button>
+          </div>
         </div>
 
-        {/* Query Error Feedback */}
+        {/* Row 2: Role Segmented Filter Tabs (Admin view only) */}
+        {isAdminScope && (
+          <div style={{ display: "flex", alignItems: "center", gap: 4, paddingTop: 2 }}>
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                padding: 3,
+                borderRadius: 9,
+                background: "var(--color-bg)",
+                border: "1px solid var(--color-border)",
+                overflowX: "auto",
+                maxWidth: "100%",
+              }}
+            >
+              {[
+                { key: "all", label: "All Roles", count: roleStats.total },
+                { key: "admin", label: "Admin", count: roleStats.adminCount },
+                { key: "vet", label: "Veterinarian", count: roleStats.vetCount },
+                { key: "staff", label: "Staff", count: roleStats.staffCount },
+              ].map((tab) => {
+                const active = roleFilter === tab.key;
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => handleRoleFilterChange(tab.key)}
+                    style={{
+                      height: 28,
+                      padding: "0 10px",
+                      borderRadius: 6,
+                      border: "none",
+                      fontSize: 12,
+                      fontWeight: active ? 700 : 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: active ? "var(--color-surface)" : "transparent",
+                      color: active ? "var(--color-text)" : "var(--color-text-muted)",
+                      boxShadow: active ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
+                      transition: "all 140ms ease",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <span>{tab.label}</span>
+                    <span
+                      style={{
+                        fontSize: 10.5,
+                        fontWeight: 700,
+                        padding: "1px 5px",
+                        borderRadius: 999,
+                        background: active ? "rgba(24, 122, 86, 0.14)" : "rgba(148, 163, 184, 0.14)",
+                        color: active ? "var(--color-primary)" : "var(--color-text-muted)",
+                      }}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Query Error Feedback */}
         {queryError && (
           <div
             style={{
@@ -493,7 +491,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
           </div>
         )}
 
-        {/* Audit Logs Table — Records scroll internally, headers remain fixed */}
+        {/* Audit Logs Table â€¢ Records scroll internally, headers remain fixed */}
         <div
           style={{
             flex: 1,
@@ -559,16 +557,17 @@ export const SharedAuditLogs = ({ roleScope }) => {
                 border: "none",
                 borderRadius: 0,
                 background: "var(--color-surface)",
+                scrollbarGutter: "stable",
               }}
             >
               <table style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, textAlign: "left" }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                   <tr style={{ background: "var(--color-bg)" }}>
-                    <th style={thStyle}>User</th>
-                    <th style={thStyle}>Action</th>
-                    <th style={thStyle}>Role</th>
-                    <th style={thStyle}>Module</th>
-                    <th style={thStyle}>Date &amp; Time</th>
+                    <th style={{ ...thStyle, width: "22%", minWidth: 160 }}>User</th>
+                    <th style={{ ...thStyle, width: "36%", minWidth: 240 }}>Action</th>
+                    <th style={{ ...thStyle, width: "14%", minWidth: 110 }}>Role</th>
+                    <th style={{ ...thStyle, width: "13%", minWidth: 110 }}>Module</th>
+                    <th style={{ ...thStyle, width: "15%", minWidth: 160 }}>Date &amp; Time</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -633,7 +632,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                             >
                               {log.action || "Activity recorded"}
                             </span>
-                            {log.tag_number && log.tag_number !== "—" && log.tag_number !== "null" && (
+                            {log.tag_number && log.tag_number !== "â€”" && log.tag_number !== "null" && (
                               <TagBadge tag={log.tag_number} />
                             )}
                           </div>
@@ -689,7 +688,7 @@ export const SharedAuditLogs = ({ roleScope }) => {
                                       ? dt.time
                                       : "";
                                 if (dt?.date && dt.date !== "undefined" && dt.date !== "null" && dt.full !== "Not recorded") {
-                                  return validTime ? `${dt.date} • ${validTime}` : dt.date;
+                                  return validTime ? `${dt.date} â€¢ ${validTime}` : dt.date;
                                 }
                                 return formatManilaDateTime(log.timestamp || log.created_at);
                               })()}

@@ -279,39 +279,39 @@ export const CarcassWeighing = () => {
         return {
           id: matchedOwner.id || ownerId,
           name: matchedOwner.name,
-          contact: matchedOwner.contact || matchedOwner.phone || item?.owner_contact || animal?.owner_contact || "—",
-          address: matchedOwner.address || item?.owner_address || animal?.address || "—",
+          contact: matchedOwner.contact || matchedOwner.phone || item?.owner_contact || animal?.owner_contact || "â€”",
+          address: matchedOwner.address || item?.owner_address || animal?.address || "â€”",
         };
       }
     }
 
     const directName = item?.owner_name || item?.owner;
-    if (directName && directName !== "Unknown" && directName !== "—") {
+    if (directName && directName !== "Unknown" && directName !== "â€”") {
       const matchedOwner = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === String(directName).trim().toLowerCase()
       );
       return {
         name: matchedOwner?.name || directName,
-        contact: matchedOwner?.contact || matchedOwner?.phone || item?.owner_contact || item?.contact_number || "—",
-        address: matchedOwner?.address || item?.owner_address || "—",
+        contact: matchedOwner?.contact || matchedOwner?.phone || item?.owner_contact || item?.contact_number || "â€”",
+        address: matchedOwner?.address || item?.owner_address || "â€”",
       };
     }
 
-    if (animal?.owner_name && animal.owner_name !== "Unknown" && animal.owner_name !== "—") {
+    if (animal?.owner_name && animal.owner_name !== "Unknown" && animal.owner_name !== "â€”") {
       const matchedOwner = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === String(animal.owner_name).trim().toLowerCase()
       );
       return {
         name: matchedOwner?.name || animal.owner_name,
-        contact: matchedOwner?.contact || matchedOwner?.phone || animal.owner_contact || animal.contact_number || "—",
-        address: matchedOwner?.address || animal.address || "—",
+        contact: matchedOwner?.contact || matchedOwner?.phone || animal.owner_contact || animal.contact_number || "â€”",
+        address: matchedOwner?.address || animal.address || "â€”",
       };
     }
 
     return {
       name: "Unknown Owner",
-      contact: "—",
-      address: "—",
+      contact: "â€”",
+      address: "â€”",
     };
   };
 
@@ -914,7 +914,7 @@ export const CarcassWeighing = () => {
         setModalSuccessAlert(successMsg);
 
         const targetOwner = selectedOwner || singleAnimal?.owner_name;
-        if (targetOwner && targetOwner !== "—" && targetOwner !== "Unknown Owner") {
+        if (targetOwner && targetOwner !== "â€”" && targetOwner !== "Unknown Owner") {
           const remaining = await getRemainingWeighingForOwner(targetOwner);
           if (Array.isArray(remaining)) {
             const savedSet = new Set(savedTags.map((t) => String(t).trim().toLowerCase()));
@@ -1018,7 +1018,7 @@ export const CarcassWeighing = () => {
         operator: c.weighed_by || c.operator || "Dr. Dave",
         weighed_by: c.weighed_by || c.operator || "Dr. Dave",
         slaughter_id: c.slaughter_id || animal?.slaughter_id || "SL-REC",
-        sex: animal?.sex || c.sex || "—",
+        sex: animal?.sex || c.sex || "â€”",
         inspector: pm?.inspector_name || animal?.post_inspected_by || "Dr. Dave",
         inspectionDecision: pm?.decision || (animal?.status === "Partially Condemned" ? "Partially Condemned" : "Approved"),
         postMortemDate: pm?.date || pm?.created_at || animal?.post_inspected_at || c.date || today(),
@@ -1230,7 +1230,7 @@ export const CarcassWeighing = () => {
       .map((g) => ({
         ...g,
         count: g.items.length,
-        totalWeightFormatted: g.totalWeight > 0 ? `${g.totalWeight.toFixed(2)} kg` : "—",
+        totalWeightFormatted: g.totalWeight > 0 ? `${g.totalWeight.toFixed(2)} kg` : "â€”",
         items: [...g.items].sort((a, b) => {
           const timeA = new Date(a.weighed_at || a.created_at || a.date || 0).getTime();
           const timeB = new Date(b.weighed_at || b.created_at || b.date || 0).getTime();
@@ -1600,9 +1600,9 @@ export const CarcassWeighing = () => {
                               </div>
                               <div style={{ fontSize: 11, color: "var(--color-text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
                                 <span>{grp.count} carcass{grp.count > 1 ? "es" : ""} in batch</span>
-                                {grp.owner_contact && grp.owner_contact !== "—" && (
+                                {grp.owner_contact && grp.owner_contact !== "â€”" && (
                                   <>
-                                    <span>•</span>
+                                    <span>â€”</span>
                                     <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
                                       <Icon.Phone size={10} style={{ opacity: 0.7 }} />
                                       {grp.owner_contact}
@@ -1618,7 +1618,7 @@ export const CarcassWeighing = () => {
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <Icon.Calendar size={13} style={{ opacity: 0.7, color: "var(--color-primary, #187A56)" }} />
-                            <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "—"}</span>
+                            <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "â€”"}</span>
                           </div>
                         </td>
 
@@ -1719,9 +1719,9 @@ export const CarcassWeighing = () => {
                   <tbody>
                     {filteredCarcasses.map((c) => {
                       const ownerDisplay = c.owner_name || "Registered Raiser";
-                      const ownerInitial = ownerDisplay && ownerDisplay !== "—" ? ownerDisplay.trim().charAt(0).toUpperCase() : "R";
+                      const ownerInitial = ownerDisplay && ownerDisplay !== "â€”" ? ownerDisplay.trim().charAt(0).toUpperCase() : "R";
                       const isPartialVerdict = String(c.inspectionDecision || "").toLowerCase().includes("partial");
-                      const weighedTimeStr = c.weighed_at || c.created_at ? formatPhTime(c.weighed_at || c.created_at) : "—";
+                      const weighedTimeStr = c.weighed_at || c.created_at ? formatPhTime(c.weighed_at || c.created_at) : "â€”";
 
                       return (
                         <tr
@@ -1839,12 +1839,12 @@ export const CarcassWeighing = () => {
                                     gap: 4,
                                   }}
                                 >
-                                  {c.owner_contact && c.owner_contact !== "—" ? (
+                                  {c.owner_contact && c.owner_contact !== "â€”" ? (
                                     <>
                                       <Icon.Phone size={10.5} style={{ opacity: 0.7, flexShrink: 0 }} />
                                       <span>{c.owner_contact}</span>
                                     </>
-                                  ) : c.owner_address && c.owner_address !== "—" ? (
+                                  ) : c.owner_address && c.owner_address !== "â€”" ? (
                                     <>
                                       <Icon.MapPin size={10.5} style={{ opacity: 0.7, flexShrink: 0 }} />
                                       <span>{c.owner_address}</span>
@@ -1950,7 +1950,7 @@ export const CarcassWeighing = () => {
                               >
                                 <Icon.Calendar size={12.5} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
                                 <span>{formatDate(c.date)}</span>
-                                <span style={{ color: "var(--color-border)" }}>•</span>
+                                <span style={{ color: "var(--color-border)" }}>â€”</span>
                                 <span style={{ fontSize: 11.5, fontWeight: 500, color: "var(--color-text-muted)" }}>
                                   {weighedTimeStr}
                                 </span>
@@ -2266,8 +2266,8 @@ export const CarcassWeighing = () => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "weighed"
-            ? `Weighed Carcass Records — ${selectedOwnerView?.owner_name || ""}`
-            : `Awaiting Carcass Weighing — ${selectedOwnerView?.owner_name || ""}`
+            ? `Weighed Carcass Records â€¢ ${selectedOwnerView?.owner_name || ""}`
+            : `Awaiting Carcass Weighing â€¢ ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -2369,7 +2369,7 @@ export const CarcassWeighing = () => {
                                 gap: 5,
                               }}
                             >
-                              {item.tag_number || "—"}
+                              {item.tag_number || "â€”"}
                             </span>
                           </td>
                           <td style={{ padding: "12px 16px", fontSize: 12.5, fontWeight: 600 }}>{item.species}</td>
@@ -2378,7 +2378,7 @@ export const CarcassWeighing = () => {
                             {formatPhDateTime(item.weighed_at || item.created_at)}
                           </td>
                           <td style={{ padding: "12px 16px", textAlign: "right", fontWeight: 700, color: "var(--color-text)" }}>
-                            {coldVal != null ? `${coldVal.toFixed(2)} kg` : "—"}
+                            {coldVal != null ? `${coldVal.toFixed(2)} kg` : "â€”"}
                           </td>
                         </tr>
                       );
@@ -2433,12 +2433,12 @@ export const CarcassWeighing = () => {
                               gap: 5,
                             }}
                           >
-                            {item.tag_number || "—"}
+                            {item.tag_number || "â€”"}
                           </span>
                         </td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{item.species}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{formatSex(item.sex)}</td>
-                        <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>{item.operator || "—"}</td>
+                        <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text-muted)" }}>{item.operator || "â€”"}</td>
                         <td style={{ padding: "12px 14px", fontSize: 12, color: "var(--color-text)" }}>
                           {formatPhDateTime(item.completed_at || item.slaughter_date || item.created_at)}
                         </td>
@@ -2484,7 +2484,7 @@ export const CarcassWeighing = () => {
           singleAnimal
             ? `Carcass Weighing (${singleAnimal.tag_number})`
             : isGroupMode
-              ? `Carcass Weighing (${selectedOwner || "Owner"} — ${ownerAnimals.length} Heads)`
+              ? `Carcass Weighing (${selectedOwner || "Owner"} â€¢ ${ownerAnimals.length} Heads)`
               : "Carcass Weighing"
         }
         size="lg"
@@ -2740,13 +2740,13 @@ export const CarcassWeighing = () => {
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, marginTop: 3 }}>
                           {isFemale ? (
-                            <span style={{ color: "#be185d", fontWeight: 700 }}>? Female</span>
+                            <span style={{ color: "#be185d", fontWeight: 700 }}>â™€ Female</span>
                           ) : isMale ? (
-                            <span style={{ color: "#1d4ed8", fontWeight: 700 }}>? Male</span>
+                            <span style={{ color: "#1d4ed8", fontWeight: 700 }}>â™‚ Male</span>
                           ) : (
                             <span style={{ color: "var(--color-text-muted)" }}>Sex: {formatSex(animal.sex)}</span>
                           )}
-                          <span style={{ color: "var(--color-border)" }}>•</span>
+                          <span style={{ color: "var(--color-border)" }}>â€”</span>
                           <span style={{ fontWeight: 600, color: "var(--color-text)" }}>{animal.species || "Hog"}</span>
                         </div>
                       </div>
@@ -3259,11 +3259,11 @@ export const CarcassWeighing = () => {
                       }}
                     >
                       <span>{formatDate(selectedCarcass.date)}</span>
-                      <span style={{ color: "var(--color-border)" }}>•</span>
+                      <span style={{ color: "var(--color-border)" }}>â€”</span>
                       <span style={{ color: "var(--color-text-muted)" }}>
                         {selectedCarcass.weighed_at || selectedCarcass.created_at
                           ? formatPhTime(selectedCarcass.weighed_at || selectedCarcass.created_at)
-                          : "—"}
+                          : "â€”"}
                       </span>
                     </span>
                   </div>

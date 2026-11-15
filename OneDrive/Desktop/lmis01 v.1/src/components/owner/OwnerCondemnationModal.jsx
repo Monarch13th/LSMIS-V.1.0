@@ -68,7 +68,7 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
             <span style={{ fontSize: 13, fontWeight: 800, color: "#24966D", letterSpacing: "0.04em", textTransform: "uppercase" }}>
               Evidence Photo
             </span>
-            <span style={{ fontSize: 12, color: "#9BA49E" }}>· {photo.part || "Carcass Part"}</span>
+            <span style={{ fontSize: 12, color: "#9BA49E" }}>â€” {photo.part || "Carcass Part"}</span>
           </div>
 
           <button
@@ -350,7 +350,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
                 <span style={{ fontSize: 13.5, fontWeight: 800, color: "#dc2626" }}>
                   {(() => {
                     const raw = details.totalWeightQty || details.condemnedParts?.[0]?.quantityWeight || details.weight;
-                    if (!raw || raw === "N/A" || raw === "—") return "Whole Animal";
+                    if (!raw || raw === "N/A" || raw === "â€”") return "Whole Animal";
                     const clean = String(raw).trim();
                     return clean.toLowerCase().includes("kg") ? clean : `${clean} kg`;
                   })()}

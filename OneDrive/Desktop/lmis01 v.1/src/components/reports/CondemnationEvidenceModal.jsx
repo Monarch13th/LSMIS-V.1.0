@@ -231,7 +231,7 @@ export const CondemnationEvidenceModal = ({
   const isRealSpecies = (val) => {
     if (!val || typeof val !== "string") return false;
     const s = val.trim().toLowerCase();
-    return s !== "" && s !== "—" && s !== "-" && s !== "livestock" && s !== "carcass" && s !== "unknown" && s !== "n/a";
+    return s !== "" && s !== "â€”" && s !== "-" && s !== "livestock" && s !== "carcass" && s !== "unknown" && s !== "n/a";
   };
   const speciesCandidates = [
     record.species,
@@ -273,7 +273,7 @@ export const CondemnationEvidenceModal = ({
   const fallbackRecordNotes = cleanEvidenceNotes(displayRecord?.reason || displayRecord?.notes || record?.details);
   const findingsCandidates = [rawPhotoNotes, rawInspFindings, rawCondReason, fallbackRecordNotes]
     .map((s) => String(s || "").trim())
-    .filter((s) => s && s !== "—" && s !== "-");
+    .filter((s) => s && s !== "â€”" && s !== "-");
   const findingsDisplay = findingsCandidates[0] || "Not recorded";
 
   // 7. Condemnation Date & Time
@@ -575,7 +575,7 @@ export const CondemnationEvidenceModal = ({
                       {currentPhoto.name || displayRecord.file_name || "Evidence Document"}
                     </div>
                     <div style={{ fontSize: 12, color: "#9BA49E", marginTop: 4 }}>
-                      {displayRecord.type || "Document"} · Non-image evidence file
+                      {displayRecord.type || "Document"} â€¢ Non-image evidence file
                     </div>
                     <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap", marginTop: 16 }}>
                       <Button
@@ -946,7 +946,7 @@ export const CondemnationEvidenceModal = ({
                         }}
                       >
                         <span style={{ fontWeight: 700, color: "#dc2626", fontSize: 12.5 }}>
-                          • {condPartsInfo.parts[0].part}
+                          â€¢ {condPartsInfo.parts[0].part}
                         </span>
                         <span style={{ fontWeight: 800, color: "#dc2626", fontSize: 12.5 }}>
                           {condPartsInfo.parts[0].quantity}

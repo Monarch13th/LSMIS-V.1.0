@@ -6,7 +6,7 @@ import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
 
 // Photography Assets (Public URLs for parallel preloading & PWA caching)
-const logoImg = "/logo.jpg";
+const logoImg = "/logo.png";
 const heroInspectorImg = "/hero-inspector.jpg";
 const aboutVetImg = "/about-veterinarian.jpg";
 const inspectionImg = "/inspection-postmortem.jpg";
@@ -359,7 +359,7 @@ export const LandingPage = () => {
       >
         <div className="mobile-nav-top">
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img src={logoImg} alt="LSMIS" width="32" height="32" style={{ borderRadius: "50%" }} />
+            <img src={logoImg} alt="LSMIS" width="32" height="32" style={{ objectFit: "contain" }} />
             <span style={{ fontWeight: 800, fontSize: 16, color: "var(--lsmis-charcoal-900)" }}>
               LSMIS
             </span>

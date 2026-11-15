@@ -2,7 +2,7 @@
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
 /* ============================================================
-   LSMIS — Livestock Owner Mobile Portal & Desktop Gatekeeper Styles
+   LSMIS â€¢ Livestock Owner Mobile Portal & Desktop Gatekeeper Styles
    ============================================================ */
 
 /* ============================================================
@@ -513,32 +513,34 @@
 }
 
 .owner-header-logo-wrap {
-  width: 38px;
-  height: 38px;
-  min-width: 38px;
-  min-height: 38px;
-  border-radius: 50%;
-  overflow: hidden;
-  border: 1.5px solid #C2CAC4;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 0;
+  border: none;
+  overflow: visible;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #ffffff;
   flex-shrink: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
 [data-theme="dark"] .owner-header-logo-wrap {
-  border-color: #444C47;
-  background: #2D332F;
+  border-color: transparent;
+  background: transparent;
 }
 
 .owner-header-logo-wrap img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 0;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.18));
 }
 
 .owner-header-text {

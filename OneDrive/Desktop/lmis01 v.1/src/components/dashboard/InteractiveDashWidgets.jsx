@@ -18,7 +18,7 @@ export const InteractiveAreaChart = ({
   const [hoveredIdx, setHoveredIdx] = useState(null);
   const [hoveredSeries, setHoveredSeries] = useState(null); // 'primary' | 'secondary' | null
 
-  const safePoints = points.length > 0 ? points : [{ label: "—", v: 0, sub: 0 }];
+  const safePoints = points.length > 0 ? points : [{ label: "â€”", v: 0, sub: 0 }];
   const max = Math.max(...safePoints.map((p) => Math.max(Number(p.v) || 0, Number(p.sub) || 0)), 1);
   const totalPrimary = safePoints.reduce((s, p) => s + (Number(p.v) || 0), 0);
   const totalSecondary = safePoints.reduce((s, p) => s + (Number(p.sub) || 0), 0);
@@ -251,7 +251,7 @@ export const InteractiveAreaChart = ({
                 className={`${isAct ? "on" : ""} ${p.onClick ? "clickable" : ""}`}
                 onMouseEnter={() => setHoveredIdx(i)}
                 onClick={() => p.onClick?.()}
-                title={`${p.label}: ${p.v} (${primaryLabel}) · ${p.sub} (${secondaryLabel})`}
+                title={`${p.label}: ${p.v} (${primaryLabel}) â€¢ ${p.sub} (${secondaryLabel})`}
               >
                 {p.label}
               </span>
@@ -307,7 +307,7 @@ export const InteractiveRings = ({
               className={`ag-legend-item ${isHovered ? "is-hovered" : ""} ${isDimmed ? "is-dimmed" : ""} ${r.onClick ? "clickable" : ""}`}
               onMouseEnter={() => setHoveredIdx(i)}
               onClick={() => r.onClick?.()}
-              data-ag-tip={`${r.label}: ${r.count} (${sharePct}% of ${total || 0} total)${r.hint ? ` · ${r.hint}` : ""}`}
+              data-ag-tip={`${r.label}: ${r.count} (${sharePct}% of ${total || 0} total)${r.hint ? ` â€¢ ${r.hint}` : ""}`}
             >
               <span
                 className="ag-legend-dot"

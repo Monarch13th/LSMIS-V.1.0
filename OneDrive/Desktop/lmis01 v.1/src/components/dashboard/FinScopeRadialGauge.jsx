@@ -20,8 +20,8 @@ export const FinScopeRadialGauge = ({
 }) => {
   // Semicircle dimensions:
   // Center (cx, cy) = (100, 95), Radius = 76
-  // Angle spans from 180° to 0° (PI radians)
-  // Arc length = PI * 76 ˜ 238.76
+  // Angle spans from 180Â° to 0Â° (PI radians)
+  // Arc length = PI * 76 â‰ˆ 238.76
   const cx = 100;
   const cy = 95;
   const r = 76;
@@ -37,7 +37,7 @@ export const FinScopeRadialGauge = ({
       <div className="finscope-gauge-header">
         <span className="finscope-gauge-title">{title}</span>
         <button type="button" className="finscope-more-btn" title="View breakdown">
-          •••
+          â€”
         </button>
       </div>
 
@@ -121,7 +121,7 @@ export const FinScopeRadialGauge = ({
           <div className="finscope-gauge-sub">{subtitle}</div>
           {trend && (
             <div className="finscope-gauge-trend">
-              <span className="trend-arrow">?</span> {trend}
+              <span className="trend-arrow">â†‘</span> {trend}
             </div>
           )}
         </div>

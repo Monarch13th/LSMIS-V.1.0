@@ -167,7 +167,7 @@ const ANTE_APPROVED_PRESETS = [
 const ANTE_APPROVED_PRESET_CARDS = [
   {
     title: "Normal & Active",
-    subtitle: "Active behavior, normal vitals, no gait defects — fit for slaughter",
+    subtitle: "Active behavior, normal vitals, no gait defects â€¢ fit for slaughter",
     value: ANTE_APPROVED_PRESETS[0],
     iconName: "Check",
   },
@@ -795,7 +795,7 @@ export const InspectionForm = ({
   };
 
   const getOwnerInitials = (name) => {
-    if (!name || name === "—" || name === "Unknown Owner") return "?";
+    if (!name || name === "â€”" || name === "Unknown Owner") return "â€”";
     return name
       .split(" ")
       .filter(Boolean)
@@ -1470,7 +1470,7 @@ export const InspectionForm = ({
   };
 
   const getAnimalDetails = (tag) => {
-    if (!tag) return { tag_number: "—", species: "—", sex: "—", owner_name: "—" };
+    if (!tag) return { tag_number: "â€”", species: "â€”", sex: "â€”", owner_name: "â€”" };
     const animal = (livestock || []).find(
       (l) => (l.tag_number || "").trim().toLowerCase() === String(tag).trim().toLowerCase()
     );
@@ -1640,7 +1640,7 @@ export const InspectionForm = ({
           species: details?.species && details.species !== "Unknown Species" ? details.species : "Livestock",
           heads: 1,
           reason: finalReason,
-          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "—",
+          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "â€”",
         };
       });
 
@@ -1788,7 +1788,7 @@ export const InspectionForm = ({
               missing.push({
                 category: "Photo Evidence",
                 fieldId: `cut-photos-${cut.id}`,
-                label: `Cut Evidence Photo (Tag #${entry.tag_number || `#${i + 1}`} · ${cut.specificPart || area || "Cut"})`,
+                label: `Cut Evidence Photo (Tag #${entry.tag_number || `#${i + 1}`} â€¢ ${cut.specificPart || area || "Cut"})`,
                 message: "Please upload at least one evidence photo for each condemned cut.",
               });
               errors[`cut-photos-${cut.id}`] = "Evidence photo is required.";
@@ -1905,7 +1905,7 @@ export const InspectionForm = ({
             photos: p.photos || (p.photo ? [{ preview: p.photo, name: p.photoName }] : []),
             disposition: "Condemned / Rendered",
             quantity: `${weightVal} kg`,
-            notes: `Part: ${partDisplay} · Reason: ${reasonName}`,
+            notes: `Part: ${partDisplay} â€¢ Reason: ${reasonName}`,
           };
         });
 
@@ -1981,7 +1981,7 @@ export const InspectionForm = ({
           species: details?.species && details.species !== "Unknown Species" ? details.species : "Livestock",
           heads: 1,
           reason: finalReason,
-          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "—",
+          owner: details?.owner_name && details.owner_name !== "Unknown Owner" ? details.owner_name : "â€”",
         };
       });
 
@@ -2163,7 +2163,7 @@ export const InspectionForm = ({
               {(type === "Ante-Mortem"
                 ? [
                     { value: "Approved", label: "Fit for Slaughter", sub: "Animal healthy; proceed to slaughter queue", color: "#10b981", bg: "#f0fdf4", border: "#86efac", icon: <Icon.Check size={16} /> },
-                    { value: "Condemned", label: "Condemned", sub: "Live animal unfit — rejected before slaughter", color: "#ef4444", bg: "#fef2f2", border: "#fca5a5", icon: <Icon.AlertTriangle size={16} /> },
+                    { value: "Condemned", label: "Condemned", sub: "Live animal unfit â€¢ rejected before slaughter", color: "#ef4444", bg: "#fef2f2", border: "#fca5a5", icon: <Icon.AlertTriangle size={16} /> },
                   ]
                 : [
                     { value: "Approved", label: "Fit for Consumption", sub: "Carcass sound; proceed to carcass weighing", color: "#10b981", bg: "#f0fdf4", border: "#86efac", icon: <Icon.Check size={16} /> },
@@ -2458,7 +2458,7 @@ export const InspectionForm = ({
                             }}
                             title="Count of male records"
                           >
-                            <span style={{ fontSize: 13 }}>?</span> Male: <strong>{grp.maleCount || 0}</strong>
+                            <span style={{ fontSize: 13 }}>â™‚</span> Male: <strong>{grp.maleCount || 0}</strong>
                           </span>
 
                           {/* Female Count Badge */}
@@ -2477,7 +2477,7 @@ export const InspectionForm = ({
                             }}
                             title="Count of female records"
                           >
-                            <span style={{ fontSize: 13 }}>?</span> Female: <strong>{grp.femaleCount || 0}</strong>
+                            <span style={{ fontSize: 13 }}>â™€</span> Female: <strong>{grp.femaleCount || 0}</strong>
                           </span>
 
                           {grp.unspecifiedCount > 0 && (
@@ -2658,7 +2658,7 @@ export const InspectionForm = ({
                                         {tag}
                                       </span>
                                       <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
-                                        {animal.species || (type === "Ante-Mortem" ? "Livestock" : "Carcass")}{animal.breed ? ` • ${animal.breed}` : ""}
+                                        {animal.species || (type === "Ante-Mortem" ? "Livestock" : "Carcass")}{animal.breed ? ` â€¢ ${animal.breed}` : ""}
                                       </span>
                                     </div>
                                   </div>
@@ -2677,7 +2677,7 @@ export const InspectionForm = ({
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        ? Male
+                                        â™‚ Male
                                       </span>
                                     ) : isFemale ? (
                                       <span
@@ -2692,7 +2692,7 @@ export const InspectionForm = ({
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        ? Female
+                                        â™€ Female
                                       </span>
                                     ) : (
                                       <span
@@ -3009,7 +3009,7 @@ export const InspectionForm = ({
                               }}
                               title="Count of male carcasses"
                             >
-                              <span style={{ fontSize: 13 }}>?</span> Male: <strong>{grp.maleCount || 0}</strong>
+                              <span style={{ fontSize: 13 }}>â™‚</span> Male: <strong>{grp.maleCount || 0}</strong>
                             </span>
 
                             {/* Female Count Badge */}
@@ -3028,7 +3028,7 @@ export const InspectionForm = ({
                               }}
                               title="Count of female carcasses"
                             >
-                              <span style={{ fontSize: 13 }}>?</span> Female: <strong>{grp.femaleCount || 0}</strong>
+                              <span style={{ fontSize: 13 }}>â™€</span> Female: <strong>{grp.femaleCount || 0}</strong>
                             </span>
 
                             {grp.unspecifiedCount > 0 && (
@@ -3201,7 +3201,7 @@ export const InspectionForm = ({
                                           {tag}
                                         </span>
                                         <span style={{ fontSize: 11, color: "var(--color-text-muted, #5D6660)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.25, marginTop: 1 }}>
-                                          {animal.species || "Carcass"}{animal.breed ? ` • ${animal.breed}` : ""}
+                                          {animal.species || "Carcass"}{animal.breed ? ` â€¢ ${animal.breed}` : ""}
                                         </span>
                                       </div>
                                     </div>
@@ -3223,7 +3223,7 @@ export const InspectionForm = ({
                                             gap: 3,
                                           }}
                                         >
-                                          <span>?</span> Male
+                                          <span>â™‚</span> Male
                                         </span>
                                       ) : isFemale ? (
                                         <span
@@ -3241,7 +3241,7 @@ export const InspectionForm = ({
                                             gap: 3,
                                           }}
                                         >
-                                          <span>?</span> Female
+                                          <span>â™€</span> Female
                                         </span>
                                       ) : (
                                         <span
@@ -3375,7 +3375,7 @@ export const InspectionForm = ({
                           </span>
                         )}
                         <span style={{ fontSize: 12, color: "#5D6660" }}>
-                          ({details.sex} · Owner: {details.owner_name})
+                          ({details.sex} â€¢ Owner: {details.owner_name})
                         </span>
                       </div>
 
@@ -3418,7 +3418,7 @@ export const InspectionForm = ({
                           <option value="">-- Choose Carcass Tag --</option>
                           {availableTags.map((l) => (
                             <option key={l.id || l.tag_number} value={l.tag_number}>
-                              Tag #{l.tag_number} — {getAnimalSex(l)} (Owner: {l.owner_name || "Unknown"})
+                              Tag #{l.tag_number} â€¢ {getAnimalSex(l)} (Owner: {l.owner_name || "Unknown"})
                             </option>
                           ))}
                         </select>
@@ -3737,9 +3737,9 @@ export const InspectionForm = ({
                         </span>
                         {entry.tag_number && (
                           <span style={{ fontSize: 12.5, color: "#5D6660", fontWeight: 500 }}>
-                            {details.species !== "—" ? details.species : ""}
-                            {details.sex && details.sex !== "—" ? ` · ${details.sex}` : ""}
-                            {details.owner_name && details.owner_name !== "—" ? ` · ${details.owner_name}` : ""}
+                            {details.species !== "â€”" ? details.species : ""}
+                            {details.sex && details.sex !== "â€”" ? ` â€¢ ${details.sex}` : ""}
+                            {details.owner_name && details.owner_name !== "â€”" ? ` â€¢ ${details.owner_name}` : ""}
                           </span>
                         )}
                       </div>
@@ -3797,7 +3797,7 @@ export const InspectionForm = ({
                           <option value="">-- Choose Animal Tag --</option>
                           {availableTags.map((l) => (
                             <option key={l.tag_number} value={l.tag_number}>
-                              {l.tag_number} ({getAnimalSex(l)} · Owner: {l.owner_name || "Unknown"})
+                              {l.tag_number} ({getAnimalSex(l)} â€¢ Owner: {l.owner_name || "Unknown"})
                             </option>
                           ))}
                         </select>
@@ -4083,7 +4083,7 @@ export const InspectionForm = ({
                     )}
                     {pendingConfirm.summary.partialCount > 0 && (
                       <div style={{ color: "#92400e", fontWeight: 600 }}>
-                        ? Partial Condemnation: {pendingConfirm.summary.partialCount} {pendingConfirm.summary.partialCount === 1 ? "carcass" : "carcasses"} ({pendingConfirm.summary.totalCuts} {pendingConfirm.summary.totalCuts === 1 ? "condemned cut" : "condemned cuts"})
+                        âš  Partial Condemnation: {pendingConfirm.summary.partialCount} {pendingConfirm.summary.partialCount === 1 ? "carcass" : "carcasses"} ({pendingConfirm.summary.totalCuts} {pendingConfirm.summary.totalCuts === 1 ? "condemned cut" : "condemned cuts"})
                       </div>
                     )}
                     <div style={{ paddingTop: 4, borderTop: "1px solid #E2E6E3", fontSize: 12, color: "#5D6660" }}>

@@ -254,7 +254,7 @@ export const WaitingApproval = () => {
 
   const isRejected = currentStatus === "Rejected";
   const displayName = ownerInfo?.name || "Livestock Owner";
-  const displayEmail = ownerInfo?.email || "—";
+  const displayEmail = ownerInfo?.email || "â€”";
   const displayId = ownerInfo?.id || "REG-001-2026";
   const regDateRaw = ownerInfo?.registered_date || ownerInfo?.created_at;
   const displayDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "Today";
@@ -580,7 +580,7 @@ export const WaitingApproval = () => {
                 disabled={checking}
               >
                 <Icon.RefreshCw size={15} className={checking ? "spin" : ""} />
-                <span>{checking ? "Checking Approval Status…" : "Check Approval Status"}</span>
+                <span>{checking ? "Checking Approval Status..." : "Check Approval Status"}</span>
               </Button>
             )}
 
@@ -592,7 +592,7 @@ export const WaitingApproval = () => {
               disabled={signingOut}
             >
               <Icon.LogOut size={15} />
-              <span>{signingOut ? "Signing Out…" : "Sign Out"}</span>
+              <span>{signingOut ? "Signing Out..." : "Sign Out"}</span>
             </Button>
           </div>
         </div>

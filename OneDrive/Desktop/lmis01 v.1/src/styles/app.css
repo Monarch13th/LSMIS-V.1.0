@@ -288,25 +288,26 @@
 .app-sidebar-brand .logo {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
-  background: #ffffff;
+  border-radius: 0;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: none;
+  box-shadow: none;
   flex-shrink: 0;
   z-index: 1;
-  overflow: hidden;
-  padding: 2px;
+  overflow: visible;
+  padding: 0;
 }
 
 .app-sidebar-brand .logo img {
   width: 100%;
   height: 100%;
-  border-radius: 50%;
+  border-radius: 0;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
 }
 
 .app-sidebar-brand h1 {

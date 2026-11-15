@@ -561,7 +561,7 @@ export const SpeciesManagement = () => {
             <tbody>
               {filteredList.map((spec) => {
                 const isActive = spec.status === "Active";
-                const dateDisplay = formatDate(spec.created_at) || "—";
+                const dateDisplay = formatDate(spec.created_at) || "â€”";
 
                 return (
                   <tr
@@ -858,7 +858,7 @@ export const SpeciesManagement = () => {
                   borderRadius: 999,
                 }}
               >
-                JPG, PNG, WEBP · Max 5MB
+                JPG, PNG, WEBP â€¢ Max 5MB
               </span>
             </div>
 
@@ -1315,7 +1315,7 @@ export const SpeciesManagement = () => {
                     Date Added
                   </div>
                   <div style={{ fontSize: "0.85rem", fontWeight: 650, color: "var(--color-text)" }}>
-                    {formatDate(viewingSpecies.created_at) || "—"}
+                    {formatDate(viewingSpecies.created_at) || "â€”"}
                   </div>
                 </div>
 

@@ -399,7 +399,7 @@ export const SearchableAgeInput = ({
                 fontStyle: "italic",
               }}
             >
-              No preset matches &ldquo;{value}&rdquo; — your custom age will be used.
+              No preset matches &ldquo;{value}&rdquo; â€¢ your custom age will be used.
             </div>
           )}
 

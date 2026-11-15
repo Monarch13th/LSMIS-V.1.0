@@ -278,7 +278,7 @@ export const AnimalMarking = ({ navTabs }) => {
       if (match?.name) return match.name.trim();
     }
     const directName = (item.owner_name || "").trim();
-    if (directName && directName !== "Unknown Owner" && directName !== "—" && directName !== "-") {
+    if (directName && directName !== "Unknown Owner" && directName !== "â€”" && directName !== "-") {
       if (owners && owners.length > 0) {
         const nameMatch = owners.find(
           (o) => (o.name || "").trim().toLowerCase() === directName.toLowerCase()
@@ -456,7 +456,7 @@ export const AnimalMarking = ({ navTabs }) => {
         grp.hasFallback = true;
       }
       grp.items.push(item);
-      if (species && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "â€”" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
       if (itemTime > grp.latestTimestamp) {
@@ -577,7 +577,7 @@ export const AnimalMarking = ({ navTabs }) => {
         const speciesList = [];
         sess.items.forEach((it) => {
           const sp = (it.species || "Unknown Species").trim();
-          if (sp && sp !== "—" && sp !== "Unknown Species" && !speciesList.includes(sp)) {
+          if (sp && sp !== "â€”" && sp !== "Unknown Species" && !speciesList.includes(sp)) {
             speciesList.push(sp);
           }
         });
@@ -767,7 +767,7 @@ export const AnimalMarking = ({ navTabs }) => {
   };
 
   const resolveBatchSexSummary = (target) => {
-    if (!target) return "—";
+    if (!target) return "â€”";
     const items = Array.isArray(target.items) && target.items.length > 0 ? target.items : [target];
     let maleCount = 0;
     let femaleCount = 0;
@@ -785,7 +785,7 @@ export const AnimalMarking = ({ navTabs }) => {
     const parts = [];
     if (maleCount > 0) parts.push(`${maleCount} Male`);
     if (femaleCount > 0) parts.push(`${femaleCount} Female`);
-    return parts.length > 0 ? parts.join(", ") : "—";
+    return parts.length > 0 ? parts.join(", ") : "â€”";
   };
 
   const resolveSpeciesSexBreakdown = (target) => {
@@ -820,13 +820,13 @@ export const AnimalMarking = ({ navTabs }) => {
       if (entry.female > 0) sexParts.push(`${entry.female} Female`);
       return {
         ...entry,
-        sexText: sexParts.join(" and ") || "—",
+        sexText: sexParts.join(" and ") || "â€”",
       };
     });
   };
 
   const resolveIntakeDateTime = (target) => {
-    if (!target) return "—";
+    if (!target) return "â€”";
     const hasTime = (v) => v && (String(v).includes("T") || String(v).includes(":"));
     if (Array.isArray(target.items) && target.items.length > 0) {
       for (const it of target.items) {
@@ -838,7 +838,7 @@ export const AnimalMarking = ({ navTabs }) => {
       if (firstDate) return formatPhDateTime(firstDate);
     }
     const singleCandidate = target.created_at || target.registered_at || target.fallback_at || target.updated_at || target.rawDate || target.received_date || target.date;
-    return singleCandidate ? formatPhDateTime(singleCandidate) : "—";
+    return singleCandidate ? formatPhDateTime(singleCandidate) : "â€”";
   };
 
   // Active dataset (grouped by default)
@@ -1168,7 +1168,7 @@ export const AnimalMarking = ({ navTabs }) => {
       species: item.species || "Cattle",
       quantity: item.quantity && Number(item.quantity) >= 1 ? Number(item.quantity) : 1,
       sex: item.sex ? (String(item.sex).toLowerCase().startsWith("f") ? "Female" : "Male") : "Male",
-      age: item.age_months || item.age || (formatLivestockAge(item) !== "—" ? formatLivestockAge(item) : ""),
+      age: item.age_months || item.age || (formatLivestockAge(item) !== "â€”" ? formatLivestockAge(item) : ""),
       mark_type: item.mark_type || "Ear Tag",
     });
   };
@@ -1258,14 +1258,14 @@ export const AnimalMarking = ({ navTabs }) => {
     }
     const headers = "Tag #,Species,Sex,Age,Owner Name,Type of Marking,Date Marked,Time Marked,Status";
     const rows = listToExport.map((a) => {
-      const tag = a.tag_number || "—";
-      const species = a.species || "—";
+      const tag = a.tag_number || "â€”";
+      const species = a.species || "â€”";
       const sex = formatSex(a.sex);
-      const age = a.age_months ? a.age_months : "—";
-      const owner = a.owner_name ? a.owner_name.replace(/"/g, '""') : "—";
+      const age = a.age_months ? a.age_months : "â€”";
+      const owner = a.owner_name ? a.owner_name.replace(/"/g, '""') : "â€”";
       const mark = a.mark_type || (isMarked(a) ? "Ear Tag" : "Unmarked");
       const date = a.mark_date ? formatDate(a.mark_date) : formatDate(a.received_date || today());
-      const time = a.mark_time ? a.mark_time : "—";
+      const time = a.mark_time ? a.mark_time : "â€”";
       const status = isMarked(a) ? "Marked" : "For Marking";
       return `"${tag}","${species}","${sex}","${age}","${owner}","${mark}","${date}","${time}","${status}"`;
     });
@@ -1412,8 +1412,8 @@ export const AnimalMarking = ({ navTabs }) => {
                 maxWidth: 170,
               }}
             >
-              <option value="for_marking">??? For Marking ({toMark.length})</option>
-              <option value="marked">? Marked ({markedAnimals.length})</option>
+              <option value="for_marking">For Marking ({toMark.length})</option>
+              <option value="marked">Marked ({markedAnimals.length})</option>
             </select>
 
             {/* Sort Dropdown */}
@@ -1434,8 +1434,8 @@ export const AnimalMarking = ({ navTabs }) => {
                 width: 130,
               }}
             >
-              <option value="tag_asc">Tag (A ? Z)</option>
-              <option value="tag_desc">Tag (Z ? A)</option>
+              <option value="tag_asc">Tag (A â†’ Z)</option>
+              <option value="tag_desc">Tag (Z â†’ A)</option>
               <option value="owner">Owner Name</option>
               <option value="newest">Newest First</option>
             </select>
@@ -1727,8 +1727,8 @@ export const AnimalMarking = ({ navTabs }) => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "for_marking"
-            ? `For Official Animal Marking — ${selectedOwnerView?.owner_name || ""}`
-            : `Marked Livestock Records — ${selectedOwnerView?.owner_name || ""}`
+            ? `For Official Animal Marking â€¢ ${selectedOwnerView?.owner_name || ""}`
+            : `Marked Livestock Records â€¢ ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -2063,9 +2063,9 @@ export const AnimalMarking = ({ navTabs }) => {
         onClose={handleCancelMark}
         title={
           selectedBatch
-            ? `Mark Batch — ${selectedBatch.owner_name} (${selectedBatch.count} Heads)`
+            ? `Mark Batch â€¢ ${selectedBatch.owner_name} (${selectedBatch.count} Heads)`
             : selected
-            ? `Mark Livestock — ${selected.tag_number}`
+            ? `Mark Livestock â€¢ ${selected.tag_number}`
             : "Mark Livestock"
         }
       >
@@ -2211,7 +2211,7 @@ export const AnimalMarking = ({ navTabs }) => {
                     <strong style={{ fontWeight: 700, color: "var(--color-text)" }}>{spItem.species}:</strong>
                     <span style={{ fontWeight: 600, color: "#10b981" }}>{spItem.sexText}</span>
                     {idx < arr.length - 1 && (
-                      <span style={{ color: "var(--color-text-muted)", marginLeft: 8 }}>·</span>
+                      <span style={{ color: "var(--color-text-muted)", marginLeft: 8 }}>â€”</span>
                     )}
                   </span>
                 ))}
@@ -2407,14 +2407,14 @@ export const AnimalMarking = ({ navTabs }) => {
                   const speciesDisplay =
                     resolveTargetSpeciesList(confirmingMark.target).join(", ") ||
                     confirmingMark.target?.species ||
-                    "—";
+                    "â€”";
                   return confirmingMark.type === "batch" ? (
                     <>
-                      Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name}</strong> · Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> · Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
+                      Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name}</strong> â€¢ Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> â€¢ Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
                     </>
                   ) : (
                     <>
-                      Tag: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.tag_number}</strong> · Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name || "Unknown"}</strong> · Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> · Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
+                      Tag: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.tag_number}</strong> â€¢ Owner: <strong style={{ color: "var(--color-text)" }}>{confirmingMark.target?.owner_name || "Unknown"}</strong> â€¢ Species: <strong style={{ color: "var(--color-text)" }}>{speciesDisplay}</strong> â€¢ Method: <strong style={{ color: "var(--color-primary, #10b981)" }}>{confirmingMark.markType}</strong>
                     </>
                   );
                 })()}
@@ -2469,7 +2469,7 @@ export const AnimalMarking = ({ navTabs }) => {
         onClose={() => {
           if (!savingEdit) setEditTarget(null);
         }}
-        title={`Edit Livestock Details — ${editTarget?.tag_number || "Record"}`}
+        title={`Edit Livestock Details â€¢ ${editTarget?.tag_number || "Record"}`}
         size="md"
         dialogStyle={{ maxWidth: "560px" }}
         bodyStyle={{ padding: "18px 22px" }}
@@ -2549,7 +2549,7 @@ export const AnimalMarking = ({ navTabs }) => {
                       </option>
                     ))}
                   </select>
-                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>?</span>
+                  <span style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>â–¼</span>
                 </div>
               </div>
 

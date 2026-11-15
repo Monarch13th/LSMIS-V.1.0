@@ -1486,7 +1486,7 @@ export const OwnerAnimals = () => {
       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, paddingBottom: 2 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontSize: 16 }}>???</span>
+            <Icon.Calendar size={18} style={{ color: "var(--color-primary)" }} />
             <h1 style={{ fontSize: 15, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
               Today's Livestock
             </h1>
@@ -1608,7 +1608,7 @@ export const OwnerAnimals = () => {
         {dbError ? (
           /* Database Loading Error State */
           <div className="owner-error-card">
-            <div style={{ fontSize: 32, marginBottom: 8, color: "#ef4444" }}>??</div>
+            <Icon.AlertTriangle size={36} style={{ color: "#ef4444", marginBottom: 8 }} />
             <h3 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 4px 0", color: "#dc2626" }}>
               Unable to load livestock records.
             </h3>
@@ -1622,7 +1622,7 @@ export const OwnerAnimals = () => {
         ) : loading ? (
           /* Loading State */
           <div className="owner-section-card" style={{ textAlign: "center", padding: 36 }}>
-            <div style={{ fontSize: 28, marginBottom: 10 }}>?</div>
+            <Icon.RefreshCw size={28} className="animate-spin" style={{ color: "var(--color-primary)", marginBottom: 10 }} />
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
               Loading livestock records...
             </div>
@@ -1633,7 +1633,7 @@ export const OwnerAnimals = () => {
         ) : filteredAnimals.length === 0 ? (
           /* Empty State (Requirement 5) */
           <div className="owner-section-card" style={{ textAlign: "center", padding: "40px 16px" }}>
-            <div style={{ fontSize: 36, marginBottom: 10 }}>??</div>
+            <Icon.Inbox size={36} style={{ color: "var(--color-text-muted)", marginBottom: 10 }} />
             <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px 0", color: "var(--color-text, #1A201C)" }}>
               No livestock registered today.
             </h3>
@@ -1870,7 +1870,7 @@ export const OwnerAnimals = () => {
                       </strong>
                     </span>
 
-                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>ï</span>
+                    <span style={{ color: "var(--color-border, #C2CAC4)" }}>‚Äî</span>
 
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                       <Icon.Clock size={12} style={{ color: "#24966D", flexShrink: 0 }} />
@@ -1949,22 +1949,22 @@ export const OwnerAnimals = () => {
                       <div
                         key={st.id}
                         className={`owner-tracker-step ${st.state}`}
-                        title={`${st.label}: ${st.sublabel}${st.timestampFormatted && st.timestampFormatted !== "ó" ? ` (${st.timestampFormatted})` : ""}`}
+                        title={`${st.label}: ${st.sublabel}${st.timestampFormatted && st.timestampFormatted !== "‚Äî" ? ` (${st.timestampFormatted})` : ""}`}
                       >
                         <div className="owner-tracker-dot">
                           {isDone ? (
                             <Icon.Check size={13} strokeWidth={3} />
                           ) : isCurr ? (
-                            <span style={{ fontSize: 8 }}>?</span>
+                            <span style={{ fontSize: 8 }}>‚óè</span>
                           ) : isRej ? (
                             <Icon.X size={12} strokeWidth={3} />
                           ) : (
-                            <span style={{ fontSize: 9 }}>?</span>
+                            <span style={{ fontSize: 9 }}>‚óã</span>
                           )}
                         </div>
                         <span className="owner-tracker-title">{st.label}</span>
                         <span className="owner-tracker-sub">{st.sublabel}</span>
-                        {st.timestampFormatted && st.timestampFormatted !== "ó" && (
+                        {st.timestampFormatted && st.timestampFormatted !== "‚Äî" && (
                           <span className="owner-tracker-time">{st.timestampFormatted}</span>
                         )}
                       </div>
@@ -2234,7 +2234,7 @@ export const OwnerAnimals = () => {
                         const isDone = st.state === "completed";
                         const isCurr = st.state === "current";
                         const isRej = st.state === "rejected" || st.state === "condemned";
-                        const hasTime = Boolean(st.timestampFormatted && st.timestampFormatted !== "ó");
+                        const hasTime = Boolean(st.timestampFormatted && st.timestampFormatted !== "‚Äî");
 
                         return (
                           <div
@@ -2312,7 +2312,7 @@ export const OwnerAnimals = () => {
                                   }}
                                 >
                                   {st.sublabel}
-                                  {st.actor ? ` ∑ ${st.actor}` : ""}
+                                  {st.actor ? ` ‚Ä¢ ${st.actor}` : ""}
                                 </div>
                               </div>
                             </div>

@@ -83,9 +83,9 @@ export const resolveOwnerProfile = (entity, { owners = [], livestock = [], users
     id: matchedOwner?.id || entityOwnerId || entity.id || null,
     owner_id: matchedOwner?.owner_id || matchedOwner?.temp_reg_id || entityOwnerId || null,
     name: matchedOwner?.name || entityOwnerName || "Unknown Owner",
-    contact: matchedOwner?.contact || matchedOwner?.phone || entityContact || "—",
-    email: matchedOwner?.email || matchedUser?.email || entityEmail || "—",
-    address: matchedOwner?.address || entityAddress || "—",
+    contact: matchedOwner?.contact || matchedOwner?.phone || entityContact || "â€”",
+    email: matchedOwner?.email || matchedUser?.email || entityEmail || "â€”",
+    address: matchedOwner?.address || entityAddress || "â€”",
     status: matchedOwner?.status || "Approved",
     avatar_url: finalAvatar,
     registered_date: matchedOwner?.registered_date || matchedOwner?.created_at || entity.created_at || null,
@@ -240,13 +240,13 @@ export const OwnerProfileCard = ({
               flexWrap: "wrap",
             }}
           >
-            {owner.contact && owner.contact !== "—" && (
+            {owner.contact && owner.contact !== "â€”" && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                 <Icon.Phone size={12} style={{ color: "#24966D" }} />
                 <span>{owner.contact}</span>
               </span>
             )}
-            {owner.address && owner.address !== "—" && (
+            {owner.address && owner.address !== "â€”" && (
               <span
                 style={{
                   display: "inline-flex",
@@ -495,7 +495,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
                 fontFamily: "monospace",
               }}
             >
-              {owner.contact || "—"}
+              {owner.contact || "â€”"}
             </div>
           </div>
 
@@ -524,7 +524,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
               className="truncate"
               title={owner.email}
             >
-              {owner.email || "—"}
+              {owner.email || "â€”"}
             </div>
           </div>
 
@@ -553,7 +553,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
               className="truncate"
               title={owner.address}
             >
-              {owner.address || "—"}
+              {owner.address || "â€”"}
             </div>
           </div>
 
@@ -578,7 +578,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
               <Icon.Calendar size={12} style={{ color: "#10b981" }} /> Registration Date
             </div>
             <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", marginTop: 4 }}>
-              {formatDate(owner.registered_date || owner.created_at) || "—"}
+              {formatDate(owner.registered_date || owner.created_at) || "â€”"}
             </div>
           </div>
         </div>
@@ -619,7 +619,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
                 background: "var(--color-bg)",
               }}
             >
-              <div style={{ fontSize: 24, marginBottom: 4 }}>??</div>
+              <Icon.Inbox size={32} style={{ color: "var(--color-text-muted)", marginBottom: 6 }} />
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>
                 No livestock registered yet
               </div>
@@ -662,7 +662,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
                               {a.tag_number || a.id}
                             </td>
                             <td style={{ padding: "8px 12px", color: "var(--color-text)" }}>
-                              <span>{a.species || "—"}</span>
+                              <span>{a.species || "â€”"}</span>
                             </td>
                             <td style={{ padding: "8px 12px", fontWeight: 600, color: "var(--color-text)" }}>
                               {formatSex(a.sex)}

@@ -40,7 +40,7 @@ const extractStepsFromHistory = (livestockItem) => {
 
 
 const isValidIsoTimestamp = (val) => {
-  if (!val || val === "—") return false;
+  if (!val || val === "â€”") return false;
   const str = String(val).trim();
   if (!str.includes("T") && !str.includes(":") && !str.includes("Z")) return false;
   const d = new Date(str);
@@ -162,7 +162,7 @@ const resolveSlaughterTime = (rec) => {
     rec.mark_time ||
     rec.time_marked ||
     rec.time;
-  if (raw && raw !== "—") {
+  if (raw && raw !== "â€”") {
     try {
       const d = new Date(raw);
       if (!isNaN(d.getTime()) && String(raw).includes("T")) {
@@ -175,7 +175,7 @@ const resolveSlaughterTime = (rec) => {
       }
     } catch (_) {}
     const formatted = formatTime(raw);
-    if (formatted && formatted !== "—") return formatted;
+    if (formatted && formatted !== "â€”") return formatted;
   }
   return formatTime(new Date());
 };
@@ -841,7 +841,7 @@ export const SlaughterProcessing = () => {
     if (!item) return false;
     if (item.is_fallback) return false;
     const op = String(item.operator || "").trim();
-    return Boolean(op && op !== "Unassigned" && op !== "—");
+    return Boolean(op && op !== "Unassigned" && op !== "â€”");
   };
 
   // 1. Unassigned / Fallback animals awaiting team operator assignment (Tab 1: Assign Team Operator)
@@ -874,7 +874,7 @@ export const SlaughterProcessing = () => {
     );
     if (animal?.owner_id) return String(animal.owner_id).trim();
     const directName = (item.owner_name || animal?.owner_name || "").trim();
-    if (directName && directName !== "Unknown Owner" && directName !== "—" && Array.isArray(owners)) {
+    if (directName && directName !== "Unknown Owner" && directName !== "â€”" && Array.isArray(owners)) {
       const match = owners.find((o) => o.name && o.name.toLowerCase().trim() === directName.toLowerCase());
       if (match?.id) return String(match.id).trim();
     }
@@ -896,7 +896,7 @@ export const SlaughterProcessing = () => {
       if (match?.name) return match.name;
     }
     const direct = (item.owner_name || "").trim();
-    if (direct && direct !== "Unknown Owner" && direct !== "—") {
+    if (direct && direct !== "Unknown Owner" && direct !== "â€”") {
       if (Array.isArray(owners)) {
         const match = owners.find((o) => (o.name || "").trim().toLowerCase() === direct.toLowerCase());
         if (match?.name) return match.name;
@@ -915,7 +915,7 @@ export const SlaughterProcessing = () => {
       });
       if (match?.name) return match.name;
     }
-    if (animal?.owner_name && animal.owner_name !== "Unknown Owner" && animal.owner_name !== "—") return animal.owner_name;
+    if (animal?.owner_name && animal.owner_name !== "Unknown Owner" && animal.owner_name !== "â€”") return animal.owner_name;
     return "Unknown Owner";
   };
 
@@ -1994,12 +1994,12 @@ export const SlaughterProcessing = () => {
     }
     const headers = "Tag #,Species,Sex,Owner Name,Assigned Operator,Date,Steps Completed,Status";
     const rows = completed.map((c) => {
-      const tag = c.tag_number || "—";
-      const species = c.species || "—";
+      const tag = c.tag_number || "â€”";
+      const species = c.species || "â€”";
       const sex = formatSex(c.sex);
-      const owner = c.owner_name ? c.owner_name.replace(/"/g, '""') : "—";
-      const op = c.operator ? c.operator.replace(/"/g, '""') : "—";
-      const date = c.date ? formatDate(c.date) : "—";
+      const owner = c.owner_name ? c.owner_name.replace(/"/g, '""') : "â€”";
+      const op = c.operator ? c.operator.replace(/"/g, '""') : "â€”";
+      const date = c.date ? formatDate(c.date) : "â€”";
       const steps = `${countDone(c.steps)}/${STEPS.length}`;
       const status = c.status || "Completed";
       return `"${tag}","${species}","${sex}","${owner}","${op}","${date}","${steps}","${status}"`;
@@ -2469,9 +2469,9 @@ export const SlaughterProcessing = () => {
                               {grp.count} {grp.count === 1 ? "carcass" : "carcasses"}
                             </span>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 600 }}>
-                              <span style={{ color: "#1d4ed8" }}>? {grp.maleCount}</span>
-                              <span style={{ color: "var(--color-text-muted)" }}>•</span>
-                              <span style={{ color: "#be185d" }}>? {grp.femaleCount}</span>
+                              <span style={{ color: "#1d4ed8" }}>â™‚ {grp.maleCount}</span>
+                              <span style={{ color: "var(--color-text-muted)" }}>â€”</span>
+                              <span style={{ color: "#be185d" }}>â™€ {grp.femaleCount}</span>
                             </div>
                           </div>
                         </td>
@@ -2665,7 +2665,7 @@ export const SlaughterProcessing = () => {
                           <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#d97706" }} />
-                              <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "—"}</span>
+                              <span>{grp.rawDate || grp.date ? formatPhDateTime(grp.rawDate || grp.date) : "â€”"}</span>
                             </div>
                           </td>
                           <td style={{ padding: "14px 18px" }}>
@@ -2761,8 +2761,8 @@ export const SlaughterProcessing = () => {
         onClose={() => setSelectedOwnerKey(null)}
         title={
           activeTab === "awaiting"
-            ? `Awaiting Team Assignment — ${selectedOwnerView?.owner_name || ""}`
-            : `Ready for Slaughter — ${selectedOwnerView?.owner_name || ""}`
+            ? `Awaiting Team Assignment â€¢ ${selectedOwnerView?.owner_name || ""}`
+            : `Ready for Slaughter â€¢ ${selectedOwnerView?.owner_name || ""}`
         }
         size="xl"
         dialogStyle={{
@@ -2888,7 +2888,7 @@ export const SlaughterProcessing = () => {
                                 gap: 5,
                               }}
                             >
-                              {rec.tag_number || "—"}
+                              {rec.tag_number || "â€”"}
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>
@@ -3014,7 +3014,7 @@ export const SlaughterProcessing = () => {
                                 gap: 5,
                               }}
                             >
-                              {s.tag_number || "—"}
+                              {s.tag_number || "â€”"}
                             </span>
                           </td>
                           <td style={{ padding: "12px 14px", fontSize: 12.5, fontWeight: 600 }}>{s.species}</td>
@@ -3471,7 +3471,7 @@ export const SlaughterProcessing = () => {
                             }}
                             title="Count of male records"
                           >
-                            <span style={{ fontSize: 12 }}>?</span> Male: <strong>{grp.maleCount}</strong>
+                            <span style={{ fontSize: 12 }}>â™‚</span> Male: <strong>{grp.maleCount}</strong>
                           </span>
 
                           {/* Female Count Badge */}
@@ -3490,7 +3490,7 @@ export const SlaughterProcessing = () => {
                             }}
                             title="Count of female records"
                           >
-                            <span style={{ fontSize: 12 }}>?</span> Female: <strong>{grp.femaleCount}</strong>
+                            <span style={{ fontSize: 12 }}>â™€</span> Female: <strong>{grp.femaleCount}</strong>
                           </span>
 
                           {grp.unspecifiedCount > 0 && (
@@ -3595,7 +3595,7 @@ export const SlaughterProcessing = () => {
                                         {item.tag_number}
                                       </span>
                                       <span style={{ fontSize: 10.5, color: "#5D6660", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", lineHeight: 1.2 }}>
-                                        {item.species || "Livestock"}{item.breed ? ` • ${item.breed}` : ""}
+                                        {item.species || "Livestock"}{item.breed ? ` â€¢ ${item.breed}` : ""}
                                       </span>
                                     </div>
                                   </div>
@@ -3614,7 +3614,7 @@ export const SlaughterProcessing = () => {
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        ? Male
+                                        â™‚ Male
                                       </span>
                                     ) : isFemale ? (
                                       <span
@@ -3629,7 +3629,7 @@ export const SlaughterProcessing = () => {
                                           lineHeight: 1.2,
                                         }}
                                       >
-                                        ? Female
+                                        â™€ Female
                                       </span>
                                     ) : (
                                       <span
@@ -3937,7 +3937,7 @@ export const SlaughterProcessing = () => {
             refreshAll();
           }
         }}
-        title={active ? `Slaughter Line Execution — ${active.tag_number}` : ""}
+        title={active ? `Slaughter Line Execution â€¢ ${active.tag_number}` : ""}
         size="lg"
         hideCloseButton
         bodyStyle={{ overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 0 }}
@@ -3975,11 +3975,11 @@ export const SlaughterProcessing = () => {
                 </div>
                 <div style={{ fontSize: 12.5, color: "var(--color-text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <span>Owner: <b style={{ color: "var(--color-text)" }}>{active.owner_name}</b></span>
-                  <span>·</span>
+                  <span>â€”</span>
                   <span>Species: <b style={{ color: "var(--color-text)" }}>{active.species}</b></span>
-                  <span>·</span>
+                  <span>â€”</span>
                   <span>Sex: <b style={{ color: "var(--color-text)" }}>{formatSex(active.sex)}</b></span>
-                  <span>·</span>
+                  <span>â€”</span>
                   <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                     <span>Operator:</span>
                     {active.operator && active.operator !== "Unassigned" ? (
@@ -4120,7 +4120,7 @@ export const SlaughterProcessing = () => {
                             justifyContent: "center"
                           }}
                         >
-                          {isUpdatingThis ? <Icon.RefreshCw className="animate-spin" size={14} /> : isChecked ? "?" : i + 1}
+                          {isUpdatingThis ? <Icon.RefreshCw className="animate-spin" size={14} /> : isChecked ? <Icon.Check size={14} strokeWidth={3} /> : i + 1}
                         </div>
                         <div>
                           <div style={{ fontWeight: 700, fontSize: 14, color: isChecked ? "var(--color-success)" : "var(--color-text)" }}>

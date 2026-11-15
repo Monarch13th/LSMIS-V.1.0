@@ -94,7 +94,7 @@ const LandingGate = () => {
       <div className="lsmis-launch-splash" role="status" aria-live="polite">
         <div className="launch-splash-content">
           <div className="launch-splash-logo-wrap">
-            <img src="/logo.jpg" alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
+            <img src="/logo.png" alt="LSMIS Official Seal" className="launch-splash-logo" width="88" height="88" />
           </div>
           <div className="launch-splash-text">
             <h1 className="launch-splash-title">LSMIS</h1>

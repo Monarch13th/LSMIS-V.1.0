@@ -257,23 +257,23 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       if (found) {
         return {
           id: found.id || directId,
-          name: found.name || animal?.owner_name || item?.owner_name || "—",
+          name: found.name || animal?.owner_name || item?.owner_name || "â€”",
           avatar: found.avatar_url || null,
-          contact: found.contact || found.phone || found.email || "—",
-          address: found.address || "—",
+          contact: found.contact || found.phone || found.email || "â€”",
+          address: found.address || "â€”",
         };
       }
     }
-    const name = animal?.owner_name || item?.owner_name || "—";
-    if (name && name !== "—" && name !== "Unknown") {
+    const name = animal?.owner_name || item?.owner_name || "â€”";
+    if (name && name !== "â€”" && name !== "Unknown") {
       const found = (owners || []).find((o) => String(o.name || "").trim().toLowerCase() === name.trim().toLowerCase());
       if (found) {
         return {
           id: found.id,
           name: found.name,
           avatar: found.avatar_url || null,
-          contact: found.contact || found.phone || found.email || "—",
-          address: found.address || "—",
+          contact: found.contact || found.phone || found.email || "â€”",
+          address: found.address || "â€”",
         };
       }
     }
@@ -281,8 +281,8 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       id: directId || null,
       name: name,
       avatar: null,
-      contact: "—",
-      address: "—",
+      contact: "â€”",
+      address: "â€”",
     };
   };
 
@@ -347,9 +347,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: i?.id || `ante-cond-${normTag}`,
           tag_number: tag,
           species: i?.species || animal?.species || "Livestock",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          breed: animal?.breed || "â€”",
+          sex: animal?.sex || "â€”",
+          age: animal?.age || "â€”",
           owner,
           date: i?.inspected_at || i?.date || animal?.created_at || today(),
           stage: "Ante-Mortem (Live Animal)",
@@ -369,13 +369,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: i.id || `ante-${tag}`,
           tag_number: tag,
           species: i.species || animal?.species || "Livestock",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          breed: animal?.breed || "â€”",
+          sex: animal?.sex || "â€”",
+          age: animal?.age || "â€”",
           owner,
           date: i.inspected_at || i.date || animal?.created_at || today(),
           findings: i.findings || "Normal clinical appearance, fit for slaughter",
-          remarks: i.remarks || "—",
+          remarks: i.remarks || "â€”",
           decision: "Passed",
           inspector: i.inspector_name || "Dr. Dave",
           category: "antemortem",
@@ -496,9 +496,9 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: p?.id || `whole-post-${normTag}`,
           tag_number: tag,
           species: p?.species || animal?.species || "Carcass",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          breed: animal?.breed || "â€”",
+          sex: animal?.sex || "â€”",
+          age: animal?.age || "â€”",
           owner,
           date: p?.inspected_at || p?.date || today(),
           stage: "Post-Mortem (Whole Carcass)",
@@ -544,13 +544,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: p?.id || `partial-${normTag}`,
           tag_number: tag,
           species: p?.species || animal?.species || "Carcass",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          breed: animal?.breed || "â€”",
+          sex: animal?.sex || "â€”",
+          age: animal?.age || "â€”",
           owner,
           date: p?.inspected_at || p?.date || today(),
           findings: p?.findings || "Localized pathology identified on specific carcass parts",
-          remarks: p?.remarks || "—",
+          remarks: p?.remarks || "â€”",
           decision: "Partially Condemned",
           inspector: p?.inspector_name || "Dr. Dave",
           category: "partially_condemned",
@@ -570,13 +570,13 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           id: p.id || `post-${tag}`,
           tag_number: tag,
           species: p.species || animal?.species || "Carcass",
-          breed: animal?.breed || "—",
-          sex: animal?.sex || "—",
-          age: animal?.age || "—",
+          breed: animal?.breed || "â€”",
+          sex: animal?.sex || "â€”",
+          age: animal?.age || "â€”",
           owner,
           date: p.inspected_at || p.date || today(),
           findings: p.findings || "Carcass and viscera free of pathology, approved for food",
-          remarks: p.remarks || "—",
+          remarks: p.remarks || "â€”",
           decision: "Passed",
           inspector: p.inspector_name || "Dr. Dave",
           category: "postmortem",
@@ -672,7 +672,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       if (!groupsMap.has(key)) {
         groupsMap.set(key, {
           key,
-          owner_name: owner.name && owner.name !== "—" ? owner.name : "Unknown Owner",
+          owner_name: owner.name && owner.name !== "â€”" ? owner.name : "Unknown Owner",
           owner_avatar: owner.avatar,
           owner_contact: owner.contact,
           owner_address: owner.address,
@@ -1039,7 +1039,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                               {grp.owner_name}
                             </div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                              {grp.count} {grp.count === 1 ? "record" : "records"} &bull; {grp.owner_contact !== "—" ? grp.owner_contact : "Direct Intake"}
+                              {grp.count} {grp.count === 1 ? "record" : "records"} &bull; {grp.owner_contact !== "â€”" ? grp.owner_contact : "Direct Intake"}
                             </div>
                           </div>
                         </div>
@@ -1049,7 +1049,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.75, color: currentTabMeta.color }} />
-                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "—"}</span>
+                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "â€”"}</span>
                         </div>
                       </td>
 
@@ -1165,7 +1165,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           setSelectedOwnerKey(null);
           setModalFilterSpecies("all");
         }}
-        title={`${currentTabMeta.label} Records — ${selectedOwnerView?.owner_name || ""}`}
+        title={`${currentTabMeta.label} Records â€¢ ${selectedOwnerView?.owner_name || ""}`}
         headerRight={
           selectedOwnerView && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1287,7 +1287,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           <td style={{ padding: "12px 14px", verticalAlign: "middle", fontSize: 12.5, fontWeight: 600 }}>
                             <div>{item.species}</div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
-                              {formatSex(item.sex)} {item.age && item.age !== "—" ? `· ${item.age}` : ""}
+                              {formatSex(item.sex)} {item.age && item.age !== "â€”" ? `â€” ${item.age}` : ""}
                             </div>
                           </td>
 
@@ -1295,7 +1295,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           <td style={{ padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)" }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                               <Icon.Calendar size={12} style={{ opacity: 0.7, color: currentTabMeta.color }} />
-                              <span>{item.date ? formatPhDateTime(item.date) : "—"}</span>
+                              <span>{item.date ? formatPhDateTime(item.date) : "â€”"}</span>
                             </div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
                               by {item.inspector || "Dr. Dave"}
@@ -1324,7 +1324,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                                       }}
                                     >
                                       {p.part} {p.weight_kg > 0 ? `(${p.weight_kg} kg)` : ""}
-                                      {p.reason ? ` · ${p.reason}` : ""}
+                                      {p.reason ? ` â€¢ ${p.reason}` : ""}
                                     </span>
                                   ))}
                                 </div>
@@ -1358,7 +1358,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           ) : (
                             <td style={{ padding: "12px 14px", verticalAlign: "middle", maxWidth: 280, fontSize: 12, color: "var(--color-text)" }}>
                               <div style={{ lineHeight: 1.4 }}>{item.findings || "Normal clinical appearance"}</div>
-                              {item.remarks && item.remarks !== "—" && (
+                              {item.remarks && item.remarks !== "â€”" && (
                                 <div style={{ fontSize: 11, color: "var(--color-text-muted)", marginTop: 2 }}>
                                   Note: {item.remarks}
                                 </div>
@@ -1464,7 +1464,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         const currentPhotoIndex = Math.min(activePhotoIndex, Math.max(0, tagPhotos.length - 1));
         const currentPhotoUrl = tagPhotos[currentPhotoIndex] || null;
         const isAnte = viewingDetails.category === "condemned" && (viewingDetails.stage?.includes("Ante") || viewingDetails.stage === "Ante-Mortem");
-        const ownerDisplay = viewingDetails.owner?.name && viewingDetails.owner.name !== "—" ? viewingDetails.owner.name : "Not recorded";
+        const ownerDisplay = viewingDetails.owner?.name && viewingDetails.owner.name !== "â€”" ? viewingDetails.owner.name : "Not recorded";
 
         // Authoritative parts & scope extraction from Supabase
         const condPartsInfo = getCondemnationRecordParts({
@@ -1961,17 +1961,17 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                                   <span style={{ fontWeight: 750, color: "var(--color-text)" }}>
                                     {p.part}
-                                    {p.area ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> · {p.area}</span> : null}
+                                    {p.area ? <span style={{ color: "var(--color-text-muted)", fontWeight: 500 }}> â€¢ {p.area}</span> : null}
                                   </span>
                                   <span style={{ fontWeight: 700, color: "#b45309", fontSize: 11.5 }}>
                                     Qty: {p.quantity || 1}
-                                    {p.weightDisplay ? ` · ${p.weightDisplay}` : ""}
+                                    {p.weightDisplay ? ` â€¢ ${p.weightDisplay}` : ""}
                                   </span>
                                 </div>
                                 {(p.reason || p.disposition) && (
                                   <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
                                     {p.reason ? <span>Reason: <strong style={{ color: "var(--color-text)" }}>{p.reason}</strong></span> : null}
-                                    {p.reason && p.disposition ? " · " : ""}
+                                    {p.reason && p.disposition ? " â€¢ " : ""}
                                     {p.disposition ? <span>{p.disposition}</span> : null}
                                   </div>
                                 )}
@@ -1991,7 +1991,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                     {/* 7. Condemnation Date & Time */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Condemnation Date & Time</dt>
-                      <dd>{viewingDetails.date ? formatPhDateTime(viewingDetails.date) : "—"}</dd>
+                      <dd>{viewingDetails.date ? formatPhDateTime(viewingDetails.date) : "â€”"}</dd>
                     </div>
 
                     {/* 8. Condemned By */}

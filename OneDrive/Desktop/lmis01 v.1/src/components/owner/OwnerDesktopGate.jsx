@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "../icons";
-import logoImg from "../../assets/logo.jpg";
+import logoImg from "../../assets/logo.png";
 
 export const OwnerDesktopGate = ({ onSimulateMobile }) => {
   const navigate = useNavigate();
@@ -44,7 +44,7 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
             alt="LSMIS"
             style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "contain" }}
           />
-          <span>City Veterinary Abattoir • Mobile Portal</span>
+          <span>City Veterinary Abattoir â€¢ Mobile Portal</span>
         </div>
 
         {/* Device Restriction Icon */}

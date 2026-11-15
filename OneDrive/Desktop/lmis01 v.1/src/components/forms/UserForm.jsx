@@ -193,7 +193,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               </span>
             </div>
             <span style={{ fontSize: "0.75rem", color: "var(--color-text-muted)" }}>
-              @{username || "username"} · {initial.id ? `ID: ${String(initial.id).slice(0, 8)}...` : ""}
+              @{username || "username"} â€¢ {initial.id ? `ID: ${String(initial.id).slice(0, 8)}...` : ""}
             </span>
           </div>
         </div>

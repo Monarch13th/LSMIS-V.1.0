@@ -7,7 +7,7 @@ import { OwnerBottomNav } from "./OwnerBottomNav";
 import { OwnerDesktopGate } from "../owner/OwnerDesktopGate";
 import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
-import logoImg from "../../assets/logo.jpg";
+import logoImg from "../../assets/logo.png";
 
 export const OwnerMobileLayout = ({ theme: propTheme, onToggleTheme: propToggleTheme }) => {
   const { ownerId } = useAuth();

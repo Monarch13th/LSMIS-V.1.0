@@ -807,7 +807,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               pattern="[0-9]*"
               maxLength={6}
               autoComplete="one-time-code"
-              placeholder="••••••"
+              placeholder="â€¢â€¢â€¢â€¢â€¢â€¢"
               value={disableOtpCode}
               onChange={(e) => {
                 const val = e.target.value.replace(/\D/g, "").slice(0, 6);
@@ -1062,7 +1062,7 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
               fontWeight: 700,
             }}
           >
-            I&apos;m All Set — Continue
+            I&apos;m All Set â€¢ Continue
           </Button>
         </div>
       </Modal>

@@ -397,7 +397,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       return (
         clean !== "" &&
         clean !== "-" &&
-        clean !== "—" &&
+        clean !== "â€”" &&
         clean.toLowerCase() !== "unknown" &&
         clean.toLowerCase() !== "unknown owner" &&
         clean.toLowerCase() !== "n/a"
@@ -587,7 +587,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     if (p?.owner_id) return String(p.owner_id).trim();
 
     const ownerName = resolveOwnerName(insp);
-    if (ownerName && ownerName !== "-" && ownerName !== "—") {
+    if (ownerName && ownerName !== "-" && ownerName !== "â€”") {
       const found = (owners || []).find(
         (o) => (o.name || "").trim().toLowerCase() === ownerName.trim().toLowerCase()
       );
@@ -622,7 +622,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       ...baseAnimal,
       tag_number: insp.tag_number || baseAnimal.tag_number,
       species: insp.species || baseAnimal.species || "Unknown",
-      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (baseAnimal.owner_name || "-"),
+      owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (baseAnimal.owner_name || "-"),
     };
   };
 
@@ -795,7 +795,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       const grp = groups.get(key);
       grp.items.push(item);
       const species = (item.species || resolveAnimal(item)?.species || "Unknown Species").trim();
-      if (species && species !== "-" && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
+      if (species && species !== "-" && species !== "â€”" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
       }
 
@@ -920,7 +920,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || item.livestock_id || "",
             species: animal?.species || item.species || "Unknown",
-            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (animal?.owner_name || item.owner_name || ""),
             animal,
           };
         });
@@ -982,7 +982,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             tag_number: tag,
             livestock_id: animal?.id || "",
             species: animal?.species || "Unknown",
-            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
+            owner_name: resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”" ? resolvedOwner : (animal?.owner_name || payload.owner_name || ""),
             condemned_parts: attachCondemnation ? payload.condemned_parts : [],
             photos: attachCondemnation ? payload.photos : [],
             ...(attachCondemnation || !payloadIsPartial
@@ -1075,7 +1075,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     const dateFormattedOrdinal = `${day}${suffix} day of ${month}, ${year}`;
     const resolvedOwner = resolveOwnerName(insp);
     const animal = resolveAnimal(insp);
-    const ownerName = (resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "—") ? resolvedOwner : "Authorized Owner";
+    const ownerName = (resolvedOwner && resolvedOwner !== "-" && resolvedOwner !== "â€”") ? resolvedOwner : "Authorized Owner";
     const species = insp.species || animal?.species || "Livestock";
 
     const isPartial = insp.decision === "Partial" || insp.decision === "Passed with Partial Condemnation" || insp.raw_decision === "Partial";

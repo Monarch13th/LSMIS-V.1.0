@@ -986,9 +986,9 @@ export const OwnerManagement = () => {
               >
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
-                <option value="name_asc">Name (A–Z)</option>
+                <option value="name_asc">Name (A â†’ Z)</option>
               </select>
-              <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>?</span>
+              <span style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", pointerEvents: "none", color: "var(--color-text-muted)", fontSize: 10 }}>â–¼</span>
             </div>
           </div>
         </div>
@@ -1149,7 +1149,7 @@ export const OwnerManagement = () => {
                             }}
                             title={o.email || o.username || ""}
                           >
-                            {o.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{o.username} · </span>}
+                            {o.username && <span style={{ fontWeight: 600, color: "var(--color-primary)" }}>@{o.username} â€¢ </span>}
                             <span>{o.email || "No email"}</span>
                           </div>
                         </div>
@@ -1163,7 +1163,7 @@ export const OwnerManagement = () => {
                         {o.contact ? (
                           <span>{o.contact}</span>
                         ) : (
-                          <span style={{ color: "#9BA49E" }}>—</span>
+                          <span style={{ color: "#9BA49E" }}>â€”</span>
                         )}
                       </div>
                       <div
@@ -1553,9 +1553,9 @@ export const OwnerManagement = () => {
         }
       >
         {selectedOwner && (() => {
-          const ownerName = selectedOwner.name || selectedOwner.full_name || "—";
+          const ownerName = selectedOwner.name || selectedOwner.full_name || "â€”";
           const regDateRaw = selectedOwner.registered_date || selectedOwner.created_at;
-          const regDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "—";
+          const regDate = formatPhDateTime(regDateRaw) || formatDate(regDateRaw) || "â€”";
           const adminNote = selectedOwner.rejection_reason || selectedOwner.notes;
 
           const sections = [
@@ -1564,7 +1564,7 @@ export const OwnerManagement = () => {
               rows: [
                 { icon: <Icon.Tag size={14} />, field: "Owner ID", value: formatOwnerId(selectedOwner), mono: true, strong: true, accent: "#136647" },
                 { icon: <Icon.User size={14} />, field: "Full Name", value: ownerName, strong: true },
-                { icon: <Icon.Key size={14} />, field: "Username", value: selectedOwner.username ? `@${selectedOwner.username}` : "—", mono: true },
+                { icon: <Icon.Key size={14} />, field: "Username", value: selectedOwner.username ? `@${selectedOwner.username}` : "â€”", mono: true },
                 {
                   icon: <Icon.ShieldCheck size={14} />,
                   field: "Auth Provider",
@@ -1583,9 +1583,9 @@ export const OwnerManagement = () => {
             {
               title: "Contact Information",
               rows: [
-                { icon: <Icon.Mail size={14} />, field: "Email Address", value: selectedOwner.email || "—", mono: true },
-                { icon: <Icon.Phone size={14} />, field: "Contact Number", value: selectedOwner.contact || selectedOwner.phone || "—", mono: true },
-                { icon: <Icon.MapPin size={14} />, field: "Address", value: selectedOwner.address || "—" },
+                { icon: <Icon.Mail size={14} />, field: "Email Address", value: selectedOwner.email || "â€”", mono: true },
+                { icon: <Icon.Phone size={14} />, field: "Contact Number", value: selectedOwner.contact || selectedOwner.phone || "â€”", mono: true },
+                { icon: <Icon.MapPin size={14} />, field: "Address", value: selectedOwner.address || "â€”" },
               ],
             },
             {
@@ -1734,13 +1734,13 @@ export const OwnerManagement = () => {
                               style={{
                                 ...valueCell,
                                 fontWeight: row.strong ? 600 : 500,
-                                color: row.value === "—" ? "#9BA49E" : row.accent || valueCell.color,
+                                color: row.value === "â€”" ? "#9BA49E" : row.accent || valueCell.color,
                               }}
                             >
                               {row.custom
                                 ? row.custom
                                 : typeof row.value === "object" && row.value !== null
-                                ? (row.value.label ?? row.value.value ?? "—")
+                                ? (row.value.label ?? row.value.value ?? "â€”")
                                 : row.value}
                             </td>
                           </tr>
@@ -1801,7 +1801,7 @@ export const OwnerManagement = () => {
               <div>
                 <h4 style={{ margin: 0, fontSize: "0.95rem", fontWeight: 800, color: "var(--color-text)" }}>{historyOwner.name}</h4>
                 <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", marginTop: 2 }}>
-                  ID: <strong>{formatOwnerId(historyOwner)}</strong> · {historyOwner.email}
+                  ID: <strong>{formatOwnerId(historyOwner)}</strong> â€¢ {historyOwner.email}
                 </div>
               </div>
               {getStatusBadge(historyOwner)}

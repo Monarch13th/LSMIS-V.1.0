@@ -80,7 +80,7 @@ export const AdminPermits = () => {
           timestamp: rawIssuedAt ? new Date(rawIssuedAt).getTime() : 0,
           owner_name: ownerClean,
           owner_avatar: ownerObj?.avatar_url || p.owner_avatar || null,
-          owner_contact: ownerObj?.phone || ownerObj?.contact || "—",
+          owner_contact: ownerObj?.phone || ownerObj?.contact || "â€”",
           base_permit_no: basePermitNo,
           permit_numbers: new Set(),
           items: [],
@@ -150,7 +150,7 @@ export const AdminPermits = () => {
             timestamp: rawDate ? new Date(rawDate).getTime() : 0,
             owner_name: ownerClean,
             owner_avatar: ownerObj?.avatar_url || null,
-            owner_contact: ownerObj?.phone || ownerObj?.contact || "—",
+            owner_contact: ownerObj?.phone || ownerObj?.contact || "â€”",
             base_permit_no: "Pending Issuance",
             permit_numbers: new Set(),
             items: [],
@@ -606,7 +606,7 @@ export const AdminPermits = () => {
                       <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--color-text)", fontSize: 13 }}>
                           <Icon.Calendar size={13} style={{ color: "#187A56", flexShrink: 0, opacity: 0.8 }} />
-                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "—"}</span>
+                          <span>{grp.rawDate ? formatPhDateTime(grp.rawDate) : "â€”"}</span>
                         </div>
                       </td>
 
@@ -625,7 +625,7 @@ export const AdminPermits = () => {
                               {grp.base_permit_no}
                             </span>
                           ) : (
-                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
+                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>â€”</span>
                           )}
                         </td>
                       )}

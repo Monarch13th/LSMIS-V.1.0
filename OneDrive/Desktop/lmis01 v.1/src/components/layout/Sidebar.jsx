@@ -4,7 +4,7 @@ import { Icon } from "../icons";
 import { useAuth } from "../../hooks/useAuth";
 import { useRole } from "../../hooks/useRole";
 import { ROLE_LABELS } from "../../utils/constants";
-import logoImg from "../../assets/logo.jpg";
+import logoImg from "../../assets/logo.png";
 
 const NavItem = ({ it, onClose }) => {
   const location = useLocation();

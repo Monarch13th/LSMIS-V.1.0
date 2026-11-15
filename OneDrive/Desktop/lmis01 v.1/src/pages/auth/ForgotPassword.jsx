@@ -9,7 +9,7 @@ import { TABLES } from "../../utils/constants";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
 import { isInstalledApp } from "../../utils/capacitor";
-import logoImg from "../../assets/logo.jpg";
+import logoImg from "../../assets/logo.png";
 
 export const ForgotPassword = () => {
   const [email, setEmail] = useState("");
