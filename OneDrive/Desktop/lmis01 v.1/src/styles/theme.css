@@ -156,8 +156,9 @@
 }
 
 .login-mobile-brand {
-  background: radial-gradient(circle at 18% 12%, rgba(52, 211, 153, 0.25) 0%, transparent 55%), 
-    linear-gradient(165deg, var(--lsmis-primary) 0%, var(--lsmis-primary-active) 50%, var(--lsmis-green-950) 100%) !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .btn-primary,

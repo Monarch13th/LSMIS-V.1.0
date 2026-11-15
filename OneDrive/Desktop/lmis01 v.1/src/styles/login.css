@@ -1999,6 +1999,9 @@
   align-items: center;
   text-align: center;
   margin-bottom: 22px;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 @media (max-width: 1024px) {
@@ -2275,6 +2278,7 @@
     flex-shrink: 0 !important; /* Never allow white container to compress or overlap brand header */
     min-height: max-content !important;
     gap: 3px !important;
+    background: transparent !important;
     border: none !important;
     border-bottom: none !important;
     box-shadow: none !important;
@@ -2922,6 +2926,9 @@
     padding-top: max(8px, env(safe-area-inset-top, 0px)) !important;
     margin-bottom: 2px !important;
     gap: 1px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .login-page.lsmis-login .login-mobile-logo {
@@ -2992,6 +2999,9 @@
     gap: 8px !important;
     justify-content: center !important;
     align-items: center !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .login-page.lsmis-login .login-mobile-logo {
@@ -3072,6 +3082,9 @@
     padding: max(12px, env(safe-area-inset-top, 0px)) 14px max(12px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)) !important;
     justify-content: center !important;
     align-self: center !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
   }
 
   .login-page.lsmis-login .login-mobile-logo {
