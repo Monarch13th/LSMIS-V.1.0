@@ -5,6 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useTheme } from "../../hooks/useTheme";
 import { OwnerBottomNav } from "./OwnerBottomNav";
 import { OwnerDesktopGate } from "../owner/OwnerDesktopGate";
+import { BackLogoutConfirm } from "../auth/BackLogoutConfirm";
 import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
 import logoImg from "../../assets/logo.png";
@@ -72,6 +73,7 @@ export const OwnerMobileLayout = ({ theme: propTheme, onToggleTheme: propToggleT
 
   return (
     <div className="owner-mobile-layout-root h-screen h-[100dvh] max-h-[100dvh] w-full overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col items-center">
+      <BackLogoutConfirm />
       <div className="owner-mobile-layout-card w-full max-w-5xl h-full max-h-[100dvh] bg-white dark:bg-slate-900 shadow-sm flex flex-col relative sm:border-x border-slate-200 dark:border-slate-800 overflow-hidden">
         {/* Sticky/Fixed Header & Navigation Group (Permanently at Top) */}
         <div className="owner-top-nav-group sticky top-0 z-50 shrink-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-sm border-b border-slate-200 dark:border-slate-800">

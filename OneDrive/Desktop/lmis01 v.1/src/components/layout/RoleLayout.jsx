@@ -6,6 +6,7 @@ import { Footer } from "./Footer";
 import { updatePresence } from "../../services/activityService";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../notifications/Toast";
+import { BackLogoutConfirm } from "../auth/BackLogoutConfirm";
 
 const IDLE_THRESHOLD_MS = 2 * 60 * 1000;  // 2 minutes → becomes Idle
 const HEARTBEAT_INTERVAL_MS = 25 * 1000;  // 25s online heartbeat
@@ -139,6 +140,7 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
 
   return (
     <div className="app-layout">
+      <BackLogoutConfirm />
       <Sidebar items={items} open={open} onClose={() => setOpen(false)} />
       <div className="app-main">
         <Navbar onMenuClick={() => setOpen(true)} theme={theme} onToggleTheme={onToggleTheme} />
