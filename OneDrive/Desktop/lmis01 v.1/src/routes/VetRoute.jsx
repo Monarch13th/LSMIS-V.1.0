@@ -9,8 +9,6 @@ export const VetRoute = ({ children }) => {
   const [checking, setChecking] = useState(true);
   const [isTerminated, setIsTerminated] = useState(false);
 
-  if (mfaRequired) return <Navigate to="/login?mfa=required" replace />;
-
   useEffect(() => {
     if (loading || !isInitialized) return;
     let isMounted = true;
@@ -52,6 +50,7 @@ export const VetRoute = ({ children }) => {
     };
   }, [loading, session?.email, signOut]);
 
+  if (mfaRequired) return <Navigate to="/login?mfa=required" replace />;
   if (isTerminated || sessionStorage.getItem("lsmis_termination_notice")) {
     return <Navigate to="/login?terminated=true" replace />;
   }

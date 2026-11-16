@@ -362,7 +362,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           });
           setPersonnelId(dbUser?.id || userId || "");
           setUserCreatedAt(dbUser?.created_at || user?.created_at || "");
-          setTwoFA(Boolean(userMeta?.two_factor_enabled || storedLocal?.two_factor_enabled));
+          setTwoFA(Boolean(userMeta?.two_factor_enabled || session?.two_factor_enabled));
         }
 
         // Load Notification Preferences

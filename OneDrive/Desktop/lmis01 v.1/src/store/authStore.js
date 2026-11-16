@@ -359,10 +359,10 @@ export const initializeAuth = async () => {
   isAuthInitialized = true;
 
   try {
-    // Fast 1800ms safety timeout race so slow mobile networks never block app startup
+    // 5000ms safety timeout race so slow mobile networks never block app startup
     const sessionPromise = supabase.auth.getSession();
     const timeoutPromise = new Promise((resolve) =>
-      setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 1800)
+      setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 5000)
     );
     const { data, error } = await Promise.race([sessionPromise, timeoutPromise]);
     if (error && error.message !== "Auth timeout") {

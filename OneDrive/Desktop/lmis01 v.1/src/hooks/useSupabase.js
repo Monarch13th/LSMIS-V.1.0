@@ -8,7 +8,7 @@ import { shouldTableReload, initRealtimeSync } from "../services/realtimeSync";
 // ---------------------------------------------------------------------------
 // Global In-Memory Cache, Subscriber Registry & In-Flight Promise Registry
 // ---------------------------------------------------------------------------
-const CACHE_TTL_MS = 15000; // 15s freshness window unless invalidated by a DB mutation
+const CACHE_TTL_MS = 45000; // 45s freshness window unless invalidated by a DB mutation
 const tableDataCache = new Map(); // table -> { data: Array, timestamp: number, stale: boolean }
 const inFlightPromises = new Map(); // table -> Promise<Array>
 const tableSubscribers = new Map(); // table -> Set<Function>
@@ -24,10 +24,10 @@ if (typeof window !== "undefined") {
     }
   });
 
-  // Invalidate cached table data when Supabase Auth session hydrates or changes (critical on Vercel cold load)
+  // Invalidate cached table data only on fresh sign-in or sign-out (avoid mass re-fetches on background TOKEN_REFRESHED)
   try {
     supabase.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION") {
+      if (event === "SIGNED_IN") {
         for (const [, entry] of tableDataCache.entries()) {
           entry.stale = true;
         }

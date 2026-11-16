@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Icon } from "../../components/icons";
 import { TagBadge } from "../../components/ui/TagBadge";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -21,8 +22,13 @@ export const AdminPermits = () => {
   const { data: carcass = [], refresh: refreshCarcass } = useSupabase(TABLES.CARCASS);
   const { data: owners = [] } = useSupabase(TABLES.OWNERS);
 
+  const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState("all"); // 'all' | 'pending' | 'issued'
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(() => searchParams.get("search") || searchParams.get("tag") || "");
+  useEffect(() => {
+    const q = searchParams.get("search") || searchParams.get("tag");
+    if (q) setSearch(q);
+  }, [searchParams]);
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [page, setPage] = useState(1);
   const pageSize = 12;
@@ -492,7 +498,7 @@ export const AdminPermits = () => {
                   >
                     Date and Time
                   </th>
-                  {filterStatus !== "pending" && (
+                  {activeTab !== "pending" && (
                     <th
                       style={{
                         padding: "12px 16px",
@@ -614,7 +620,7 @@ export const AdminPermits = () => {
                       </td>
 
                       {/* 4. Permit # (omitted for pending permits) */}
-                      {filterStatus !== "pending" && (
+                      {activeTab !== "pending" && (
                         <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                           {isIssued ? (
                             <span

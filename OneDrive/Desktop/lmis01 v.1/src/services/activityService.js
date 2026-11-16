@@ -18,7 +18,7 @@ const AUDIT_MIRROR_KEY = "lsmis_personnel_audit_mirror_v1";
 if (typeof window !== "undefined") {
   try {
     localStorage.removeItem(AUDIT_MIRROR_KEY);
-  } catch (_) {}
+  } catch (_) { }
 }
 
 const appendAuditMirror = (_logEntry) => {
@@ -167,8 +167,8 @@ const fetchOperationalPersonnelAuditLogs = async (directory, forceRefresh = fals
       const histArr = Array.isArray(lv.marking_history)
         ? lv.marking_history
         : Array.isArray(lv.process_history)
-        ? lv.process_history
-        : [];
+          ? lv.process_history
+          : [];
       histArr.forEach((evt, idx) => {
         if (!evt || !evt.timestamp) return;
         const evtRole = normalizeRole(evt.role || resolveRoleFromDirectory(evt.user_name || evt.user_id, "staff"));
@@ -459,7 +459,7 @@ const fetchOperationalPersonnelAuditLogs = async (directory, forceRefresh = fals
           });
         }
       }
-    } catch (_) {}
+    } catch (_) { }
 
     _operationalAuditCache = { rows: synthesized, timestamp: Date.now() };
     return synthesized;
@@ -499,7 +499,7 @@ const broadcastPresence = (payload) => {
   try {
     const bc = getBroadcastChannel();
     if (bc) bc.postMessage(payload);
-  } catch (e) {}
+  } catch (e) { }
   window.dispatchEvent(new CustomEvent("lsmis_presence_updated", { detail: payload }));
 };
 
@@ -690,7 +690,7 @@ export const getUsersDirectory = async (forceRefresh = false) => {
         timestamp: Date.now(),
       };
     }
-  } catch (_) {}
+  } catch (_) { }
 
   return _usersCache;
 };
@@ -787,7 +787,7 @@ export const getActorIdentity = async (explicitUser = null, explicitRole = null,
         resolvedName = authUser.user_metadata?.full_name || resolvedName || authUser.email;
       }
     }
-  } catch (_) {}
+  } catch (_) { }
 
   const result = {
     userId: resolvedId || "authenticated",
@@ -817,7 +817,7 @@ export const getClientIp = async () => {
       _cachedClientIp = stored;
       return stored;
     }
-  } catch (_) {}
+  } catch (_) { }
 
   try {
     const controller = new AbortController();
@@ -830,11 +830,11 @@ export const getClientIp = async () => {
         _cachedClientIp = data.ip;
         try {
           sessionStorage.setItem("lsmis_client_ip", data.ip);
-        } catch (_) {}
+        } catch (_) { }
         return data.ip;
       }
     }
-  } catch (_) {}
+  } catch (_) { }
 
   const isLocalHost = typeof window !== "undefined" &&
     (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
@@ -945,7 +945,7 @@ export const logActivity = async ({
       if (notify.owner_id) {
         targetRole = "owner";
       } else {
-        const m = String(mod || "").toLowerCase();
+        const m = String(module || "").toLowerCase();
         const a = String(action || "").toLowerCase();
         const t = String(notify.title || "").toLowerCase();
         if (
@@ -1036,7 +1036,7 @@ export const notifyOwner = async ({ owner_id, title, message, type = "info" }) =
       // Notification suppressed by owner's preference
       return null;
     }
-  } catch (_) {}
+  } catch (_) { }
 
   const newNotif = {
     id: uuid(),
@@ -1061,7 +1061,7 @@ export const notifyOwner = async ({ owner_id, title, message, type = "info" }) =
     if (Array.isArray(existing) && existing.length > 0) {
       return { ...newNotif, id: existing[0].id };
     }
-  } catch (e) {}
+  } catch (e) { }
 
   try {
     const { error } = await supabase.from(TABLES.NOTIFICATIONS).insert(newNotif);
@@ -1183,7 +1183,7 @@ export const subscribeToActiveSessions = (callback) => {
   try {
     bc = new BroadcastChannel(PRESENCE_CHANNEL);
     bc.onmessage = fire;
-  } catch (e) {}
+  } catch (e) { }
 
   let supabaseChannel = null;
   try {
@@ -1191,17 +1191,17 @@ export const subscribeToActiveSessions = (callback) => {
       .channel("lsmis_presence_room_v2")
       .on("broadcast", { event: "presence" }, fire)
       .subscribe();
-  } catch (e) {}
+  } catch (e) { }
 
   return () => {
     window.removeEventListener("lsmis_presence_updated", fire);
     window.removeEventListener("storage", fire);
     try {
       if (bc) bc.close();
-    } catch (e) {}
+    } catch (e) { }
     try {
       if (supabaseChannel) supabase.removeChannel(supabaseChannel);
-    } catch (e) {}
+    } catch (e) { }
   };
 };
 
@@ -1309,8 +1309,8 @@ export const enrichAuditRecord = (rawLog, directory) => {
     canonicalRole === "admin" || canonicalRole === "vet" || canonicalRole === "staff"
       ? canonicalRole
       : canonicalRole === "system"
-      ? "admin"
-      : "staff";
+        ? "admin"
+        : "staff";
 
   const roleLabel = formatRoleLabel(effectiveRole);
   const actionCategory = classifyAuditAction(rawLog.action);
@@ -1651,7 +1651,7 @@ export const subscribeToAuditLogs = (callback, roleScope = null) => {
     try {
       const logs = await getAuditLogsForRole(roleScope);
       if (logs) callback(logs);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   fetchAndCallback();
@@ -1670,14 +1670,14 @@ export const subscribeToAuditLogs = (callback, roleScope = null) => {
         fetchAndCallback();
       })
       .subscribe();
-  } catch (e) {}
+  } catch (e) { }
 
   return () => {
     window.removeEventListener("lsmis_audit_updated", handleUpdate);
     window.removeEventListener("lmis-db-change", handleUpdate);
     try {
       if (supabaseChannel) supabase.removeChannel(supabaseChannel);
-    } catch (e) {}
+    } catch (e) { }
   };
 };
 

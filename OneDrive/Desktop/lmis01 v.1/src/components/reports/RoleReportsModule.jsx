@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, PageHeader, Button, StatCard, EmptyState, Modal, Pagination } from "../ui";
 import { TagBadge } from "../ui/TagBadge";
 import { Icon } from "../icons";
@@ -252,7 +253,12 @@ export const RoleReportsModule = ({
   const isRegMarking = activeType === "livestock" || activeType === "receiving";
 
   // Filters (matching InspectionResults / SlaughterProcessing UI/UX)
-  const [search, setSearch] = useState("");
+  const [searchParams] = useSearchParams();
+  const [search, setSearch] = useState(() => searchParams.get("search") || searchParams.get("tag") || "");
+  useEffect(() => {
+    const q = searchParams.get("search") || searchParams.get("tag");
+    if (q) setSearch(q);
+  }, [searchParams]);
   const [searchFocused, setSearchFocused] = useState(false);
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [datePreset, setDatePreset] = useState("all");

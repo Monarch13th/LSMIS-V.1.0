@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../../components/icons";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
 import { formatDate } from "../../utils/formatters";
+import { resolveNotificationDestination } from "../../components/notifications/NotificationBell";
 
 export const OwnerNotifications = () => {
   const { ownerId } = useAuth();
+  const navigate = useNavigate();
   const [notifs, setNotifs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -272,9 +274,14 @@ export const OwnerNotifications = () => {
             return (
               <div
                 key={n.id}
-                onClick={() => markOneRead(n.id)}
+                onClick={() => {
+                  markOneRead(n.id);
+                  const dest = info.route || resolveNotificationDestination(n, "owner");
+                  if (dest) navigate(dest);
+                }}
                 className={`owner-notif-card ${!n.read ? "unread" : ""}`}
-                title={!n.read ? "Tap to mark as read" : undefined}
+                style={{ cursor: "pointer" }}
+                title="Tap to view record"
               >
                 <div className="owner-notif-header">
                   <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>

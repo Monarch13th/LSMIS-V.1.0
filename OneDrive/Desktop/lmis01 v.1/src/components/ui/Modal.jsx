@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "../icons";
 import { Button } from "./Button";
 
 let activeModalCount = 0;
+let modalStackCounter = 0;
+const openModalStack = [];
 
 const lockScroll = () => {
   activeModalCount++;
@@ -33,15 +35,29 @@ export const Modal = ({
   dialogClassName = "",
   headerStyle = null,
 }) => {
+  const modalIdRef = useRef(null);
+  if (modalIdRef.current === null) {
+    modalIdRef.current = ++modalStackCounter;
+  }
+  const [stackZIndex, setStackZIndex] = useState(1000);
+
   useEffect(() => {
     if (!open) return;
+    const id = modalIdRef.current;
+    openModalStack.push(id);
+    setStackZIndex(1000 + (openModalStack.length - 1) * 10);
+
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") onClose?.();
+      if (e.key === "Escape" && openModalStack[openModalStack.length - 1] === id) {
+        onClose?.();
+      }
     };
     lockScroll();
     window.addEventListener("keydown", handleKeyDown);
 
     return () => {
+      const idx = openModalStack.indexOf(id);
+      if (idx !== -1) openModalStack.splice(idx, 1);
       unlockScroll();
       window.removeEventListener("keydown", handleKeyDown);
     };
@@ -53,7 +69,7 @@ export const Modal = ({
   return (
     <div
       className="modal-backdrop"
-      style={backdropStyle}
+      style={{ zIndex: stackZIndex, ...(backdropStyle || {}) }}
       onClick={(e) => {
         // Backdrop click-to-exit disabled by default: clicking outside does not close or dismiss modal
         if (closeOnBackdropClick && e.target === e.currentTarget) {
@@ -115,7 +131,10 @@ export const Modal = ({
             <button
               type="button"
               className="modal-close"
-              onClick={onClose}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose?.();
+              }}
               aria-label="Close dialog"
             >
               <Icon.X size={16} />

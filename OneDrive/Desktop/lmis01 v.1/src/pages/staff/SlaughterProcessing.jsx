@@ -229,7 +229,7 @@ export const SlaughterProcessing = () => {
   } = useSupabase(TABLES.LIVESTOCK);
   const { data: owners = [] } = useSupabase(TABLES.OWNERS);
   const { data: anteMortem = [] } = useSupabase(TABLES.ANTE_MORTEM);
-  const currentUserIdentifier = getCurrentActor().name || session?.full_name || session?.name || username || userName || "Staff Personnel";
+  const currentUserIdentifier = getCurrentActor().name || "Staff Personnel";
 
   const isRecordsLoading = (loadingProcessing || loadingSlaughter || loadingLivestock) &&
     (!slaughter?.length && !livestock?.length && !processing?.length);
@@ -2804,7 +2804,6 @@ export const SlaughterProcessing = () => {
             const selectedReadyItems = isReadyMode
               ? eligibleReadyItems.filter((rec) => selectedReadyKeys.has(rec.id || rec.tag_number))
               : [];
-            const targetDoneItems = selectedReadyItems.length > 0 ? selectedReadyItems : eligibleReadyItems;
 
             return (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
@@ -2814,46 +2813,6 @@ export const SlaughterProcessing = () => {
                     : `${allModalItems.length} ${activeTab === "awaiting" ? "head" : "carcass"}${allModalItems.length === 1 ? "" : (activeTab === "awaiting" ? "s" : "es")}`}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
-                  {isReadyMode && selectedOwnerView && allModalItems.length > 0 && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        if (targetDoneItems.length === 0) return;
-                        setGroupToMarkSlaughtered({
-                          ...selectedOwnerView,
-                          items: targetDoneItems,
-                        });
-                      }}
-                      disabled={targetDoneItems.length === 0}
-                      style={{
-                        height: 33,
-                        padding: "0 14px",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        background: "linear-gradient(135deg, #10b981, #059669)",
-                        color: "#ffffff",
-                        borderRadius: 7,
-                        border: "none",
-                        whiteSpace: "nowrap",
-                        boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                      }}
-                      title={
-                        selectedReadyItems.length > 0
-                          ? `Mark ${selectedReadyItems.length} selected livestock for ${selectedOwnerView.owner_name} as done`
-                          : `Mark all ${eligibleReadyItems.length} eligible livestock for ${selectedOwnerView.owner_name} as done`
-                      }
-                    >
-                      <Icon.CheckCircle size={14} />
-                      <span>
-                        {selectedReadyItems.length > 0
-                          ? `Mark Selected as Done (${selectedReadyItems.length})`
-                          : "Mark All as Done"}
-                      </span>
-                    </Button>
-                  )}
               {activeTab === "awaiting" && selectedOwnerView && selectedOwnerView.items.length > 0 && (
                 <Button
                   size="sm"
@@ -2951,13 +2910,12 @@ export const SlaughterProcessing = () => {
                             }}
                           />
                         </th>
-                        <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                        <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                        <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                        <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
-                        <th style={{ width: "17%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Started</th>
-                        <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                        <th className="table-action-th" style={{ width: "13%" }}>ACTIONS</th>
+                        <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
+                        <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                        <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                        <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
+                        <th style={{ width: "20%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Started</th>
+                        <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3080,35 +3038,6 @@ export const SlaughterProcessing = () => {
                             >
                               <Icon.Check size={11} /> Ready for Slaughter
                             </span>
-                          </td>
-                          <td className="table-action-td">
-                            <div className="table-action-group">
-                              <button
-                                type="button"
-                                className="action-btn action-btn-success"
-                                disabled={Boolean(submittingSingleId) || submittingGroupSlaughter}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSingleToMarkDone(rec);
-                                }}
-                                style={{
-                                  opacity: submittingSingleId === (rec.livestock_id || rec.id || rec.tag_number) ? 0.7 : 1,
-                                }}
-                                title={`Mark ${rec.tag_number || "livestock"} as done`}
-                              >
-                                {submittingSingleId === (rec.livestock_id || rec.id || rec.tag_number) ? (
-                                  <>
-                                    <span className="spinner" style={{ width: 12, height: 12 }} />
-                                    <span>Saving...</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Icon.CheckCircle size={13} />
-                                    <span>Done</span>
-                                  </>
-                                )}
-                              </button>
-                            </div>
                           </td>
                         </tr>
                         );

@@ -138,8 +138,8 @@ export function resolveNotificationDestination(item, userRole) {
     category === "inspection"
   ) {
     if (isAdmin) return `/admin/inspection/condemnation${searchTarget ? `?search=${encodeURIComponent(searchTarget)}` : ""}`;
-    if (isVet) return `/vet/ante-mortem/condemned${tag ? `&search=${encodeURIComponent(tag)}` : ""}`;
-    if (isStaff) return `/staff/inspection/result${tag ? `&search=${encodeURIComponent(tag)}` : ""}`;
+    if (isVet) return `/vet/ante-mortem/condemned${tag ? `?search=${encodeURIComponent(tag)}` : ""}`;
+    if (isStaff) return `/staff/inspection/result${tag ? `?search=${encodeURIComponent(tag)}` : ""}`;
     return `/owner/animals${tag ? `?tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
@@ -163,7 +163,7 @@ export function resolveNotificationDestination(item, userRole) {
     category === "weighing"
   ) {
     if (isAdmin) return `/admin/slaughter/records${searchTarget ? `?search=${encodeURIComponent(searchTarget)}` : ""}`;
-    if (isVet) return `/vet/carcass-weighing${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
+    if (isVet) return `/vet/carcass-weighing${tag ? `?search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
     if (isOwner) return `/owner/animals${tag ? `?tag=${encodeURIComponent(tag)}` : ""}`;
     return `/staff/permits?tab=pending${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
@@ -180,7 +180,7 @@ export function resolveNotificationDestination(item, userRole) {
     category === "dispatch"
   ) {
     if (isAdmin) return `/admin/permits${searchTarget ? `?search=${encodeURIComponent(searchTarget)}` : ""}`;
-    if (isVet) return `/vet/approval${tag ? `&search=${encodeURIComponent(tag)}` : ""}`;
+    if (isVet) return `/vet/approval${tag ? `?search=${encodeURIComponent(tag)}` : ""}`;
     if (isOwner) return `/owner/animals${tag ? `?tag=${encodeURIComponent(tag)}` : ""}`;
     return `/staff/permits?tab=issued${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
@@ -193,7 +193,7 @@ export function resolveNotificationDestination(item, userRole) {
     fullText.includes("slaughter records")
   ) {
     if (isAdmin) return `/admin/slaughter/records${searchTarget ? `?search=${encodeURIComponent(searchTarget)}` : ""}`;
-    if (isVet) return `/vet/livestock/history${tag ? `&search=${encodeURIComponent(tag)}` : ""}`;
+    if (isVet) return `/vet/livestock/history${tag ? `?search=${encodeURIComponent(tag)}` : ""}`;
     if (isOwner) return `/owner/animals${tag ? `?tag=${encodeURIComponent(tag)}` : ""}`;
     return `/staff/slaughter-processing?tab=completed${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }

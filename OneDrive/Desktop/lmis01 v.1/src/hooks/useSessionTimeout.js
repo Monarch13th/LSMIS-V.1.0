@@ -5,13 +5,15 @@ import { adminService } from "../services/adminService";
 import { authSecurityService } from "../services/authSecurityService";
 
 const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
-const CHECK_INTERVAL_MS = 5 * 1000; // Check every 5 seconds for rapid single-session enforcement
+const CHECK_INTERVAL_MS = 30 * 1000; // Check every 30 seconds (realtime/storage events still trigger immediately)
 
 export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
   const { session, isAuthenticated, signOut, isInitialized, loading } = useAuth();
   const navigate = useNavigate();
   const lastActiveRef = useRef(Date.now());
   const lastHeartbeatRef = useRef(Date.now());
+  const lastSecurityCheckRef = useRef(0);
+  const isCheckingRef = useRef(false);
 
   const recordActivity = useCallback(() => {
     lastActiveRef.current = Date.now();
@@ -84,7 +86,7 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
 
     recordActivity();
 
-    const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
+    const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart", "click", "input"];
     const handleEvent = () => {
       recordActivity();
     };
@@ -94,64 +96,75 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
     });
 
     // Check account termination and single active session across all roles (Admin, Vet, Staff, Owner)
-    const checkSecurityStatus = async () => {
+    const checkSecurityStatus = async (force = false) => {
       if (isPublicRoute()) return;
-
-      // 1. Check account termination status
-      try {
-        const rawSignal = localStorage.getItem("lsmis_session_termination_signal");
-        if (rawSignal) {
-          const sig = JSON.parse(rawSignal);
-          if (sig && sig.email && sig.email.toLowerCase() === cleanEmail) {
-            handleTerminationRevocation({ reason: sig.reason, terminatedUntil: sig.terminatedUntil });
-            return;
-          }
-        }
-      } catch (_) {}
+      if (isCheckingRef.current) return;
+      const now = Date.now();
+      if (!force && now - lastSecurityCheckRef.current < 10000) return;
+      lastSecurityCheckRef.current = now;
+      isCheckingRef.current = true;
 
       try {
-        const statusCheck = await adminService.checkUserTerminationStatus(cleanEmail);
-        if (statusCheck.isTerminated) {
-          handleTerminationRevocation({ reason: statusCheck.reason, terminatedUntil: statusCheck.terminatedUntil });
-          return;
-        }
-      } catch (_) {}
-
-      // 2. Check Single Active Session against Supabase as the source of truth
-      if (currentSessionId) {
-        // Pulse server heartbeat every ~20 seconds to maintain active session presence
-        if (Date.now() - lastHeartbeatRef.current >= 20000) {
-          lastHeartbeatRef.current = Date.now();
-          try {
-            const hb = await authSecurityService.heartbeatSession(cleanEmail, currentSessionId);
-            if (!hb.isValid && hb.reason === "concurrent_login") {
-              handleConcurrentLogout();
-              return;
-            }
-          } catch (_) {}
-        }
-
+        // 1. Check account termination status
         try {
-          const val = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
-          if (!val.isValid) {
-            if (val.reason === "account_terminated") {
-              handleTerminationRevocation();
+          const rawSignal = localStorage.getItem("lsmis_session_termination_signal");
+          if (rawSignal) {
+            const sig = JSON.parse(rawSignal);
+            if (sig && sig.email && sig.email.toLowerCase() === cleanEmail) {
+              handleTerminationRevocation({ reason: sig.reason, terminatedUntil: sig.terminatedUntil });
               return;
-            } else if (val.reason === "concurrent_login") {
-              // Retry confirmation to guard against transient network glitches or in-flight updates
-              const confirmVal = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
-              if (!confirmVal.isValid && confirmVal.reason === "concurrent_login") {
-                const termCheck = await adminService.checkUserTerminationStatus(cleanEmail);
-                if (termCheck.isTerminated) {
-                  handleTerminationRevocation({ reason: termCheck.reason, terminatedUntil: termCheck.terminatedUntil });
-                  return;
-                }
-                handleConcurrentLogout();
-                return;
-              }
             }
           }
         } catch (_) {}
+
+        try {
+          const statusCheck = await adminService.checkUserTerminationStatus(cleanEmail);
+          if (statusCheck.isTerminated) {
+            handleTerminationRevocation({ reason: statusCheck.reason, terminatedUntil: statusCheck.terminatedUntil });
+            return;
+          }
+        } catch (_) {}
+
+        // 2. Check Single Active Session against Supabase as the source of truth
+        if (currentSessionId) {
+          let needsValidation = false;
+          // Pulse server heartbeat every ~30 seconds to maintain active session presence
+          if (Date.now() - lastHeartbeatRef.current >= 30000) {
+            lastHeartbeatRef.current = Date.now();
+            try {
+              const hb = await authSecurityService.heartbeatSession(cleanEmail, currentSessionId);
+              if (!hb.isValid && hb.reason === "concurrent_login") {
+                needsValidation = true;
+              }
+            } catch (_) {}
+          }
+
+          if (needsValidation || force) {
+            try {
+              const val = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
+              if (!val.isValid) {
+                if (val.reason === "account_terminated") {
+                  handleTerminationRevocation();
+                  return;
+                } else if (val.reason === "concurrent_login") {
+                  // Retry confirmation to guard against transient network glitches or in-flight updates
+                  const confirmVal = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
+                  if (!confirmVal.isValid && confirmVal.reason === "concurrent_login") {
+                    const termCheck = await adminService.checkUserTerminationStatus(cleanEmail);
+                    if (termCheck.isTerminated) {
+                      handleTerminationRevocation({ reason: termCheck.reason, terminatedUntil: termCheck.terminatedUntil });
+                      return;
+                    }
+                    handleConcurrentLogout();
+                    return;
+                  }
+                }
+              }
+            } catch (_) {}
+          }
+        }
+      } finally {
+        isCheckingRef.current = false;
       }
     };
 
@@ -204,18 +217,20 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
 
     const handleVisibilityChange = () => {
       if (typeof document !== "undefined" && document.visibilityState === "visible") {
-        if (Date.now() - lastHeartbeatRef.current >= 15000) {
-          lastHeartbeatRef.current = Date.now();
-          authSecurityService.heartbeatSession(cleanEmail, currentSessionId).catch(() => {});
-        }
-        checkSecurityStatus();
+        recordActivity();
+        checkSecurityStatus(false);
       }
+    };
+
+    const handleFocus = () => {
+      recordActivity();
+      checkSecurityStatus(false);
     };
 
     window.addEventListener("lsmis_session_terminated", handleSessionTerminatedEvent);
     window.addEventListener("lsmis_single_session_replaced", handleSingleSessionReplacedEvent);
     window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("focus", checkSecurityStatus);
+    window.addEventListener("focus", handleFocus);
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", handleVisibilityChange);
     }
@@ -228,12 +243,12 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
       if (now - effectiveLast >= timeoutMs) {
         handleTimeout();
       } else {
-        checkSecurityStatus();
+        checkSecurityStatus(false);
       }
     }, CHECK_INTERVAL_MS);
 
     // Initial check on mount
-    checkSecurityStatus();
+    checkSecurityStatus(true);
 
     return () => {
       events.forEach((event) => {
@@ -242,12 +257,12 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
       window.removeEventListener("lsmis_session_terminated", handleSessionTerminatedEvent);
       window.removeEventListener("lsmis_single_session_replaced", handleSingleSessionReplacedEvent);
       window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("focus", checkSecurityStatus);
+      window.removeEventListener("focus", handleFocus);
       if (typeof document !== "undefined") {
         document.removeEventListener("visibilitychange", handleVisibilityChange);
       }
       clearInterval(intervalId);
     };
-  }, [isAuthenticated, session, timeoutMs, recordActivity, handleTimeout, handleTerminationRevocation, handleConcurrentLogout, isInitialized, loading]);
+  }, [isAuthenticated, session?.email, session?.session_id, session?.role, session?.login_time, timeoutMs, recordActivity, handleTimeout, handleTerminationRevocation, handleConcurrentLogout, isInitialized, loading]);
 };
 

@@ -1137,7 +1137,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                 })()}
                 <div>
                   <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "var(--color-text)", letterSpacing: "-0.01em" }}>
-                    {detailModalOwner.name}
+                    {detailModalOwner.name || detailModalOwner.full_name || "Owner"}
                   </h3>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
                     <span
@@ -1254,13 +1254,13 @@ export const Owners = ({ initialTab = "owners" }) => {
                     Contact Number
                   </div>
                   <div style={{ fontSize: 13.5, fontWeight: 700, color: "var(--color-text)", marginTop: 3, fontFamily: "monospace" }}>
-                    {detailModalOwner.contact ? (
+                    {(detailModalOwner.contact || detailModalOwner.phone) ? (
                       <a
-                        href={`tel:${detailModalOwner.contact}`}
+                        href={`tel:${detailModalOwner.contact || detailModalOwner.phone}`}
                         style={{ color: "var(--color-text)", textDecoration: "none" }}
                         title="Click to dial"
                       >
-                        {detailModalOwner.contact}
+                        {detailModalOwner.contact || detailModalOwner.phone}
                       </a>
                     ) : (
                       "—"

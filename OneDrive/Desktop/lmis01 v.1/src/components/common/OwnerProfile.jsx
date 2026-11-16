@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Modal, Button } from "../ui";
 import { Icon } from "../icons";
 import { formatDate, initials, formatSex } from "../../utils/helpers";
@@ -26,7 +26,8 @@ export const formatOwnerId = (owner, fallbackIndex = 1) => {
 export const resolveOwnerProfile = (entity, { owners = [], livestock = [], users = [] } = {}) => {
   if (!entity) return null;
 
-  const entityOwnerId = entity.owner_id || entity.ownerId || entity.animal?.owner_id || entity.id;
+  const isAnimalOrPermitRecord = Boolean(entity.tag_number || entity.batch_reference || entity.permit_no);
+  const entityOwnerId = entity.owner_id || entity.ownerId || entity.animal?.owner_id || (isAnimalOrPermitRecord ? null : entity.id);
   const entityOwnerName =
     entity.owner_name ||
     entity.ownerName ||
@@ -327,6 +328,10 @@ const getLivestockStatusStyle = (status) => {
 export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
   const [avatarError, setAvatarError] = useState(false);
 
+  useEffect(() => {
+    setAvatarError(false);
+  }, [owner?.id, owner?.avatar_url]);
+
   const ownerAnimals = useMemo(() => {
     return getOwnerLivestock(owner, livestock);
   }, [owner, livestock]);
@@ -343,6 +348,7 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
       onClose={onClose}
       title={`Owner Dossier - ${owner.name || "Livestock Owner"}`}
       size="lg"
+      backdropStyle={{ zIndex: 1060 }}
       footer={
         <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
           <Button variant="outline" size="sm" onClick={onClose} style={{ minWidth: 80, fontWeight: 700 }}>
