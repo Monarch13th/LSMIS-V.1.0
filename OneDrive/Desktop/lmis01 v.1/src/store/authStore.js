@@ -8,11 +8,11 @@ import { isInstalledApp as isCapacitorNativeApp } from "../utils/capacitor";
 export const normalizeRole = (r) => {
   if (!r) return null;
   const s = String(r).toLowerCase().trim();
-  if (s === "administrator" || s === "admin" || s.includes("admin")) return "admin";
-  if (s === "veterinarian" || s === "vet" || s.includes("vet") || s.includes("doctor")) return "vet";
-  if (s === "staff" || s.includes("staff") || s.includes("operator")) return "staff";
-  if (s === "owner" || s.includes("owner")) return "owner";
-  return s;
+  if (s === "administrator" || s === "admin") return "admin";
+  if (s === "veterinarian" || s === "vet") return "vet";
+  if (s === "staff" || s === "slaughterhouse staff" || s === "operator") return "staff";
+  if (s === "owner" || s === "livestock owner") return "owner";
+  return null;
 };
 
 const createStore = (initial) => {
@@ -161,22 +161,25 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     existingCached?.google_id ||
     null;
 
-  // If existing cached session matches the user and already has a verified role and session_id, preserve it
+  // Only preserve cached session if BOTH user_id AND email match the authenticated Supabase user
   const currentInitial = getInitialSession();
   const cachedToUse = existingCached || currentInitial;
   if (
     cachedToUse &&
-    (cachedToUse.id === supabaseUser.id || cachedToUse.user_id === supabaseUser.id || cachedToUse.email?.toLowerCase() === email) &&
+    cachedToUse.user_id &&
+    cachedToUse.user_id === supabaseUser.id &&
+    (!email || !cachedToUse.email || cachedToUse.email.toLowerCase() === email) &&
     cachedToUse.role &&
     cachedToUse.session_id
   ) {
-    // If the user authenticated via Google OAuth, cached session MUST be for an authorized role
     const validRoles = ["admin", "vet", "staff", "owner"];
-    if (isGoogleUser && !validRoles.includes(normalizeRole(cachedToUse.role))) {
+    const normCachedRole = normalizeRole(cachedToUse.role);
+    if (!normCachedRole || !validRoles.includes(normCachedRole)) {
       return null;
     }
     return {
       ...cachedToUse,
+      role: normCachedRole,
       user_id: supabaseUser.id,
       email,
       avatar_url: cachedToUse.avatar_url || avatarUrl,
@@ -184,7 +187,7 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     };
   }
 
-  let role = supabaseUser.user_metadata?.role || null;
+  let role = normalizeRole(supabaseUser.user_metadata?.role) || null;
   let name = supabaseUser.user_metadata?.full_name || supabaseUser.user_metadata?.name || "";
   let username = supabaseUser.user_metadata?.username || "";
   let ownerId = supabaseUser.user_metadata?.owner_id || null;
@@ -193,15 +196,29 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
   let userStatus = null;
 
   try {
-    const { data: userRow } = await supabase
-      .from(TABLES.USERS)
-      .select("id, role, full_name, username, status, owner_id, active_session_id, active_session_updated_at, avatar_url")
-      .or(`id.eq.${supabaseUser.id},email.ilike.${email}`)
-      .limit(1)
-      .maybeSingle();
+    let userRow = null;
+    if (supabaseUser.id) {
+      const { data: byId } = await supabase
+        .from(TABLES.USERS)
+        .select("id, role, full_name, username, status, owner_id, active_session_id, active_session_updated_at, avatar_url")
+        .eq("id", supabaseUser.id)
+        .limit(1)
+        .maybeSingle();
+      userRow = byId || null;
+    }
+    if (!userRow && email) {
+      const { data: byEmail } = await supabase
+        .from(TABLES.USERS)
+        .select("id, role, full_name, username, status, owner_id, active_session_id, active_session_updated_at, avatar_url")
+        .ilike("email", email)
+        .limit(1)
+        .maybeSingle();
+      userRow = byEmail || null;
+    }
 
     if (userRow) {
-      if (userRow.role) role = normalizeRole(userRow.role) || userRow.role;
+      const normDbRole = normalizeRole(userRow.role);
+      if (normDbRole) role = normDbRole;
       if (userRow.full_name) name = userRow.full_name;
       if (userRow.username) username = userRow.username;
       if (userRow.status) userStatus = userRow.status;
@@ -481,18 +498,20 @@ export const initializeAuth = async () => {
           } catch (_) {}
         }
 
-        // If an active session is already loaded in authStore with a session_id and matches the user, don't overwrite it
+        // If an active session is already loaded in authStore with a session_id and matches the exact user_id, don't overwrite it
         const currentStoreSession = authStore.get()?.session;
         const userEmail = (sbSession.user.email || "").toLowerCase().trim();
         if (
+          event !== "SIGNED_IN" &&
           currentStoreSession &&
           currentStoreSession.session_id &&
-          (currentStoreSession.user_id === sbSession.user.id || currentStoreSession.email?.toLowerCase() === userEmail)
+          currentStoreSession.user_id === sbSession.user.id &&
+          (!userEmail || currentStoreSession.email?.toLowerCase() === userEmail)
         ) {
           return;
         }
 
-        const cached = getInitialSession();
+        const cached = event === "SIGNED_IN" ? null : getInitialSession();
         const resolved = await resolveUserSession(sbSession.user, cached);
         if (resolved) {
           try {

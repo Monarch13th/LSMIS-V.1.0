@@ -6,7 +6,7 @@ import { Icon } from "../../components/icons";
 import { isCapacitorNativeApp, isInstalledApp } from "../../utils/capacitor";
 import { useToast } from "../../components/notifications/Toast";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
-import { authStore, setSessionStorageItem, removeSessionStorageItem } from "../../store/authStore";
+import { authStore, normalizeRole, setSessionStorageItem, removeSessionStorageItem } from "../../store/authStore";
 import { STORAGE_KEYS, TABLES, ROLE_LABELS } from "../../utils/constants";
 import { now, uuid } from "../../utils/helpers";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
@@ -213,7 +213,7 @@ export const Login = ({ embedded = false, initialView }) => {
       Boolean(sessionStorage.getItem("lsmis_google_reg_pending")) ||
       Boolean(inFlightOAuthRef.current);
 
-    if (isOAuthInFlight) {
+    if (isOAuthInFlight || signInInFlightRef.current || loading || googleLoginLoading || pending2FA) {
       return;
     }
 
@@ -225,7 +225,7 @@ export const Login = ({ embedded = false, initialView }) => {
         navigate(`/${currentRole}`, { replace: true });
       }
     }
-  }, [embedded, authLoading, currentSession, currentRole, navigate, location.state]);
+  }, [embedded, authLoading, currentSession, currentRole, navigate, location.state, loading, googleLoginLoading, pending2FA]);
 
   const emailRef = useRef(null);
   const fpEmailRef = useRef(null);
@@ -581,6 +581,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
         const loginTimeIso = activeSessionUpdatedAt || new Date().toISOString();
         const session = {
+          ...(sbSession || {}),
           id: userId,
           user_id: userId,
           role,
@@ -595,7 +596,6 @@ export const Login = ({ embedded = false, initialView }) => {
           ts: Date.now(),
           login_time: loginTimeIso,
           cover_gradient,
-          ...(sbSession || {}),
         };
 
         // Check if Two-Factor Authentication (2FA) is enabled for this account via Supabase Auth MFA
@@ -1343,6 +1343,10 @@ export const Login = ({ embedded = false, initialView }) => {
         }
       }
 
+      // Clear any stale cached session before signing in as a new user
+      removeSessionStorageItem(STORAGE_KEYS.SESSION);
+      authStore.set({ session: null, mfaRequired: false });
+
       // 4. Authenticate with Supabase
       let authData = null;
       let authError = null;
@@ -1429,19 +1433,27 @@ export const Login = ({ embedded = false, initialView }) => {
       let dbUser = null;
       let matchedOwner = null;
 
-      // 1. Query users database table (case-insensitive email or username or id)
+      // 1. Query users database table strictly by Supabase UID first, then email
       try {
-        let q = supabase
-          .from(TABLES.USERS)
-          .select("id, role, full_name, username, owner_id");
-
+        let dbUserData = null;
         if (userId) {
-          q = q.or(`id.eq.${userId},email.ilike.${cleanEmail},username.ilike.${cleanEmail}`);
-        } else {
-          q = q.or(`email.ilike.${cleanEmail},username.ilike.${cleanEmail}`);
+          const { data: byId } = await supabase
+            .from(TABLES.USERS)
+            .select("id, role, full_name, username, owner_id")
+            .eq("id", userId)
+            .limit(1)
+            .maybeSingle();
+          dbUserData = byId || null;
         }
-
-        const { data: dbUserData } = await q.limit(1).maybeSingle();
+        if (!dbUserData && cleanEmail) {
+          const { data: byEmail } = await supabase
+            .from(TABLES.USERS)
+            .select("id, role, full_name, username, owner_id")
+            .ilike("email", cleanEmail)
+            .limit(1)
+            .maybeSingle();
+          dbUserData = byEmail || null;
+        }
         dbUser = dbUserData;
 
         if (dbUser) {
@@ -1449,18 +1461,7 @@ export const Login = ({ embedded = false, initialView }) => {
           if (dbUser.full_name) name = dbUser.full_name;
           if (dbUser.owner_id) ownerId = dbUser.owner_id;
           if (dbUser.role) {
-            const r = dbUser.role.toLowerCase().trim();
-            if (r === "veterinarian" || r === "vet" || r.includes("vet") || r.includes("doctor")) {
-              role = "vet";
-            } else if (r === "administrator" || r === "admin" || r.includes("admin")) {
-              role = "admin";
-            } else if (r === "owner" || r.includes("owner")) {
-              role = "owner";
-            } else if (r === "staff" || r.includes("staff") || r.includes("operator")) {
-              role = "staff";
-            } else {
-              role = r;
-            }
+            role = normalizeRole(dbUser.role);
           }
         }
       } catch (e) {
@@ -1483,14 +1484,16 @@ export const Login = ({ embedded = false, initialView }) => {
         }
       }
 
-      // 3. Fallback heuristic based on email keywords if no record in users table
+      // 3. Fallback strictly from Supabase Auth user_metadata.role (never guess role from email substrings)
       if (!role) {
-        if (cleanEmail.includes("admin")) role = "admin";
-        else if (cleanEmail.includes("vet") || cleanEmail.includes("doctor")) role = "vet";
-        else if (cleanEmail.includes("staff") || cleanEmail.includes("operator")) role = "staff";
-        else {
-          role = "owner";
-        }
+        role = normalizeRole(authData?.user?.user_metadata?.role);
+      }
+      if (!role) {
+        try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
+        setLoading(false);
+        setError("Your account profile or assigned role could not be verified. Please contact the Administrator.");
+        triggerShake();
+        return;
       }
 
       if (role === "owner") {
@@ -1593,6 +1596,7 @@ export const Login = ({ embedded = false, initialView }) => {
       const effectiveAvatar = matchedOwner?.avatar_url || dbUser?.avatar_url || null;
 
       const session = {
+        ...(authData?.session || {}),
         id: userId,
         user_id: userId,
         role,
@@ -1604,7 +1608,6 @@ export const Login = ({ embedded = false, initialView }) => {
         ts: Date.now(),
         login_time: loginTimeIso,
         cover_gradient,
-        ...(authData?.session || {})
       };
 
       // Check if Two-Factor Authentication (2FA) is enabled for this account via Supabase Auth MFA

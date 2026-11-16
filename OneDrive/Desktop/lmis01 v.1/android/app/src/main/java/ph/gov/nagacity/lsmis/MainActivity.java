@@ -3,6 +3,7 @@ package ph.gov.nagacity.lsmis;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.Window;
 import android.webkit.CookieManager;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -14,6 +15,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         try {
+            requestWindowFeature(Window.FEATURE_NO_TITLE);
             getWindow().getDecorView().setBackgroundColor(Color.WHITE);
         } catch (Exception ignored) {}
 
