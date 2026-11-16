@@ -1,18 +1,18 @@
 // LSMIS Production Service Worker
 // Ensures instant startup (eliminating black/blank loading screens) while keeping
 // the installed Android PWA and mobile web synchronized with new deployments.
-const CACHE_VERSION = "lsmis-pwa-v20261116d";
+const CACHE_VERSION = "lsmis-pwa-v20261116e";
 const PRECACHE_URLS = [
   "/",
   "/index.html",
-  "/manifest.webmanifest?v=lsmis20261116c",
-  "/logo.png?v=lsmis20261116c",
+  "/manifest.webmanifest?v=lsmis20261116d",
+  "/logo.png?v=lsmis20261116d",
   "/naga_city_seal.png",
   "/bagong_pilipinas.png",
-  "/icon-192.png?v=lsmis20261116c",
-  "/icon-512.png?v=lsmis20261116c",
-  "/icon-maskable-512.png?v=lsmis20261116c",
-  "/apple-touch-icon.png?v=lsmis20261116c",
+  "/icon-192.png?v=lsmis20261116d",
+  "/icon-512.png?v=lsmis20261116d",
+  "/icon-maskable-512.png?v=lsmis20261116d",
+  "/apple-touch-icon.png?v=lsmis20261116d",
 ];
 
 self.addEventListener("install", (event) => {

@@ -85,11 +85,12 @@ import { isInstalledApp } from "./utils/capacitor";
 /**
  * Single Official LSMIS Startup Splash Screen (Installed App Only):
  * STEP 1: User opens the installed LSMIS application.
- * STEP 2: Display the single official animated LSMIS splash screen (green branding + smooth logo fade/scale).
+ * STEP 2: Display the single official animated LSMIS splash screen on a clean white background for 3 seconds.
  * STEP 3: Initialize Supabase authentication and retrieve the existing session in parallel.
  * STEP 4: Fade out completely and reveal Login or the appropriate role dashboard (never re-runs on navigation).
  */
-const STARTUP_LOGO_SRC = "/logo.png?v=lsmis20261116c";
+const STARTUP_LOGO_SRC = "/logo.png?v=lsmis20261116d";
+const SPLASH_DURATION_MS = 3000;
 let hasShownLaunchSplashInMemory = false;
 
 const hasActiveOAuthCallback = () => {
@@ -122,9 +123,8 @@ const shouldShowSingleLaunchSplash = () => {
   }
 };
 
-const StartupSplash = ({ authLoading, authInitialized }) => {
+const StartupSplash = () => {
   const [stage, setStage] = useState(() => (shouldShowSingleLaunchSplash() ? "visible" : "done"));
-  const [minElapsed, setMinElapsed] = useState(false);
 
   useEffect(() => {
     if (stage !== "visible") return;
@@ -133,30 +133,20 @@ const StartupSplash = ({ authLoading, authInitialized }) => {
       sessionStorage.setItem("lsmis_launch_splash_seen", "true");
     } catch (_) {}
 
-    const minTimer = setTimeout(() => {
-      setMinElapsed(true);
-    }, 480);
-    const maxSafetyTimer = setTimeout(() => {
+    const durationTimer = setTimeout(() => {
       setStage("fading");
-    }, 1200);
+    }, SPLASH_DURATION_MS);
 
     return () => {
-      clearTimeout(minTimer);
-      clearTimeout(maxSafetyTimer);
+      clearTimeout(durationTimer);
     };
   }, [stage]);
-
-  useEffect(() => {
-    if (stage === "visible" && minElapsed && authInitialized && !authLoading) {
-      setStage("fading");
-    }
-  }, [stage, minElapsed, authInitialized, authLoading]);
 
   useEffect(() => {
     if (stage !== "fading") return;
     const doneTimer = setTimeout(() => {
       setStage("done");
-    }, 160);
+    }, 180);
     return () => clearTimeout(doneTimer);
   }, [stage]);
 
