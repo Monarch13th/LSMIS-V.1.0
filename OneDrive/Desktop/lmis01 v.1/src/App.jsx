@@ -89,7 +89,7 @@ import { isInstalledApp } from "./utils/capacitor";
  * STEP 3: Initialize Supabase authentication and retrieve the existing session in parallel.
  * STEP 4: Fade out completely and reveal Login or the appropriate role dashboard (never re-runs on navigation).
  */
-const STARTUP_LOGO_SRC = "/logo.png?v=lsmis20261116d";
+const STARTUP_LOGO_SRC = "/logo.png?v=lsmis20261116e";
 const SPLASH_DURATION_MS = 3000;
 let hasShownLaunchSplashInMemory = false;
 

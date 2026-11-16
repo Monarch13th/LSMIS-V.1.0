@@ -1,9 +1,9 @@
 {
-  "id": "/?v=lsmis20261116d",
+  "id": "/?v=lsmis20261116e",
   "name": "LSMIS - Livestock Slaughter & Meat Inspection System",
   "short_name": "LSMIS",
   "description": "Official Livestock Slaughter and Meat Inspection Management System for the City Government of Naga, Cebu.",
-  "start_url": "/?source=pwa&v=lsmis20261116d",
+  "start_url": "/?source=pwa&v=lsmis20261116e",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
@@ -13,19 +13,19 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/icon-192.png?v=lsmis20261116d",
+      "src": "/icon-192.png?v=lsmis20261116e",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-512.png?v=lsmis20261116d",
+      "src": "/icon-512.png?v=lsmis20261116e",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icon-maskable-512.png?v=lsmis20261116d",
+      "src": "/icon-maskable-512.png?v=lsmis20261116e",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
