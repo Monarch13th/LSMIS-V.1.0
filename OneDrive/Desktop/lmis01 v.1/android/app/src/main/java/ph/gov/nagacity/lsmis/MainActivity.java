@@ -19,6 +19,12 @@ public class MainActivity extends BridgeActivity {
 
         super.onCreate(savedInstanceState);
 
+        try {
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().hide();
+            }
+        } catch (Exception ignored) {}
+
         if (this.bridge != null && this.bridge.getWebView() != null) {
             WebView webView = this.bridge.getWebView();
             webView.setBackgroundColor(Color.WHITE);
