@@ -2804,6 +2804,7 @@ export const SlaughterProcessing = () => {
             const selectedReadyItems = isReadyMode
               ? eligibleReadyItems.filter((rec) => selectedReadyKeys.has(rec.id || rec.tag_number))
               : [];
+            const targetDoneItems = selectedReadyItems.length > 0 ? selectedReadyItems : eligibleReadyItems;
 
             return (
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
@@ -2813,6 +2814,46 @@ export const SlaughterProcessing = () => {
                     : `${allModalItems.length} ${activeTab === "awaiting" ? "head" : "carcass"}${allModalItems.length === 1 ? "" : (activeTab === "awaiting" ? "s" : "es")}`}
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
+              {isReadyMode && selectedOwnerView && allModalItems.length > 0 && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    if (targetDoneItems.length === 0) return;
+                    setGroupToMarkSlaughtered({
+                      ...selectedOwnerView,
+                      items: targetDoneItems,
+                    });
+                  }}
+                  disabled={targetDoneItems.length === 0}
+                  style={{
+                    height: 33,
+                    padding: "0 14px",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "linear-gradient(135deg, #10b981, #059669)",
+                    color: "#ffffff",
+                    borderRadius: 7,
+                    border: "none",
+                    whiteSpace: "nowrap",
+                    boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
+                  }}
+                  title={
+                    selectedReadyItems.length > 0
+                      ? `Mark ${selectedReadyItems.length} selected livestock for ${selectedOwnerView.owner_name} as done`
+                      : `Mark all ${eligibleReadyItems.length} eligible livestock for ${selectedOwnerView.owner_name} as done`
+                  }
+                >
+                  <Icon.CheckCircle size={14} />
+                  <span>
+                    {selectedReadyItems.length > 0
+                      ? `Mark Selected as Done (${selectedReadyItems.length})`
+                      : "Mark All as Done"}
+                  </span>
+                </Button>
+              )}
               {activeTab === "awaiting" && selectedOwnerView && selectedOwnerView.items.length > 0 && (
                 <Button
                   size="sm"
