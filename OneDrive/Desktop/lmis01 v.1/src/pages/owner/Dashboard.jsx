@@ -1983,7 +1983,7 @@ export const OwnerDashboard = () => {
                 <div style={{ fontSize: 11, fontWeight: "bold", color: "#000000" }}>City of Naga, Cebu</div>
                 <div style={{ fontSize: 12, fontWeight: 900, color: "#187A56" }}>OFFICIAL MEAT INSPECTION PERMIT</div>
               </div>
-              <img src={bagongPilipinasImg} alt="Bagong Pilipinas" style={{ width: 44, height: 44, objectFit: "contain" }} />
+              <img src={bagongPilipinasImg} alt="Bagong Pilipinas" style={{ width: 44, height: 44, objectFit: "contain", borderRadius: 0, border: "none", outline: "none", boxShadow: "none", background: "transparent" }} />
             </div>
 
             {/* Certificate Details */}

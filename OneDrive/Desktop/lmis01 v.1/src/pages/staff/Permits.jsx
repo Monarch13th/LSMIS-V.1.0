@@ -2532,7 +2532,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   alt="Bagong Pilipinas Logo" 
                   loading="eager"
                   decoding="sync"
-                  style={{ width: "65px", height: "65px", objectFit: "contain", borderRadius: "50%" }}
+                  style={{ width: "65px", height: "65px", objectFit: "contain", borderRadius: 0, border: "none", outline: "none", boxShadow: "none", background: "transparent" }}
                 />
               </div>
 

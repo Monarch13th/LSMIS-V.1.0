@@ -1248,7 +1248,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               <div class="city" style="margin: 3px 0 2px 0;">City of Naga</div>
               <p style="margin: 1px 0 0 0; font-size: 10.5px; color: #5D6660;">Tinaan, City of Naga, Cebu, Philippines</p>
             </div>
-            <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
+            <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 0; border: none; outline: none; box-shadow: none; background: transparent;" />
           </div>
 
           <div class="title-section">

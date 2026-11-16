@@ -324,7 +324,7 @@ export const printPermitFeeRecord = (selectedRecord, payments = []) => {
             <p style="margin: 2px 0; font-size: 10px; color: #5D6660; text-transform: uppercase; letter-spacing: 1px;">Province of Cebu</p>
             <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #1A201C; letter-spacing: 1px; text-transform: uppercase;">City of Naga</h3>
           </div>
-          <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
+          <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 0; border: none; outline: none; box-shadow: none; background: transparent;" />
         </div>
 
         <!-- Meta Row -->
@@ -412,7 +412,7 @@ export const printPermitFeeRecord = (selectedRecord, payments = []) => {
             <p style="margin: 2px 0; font-size: 10px; color: #5D6660; text-transform: uppercase; letter-spacing: 1px;">Province of Cebu</p>
             <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: #1A201C; letter-spacing: 1px; text-transform: uppercase;">City of Naga</h3>
           </div>
-          <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
+          <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 0; border: none; outline: none; box-shadow: none; background: transparent;" />
         </div>
 
         <div style="text-align: right; font-size: 11px; font-weight: 700; color: #5D6660; margin: 4px 0 2px 0; font-family: monospace;">Slip No.: FCR-${seqId}</div>
@@ -488,7 +488,7 @@ export const printMeatPermit = (permit) => {
           <h2 style="font-size: 12px; margin: 2px 0; font-weight: normal; color: #000;">Province of Cebu</h2>
           <h3 style="font-size: 14px; margin: 0; font-weight: bold; color: #000;">City of Naga</h3>
         </div>
-        <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
+        <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 0; border: none; outline: none; box-shadow: none; background: transparent;" />
       </div>
 
       <div class="avoid-break" style="display: flex; justify-content: space-between; align-items: flex-end; margin: 10px 0 15px 0; font-size: 12px; color: #000; break-inside: avoid; page-break-inside: avoid;">
