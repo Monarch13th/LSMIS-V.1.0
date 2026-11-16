@@ -103,7 +103,7 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
             style={{ maxWidth: "100%", maxHeight: "60vh", objectFit: "contain", borderRadius: 8 }}
             onError={(e) => {
               e.target.style.display = "none";
-              e.target.parentNode.innerHTML = `<div style="color: #9BA49E; font-size: 13px; text-align: center; padding: 40px;">?? Evidence photo file is unavailable or no longer accessible.</div>`;
+              e.target.parentNode.innerHTML = `<div style="color: #9BA49E; font-size: 13px; text-align: center; padding: 40px;">Evidence photo file is unavailable or no longer accessible.</div>`;
             }}
           />
         </div>

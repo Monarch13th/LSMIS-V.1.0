@@ -3530,7 +3530,7 @@ export const DisposalRecords = ({ type }) => {
             <option value="">-- Select condemned animal --</option>
             {uniqueCondemnedTags.map((tag) => (
               <option key={tag} value={tag}>
-                {tag}{alreadyDisposed.has(tag) ? " (already disposed)" : " ? Awaiting disposal"}
+                {tag}{alreadyDisposed.has(tag) ? " (already disposed)" : " — Awaiting disposal"}
               </option>
             ))}
           </Select>

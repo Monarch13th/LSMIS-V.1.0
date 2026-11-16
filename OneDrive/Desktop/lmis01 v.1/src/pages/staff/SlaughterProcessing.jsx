@@ -1419,8 +1419,10 @@ export const SlaughterProcessing = () => {
 
   // Selected Owner Dedicated View State across all stages (matches Condemnation pattern)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
+  const [selectedReadyKeys, setSelectedReadyKeys] = useState(new Set());
   useEffect(() => {
     setSelectedOwnerKey(null);
+    setSelectedReadyKeys(new Set());
     setSelectedTags(new Set());
     setTargetTagsForModal([]);
     setModalSelectedTags(new Set());
@@ -1429,6 +1431,10 @@ export const SlaughterProcessing = () => {
     setGroupToMarkSlaughtered(null);
     setModalSearch("");
   }, [search, filterSpecies, activeTab]);
+
+  useEffect(() => {
+    setSelectedReadyKeys(new Set());
+  }, [selectedOwnerKey]);
 
   const currentDataset = useMemo(() => {
     if (activeTab === "awaiting") return groupedAwaiting;
@@ -1818,6 +1824,7 @@ export const SlaughterProcessing = () => {
       }
 
       setGroupToMarkSlaughtered(null);
+      setSelectedReadyKeys(new Set());
       setSelectedOwnerKey(null);
       setExpandedReadyOwnerKey(null);
       refreshAll();
@@ -1973,7 +1980,7 @@ export const SlaughterProcessing = () => {
           });
         }
         showToast(
-          `?? ${record.tag_number} slaughter processing complete! Transferred to Post-Mortem Inspection.`,
+          `${record.tag_number} slaughter processing complete! Transferred to Post-Mortem Inspection.`,
           "success"
         );
       }
@@ -2781,40 +2788,72 @@ export const SlaughterProcessing = () => {
           padding: "16px 24px",
         }}
         footer={
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
-            <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
-              {selectedOwnerView?.items?.length || 0} {activeTab === "awaiting" ? "head" : "carcass"}{selectedOwnerView?.items?.length === 1 ? "" : (activeTab === "awaiting" ? "s" : "es")}
-            </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {(activeTab === "active" || activeTab === "in-progress") && selectedOwnerView && selectedOwnerView.items.length > 0 && (
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const target = selectedOwnerView;
-                    setGroupToMarkSlaughtered(target);
-                  }}
-                  disabled={selectedOwnerView.items.length === 0}
-                  style={{
-                    height: 33,
-                    padding: "0 14px",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    background: "linear-gradient(135deg, #10b981, #059669)",
-                    color: "#ffffff",
-                    borderRadius: 7,
-                    border: "none",
-                    whiteSpace: "nowrap",
-                    boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
-                  }}
-                  title={`Mark all ${selectedOwnerView.items.length} livestock for ${selectedOwnerView.owner_name} as done`}
-                >
-                  <Icon.CheckCircle size={14} />
-                  <span>Mark All as Done</span>
-                </Button>
-              )}
+          (() => {
+            const isReadyMode = activeTab === "active" || activeTab === "in-progress";
+            const allModalItems = selectedOwnerView?.items || [];
+            const isReadyEligible = (rec) => {
+              if (!rec || !rec.tag_number) return false;
+              const st = String(rec.status || "").toLowerCase();
+              return !(
+                st.includes("condemn") ||
+                st.includes("reject") ||
+                ["slaughtered", "completed", "weighed", "paid", "released", "dispatched", "permit issued", "ready for dispatch"].includes(st)
+              );
+            };
+            const eligibleReadyItems = isReadyMode ? allModalItems.filter(isReadyEligible) : [];
+            const selectedReadyItems = isReadyMode
+              ? eligibleReadyItems.filter((rec) => selectedReadyKeys.has(rec.id || rec.tag_number))
+              : [];
+            const targetDoneItems = selectedReadyItems.length > 0 ? selectedReadyItems : eligibleReadyItems;
+
+            return (
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
+                <div style={{ fontSize: 12, color: "var(--color-text-muted)", fontWeight: selectedReadyItems.length > 0 ? 600 : 400 }}>
+                  {isReadyMode && selectedReadyItems.length > 0
+                    ? `${selectedReadyItems.length} of ${eligibleReadyItems.length} selected`
+                    : `${allModalItems.length} ${activeTab === "awaiting" ? "head" : "carcass"}${allModalItems.length === 1 ? "" : (activeTab === "awaiting" ? "s" : "es")}`}
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {isReadyMode && selectedOwnerView && allModalItems.length > 0 && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        if (targetDoneItems.length === 0) return;
+                        setGroupToMarkSlaughtered({
+                          ...selectedOwnerView,
+                          items: targetDoneItems,
+                        });
+                      }}
+                      disabled={targetDoneItems.length === 0}
+                      style={{
+                        height: 33,
+                        padding: "0 14px",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "linear-gradient(135deg, #10b981, #059669)",
+                        color: "#ffffff",
+                        borderRadius: 7,
+                        border: "none",
+                        whiteSpace: "nowrap",
+                        boxShadow: "0 2px 6px rgba(16, 185, 129, 0.25)",
+                      }}
+                      title={
+                        selectedReadyItems.length > 0
+                          ? `Mark ${selectedReadyItems.length} selected livestock for ${selectedOwnerView.owner_name} as done`
+                          : `Mark all ${eligibleReadyItems.length} eligible livestock for ${selectedOwnerView.owner_name} as done`
+                      }
+                    >
+                      <Icon.CheckCircle size={14} />
+                      <span>
+                        {selectedReadyItems.length > 0
+                          ? `Mark Selected as Done (${selectedReadyItems.length})`
+                          : "Mark All as Done"}
+                      </span>
+                    </Button>
+                  )}
               {activeTab === "awaiting" && selectedOwnerView && selectedOwnerView.items.length > 0 && (
                 <Button
                   size="sm"
@@ -2847,27 +2886,133 @@ export const SlaughterProcessing = () => {
               </Button>
             </div>
           </div>
+            );
+          })()
         }
       >
         {selectedOwnerView && (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
-            {(activeTab === "active" || activeTab === "in-progress") && (
-              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "60vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                  <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
+            {(activeTab === "active" || activeTab === "in-progress") && (() => {
+              const modalItems = selectedOwnerView.items || [];
+              const isReadyEligible = (rec) => {
+                if (!rec || !rec.tag_number) return false;
+                const st = String(rec.status || "").toLowerCase();
+                return !(
+                  st.includes("condemn") ||
+                  st.includes("reject") ||
+                  ["slaughtered", "completed", "weighed", "paid", "released", "dispatched", "permit issued", "ready for dispatch"].includes(st)
+                );
+              };
+              const eligibleItems = modalItems.filter(isReadyEligible);
+              const allReadySelected = eligibleItems.length > 0 && eligibleItems.every((rec) => selectedReadyKeys.has(rec.id || rec.tag_number));
+              const someReadySelected = eligibleItems.some((rec) => selectedReadyKeys.has(rec.id || rec.tag_number)) && !allReadySelected;
+              const toggleSelectAllReady = () => {
+                setSelectedReadyKeys((prev) => {
+                  const next = new Set(prev);
+                  if (allReadySelected) {
+                    eligibleItems.forEach((rec) => next.delete(rec.id || rec.tag_number));
+                  } else {
+                    eligibleItems.forEach((rec) => next.add(rec.id || rec.tag_number));
+                  }
+                  return next;
+                });
+              };
+              const toggleSelectReadyRow = (rowKey) => {
+                setSelectedReadyKeys((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(rowKey)) next.delete(rowKey);
+                  else next.add(rowKey);
+                  return next;
+                });
+              };
+
+              return (
+              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "60vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                  <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", minWidth: 680 }}>
                     <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                       <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
+                        <th style={{ width: "46px", padding: "12px 10px", textAlign: "center", verticalAlign: "middle" }}>
+                          <input
+                            type="checkbox"
+                            checked={allReadySelected}
+                            disabled={eligibleItems.length === 0}
+                            ref={(el) => {
+                              if (el) el.indeterminate = someReadySelected;
+                            }}
+                            onChange={toggleSelectAllReady}
+                            title={allReadySelected ? "Deselect all eligible animals" : "Select all eligible animals"}
+                            aria-label="Select all eligible Ready for Slaughter animals"
+                            style={{
+                              width: 17,
+                              height: 17,
+                              cursor: eligibleItems.length === 0 ? "not-allowed" : "pointer",
+                              accentColor: "#187A56",
+                              verticalAlign: "middle",
+                            }}
+                          />
+                        </th>
                         <th style={{ width: "16%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                        <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                        <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                        <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
-                        <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Started</th>
+                        <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
+                        <th style={{ width: "9%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
+                        <th style={{ width: "13%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Operator</th>
+                        <th style={{ width: "17%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Started</th>
                         <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Status</th>
-                        <th className="table-action-th" style={{ width: "14%" }}>ACTIONS</th>
+                        <th className="table-action-th" style={{ width: "13%" }}>ACTIONS</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {(selectedOwnerView.items || []).map((rec) => (
-                        <tr key={rec.id || rec.tag_number} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                      {modalItems.map((rec) => {
+                        const rowKey = rec.id || rec.tag_number;
+                        const isEligible = isReadyEligible(rec);
+                        const isSelected = isEligible && selectedReadyKeys.has(rowKey);
+
+                        return (
+                        <tr
+                          key={rowKey}
+                          onClick={() => {
+                            if (isEligible) toggleSelectReadyRow(rowKey);
+                          }}
+                          style={{
+                            borderBottom: "1px solid var(--color-border)",
+                            cursor: isEligible ? "pointer" : "default",
+                            background: isSelected ? "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.06))" : "transparent",
+                            transition: "background 120ms ease",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (isEligible) {
+                              e.currentTarget.style.background = isSelected
+                                ? "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.1))"
+                                : "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.04))";
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.background = isSelected
+                              ? "var(--lsmis-primary-subtle, rgba(24, 122, 86, 0.06))"
+                              : "transparent";
+                          }}
+                        >
+                          <td
+                            style={{ padding: "12px 10px", textAlign: "center", verticalAlign: "middle" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              disabled={!isEligible}
+                              onChange={() => {
+                                if (isEligible) toggleSelectReadyRow(rowKey);
+                              }}
+                              title={isEligible ? `Select ${rec.tag_number || "animal"}` : "This animal is not eligible for slaughter completion"}
+                              aria-label={`Select ${rec.tag_number || "animal"}`}
+                              style={{
+                                width: 17,
+                                height: 17,
+                                cursor: isEligible ? "pointer" : "not-allowed",
+                                accentColor: "#187A56",
+                                verticalAlign: "middle",
+                              }}
+                            />
+                          </td>
                           <td style={{ padding: "12px 14px" }}>
                             <span
                               onClick={(e) => {
@@ -2966,11 +3111,13 @@ export const SlaughterProcessing = () => {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
-            )}
+              );
+            })()}
 
             {activeTab === "awaiting" && (
               <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "55vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>

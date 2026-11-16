@@ -323,7 +323,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           id: `staff-marking-pending-${l.id || l.tag_number}`,
           tag_number: l.tag_number,
           category: "marking",
-          title: `??? Intake Awaiting Marking: ${l.tag_number}`,
+          title: `Intake Awaiting Marking: ${l.tag_number}`,
           message: `${l.tag_number} (${l.species}) received from ${l.owner_name || "Owner"} • ready for animal marking`,
           urgent: false,
           date: l.received_date || l.registered_at || l.created_at || new Date().toISOString(),
@@ -348,7 +348,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
             id,
             tag_number: l.tag_number,
             category: "marking",
-            title: `?? 24h Timeout: ${l.tag_number || "Animal"}`,
+            title: `24h Timeout: ${l.tag_number || "Animal"}`,
             message: `${l.tag_number} returned to Animal Marking (slaughter limit expired)`,
             urgent: true,
             date: l.fallback_at || l.updated_at || l.created_at || new Date().toISOString(),
@@ -406,7 +406,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         items.push({
           id: `vet-ante-queue-${l.id || l.tag_number}`,
           category: "inspection",
-          title: "?? Pending Ante-Mortem Inspection",
+          title: "Pending Ante-Mortem Inspection",
           message: `${l.tag_number} (${l.species}) marked and awaiting ante-mortem clearance`,
           tag_number: l.tag_number,
           date: l.mark_date || l.updated_at || l.created_at || new Date().toISOString(),
@@ -424,7 +424,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           items.push({
             id,
             category: "vetapproval",
-            title: "? Ante-Mortem Approved",
+            title: "Ante-Mortem Approved",
             message: `${a.tag_number || "Livestock"} passed ante-mortem inspection`,
             tag_number: a.tag_number,
             date: a.date || a.created_at || new Date().toISOString(),
@@ -443,7 +443,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           items.push({
             id,
             category: "vetapproval",
-            title: "? Post-Mortem Approved",
+            title: "Post-Mortem Approved",
             message: `${p.tag_number || "Carcass"} approved for release`,
             tag_number: p.tag_number,
             date: p.date || p.created_at || new Date().toISOString(),
@@ -461,7 +461,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
           items.push({
             id,
             category: "inspection",
-            title: "?? Meat Condemned",
+            title: "Meat Condemned",
             message: `${p.tag_number || "Carcass"} • condemnation recorded`,
             tag_number: p.tag_number,
             urgent: true,

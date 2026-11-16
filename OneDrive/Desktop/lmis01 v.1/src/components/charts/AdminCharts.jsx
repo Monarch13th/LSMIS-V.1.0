@@ -137,14 +137,14 @@ export const RevenueLine = ({ payments }) => {
       <Line
         data={{
           labels,
-          datasets: [{ label: "Revenue (?)", data: values, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.12)", fill: true, tension: 0.35, pointRadius: 3 }],
+          datasets: [{ label: "Revenue (₱)", data: values, borderColor: "#059669", backgroundColor: "rgba(5, 150, 105, 0.12)", fill: true, tension: 0.35, pointRadius: 3 }],
         }}
         options={{
           ...cartesian(),
           plugins: {
             ...baseOptions.plugins,
             legend: { display: false },
-            tooltip: { ...baseOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ?${Number(ctx.parsed.y).toLocaleString()}` } },
+            tooltip: { ...baseOptions.plugins.tooltip, callbacks: { label: (ctx) => ` ₱${Number(ctx.parsed.y).toLocaleString()}` } },
           },
         }}
       />
