@@ -1067,7 +1067,11 @@ export const Owners = ({ initialTab = "owners" }) => {
           borderBottom: "1px solid var(--color-border)",
         }}
         bodyStyle={{
-          padding: "20px 22px",
+          padding: "18px 22px",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          minHeight: 0,
         }}
         footer={
           <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
@@ -1075,7 +1079,7 @@ export const Owners = ({ initialTab = "owners" }) => {
               variant="outline"
               size="sm"
               onClick={() => setDetailModalOwner(null)}
-              style={{ minWidth: 88, fontWeight: 700 }}
+              style={{ minWidth: 100, height: 36, fontWeight: 700, borderRadius: 8 }}
             >
               Close
             </Button>
@@ -1083,7 +1087,7 @@ export const Owners = ({ initialTab = "owners" }) => {
         }
       >
         {detailModalOwner && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1, minHeight: 0 }}>
             {/* Top Identity Header Card */}
             <div
               style={{
@@ -1401,8 +1405,8 @@ export const Owners = ({ initialTab = "owners" }) => {
               </div>
             </div>
 
-            {/* Livestock Table Section */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+            {/* Livestock Table Section (Only scrollable region inside Owner Details) */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 2, flex: 1, minHeight: 0 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13.5, fontWeight: 800, color: "var(--color-text)" }}>
                   <Icon.Cow size={16} style={{ color: "#10b981" }} />
@@ -1439,7 +1443,7 @@ export const Owners = ({ initialTab = "owners" }) => {
                   </p>
                 </div>
               ) : (
-                <div style={{ maxHeight: 250, overflowY: "auto", border: "1px solid var(--color-border)", borderRadius: 10, scrollbarWidth: "thin" }}>
+                <div style={{ flex: 1, minHeight: 160, maxHeight: 280, overflowY: "auto", overflowX: "auto", border: "1px solid var(--color-border)", borderRadius: 10, scrollbarWidth: "thin" }}>
                   <table className="table" style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
                     <thead style={{ position: "sticky", top: 0, zIndex: 2, background: "var(--color-surface-subtle, #F9FAF8)" }}>
                       <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
@@ -1502,33 +1506,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                   </table>
                 </div>
               )}
-            </div>
-
-            {/* Modal Actions Footer: Read-only inspection, clean Close button */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "flex-end",
-                alignItems: "center",
-                marginTop: 6,
-                paddingTop: 14,
-                borderTop: "1px solid var(--color-border)",
-              }}
-            >
-              <Button
-                onClick={() => setDetailModalOwner(null)}
-                variant="outline"
-                size="sm"
-                style={{
-                  minWidth: 100,
-                  height: 38,
-                  fontWeight: 700,
-                  borderRadius: 8,
-                  fontSize: 13,
-                }}
-              >
-                Close
-              </Button>
             </div>
           </div>
         )}
