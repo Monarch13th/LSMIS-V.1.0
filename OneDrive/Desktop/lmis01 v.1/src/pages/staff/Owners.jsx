@@ -1068,9 +1068,19 @@ export const Owners = ({ initialTab = "owners" }) => {
         }}
         bodyStyle={{
           padding: "20px 22px",
-          maxHeight: "82vh",
-          overflowY: "auto",
         }}
+        footer={
+          <div style={{ display: "flex", justifyContent: "flex-end", width: "100%" }}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setDetailModalOwner(null)}
+              style={{ minWidth: 88, fontWeight: 700 }}
+            >
+              Close
+            </Button>
+          </div>
+        }
       >
         {detailModalOwner && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
