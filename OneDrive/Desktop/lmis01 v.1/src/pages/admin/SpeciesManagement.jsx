@@ -57,6 +57,7 @@ export const SpeciesManagement = () => {
   });
 
   // Action Dialogs
+  const [confirmSaveSpecies, setConfirmSaveSpecies] = useState(false);
   const [confirmStatusToggle, setConfirmStatusToggle] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -262,6 +263,13 @@ export const SpeciesManagement = () => {
       console.warn("Could not check duplicate name:", chkErr);
     }
 
+    setFormErrors({});
+    setConfirmSaveSpecies(true);
+  };
+
+  const executeSave = async () => {
+    if (submitting) return;
+    const cleanName = formData.name.trim();
     setSubmitting(true);
     setFormErrors({});
 
@@ -343,6 +351,7 @@ export const SpeciesManagement = () => {
       const msg = err.message || "Failed to save species record";
       setFormErrors({ general: msg });
       showToast(msg, "error");
+      setConfirmSaveSpecies(false);
     } finally {
       setSubmitting(false);
     }
@@ -1399,6 +1408,25 @@ export const SpeciesManagement = () => {
         confirmText="Delete Species"
         confirmVariant="danger"
         loading={deleting}
+      />
+
+      {/* CONFIRM SAVE SPECIES DIALOG */}
+      <ConfirmDialog
+        open={confirmSaveSpecies}
+        onCancel={() => {
+          if (!submitting) setConfirmSaveSpecies(false);
+        }}
+        onConfirm={executeSave}
+        title={editingSpecies ? "Update Species" : "Add Species"}
+        message={
+          editingSpecies
+            ? `Are you sure you want to update "${formData.name.trim()}"?`
+            : `Are you sure you want to add "${formData.name.trim()}" as a livestock species?`
+        }
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="primary"
+        loading={submitting}
       />
 
       {/* ============================================================ */}

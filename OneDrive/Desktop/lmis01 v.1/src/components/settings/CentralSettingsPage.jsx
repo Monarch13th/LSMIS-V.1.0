@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, Button, AlertDialog, Modal } from "../ui";
+import { Card, Button, AlertDialog, ConfirmDialog, Modal } from "../ui";
 import { Icon } from "../icons";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../notifications/Toast";
@@ -28,6 +28,7 @@ import { PermitConfig } from "../../pages/admin/PermitConfig";
 import { AuthSecuritySessions } from "./AuthSecuritySessions";
 
 export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) => {
+  const [confirmAction, setConfirmAction] = useState(null);
   const { session, signOut } = useAuth();
   const { showToast } = useToast();
   const location = useLocation();
@@ -207,7 +208,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             fileSize: formattedSize,
           }));
         }
-      } catch (_) {}
+      } catch (_) { }
     };
 
     checkPackage();
@@ -428,8 +429,18 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
   };
 
   // Upload and Save Profile Picture to Supabase Storage
-  const handleSavePhoto = async () => {
-    if (!selectedPhotoFile) return;
+  const handleSavePhoto = () => {
+    if (!selectedPhotoFile || isUploadingPhoto) return;
+    setConfirmAction({
+      type: "photo",
+      title: "Update Profile Photo",
+      message: "Are you sure you want to update your profile picture?",
+    });
+  };
+
+  const executeSavePhoto = async () => {
+    if (!selectedPhotoFile || isUploadingPhoto) return;
+    setConfirmAction(null);
     setIsUploadingPhoto(true);
     setPhotoMsg(null);
 
@@ -452,7 +463,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           .ilike("email", trimmedEmail);
         try {
           notifyDbChange(TABLES.OWNERS, "update", { email: trimmedEmail, avatar_url: uploadedUrl });
-        } catch (_) {}
+        } catch (_) { }
       } else {
         const { error: dbErr } = await supabase
           .from(TABLES.USERS)
@@ -463,7 +474,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         }
         try {
           notifyDbChange(TABLES.USERS, "update", { email: trimmedEmail, avatar_url: uploadedUrl });
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // 3. Update Supabase Auth metadata
@@ -499,7 +510,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           module: "Settings",
           field_changed: "avatar_url",
         });
-      } catch (_) {}
+      } catch (_) { }
 
       setProfileAlert({
         open: true,
@@ -563,6 +574,24 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       formattedPhone = phoneVal.digits;
     }
 
+    if (isSavingProfile) return;
+    setConfirmAction({
+      type: "profile",
+      title: "Update Profile Information",
+      message: "Are you sure you want to save your updated profile information?",
+    });
+  };
+
+  const executeSaveProfile = async () => {
+    if (isSavingProfile) return;
+    const trimmedName = profileForm.full_name?.trim() || "";
+    const trimmedUsername = profileForm.username ? profileForm.username.trim() : null;
+    const trimmedContact = profileForm.phone?.trim() || "";
+    const trimmedAddress = profileForm.address?.trim() || "";
+    const trimmedLicense = profileForm.license?.trim() || "";
+    const trimmedSpec = profileForm.specialization?.trim() || "";
+    const formattedPhone = trimmedContact ? validatePhilippineMobileNumber(trimmedContact).digits : "";
+    setConfirmAction(null);
     setIsSavingProfile(true);
     try {
       const trimmedEmail = (profile.email || session?.email || "").trim();
@@ -580,7 +609,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           .ilike("email", trimmedEmail);
         try {
           notifyDbChange(TABLES.OWNERS, "update", { email: trimmedEmail });
-        } catch (_) {}
+        } catch (_) { }
       } else {
         const updatePayload = {
           full_name: trimmedName,
@@ -603,7 +632,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         }
         try {
           notifyDbChange(TABLES.USERS, "update", { email: trimmedEmail, ...updatePayload });
-        } catch (_) {}
+        } catch (_) { }
       }
 
       // 2. Update Supabase Auth user metadata
@@ -707,7 +736,18 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     });
   };
 
-  const handleSaveNotificationPreferences = async () => {
+  const handleSaveNotificationPreferences = () => {
+    if (isSavingPrefs) return;
+    setConfirmAction({
+      type: "notifications",
+      title: "Save Notification Preferences",
+      message: "Are you sure you want to save your notification preferences?",
+    });
+  };
+
+  const executeSaveNotificationPreferences = async () => {
+    if (isSavingPrefs) return;
+    setConfirmAction(null);
     setIsSavingPrefs(true);
     try {
       const updated = await updateUserNotificationPreferences({
@@ -831,6 +871,17 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
+    if (isChangingPw) return;
+    setConfirmAction({
+      type: "password",
+      title: "Change Password",
+      message: "Are you sure you want to update your account password?",
+    });
+  };
+
+  const executeChangePassword = async () => {
+    if (isChangingPw) return;
+    setConfirmAction(null);
     setIsChangingPw(true);
     setPasswordErrorField(null);
 
@@ -1062,14 +1113,14 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           old_value: String(!nextVal),
           new_value: String(nextVal),
         });
-      } catch (_) {}
+      } catch (_) { }
       showToast(
         nextVal
           ? "Two-Factor Authentication enabled! Verification required on your next login."
           : "Two-Factor Authentication disabled.",
         nextVal ? "success" : "info"
       );
-    } catch (_) {}
+    } catch (_) { }
   };
 
   const isProfileDirty =
@@ -1444,11 +1495,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           ? "rgba(16, 185, 129, 0.12)"
                           : "rgba(239, 68, 68, 0.12)",
                       color: photoMsg.type === "success" ? "#10b981" : "#ef4444",
-                      border: `1px solid ${
-                        photoMsg.type === "success"
+                      border: `1px solid ${photoMsg.type === "success"
                           ? "rgba(16, 185, 129, 0.25)"
                           : "rgba(239, 68, 68, 0.25)"
-                      }`,
+                        }`,
                       textAlign: "center",
                     }}
                   >
@@ -1502,11 +1552,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           ? "rgba(16, 185, 129, 0.12)"
                           : "rgba(239, 68, 68, 0.12)",
                       color: profileMsg.type === "success" ? "#10b981" : "#ef4444",
-                      border: `1px solid ${
-                        profileMsg.type === "success"
+                      border: `1px solid ${profileMsg.type === "success"
                           ? "rgba(16, 185, 129, 0.25)"
                           : "rgba(239, 68, 68, 0.25)"
-                      }`,
+                        }`,
                     }}
                   >
                     {profileMsg.text}
@@ -1874,11 +1923,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             ? "rgba(16, 185, 129, 0.12)"
                             : "rgba(239, 68, 68, 0.12)",
                         color: downloadMsg.type === "success" ? "#10b981" : "#ef4444",
-                        border: `1px solid ${
-                          downloadMsg.type === "success"
+                        border: `1px solid ${downloadMsg.type === "success"
                             ? "rgba(16, 185, 129, 0.25)"
                             : "rgba(239, 68, 68, 0.25)"
-                        }`,
+                          }`,
                       }}
                     >
                       {downloadMsg.type === "success" ? (
@@ -2064,766 +2112,765 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             </div>
           )}
 
-      {/* -- TAB 2: NOTIFICATION PREFERENCES -- */}
-      {activeTab === "notifications" && (
-        <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            {/* Header with Quick Actions */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingBottom: 18,
-                borderBottom: "1px solid var(--color-border, #E2E6E3)",
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              <div>
-                <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)" }}>
-                  Notification Delivery Preferences
-                </h2>
-                <p style={{ fontSize: 14, color: "var(--color-text-muted, #5D6660)", margin: "4px 0 0" }}>
-                  Select the alerts delivered to your top bell icon and in-app feeds. Preferences are persisted per-user to Supabase.
-                </p>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => handleToggleAllPrefs(true)}
+          {/* -- TAB 2: NOTIFICATION PREFERENCES -- */}
+          {activeTab === "notifications" && (
+            <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                {/* Header with Quick Actions */}
+                <div
                   style={{
-                    padding: "6px 14px",
-                    borderRadius: 8,
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    background: "var(--color-bg, #EFF2F0)",
-                    color: "var(--color-primary, #187A56)",
-                    border: "1px solid var(--color-border, #C2CAC4)",
-                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingBottom: 18,
+                    borderBottom: "1px solid var(--color-border, #E2E6E3)",
+                    flexWrap: "wrap",
+                    gap: 12,
                   }}
                 >
-                  Enable All
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleToggleAllPrefs(false)}
+                  <div>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)" }}>
+                      Notification Delivery Preferences
+                    </h2>
+                    <p style={{ fontSize: 14, color: "var(--color-text-muted, #5D6660)", margin: "4px 0 0" }}>
+                      Select the alerts delivered to your top bell icon and in-app feeds. Preferences are persisted per-user to Supabase.
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAllPrefs(true)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 8,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        background: "var(--color-bg, #EFF2F0)",
+                        color: "var(--color-primary, #187A56)",
+                        border: "1px solid var(--color-border, #C2CAC4)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Enable All
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleAllPrefs(false)}
+                      style={{
+                        padding: "6px 14px",
+                        borderRadius: 8,
+                        fontSize: 12.5,
+                        fontWeight: 700,
+                        background: "var(--color-bg, #EFF2F0)",
+                        color: "var(--color-text-muted, #5D6660)",
+                        border: "1px solid var(--color-border, #C2CAC4)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Disable All
+                    </button>
+                  </div>
+                </div>
+
+                {/* Notification Category Rows (Spacious & Comfortable) */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                  {[
+                    {
+                      key: "account_notifications",
+                      icon: <Icon.Shield size={19} />,
+                      color: "#24966D",
+                      bg: "rgba(24, 122, 86, 0.12)",
+                      title: "Account Security & Session Alerts",
+                      desc: "Logins, password changes, two-factor OTP verification alerts, and concurrent session events.",
+                    },
+                    {
+                      key: "registration_updates",
+                      icon: <Icon.Cow size={19} />,
+                      color: "#187A56",
+                      bg: "rgba(24, 122, 86, 0.12)",
+                      title: "Registration & Receiving Updates",
+                      desc: "New livestock owner registrations, corral intake at facility gates, and ear tagging records.",
+                    },
+                    {
+                      key: "approval_updates",
+                      icon: <Icon.Check size={19} />,
+                      color: "#10b981",
+                      bg: "rgba(16, 185, 129, 0.12)",
+                      title: "Approval & Certification Updates",
+                      desc: "Owner account verifications, veterinary health approvals, and meat permit dispatch releases.",
+                    },
+                    {
+                      key: "livestock_process_updates",
+                      icon: <Icon.Scissors size={19} />,
+                      color: "#f59e0b",
+                      bg: "rgba(245, 158, 11, 0.12)",
+                      title: "Livestock & Slaughter Operations",
+                      desc: "Slaughter line assignment, 24h fallback timeouts, carcass weighing, and payment completions.",
+                    },
+                    {
+                      key: "inspection_updates",
+                      icon: <Icon.Stethoscope size={19} />,
+                      color: "#24966D",
+                      bg: "rgba(24, 122, 86, 0.12)",
+                      title: "Clinical Inspection & Condemnation Alerts",
+                      desc: "Ante-mortem clinical examinations, post-mortem pathology results, condemnation notices, and carcass branding.",
+                    },
+                    {
+                      key: "system_announcements",
+                      icon: <Icon.Bell size={19} />,
+                      color: "#5D6660",
+                      bg: "rgba(100, 116, 139, 0.12)",
+                      title: "System Announcements & Maintenance",
+                      desc: "Official municipal abattoir operating hours, emergency bulletins, and platform updates.",
+                    },
+                  ].map((item) => {
+                    const isChecked = Boolean(notifPrefs[item.key]);
+                    return (
+                      <div
+                        key={item.key}
+                        onClick={() => handleTogglePref(item.key)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "18px 22px",
+                          borderRadius: 14,
+                          border: `1.5px solid ${isChecked ? "var(--color-border, #E2E6E3)" : "var(--color-border, #EFF2F0)"}`,
+                          background: isChecked ? "var(--color-bg, #F9FAF8)" : "var(--color-surface, #ffffff)",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                          gap: 16,
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = "var(--color-primary, #187A56)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = isChecked ? "var(--color-border, #E2E6E3)" : "var(--color-border, #EFF2F0)";
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                          {/* Category Icon Badge (42px) */}
+                          <div
+                            style={{
+                              width: 44,
+                              height: 44,
+                              borderRadius: 11,
+                              background: item.bg,
+                              color: item.color,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {item.icon}
+                          </div>
+
+                          <div>
+                            <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
+                              {item.title}
+                            </div>
+                            <div style={{ fontSize: 13, color: "var(--color-text-muted, #5D6660)", marginTop: 2, lineHeight: 1.4 }}>
+                              {item.desc}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Zoomed-in Toggle Switch (52px x 28px) */}
+                        <div
+                          role="switch"
+                          aria-checked={isChecked}
+                          style={{
+                            position: "relative",
+                            width: 52,
+                            height: 28,
+                            borderRadius: 28,
+                            background: isChecked ? "#10b981" : "#C2CAC4",
+                            transition: "background 0.2s ease",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div
+                            style={{
+                              position: "absolute",
+                              top: 3,
+                              left: isChecked ? 27 : 3,
+                              width: 22,
+                              height: 22,
+                              borderRadius: "50%",
+                              background: "#ffffff",
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.25)",
+                              transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Save Preferences Bar */}
+                <div
                   style={{
-                    padding: "6px 14px",
-                    borderRadius: 8,
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    background: "var(--color-bg, #EFF2F0)",
-                    color: "var(--color-text-muted, #5D6660)",
-                    border: "1px solid var(--color-border, #C2CAC4)",
-                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    paddingTop: 18,
+                    borderTop: "1px solid var(--color-border, #E2E6E3)",
+                    flexWrap: "wrap",
+                    gap: 12,
                   }}
                 >
-                  Disable All
-                </button>
-              </div>
-            </div>
+                  <div>
+                    {isPrefsDirty ? (
+                      <span style={{ fontSize: 13.5, fontWeight: 750, color: "#d97706", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                        <Icon.AlertTriangle size={15} /> You have unsaved notification preferences
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 13, color: "var(--color-text-muted, #9BA49E)" }}>
+                        Notification settings automatically apply to alerts sent to your profile.
+                      </span>
+                    )}
+                  </div>
 
-            {/* Notification Category Rows (Spacious & Comfortable) */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {[
-                {
-                  key: "account_notifications",
-                  icon: <Icon.Shield size={19} />,
-                  color: "#24966D",
-                  bg: "rgba(24, 122, 86, 0.12)",
-                  title: "Account Security & Session Alerts",
-                  desc: "Logins, password changes, two-factor OTP verification alerts, and concurrent session events.",
-                },
-                {
-                  key: "registration_updates",
-                  icon: <Icon.Cow size={19} />,
-                  color: "#187A56",
-                  bg: "rgba(24, 122, 86, 0.12)",
-                  title: "Registration & Receiving Updates",
-                  desc: "New livestock owner registrations, corral intake at facility gates, and ear tagging records.",
-                },
-                {
-                  key: "approval_updates",
-                  icon: <Icon.Check size={19} />,
-                  color: "#10b981",
-                  bg: "rgba(16, 185, 129, 0.12)",
-                  title: "Approval & Certification Updates",
-                  desc: "Owner account verifications, veterinary health approvals, and meat permit dispatch releases.",
-                },
-                {
-                  key: "livestock_process_updates",
-                  icon: <Icon.Scissors size={19} />,
-                  color: "#f59e0b",
-                  bg: "rgba(245, 158, 11, 0.12)",
-                  title: "Livestock & Slaughter Operations",
-                  desc: "Slaughter line assignment, 24h fallback timeouts, carcass weighing, and payment completions.",
-                },
-                {
-                  key: "inspection_updates",
-                  icon: <Icon.Stethoscope size={19} />,
-                  color: "#24966D",
-                  bg: "rgba(24, 122, 86, 0.12)",
-                  title: "Clinical Inspection & Condemnation Alerts",
-                  desc: "Ante-mortem clinical examinations, post-mortem pathology results, condemnation notices, and carcass branding.",
-                },
-                {
-                  key: "system_announcements",
-                  icon: <Icon.Bell size={19} />,
-                  color: "#5D6660",
-                  bg: "rgba(100, 116, 139, 0.12)",
-                  title: "System Announcements & Maintenance",
-                  desc: "Official municipal abattoir operating hours, emergency bulletins, and platform updates.",
-                },
-              ].map((item) => {
-                const isChecked = Boolean(notifPrefs[item.key]);
-                return (
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveNotificationPreferences}
+                    disabled={isSavingPrefs || !isPrefsDirty}
+                    style={{
+                      height: 44,
+                      padding: "0 24px",
+                      fontSize: 14.5,
+                      fontWeight: 700,
+                      borderRadius: 10,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <Icon.Check size={16} />
+                    <span>{isSavingPrefs ? "Saving..." : "Save Preferences"}</span>
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* -- TAB 3: ACCOUNT SECURITY -- */}
+          {activeTab === "security" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              {/* Card 1: Change Password */}
+              <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                  {/* Header */}
                   <div
-                    key={item.key}
-                    onClick={() => handleTogglePref(item.key)}
                     style={{
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "space-between",
-                      padding: "18px 22px",
-                      borderRadius: 14,
-                      border: `1.5px solid ${isChecked ? "var(--color-border, #E2E6E3)" : "var(--color-border, #EFF2F0)"}`,
-                      background: isChecked ? "var(--color-bg, #F9FAF8)" : "var(--color-surface, #ffffff)",
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                      gap: 16,
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "var(--color-primary, #187A56)";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = isChecked ? "var(--color-border, #E2E6E3)" : "var(--color-border, #EFF2F0)";
+                      borderBottom: "1px solid var(--color-border, #E2E6E3)",
+                      paddingBottom: 18,
+                      flexWrap: "wrap",
+                      gap: 12,
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                      {/* Category Icon Badge (42px) */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                       <div
                         style={{
                           width: 44,
                           height: 44,
-                          borderRadius: 11,
-                          background: item.bg,
-                          color: item.color,
+                          borderRadius: 12,
+                          background: "rgba(24, 122, 86, 0.12)",
+                          color: "#187A56",
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
                           flexShrink: 0,
                         }}
                       >
-                        {item.icon}
+                        <Icon.Key size={22} />
                       </div>
-
                       <div>
-                        <div style={{ fontSize: 15.5, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
-                          {item.title}
-                        </div>
-                        <div style={{ fontSize: 13, color: "var(--color-text-muted, #5D6660)", marginTop: 2, lineHeight: 1.4 }}>
-                          {item.desc}
-                        </div>
+                        <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
+                          Change Account Password
+                        </h2>
+                        <p style={{ fontSize: 13.5, color: "var(--color-text-muted, #5D6660)", margin: "3px 0 0" }}>
+                          Ensure your account uses a secure password complying with municipal abattoir security policies.
+                        </p>
                       </div>
                     </div>
 
-                    {/* Zoomed-in Toggle Switch (52px x 28px) */}
                     <div
-                      role="switch"
-                      aria-checked={isChecked}
                       style={{
-                        position: "relative",
-                        width: 52,
-                        height: 28,
-                        borderRadius: 28,
-                        background: isChecked ? "#10b981" : "#C2CAC4",
-                        transition: "background 0.2s ease",
-                        flexShrink: 0,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        padding: "4px 12px",
+                        borderRadius: 999,
+                        background: "rgba(16, 185, 129, 0.12)",
+                        color: "#10b981",
+                        border: "1px solid rgba(16, 185, 129, 0.25)",
                       }}
                     >
-                      <div
-                        style={{
-                          position: "absolute",
-                          top: 3,
-                          left: isChecked ? 27 : 3,
-                          width: 22,
-                          height: 22,
-                          borderRadius: "50%",
-                          background: "#ffffff",
-                          boxShadow: "0 2px 4px rgba(0,0,0,0.25)",
-                          transition: "left 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-                        }}
-                      />
+                      <Icon.ShieldCheck size={14} />
+                      <span>Encrypted &amp; Protected</span>
                     </div>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Save Preferences Bar */}
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                paddingTop: 18,
-                borderTop: "1px solid var(--color-border, #E2E6E3)",
-                flexWrap: "wrap",
-                gap: 12,
-              }}
-            >
-              <div>
-                {isPrefsDirty ? (
-                  <span style={{ fontSize: 13.5, fontWeight: 750, color: "#d97706", display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <Icon.AlertTriangle size={15} /> You have unsaved notification preferences
-                  </span>
-                ) : (
-                  <span style={{ fontSize: 13, color: "var(--color-text-muted, #9BA49E)" }}>
-                    Notification settings automatically apply to alerts sent to your profile.
-                  </span>
-                )}
-              </div>
-
-              <Button
-                variant="primary"
-                onClick={handleSaveNotificationPreferences}
-                disabled={isSavingPrefs || !isPrefsDirty}
-                style={{
-                  height: 44,
-                  padding: "0 24px",
-                  fontSize: 14.5,
-                  fontWeight: 700,
-                  borderRadius: 10,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <Icon.Check size={16} />
-                <span>{isSavingPrefs ? "Saving..." : "Save Preferences"}</span>
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* -- TAB 3: ACCOUNT SECURITY -- */}
-      {activeTab === "security" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Card 1: Change Password */}
-          <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              {/* Header */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  borderBottom: "1px solid var(--color-border, #E2E6E3)",
-                  paddingBottom: 18,
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                  <div
-                    style={{
-                      width: 44,
-                      height: 44,
-                      borderRadius: 12,
-                      background: "rgba(24, 122, 86, 0.12)",
-                      color: "#187A56",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Icon.Key size={22} />
-                  </div>
-                  <div>
-                    <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0, color: "var(--color-text, #1A201C)", letterSpacing: "-0.01em" }}>
-                      Change Account Password
-                    </h2>
-                    <p style={{ fontSize: 13.5, color: "var(--color-text-muted, #5D6660)", margin: "3px 0 0" }}>
-                      Ensure your account uses a secure password complying with municipal abattoir security policies.
-                    </p>
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 12,
-                    fontWeight: 700,
-                    padding: "4px 12px",
-                    borderRadius: 999,
-                    background: "rgba(16, 185, 129, 0.12)",
-                    color: "#10b981",
-                    border: "1px solid rgba(16, 185, 129, 0.25)",
-                  }}
-                >
-                  <Icon.ShieldCheck size={14} />
-                  <span>Encrypted &amp; Protected</span>
-                </div>
-              </div>
-
-              {/* Form & Security Checklist Grid */}
-              <form onSubmit={handleChangePassword} noValidate>
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                    gap: 28,
-                    alignItems: "start",
-                  }}
-                >
-                  {/* Left Column: Input Fields */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                    {/* 1. Current Password */}
-                    <div>
-                      <label
-                        htmlFor="current-password-input"
-                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
-                      >
-                        Current Password <span style={{ color: "#ef4444" }}>*</span>
-                      </label>
-                      <div style={{ position: "relative" }}>
-                        <div
-                          style={{
-                            position: "absolute",
-                            left: 14,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            color: passwordErrorField === "current" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
-                            pointerEvents: "none",
-                            display: "flex",
-                          }}
-                        >
-                          <Icon.Lock size={17} />
+                  {/* Form & Security Checklist Grid */}
+                  <form onSubmit={handleChangePassword} noValidate>
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+                        gap: 28,
+                        alignItems: "start",
+                      }}
+                    >
+                      {/* Left Column: Input Fields */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+                        {/* 1. Current Password */}
+                        <div>
+                          <label
+                            htmlFor="current-password-input"
+                            style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
+                          >
+                            Current Password <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <div style={{ position: "relative" }}>
+                            <div
+                              style={{
+                                position: "absolute",
+                                left: 14,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                color: passwordErrorField === "current" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
+                                pointerEvents: "none",
+                                display: "flex",
+                              }}
+                            >
+                              <Icon.Lock size={17} />
+                            </div>
+                            <input
+                              id="current-password-input"
+                              type={showCurrentPw ? "text" : "password"}
+                              value={pw.current}
+                              onChange={(e) => {
+                                setPw({ ...pw, current: e.target.value });
+                                if (passwordErrorField === "current") setPasswordErrorField(null);
+                              }}
+                              placeholder="Enter current password"
+                              autoComplete="current-password"
+                              style={{
+                                width: "100%",
+                                height: 46,
+                                padding: "0 44px 0 42px",
+                                borderRadius: 10,
+                                border: passwordErrorField === "current"
+                                  ? "2px solid #ef4444"
+                                  : "1.5px solid var(--color-border, #C2CAC4)",
+                                boxShadow: passwordErrorField === "current"
+                                  ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
+                                  : "none",
+                                background: "var(--color-bg, #F9FAF8)",
+                                color: "var(--color-text, #1A201C)",
+                                fontSize: 14.5,
+                                outline: "none",
+                                transition: "all 0.15s ease",
+                              }}
+                              onFocus={(e) => {
+                                if (passwordErrorField !== "current") {
+                                  e.target.style.borderColor = "var(--color-primary, #187A56)";
+                                  e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (passwordErrorField !== "current") {
+                                  e.target.style.borderColor = "var(--color-border, #C2CAC4)";
+                                  e.target.style.boxShadow = "none";
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPw(!showCurrentPw)}
+                              style={{
+                                position: "absolute",
+                                right: 12,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                color: "var(--color-text-muted, #5D6660)",
+                                cursor: "pointer",
+                                padding: 4,
+                                display: "flex",
+                              }}
+                              title={showCurrentPw ? "Hide password" : "Show password"}
+                            >
+                              {showCurrentPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
+                            </button>
+                          </div>
+                          <span style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 4, display: "block" }}>
+                            Required to verify account ownership before saving changes.
+                          </span>
                         </div>
-                        <input
-                          id="current-password-input"
-                          type={showCurrentPw ? "text" : "password"}
-                          value={pw.current}
-                          onChange={(e) => {
-                            setPw({ ...pw, current: e.target.value });
-                            if (passwordErrorField === "current") setPasswordErrorField(null);
-                          }}
-                          placeholder="Enter current password"
-                          autoComplete="current-password"
-                          style={{
-                            width: "100%",
-                            height: 46,
-                            padding: "0 44px 0 42px",
-                            borderRadius: 10,
-                            border: passwordErrorField === "current"
-                              ? "2px solid #ef4444"
-                              : "1.5px solid var(--color-border, #C2CAC4)",
-                            boxShadow: passwordErrorField === "current"
-                              ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
-                              : "none",
-                            background: "var(--color-bg, #F9FAF8)",
-                            color: "var(--color-text, #1A201C)",
-                            fontSize: 14.5,
-                            outline: "none",
-                            transition: "all 0.15s ease",
-                          }}
-                          onFocus={(e) => {
-                            if (passwordErrorField !== "current") {
-                              e.target.style.borderColor = "var(--color-primary, #187A56)";
-                              e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (passwordErrorField !== "current") {
-                              e.target.style.borderColor = "var(--color-border, #C2CAC4)";
-                              e.target.style.boxShadow = "none";
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowCurrentPw(!showCurrentPw)}
-                          style={{
-                            position: "absolute",
-                            right: 12,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "none",
-                            border: "none",
-                            color: "var(--color-text-muted, #5D6660)",
-                            cursor: "pointer",
-                            padding: 4,
-                            display: "flex",
-                          }}
-                          title={showCurrentPw ? "Hide password" : "Show password"}
-                        >
-                          {showCurrentPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
-                        </button>
-                      </div>
-                      <span style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 4, display: "block" }}>
-                        Required to verify account ownership before saving changes.
-                      </span>
-                    </div>
 
-                    {/* 2. New Password */}
-                    <div>
-                      <label
-                        htmlFor="new-password-input"
-                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
-                      >
-                        New Password <span style={{ color: "#ef4444" }}>*</span>
-                      </label>
-                      <div style={{ position: "relative" }}>
-                        <div
-                          style={{
-                            position: "absolute",
-                            left: 14,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            color: passwordErrorField === "next" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
-                            pointerEvents: "none",
-                            display: "flex",
-                          }}
-                        >
-                          <Icon.Key size={17} />
+                        {/* 2. New Password */}
+                        <div>
+                          <label
+                            htmlFor="new-password-input"
+                            style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
+                          >
+                            New Password <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <div style={{ position: "relative" }}>
+                            <div
+                              style={{
+                                position: "absolute",
+                                left: 14,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                color: passwordErrorField === "next" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
+                                pointerEvents: "none",
+                                display: "flex",
+                              }}
+                            >
+                              <Icon.Key size={17} />
+                            </div>
+                            <input
+                              id="new-password-input"
+                              type={showNextPw ? "text" : "password"}
+                              value={pw.next}
+                              onChange={(e) => {
+                                setPw({ ...pw, next: e.target.value });
+                                if (passwordErrorField === "next") setPasswordErrorField(null);
+                              }}
+                              placeholder="Enter new strong password"
+                              autoComplete="new-password"
+                              style={{
+                                width: "100%",
+                                height: 46,
+                                padding: "0 44px 0 42px",
+                                borderRadius: 10,
+                                border: passwordErrorField === "next"
+                                  ? "2px solid #ef4444"
+                                  : "1.5px solid var(--color-border, #C2CAC4)",
+                                boxShadow: passwordErrorField === "next"
+                                  ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
+                                  : "none",
+                                background: "var(--color-bg, #F9FAF8)",
+                                color: "var(--color-text, #1A201C)",
+                                fontSize: 14.5,
+                                outline: "none",
+                                transition: "all 0.15s ease",
+                              }}
+                              onFocus={(e) => {
+                                if (passwordErrorField !== "next") {
+                                  e.target.style.borderColor = "var(--color-primary, #187A56)";
+                                  e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
+                                }
+                              }}
+                              onBlur={(e) => {
+                                if (passwordErrorField !== "next") {
+                                  e.target.style.borderColor = "var(--color-border, #C2CAC4)";
+                                  e.target.style.boxShadow = "none";
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowNextPw(!showNextPw)}
+                              style={{
+                                position: "absolute",
+                                right: 12,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                color: "var(--color-text-muted, #5D6660)",
+                                cursor: "pointer",
+                                padding: 4,
+                                display: "flex",
+                              }}
+                              title={showNextPw ? "Hide password" : "Show password"}
+                            >
+                              {showNextPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
+                            </button>
+                          </div>
                         </div>
-                        <input
-                          id="new-password-input"
-                          type={showNextPw ? "text" : "password"}
-                          value={pw.next}
-                          onChange={(e) => {
-                            setPw({ ...pw, next: e.target.value });
-                            if (passwordErrorField === "next") setPasswordErrorField(null);
-                          }}
-                          placeholder="Enter new strong password"
-                          autoComplete="new-password"
-                          style={{
-                            width: "100%",
-                            height: 46,
-                            padding: "0 44px 0 42px",
-                            borderRadius: 10,
-                            border: passwordErrorField === "next"
-                              ? "2px solid #ef4444"
-                              : "1.5px solid var(--color-border, #C2CAC4)",
-                            boxShadow: passwordErrorField === "next"
-                              ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
-                              : "none",
-                            background: "var(--color-bg, #F9FAF8)",
-                            color: "var(--color-text, #1A201C)",
-                            fontSize: 14.5,
-                            outline: "none",
-                            transition: "all 0.15s ease",
-                          }}
-                          onFocus={(e) => {
-                            if (passwordErrorField !== "next") {
-                              e.target.style.borderColor = "var(--color-primary, #187A56)";
-                              e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (passwordErrorField !== "next") {
-                              e.target.style.borderColor = "var(--color-border, #C2CAC4)";
-                              e.target.style.boxShadow = "none";
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowNextPw(!showNextPw)}
-                          style={{
-                            position: "absolute",
-                            right: 12,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "none",
-                            border: "none",
-                            color: "var(--color-text-muted, #5D6660)",
-                            cursor: "pointer",
-                            padding: 4,
-                            display: "flex",
-                          }}
-                          title={showNextPw ? "Hide password" : "Show password"}
-                        >
-                          {showNextPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
-                        </button>
-                      </div>
-                    </div>
 
-                    {/* 3. Confirm New Password */}
-                    <div>
-                      <label
-                        htmlFor="confirm-password-input"
-                        style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
-                      >
-                        Confirm New Password <span style={{ color: "#ef4444" }}>*</span>
-                      </label>
-                      <div style={{ position: "relative" }}>
-                        <div
-                          style={{
-                            position: "absolute",
-                            left: 14,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            color: passwordErrorField === "confirm" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
-                            pointerEvents: "none",
-                            display: "flex",
-                          }}
-                        >
-                          <Icon.Lock size={17} />
-                        </div>
-                        <input
-                          id="confirm-password-input"
-                          type={showConfirmPw ? "text" : "password"}
-                          value={pw.confirm}
-                          onChange={(e) => {
-                            setPw({ ...pw, confirm: e.target.value });
-                            if (passwordErrorField === "confirm") setPasswordErrorField(null);
-                          }}
-                          placeholder="Re-type new password"
-                          autoComplete="new-password"
-                          style={{
-                            width: "100%",
-                            height: 46,
-                            padding: "0 44px 0 42px",
-                            borderRadius: 10,
-                            border: passwordErrorField === "confirm"
-                              ? "2px solid #ef4444"
-                              : `1.5px solid ${
-                                  pw.confirm
+                        {/* 3. Confirm New Password */}
+                        <div>
+                          <label
+                            htmlFor="confirm-password-input"
+                            style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "var(--color-text, #1A201C)", marginBottom: 7 }}
+                          >
+                            Confirm New Password <span style={{ color: "#ef4444" }}>*</span>
+                          </label>
+                          <div style={{ position: "relative" }}>
+                            <div
+                              style={{
+                                position: "absolute",
+                                left: 14,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                color: passwordErrorField === "confirm" ? "#ef4444" : "var(--color-text-muted, #9BA49E)",
+                                pointerEvents: "none",
+                                display: "flex",
+                              }}
+                            >
+                              <Icon.Lock size={17} />
+                            </div>
+                            <input
+                              id="confirm-password-input"
+                              type={showConfirmPw ? "text" : "password"}
+                              value={pw.confirm}
+                              onChange={(e) => {
+                                setPw({ ...pw, confirm: e.target.value });
+                                if (passwordErrorField === "confirm") setPasswordErrorField(null);
+                              }}
+                              placeholder="Re-type new password"
+                              autoComplete="new-password"
+                              style={{
+                                width: "100%",
+                                height: 46,
+                                padding: "0 44px 0 42px",
+                                borderRadius: 10,
+                                border: passwordErrorField === "confirm"
+                                  ? "2px solid #ef4444"
+                                  : `1.5px solid ${pw.confirm
                                     ? pw.next === pw.confirm
                                       ? "#10b981"
                                       : "#ef4444"
                                     : "var(--color-border, #C2CAC4)"
-                                }`,
-                            boxShadow: passwordErrorField === "confirm"
-                              ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
-                              : "none",
-                            background: "var(--color-bg, #F9FAF8)",
-                            color: "var(--color-text, #1A201C)",
-                            fontSize: 14.5,
-                            outline: "none",
-                            transition: "all 0.15s ease",
-                          }}
-                          onFocus={(e) => {
-                            if (passwordErrorField !== "confirm" && !pw.confirm) {
-                              e.target.style.borderColor = "var(--color-primary, #187A56)";
-                              e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
-                            }
-                          }}
-                          onBlur={(e) => {
-                            if (passwordErrorField !== "confirm" && !pw.confirm) {
-                              e.target.style.borderColor = "var(--color-border, #C2CAC4)";
-                              e.target.style.boxShadow = "none";
-                            }
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowConfirmPw(!showConfirmPw)}
-                          style={{
-                            position: "absolute",
-                            right: 12,
-                            top: "50%",
-                            transform: "translateY(-50%)",
-                            background: "none",
-                            border: "none",
-                            color: "var(--color-text-muted, #5D6660)",
-                            cursor: "pointer",
-                            padding: 4,
-                            display: "flex",
-                          }}
-                          title={showConfirmPw ? "Hide password" : "Show password"}
-                        >
-                          {showConfirmPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
-                        </button>
-                      </div>
-
-                      {/* Real-time Match Indicator */}
-                      {pw.confirm && (
-                        <div style={{ marginTop: 7, fontSize: 12.5, fontWeight: 700 }}>
-                          {pw.next === pw.confirm ? (
-                            <span
-                              style={{
-                                color: "#10b981",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                padding: "3px 10px",
-                                borderRadius: 6,
-                                background: "rgba(16, 185, 129, 0.1)",
+                                  }`,
+                                boxShadow: passwordErrorField === "confirm"
+                                  ? "0 0 0 3.5px rgba(239, 68, 68, 0.18)"
+                                  : "none",
+                                background: "var(--color-bg, #F9FAF8)",
+                                color: "var(--color-text, #1A201C)",
+                                fontSize: 14.5,
+                                outline: "none",
+                                transition: "all 0.15s ease",
                               }}
-                            >
-                              <Icon.Check size={14} /> Passwords match perfectly
-                            </span>
-                          ) : (
-                            <span
-                              style={{
-                                color: "#ef4444",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 5,
-                                padding: "3px 10px",
-                                borderRadius: 6,
-                                background: "rgba(239, 68, 68, 0.1)",
+                              onFocus={(e) => {
+                                if (passwordErrorField !== "confirm" && !pw.confirm) {
+                                  e.target.style.borderColor = "var(--color-primary, #187A56)";
+                                  e.target.style.boxShadow = "0 0 0 3.5px rgba(24, 122, 86, 0.15)";
+                                }
                               }}
-                            >
-                              ? Passwords do not match
-                            </span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
-                      <button
-                        type="submit"
-                        disabled={isChangingPw}
-                        style={{
-                          height: 44,
-                          padding: "0 26px",
-                          fontSize: 14.5,
-                          fontWeight: 700,
-                          borderRadius: 10,
-                          border: "none",
-                          background: isChangingPw
-                            ? "var(--color-border, #C2CAC4)"
-                            : "#187A56",
-                          color: isChangingPw ? "var(--color-text-muted, #9BA49E)" : "#ffffff",
-                          cursor: isChangingPw ? "not-allowed" : "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 8,
-                          boxShadow: isChangingPw ? "none" : "0 4px 14px rgba(24, 122, 86, 0.3)",
-                          transition: "all 0.2s ease",
-                        }}
-                      >
-                        {isChangingPw ? (
-                          <>
-                            <div
-                              style={{
-                                width: 16,
-                                height: 16,
-                                border: "2px solid #ffffff",
-                                borderTopColor: "transparent",
-                                borderRadius: "50%",
-                                animation: "spin 0.8s linear infinite",
+                              onBlur={(e) => {
+                                if (passwordErrorField !== "confirm" && !pw.confirm) {
+                                  e.target.style.borderColor = "var(--color-border, #C2CAC4)";
+                                  e.target.style.boxShadow = "none";
+                                }
                               }}
                             />
-                            <span>Updating Password...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Icon.Lock size={16} />
-                            <span>Update Password</span>
-                          </>
-                        )}
-                      </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPw(!showConfirmPw)}
+                              style={{
+                                position: "absolute",
+                                right: 12,
+                                top: "50%",
+                                transform: "translateY(-50%)",
+                                background: "none",
+                                border: "none",
+                                color: "var(--color-text-muted, #5D6660)",
+                                cursor: "pointer",
+                                padding: 4,
+                                display: "flex",
+                              }}
+                              title={showConfirmPw ? "Hide password" : "Show password"}
+                            >
+                              {showConfirmPw ? <Icon.EyeOff size={18} /> : <Icon.Eye size={18} />}
+                            </button>
+                          </div>
 
-                      {(pw.current || pw.next || pw.confirm) && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setPw({ current: "", next: "", confirm: "" });
-                            setPasswordErrorField(null);
-                            setShowCurrentPw(false);
-                            setShowNextPw(false);
-                            setShowConfirmPw(false);
-                          }}
-                          disabled={isChangingPw}
-                          style={{
-                            height: 44,
-                            padding: "0 16px",
-                            fontSize: 13.5,
-                            fontWeight: 600,
-                            borderRadius: 10,
-                            border: "1.5px solid var(--color-border, #C2CAC4)",
-                            background: "transparent",
-                            color: "var(--color-text-muted, #5D6660)",
-                            cursor: isChangingPw ? "not-allowed" : "pointer",
-                            transition: "all 0.15s ease",
-                          }}
-                        >
-                          Clear
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                          {/* Real-time Match Indicator */}
+                          {pw.confirm && (
+                            <div style={{ marginTop: 7, fontSize: 12.5, fontWeight: 700 }}>
+                              {pw.next === pw.confirm ? (
+                                <span
+                                  style={{
+                                    color: "#10b981",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 5,
+                                    padding: "3px 10px",
+                                    borderRadius: 6,
+                                    background: "rgba(16, 185, 129, 0.1)",
+                                  }}
+                                >
+                                  <Icon.Check size={14} /> Passwords match perfectly
+                                </span>
+                              ) : (
+                                <span
+                                  style={{
+                                    color: "#ef4444",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: 5,
+                                    padding: "3px 10px",
+                                    borderRadius: 6,
+                                    background: "rgba(239, 68, 68, 0.1)",
+                                  }}
+                                >
+                                  ? Passwords do not match
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
 
-                  {/* Right Column: Real-time Password Security Advisor */}
-                  <div
-                    style={{
-                      background: "var(--color-bg, #F9FAF8)",
-                      borderRadius: 12,
-                      border: "1px solid var(--color-border, #E2E6E3)",
-                      padding: "18px 20px",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 12,
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {/* Action Buttons */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
+                          <button
+                            type="submit"
+                            disabled={isChangingPw}
+                            style={{
+                              height: 44,
+                              padding: "0 26px",
+                              fontSize: 14.5,
+                              fontWeight: 700,
+                              borderRadius: 10,
+                              border: "none",
+                              background: isChangingPw
+                                ? "var(--color-border, #C2CAC4)"
+                                : "#187A56",
+                              color: isChangingPw ? "var(--color-text-muted, #9BA49E)" : "#ffffff",
+                              cursor: isChangingPw ? "not-allowed" : "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: 8,
+                              boxShadow: isChangingPw ? "none" : "0 4px 14px rgba(24, 122, 86, 0.3)",
+                              transition: "all 0.2s ease",
+                            }}
+                          >
+                            {isChangingPw ? (
+                              <>
+                                <div
+                                  style={{
+                                    width: 16,
+                                    height: 16,
+                                    border: "2px solid #ffffff",
+                                    borderTopColor: "transparent",
+                                    borderRadius: "50%",
+                                    animation: "spin 0.8s linear infinite",
+                                  }}
+                                />
+                                <span>Updating Password...</span>
+                              </>
+                            ) : (
+                              <>
+                                <Icon.Lock size={16} />
+                                <span>Update Password</span>
+                              </>
+                            )}
+                          </button>
+
+                          {(pw.current || pw.next || pw.confirm) && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPw({ current: "", next: "", confirm: "" });
+                                setPasswordErrorField(null);
+                                setShowCurrentPw(false);
+                                setShowNextPw(false);
+                                setShowConfirmPw(false);
+                              }}
+                              disabled={isChangingPw}
+                              style={{
+                                height: 44,
+                                padding: "0 16px",
+                                fontSize: 13.5,
+                                fontWeight: 600,
+                                borderRadius: 10,
+                                border: "1.5px solid var(--color-border, #C2CAC4)",
+                                background: "transparent",
+                                color: "var(--color-text-muted, #5D6660)",
+                                cursor: isChangingPw ? "not-allowed" : "pointer",
+                                transition: "all 0.15s ease",
+                              }}
+                            >
+                              Clear
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Column: Real-time Password Security Advisor */}
                       <div
                         style={{
-                          width: 32,
-                          height: 32,
-                          borderRadius: 8,
-                          background: "rgba(24, 122, 86, 0.12)",
-                          color: "#187A56",
+                          background: "var(--color-bg, #F9FAF8)",
+                          borderRadius: 12,
+                          border: "1px solid var(--color-border, #E2E6E3)",
+                          padding: "18px 20px",
                           display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
+                          flexDirection: "column",
+                          gap: 12,
                         }}
                       >
-                        <Icon.Shield size={16} />
-                      </div>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
-                          Security Requirements
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div
+                            style={{
+                              width: 32,
+                              height: 32,
+                              borderRadius: 8,
+                              background: "rgba(24, 122, 86, 0.12)",
+                              color: "#187A56",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <Icon.Shield size={16} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 14, fontWeight: 750, color: "var(--color-text, #1A201C)" }}>
+                              Security Requirements
+                            </div>
+                            <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)" }}>
+                              National &amp; abattoir compliance standards
+                            </div>
+                          </div>
                         </div>
-                        <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)" }}>
-                          National &amp; abattoir compliance standards
+
+                        <PasswordRequirements password={pw.next} showHeading={false} />
+
+                        <div
+                          style={{
+                            marginTop: 4,
+                            padding: "10px 12px",
+                            borderRadius: 8,
+                            background: "rgba(24, 122, 86, 0.06)",
+                            border: "1px solid rgba(24, 122, 86, 0.15)",
+                            fontSize: 12,
+                            color: "var(--color-text-muted, #5D6660)",
+                            lineHeight: 1.45,
+                          }}
+                        >
+                          <strong style={{ color: "#187A56" }}>Security Tip:</strong> Use at least 8 characters with a mix of uppercase, lowercase, numbers, and special symbols to ensure maximum security.
                         </div>
                       </div>
                     </div>
-
-                    <PasswordRequirements password={pw.next} showHeading={false} />
-
-                    <div
-                      style={{
-                        marginTop: 4,
-                        padding: "10px 12px",
-                        borderRadius: 8,
-                        background: "rgba(24, 122, 86, 0.06)",
-                        border: "1px solid rgba(24, 122, 86, 0.15)",
-                        fontSize: 12,
-                        color: "var(--color-text-muted, #5D6660)",
-                        lineHeight: 1.45,
-                      }}
-                    >
-                      <strong style={{ color: "#187A56" }}>Security Tip:</strong> Use at least 8 characters with a mix of uppercase, lowercase, numbers, and special symbols to ensure maximum security.
-                    </div>
-                  </div>
+                  </form>
                 </div>
-              </form>
-            </div>
-          </Card>
+              </Card>
 
-          {/* Card 2: Security & Session Protection (Integrated with Supabase MFA & Active Sessions) */}
-          <AuthSecuritySessions
-            userEmail={profile.email || session?.email}
-            userRole={profile.role || role}
-            userName={profile.name || session?.name}
-            onSignOut={signOut}
-          />
-        </div>
-      )}
+              {/* Card 2: Security & Session Protection (Integrated with Supabase MFA & Active Sessions) */}
+              <AuthSecuritySessions
+                userEmail={profile.email || session?.email}
+                userRole={profile.role || role}
+                userName={profile.name || session?.name}
+                onSignOut={signOut}
+              />
+            </div>
+          )}
 
           {/* -- TAB 4: MEAT PERMIT CONFIGURATION (ADMIN ONLY) -- */}
           {activeTab === "permit-config" && role === "admin" && (
@@ -2831,6 +2878,28 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           )}
         </div>
       </div>
+
+      {/* Settings Action Confirmation Dialog */}
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onCancel={() => {
+          if (!isSavingProfile && !isUploadingPhoto && !isSavingPrefs && !isChangingPw) {
+            setConfirmAction(null);
+          }
+        }}
+        onConfirm={() => {
+          if (confirmAction?.type === "photo") executeSavePhoto();
+          else if (confirmAction?.type === "profile") executeSaveProfile();
+          else if (confirmAction?.type === "notifications") executeSaveNotificationPreferences();
+          else if (confirmAction?.type === "password") executeChangePassword();
+        }}
+        title={confirmAction?.title || "Confirm Action"}
+        message={confirmAction?.message || "Are you sure you want to proceed?"}
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="primary"
+        loading={isSavingProfile || isUploadingPhoto || isSavingPrefs || isChangingPw}
+      />
 
       {/* Change Password Alert Dialog */}
       <AlertDialog

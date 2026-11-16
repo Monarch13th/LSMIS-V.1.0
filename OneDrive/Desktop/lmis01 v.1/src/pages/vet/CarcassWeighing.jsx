@@ -211,6 +211,7 @@ export const CarcassWeighing = () => {
   const [editBrandCode, setEditBrandCode] = useState("");
   const [editBrandMethod, setEditBrandMethod] = useState("Official Meat Inspection Stamp (Food-Grade Ink)");
   const [editSaving, setEditSaving] = useState(false);
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
 
   // Veterinary Authorization verification
   const currentActor = getCurrentActor();
@@ -676,15 +677,21 @@ export const CarcassWeighing = () => {
     setEditModalOpen(true);
   };
 
-  const handleSaveEdit = async (e) => {
+  const handleSaveEdit = (e) => {
     e.preventDefault();
-    if (!editingCarcass) return;
+    if (!editingCarcass || editSaving) return;
     const wVal = parseFloat(editWeight);
     if (isNaN(wVal) || wVal <= 0) {
       showToast("Please enter a valid scale weight (greater than 0kg).", "error");
       scrollToFirstError("edit-carcass-weight", { offset: 90 });
       return;
     }
+    setConfirmEditOpen(true);
+  };
+
+  const executeSaveEdit = async () => {
+    if (!editingCarcass || editSaving) return;
+    const wVal = parseFloat(editWeight);
     setEditSaving(true);
     try {
       await staffService.updateCarcass(editingCarcass.id, {
@@ -699,6 +706,7 @@ export const CarcassWeighing = () => {
       });
 
       showToast(`Carcass ${editingCarcass.tag_number} weighing and branding details updated successfully!`, "success");
+      setConfirmEditOpen(false);
       setEditModalOpen(false);
       setEditingCarcass(null);
       await Promise.all([refresh(), refreshLivestock?.()]);
@@ -3477,6 +3485,20 @@ export const CarcassWeighing = () => {
           </form>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={confirmEditOpen}
+        onCancel={() => {
+          if (!editSaving) setConfirmEditOpen(false);
+        }}
+        onConfirm={executeSaveEdit}
+        title="Confirm Weighing Update"
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="primary"
+        loading={editSaving}
+        message={`Are you sure you want to submit the updated weighing results for ${editingCarcass?.tag_number || "this carcass"}?`}
+      />
 
       {/* Clean In-App Alert Dialog (replaces native window.alert to provide polished in-app UX) */}
       <AlertDialog

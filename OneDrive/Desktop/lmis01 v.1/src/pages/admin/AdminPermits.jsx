@@ -152,7 +152,7 @@ export const AdminPermits = () => {
             owner_name: ownerClean,
             owner_avatar: ownerObj?.avatar_url || null,
             owner_contact: ownerObj?.phone || ownerObj?.contact || "—",
-            base_permit_no: "Pending Clearance",
+            base_permit_no: "",
             permit_numbers: new Set(),
             items: [],
             speciesList: new Set(),
@@ -171,7 +171,7 @@ export const AdminPermits = () => {
         grp.items.push({
           id: l.id,
           tag_number: l.tag_number,
-          permit_no: "Pending",
+          permit_no: null,
           species: l.species || "Hog",
           weight: w,
         });
@@ -492,20 +492,22 @@ export const AdminPermits = () => {
                   >
                     Date and Time
                   </th>
-                  <th
-                    style={{
-                      padding: "12px 16px",
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: "var(--color-text-muted)",
-                      textAlign: "left",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    Permit #
-                  </th>
+                  {filterStatus !== "pending" && (
+                    <th
+                      style={{
+                        padding: "12px 16px",
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "var(--color-text-muted)",
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      Permit #
+                    </th>
+                  )}
                   <th
                     style={{
                       padding: "12px 16px",
@@ -611,31 +613,33 @@ export const AdminPermits = () => {
                         </div>
                       </td>
 
-                      {/* 4. Permit # */}
-                      <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
-                        {isIssued ? (
-                          <span
-                            style={{
-                              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: "#187A56",
-                            }}
-                          >
-                            {grp.base_permit_no}
-                          </span>
-                        ) : (
-                          <span
-                            style={{
-                              fontSize: 12.5,
-                              color: "var(--color-text-muted)",
-                              fontStyle: "italic",
-                            }}
-                          >
-                            —
-                          </span>
-                        )}
-                      </td>
+                      {/* 4. Permit # (omitted for pending permits) */}
+                      {filterStatus !== "pending" && (
+                        <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
+                          {isIssued ? (
+                            <span
+                              style={{
+                                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: "#187A56",
+                              }}
+                            >
+                              {grp.base_permit_no}
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                fontSize: 12.5,
+                                color: "var(--color-text-muted)",
+                                fontStyle: "italic",
+                              }}
+                            >
+                              —
+                            </span>
+                          )}
+                        </td>
+                      )}
 
                       {/* 5. Status Badge */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle", textAlign: "center" }}>

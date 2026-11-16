@@ -17,6 +17,8 @@ import { resolveOwnerProfile, OwnerProfileCard, OwnerProfileModal } from "../../
 import { getCurrentActor } from "../../utils/processHistory";
 import { safeUpdateLivestockWithHistory } from "../../services/staffService";
 import { feeService } from "../../services/feeService";
+import nagaCitySealImg from "../../assets/naga_city_seal.png";
+import bagongPilipinasImg from "../../assets/bagong_pilipinas.png";
 
 /* ===== Permit issuance status (Supabase is the source of truth) =====
  * Issuing a permit persists exactly one durable fact: handleIssuePermit sets the
@@ -551,7 +553,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
   };
 
   // Print Configuration form states
-  const [permitNo, setPermitNo] = useState("MIC-06-016246");
+  const [permitNo, setPermitNo] = useState("");
   const [origin, setOrigin] = useState(cfg.origin);
   const [destination, setDestination] = useState(cfg.destination);
   const [address, setAddress] = useState(cfg.address);
@@ -1112,7 +1114,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         permit_issued_at: itemPermitIssuedAt,
         permit_issued_by: itemPermitIssuedBy,
         process_date_time: itemProcessTime,
-        permit_no: perm?.permit_no || (animal?.permit_no || null),
+        permit_no: isIssued ? (perm?.permit_no || animal?.permit_no || null) : null,
         animal,
         carcass: carc,
         payment: pmt,
@@ -1152,7 +1154,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
           totalAmount: 0,
           receipt_no: batchRef,
           receipts: [batchRef],
-          permit_no: perm?.permit_no || (animal?.permit_no || null),
+          permit_no: isIssued ? (perm?.permit_no || animal?.permit_no || null) : null,
           permit_id: perm?.id || null,
           permit_issued: false,
         };
@@ -1278,13 +1280,16 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
   }, [selectedGroup, dbPermits]);
 
   const resolvedPermitNo = useMemo(() => {
-    if (!selectedGroup) return permitNo;
+    if (!selectedGroup) return "";
+    const issued =
+      selectedGroup.status === "Permit Issued" ||
+      selectedGroup.issuedCount > 0 ||
+      selectedGroup.isIssued ||
+      Boolean(resolvedPermit?.permit_no);
+    if (!issued) return "";
     if (resolvedPermit?.permit_no) return resolvedPermit.permit_no;
     if (selectedGroup.permit_no) return selectedGroup.permit_no;
-    if (selectedGroup.receipt_no) {
-      return "MIC-06-" + String(selectedGroup.receipt_no).replace(/\D/g, "").padStart(6, "0").slice(-6);
-    }
-    return permitNo || "MIC-06-016246";
+    return permitNo || "";
   }, [selectedGroup, resolvedPermit, permitNo]);
 
   // Is batch issued helper
@@ -1890,20 +1895,22 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   >
                     Date &amp; Time
                   </th>
-                  <th
-                    style={{
-                      width: "14%",
-                      padding: "12px 14px",
-                      fontSize: 11.5,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: "var(--color-text-muted)",
-                      textAlign: "left",
-                    }}
-                  >
-                    Permit #
-                  </th>
+                  {activeTab !== "pending" && (
+                    <th
+                      style={{
+                        width: "14%",
+                        padding: "12px 14px",
+                        fontSize: 11.5,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "var(--color-text-muted)",
+                        textAlign: "left",
+                      }}
+                    >
+                      Permit #
+                    </th>
+                  )}
                   <th
                     style={{
                       width: "12%",
@@ -1947,7 +1954,9 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                     : (grp.slaughter_date_time
                         ? formatPhDateTime(grp.slaughter_date_time)
                         : (grp.process_date_time ? formatPhDateTime(grp.process_date_time) : "—"));
-                  const rawPermitNo = grp.permit_no || (grp.receipts || []).find((r) => String(r).startsWith("MIC-")) || "";
+                  const rawPermitNo = isIssued
+                    ? (grp.permit_no || (grp.receipts || []).find((r) => String(r).startsWith("MIC-")) || "")
+                    : "";
                   const basePermitNo = rawPermitNo ? rawPermitNo.split("-").slice(0, 3).join("-") : "";
 
                   return (
@@ -2053,23 +2062,25 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           </div>
                         </td>
 
-                        {/* 4. Permit # */}
-                        <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
-                          {basePermitNo ? (
-                            <span
-                              style={{
-                                fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                                fontSize: 13,
-                                fontWeight: 700,
-                                color: "#187A56",
-                              }}
-                            >
-                              {basePermitNo}
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
-                          )}
-                        </td>
+                        {/* 4. Permit # (only shown for issued/dispatched permits, never pending) */}
+                        {activeTab !== "pending" && (
+                          <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
+                            {isIssued && basePermitNo ? (
+                              <span
+                                style={{
+                                  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                                  fontSize: 13,
+                                  fontWeight: 700,
+                                  color: "#187A56",
+                                }}
+                              >
+                                {basePermitNo}
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>—</span>
+                            )}
+                          </td>
+                        )}
 
                         {/* 5. Status */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "center" }}>
@@ -2505,8 +2516,10 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
               {/* MEAT INSPECTION CERTIFICATE HEADER */}
               <div className="permit-header-top" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "none", paddingBottom: "0px", marginBottom: "8px" }}>
                 <img 
-                  src="/naga_city_seal.png" 
+                  src={nagaCitySealImg}
                   alt="City of Naga Seal" 
+                  loading="eager"
+                  decoding="sync"
                   style={{ width: "65px", height: "65px", objectFit: "contain", borderRadius: "50%" }} 
                 />
                 <div className="permit-header-center" style={{ textAlign: "center", flex: 1, fontFamily: "Arial, sans-serif" }}>
@@ -2515,8 +2528,10 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   <h3 style={{ fontSize: "14px", margin: 0, fontWeight: "bold", color: "#000" }}>City of Naga</h3>
                 </div>
                 <img 
-                  src="/bagong_pilipinas.png" 
+                  src={bagongPilipinasImg}
                   alt="Bagong Pilipinas Logo" 
+                  loading="eager"
+                  decoding="sync"
                   style={{ width: "65px", height: "65px", objectFit: "contain", borderRadius: "50%" }}
                 />
               </div>
@@ -2528,7 +2543,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                 <div style={{ textAlign: "right", display: "flex", flexDirection: "column", gap: "6px" }}>
                   <div>
                     Permit No. : <span style={{ borderBottom: "1.5px solid #000", fontWeight: "bold", paddingBottom: "2px" }}>
-                      {resolvedPermitNo}
+                      {resolvedPermitNo || "Pending Issuance"}
                     </span>
                   </div>
                   <div>

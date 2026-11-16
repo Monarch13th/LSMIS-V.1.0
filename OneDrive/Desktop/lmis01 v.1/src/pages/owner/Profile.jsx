@@ -9,7 +9,7 @@ import { uploadAvatarFile } from "../../services/avatarService";
 import { authStore } from "../../store/authStore";
 import { ownerAuthService } from "../../services/ownerAuthService";
 import { isInstalledApp } from "../../utils/capacitor";
-import { AlertDialog, Modal } from "../../components/ui";
+import { AlertDialog, ConfirmDialog, Modal } from "../../components/ui";
 import {
   validatePhilippineMobileNumber,
   sanitizePhilippineMobileInput,
@@ -27,6 +27,7 @@ export const OwnerProfile = () => {
   const [loading, setLoading] = useState(true);
   const [avatarError, setAvatarError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null);
 
   // Alert Dialog Popup state
   const [alertDialog, setAlertDialog] = useState({
@@ -238,8 +239,18 @@ export const OwnerProfile = () => {
   };
 
   // Upload and Save Profile Picture to Supabase Storage
-  const handleSavePhoto = async () => {
-    if (!selectedFile) return;
+  const handleSavePhoto = () => {
+    if (!selectedFile || isUploadingPhoto) return;
+    setConfirmAction({
+      type: "photo",
+      title: "Update Profile Photo",
+      message: "Are you sure you want to update your profile picture?",
+    });
+  };
+
+  const executeSavePhoto = async () => {
+    if (!selectedFile || isUploadingPhoto) return;
+    setConfirmAction(null);
     setIsUploadingPhoto(true);
     setPhotoMsg(null);
 
@@ -336,6 +347,21 @@ export const OwnerProfile = () => {
       return;
     }
 
+    if (isSavingProfile) return;
+    setConfirmAction({
+      type: "profile",
+      title: "Update Profile Information",
+      message: "Are you sure you want to save your updated profile information?",
+    });
+  };
+
+  const executeSaveProfile = async () => {
+    if (isSavingProfile) return;
+    const trimmedName = form.name.trim();
+    const trimmedContact = form.contact.trim();
+    const trimmedAddress = form.address.trim();
+    const phoneVal = validatePhilippineMobileNumber(trimmedContact);
+    setConfirmAction(null);
     setIsSavingProfile(true);
     try {
       const email = owner?.email || authUser?.email || session?.email;
@@ -1239,6 +1265,24 @@ export const OwnerProfile = () => {
         <Icon.LogOut size={16} />
         <span>Sign Out of Portal</span>
       </button>
+
+      {/* Confirmation Dialog for Profile & Photo Actions */}
+      <ConfirmDialog
+        open={Boolean(confirmAction)}
+        onCancel={() => {
+          if (!isSavingProfile && !isUploadingPhoto) setConfirmAction(null);
+        }}
+        onConfirm={() => {
+          if (confirmAction?.type === "photo") executeSavePhoto();
+          else if (confirmAction?.type === "profile") executeSaveProfile();
+        }}
+        title={confirmAction?.title || "Confirm Action"}
+        message={confirmAction?.message || "Are you sure you want to proceed?"}
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="primary"
+        loading={isSavingProfile || isUploadingPhoto}
+      />
 
       {/* Confirmation & Status Popup Dialog */}
       <AlertDialog

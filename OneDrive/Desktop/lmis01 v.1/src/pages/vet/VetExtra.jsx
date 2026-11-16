@@ -970,6 +970,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     { part: CONDEMNED_PARTS_LIST[0] || "Head", custom_part: "", weight_kg: "", reason: CONDEMNATION_REASONS[0] }
   ]);
   const [saving, setSaving] = useState(false);
+  const [confirmCondemnOpen, setConfirmCondemnOpen] = useState(false);
   const [attemptedSave, setAttemptedSave] = useState(false);
 
   const getRecordPhotos = (record) => {
@@ -1596,6 +1597,29 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return;
     }
 
+    setConfirmCondemnOpen(true);
+  };
+
+  const executeCondemnSave = async () => {
+    if (saving) return;
+    const effectivePart = (type === "Ante-Mortem" || addScope === "whole")
+      ? (type === "Ante-Mortem" ? "Live Animal" : "Whole Carcass")
+      : (form.part === "Other" ? (form.custom_part?.trim() || "") : form.part);
+    const effectiveLocation = (addScope === "partial"
+      ? (form.specific_part === "Other" ? (form.custom_part || "").trim() : (form.specific_part || form.location || "").trim())
+      : (form.location || "").trim());
+    const w = parseFloat(form.weight_kg);
+    const effectiveReason = (form.reason === "Other" ? (form.custom_reason?.trim() || "") : form.reason) || form.reason;
+    const photosToSubmit = formPhotos
+      .map((p) => {
+        if (p.file) {
+          return { file: p.file, name: p.name, url: p.url || null, file_path: p.file_path || null };
+        }
+        return { name: p.name, url: p.url || null, file_path: p.file_path || null };
+      })
+      .filter((p) => p.file || p.file_path);
+
+    setConfirmCondemnOpen(false);
     // Edit Mode
     if (editingRecord) {
       setSaving(true);
@@ -3287,6 +3311,24 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
           </div>
         </div>
       )}
+      {/* Confirm Condemnation Action Dialog */}
+      <ConfirmDialog
+        open={confirmCondemnOpen}
+        onCancel={() => {
+          if (!saving) setConfirmCondemnOpen(false);
+        }}
+        onConfirm={executeCondemnSave}
+        title={editingRecord ? "Update Condemnation Record" : "Confirm Condemnation"}
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="danger"
+        loading={saving}
+        message={
+          editingRecord
+            ? `Are you sure you want to update the condemnation record for ${form.tag_number || "this livestock"}?`
+            : `Are you sure you want to condemn this livestock or carcass part (${form.tag_number || "selected record"})?`
+        }
+      />
     </div>
   );
 };
@@ -3300,6 +3342,7 @@ export const DisposalRecords = ({ type }) => {
   const [viewRec, setViewRec] = useState(null);
   const { showToast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [confirmDisposalOpen, setConfirmDisposalOpen] = useState(false);
   const [form, setForm] = useState({ tag_number: "", method: DISPOSAL_METHODS[0], quantity: "", disposed_by: "", witness: "", status: "Completed", notes: "" });
 
   const filteredCondemned = condemned.filter((c) => matchesStage(c, type));
@@ -3321,16 +3364,23 @@ export const DisposalRecords = ({ type }) => {
 
   const alreadyDisposed = new Set(filteredRows.map((r) => r.tag_number));
 
-  const save = async (e) => {
+  const save = (e) => {
     e.preventDefault();
+    if (saving) return;
     if (!form.tag_number || !form.quantity || !form.disposed_by) {
       showToast("Please fill all required fields", "error");
       return;
     }
+    setConfirmDisposalOpen(true);
+  };
+
+  const executeDisposalSave = async () => {
+    if (saving) return;
     setSaving(true);
     try {
       await vetService.createDisposalRecord(form);
       showToast("Disposal record created successfully", "success");
+      setConfirmDisposalOpen(false);
       setModalOpen(false);
       setForm({ tag_number: "", method: DISPOSAL_METHODS[0], quantity: "", disposed_by: "", witness: "", status: "Completed", notes: "" });
       refresh();
@@ -3538,6 +3588,20 @@ export const DisposalRecords = ({ type }) => {
           </div>
         )}
       </Modal>
+
+      <ConfirmDialog
+        open={confirmDisposalOpen}
+        onCancel={() => {
+          if (!saving) setConfirmDisposalOpen(false);
+        }}
+        onConfirm={executeDisposalSave}
+        title="Confirm Disposal Record"
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="primary"
+        loading={saving}
+        message={`Are you sure you want to submit this disposal record for ${form.tag_number || "this livestock"}?`}
+      />
     </div>
   );
 };

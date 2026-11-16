@@ -14,6 +14,8 @@ import { matchesStage, getPostOutcome, isPostWholeDecision, isPostPartialInspect
 import { useCondemnationEvidenceIndex } from "./condemnationEvidenceIndex";
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
 import { getRemainingPostMortemForOwner, getAllRemainingPostMortem } from "../../services/modalLifecycleService";
+import nagaCitySealImg from "../../assets/naga_city_seal.png";
+import bagongPilipinasImg from "../../assets/bagong_pilipinas.png";
 
 export const PostMortem = ({ initialTab = "awaiting" }) => {
   const { data: data = [], loading: loadingPost, refresh: refreshData } = useSupabase(TABLES.POST_MORTEM);
@@ -1239,14 +1241,14 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       <body>
         <div class="cert-container">
           <div class="header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #1A201C; padding-bottom: 8px; margin-bottom: 12px;">
-            <img src="/naga_city_seal.png" alt="City of Naga" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
+            <img src="${nagaCitySealImg}" alt="City of Naga" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
             <div style="text-align: center; flex: 1;">
               <p class="rep" style="margin: 0;">Republic of the Philippines</p>
               <p class="prov" style="margin: 0 0 2px 0;">Province of Cebu</p>
               <div class="city" style="margin: 3px 0 2px 0;">City of Naga</div>
               <p style="margin: 1px 0 0 0; font-size: 10.5px; color: #5D6660;">Tinaan, City of Naga, Cebu, Philippines</p>
             </div>
-            <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
+            <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
           </div>
 
           <div class="title-section">

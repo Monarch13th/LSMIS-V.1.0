@@ -1,23 +1,77 @@
 import { formatDate, formatCurrency, formatPhTime } from "./formatters";
 import { normalizeAnimalType } from "../services/feeService";
+import nagaCitySealImg from "../assets/naga_city_seal.png";
+import bagongPilipinasImg from "../assets/bagong_pilipinas.png";
+
+const __printImageDataUrlCache = new Map();
+
+const toAbsoluteUrl = (src) => {
+  if (!src || src.startsWith("data:") || src.startsWith("blob:") || src.startsWith("http")) return src;
+  if (typeof window !== "undefined" && window.location?.origin) {
+    return `${window.location.origin}${src.startsWith("/") ? "" : "/"}${src}`;
+  }
+  return src;
+};
+
+const loadImageAsDataUrl = async (src) => {
+  const abs = toAbsoluteUrl(src);
+  if (!abs || abs.startsWith("data:")) return abs;
+  if (__printImageDataUrlCache.has(abs)) return __printImageDataUrlCache.get(abs);
+  try {
+    const res = await fetch(abs, { cache: "force-cache" });
+    if (!res.ok) return abs;
+    const blob = await res.blob();
+    const dataUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(typeof reader.result === "string" ? reader.result : abs);
+      reader.onerror = () => resolve(abs);
+      reader.readAsDataURL(blob);
+    });
+    __printImageDataUrlCache.set(abs, dataUrl);
+    return dataUrl;
+  } catch {
+    return abs;
+  }
+};
+
+const inlinePrintImages = async (html) => {
+  if (!html || typeof html !== "string") return html;
+  const imgSrcMatches = Array.from(html.matchAll(/<img\b[^>]*\bsrc=["']([^"']+)["']/gi));
+  const uniqueSrcs = Array.from(new Set(imgSrcMatches.map((m) => m[1]).filter(Boolean)));
+  if (uniqueSrcs.length === 0) return html;
+  const resolvedEntries = await Promise.all(
+    uniqueSrcs.map(async (src) => [src, await loadImageAsDataUrl(src)])
+  );
+  let out = html;
+  for (const [orig, resolved] of resolvedEntries) {
+    if (resolved && resolved !== orig) {
+      out = out.split(`src="${orig}"`).join(`src="${resolved}"`).split(`src='${orig}'`).join(`src='${resolved}'`);
+    }
+  }
+  return out;
+};
 
 /**
  * Generic Popup Window Launcher using the exact procedure as Vet Certify
  * (window.open -> write HTML -> auto window.focus() & window.print()).
  * Completely self-contained with explicit inline styling to avoid blank print previews.
  */
-export const printHtmlViaPopup = (title, bodyHtml) => {
+export const printHtmlViaPopup = async (title, bodyHtml) => {
   const printWin = window.open("", "_blank", "width=850,height=1100");
   if (!printWin) {
     window.print();
     return;
   }
 
+  const preparedBodyHtml = await inlinePrintImages(bodyHtml);
+  const baseHref = typeof window !== "undefined" && window.location?.origin ? `${window.location.origin}/` : "/";
+
   const fullHtml = `
     <!DOCTYPE html>
     <html>
     <head>
       <meta charset="utf-8">
+      <base href="${baseHref}">
       <title>&lrm;</title>
       <style>
         @page {
@@ -86,8 +140,11 @@ export const printHtmlViaPopup = (title, bodyHtml) => {
  * directly without opening extra tabs, popups, or redirecting the user.
  * Falls back to popup if iframe printing is restricted.
  */
-export const printHtmlDirect = (title, bodyHtml) => {
+export const printHtmlDirect = async (title, bodyHtml) => {
   try {
+    const preparedBodyHtml = await inlinePrintImages(bodyHtml);
+    const baseHref = typeof window !== "undefined" && window.location?.origin ? `${window.location.origin}/` : "/";
+
     let iframe = document.getElementById("lsmis-direct-print-frame");
     if (iframe) {
       try {
@@ -105,6 +162,7 @@ export const printHtmlDirect = (title, bodyHtml) => {
       <html>
       <head>
         <meta charset="utf-8">
+        <base href="${baseHref}">
         <title>${title || "Meat Permit"}</title>
         <style>
           @page {
@@ -149,14 +207,14 @@ export const printHtmlDirect = (title, bodyHtml) => {
         </style>
       </head>
       <body>
-        ${bodyHtml}
+        ${preparedBodyHtml}
       </body>
       </html>
     `;
 
     const doc = iframe.contentWindow?.document || iframe.contentDocument;
     if (!doc) {
-      printHtmlViaPopup(title, bodyHtml);
+      printHtmlViaPopup(title, preparedBodyHtml);
       return;
     }
 
@@ -175,40 +233,33 @@ export const printHtmlDirect = (title, bodyHtml) => {
       } catch (err) {
         console.warn("Iframe print threw error, falling back to popup", err);
       }
-      printHtmlViaPopup(title, bodyHtml);
+      printHtmlViaPopup(title, preparedBodyHtml);
     };
 
-    // Ensure images (seals, logos) are loaded before invoking print
-    const imgs = doc.images;
-    if (imgs && imgs.length > 0) {
-      let loadedCount = 0;
+    // Ensure images (seals, logos) are loaded and decoded before invoking print
+    const imgs = Array.from(doc.images || []);
+    if (imgs.length > 0) {
       let printTriggered = false;
-      const onDone = () => {
-        loadedCount++;
-        if (loadedCount >= imgs.length && !printTriggered) {
-          printTriggered = true;
-          setTimeout(executePrint, 150);
-        }
-      };
-      for (let i = 0; i < imgs.length; i++) {
-        if (imgs[i].complete) {
-          loadedCount++;
-        } else {
-          imgs[i].onload = onDone;
-          imgs[i].onerror = onDone;
-        }
-      }
-      if (loadedCount >= imgs.length && !printTriggered) {
+      const triggerOnce = () => {
+        if (printTriggered) return;
         printTriggered = true;
-        setTimeout(executePrint, 150);
-      } else {
-        setTimeout(() => {
-          if (!printTriggered) {
-            printTriggered = true;
-            executePrint();
+        setTimeout(executePrint, 120);
+      };
+      Promise.allSettled(
+        imgs.map((img) => {
+          if (img.complete) {
+            return typeof img.decode === "function" ? img.decode().catch(() => {}) : Promise.resolve();
           }
-        }, 600);
-      }
+          return new Promise((resolve) => {
+            img.onload = () => {
+              if (typeof img.decode === "function") img.decode().catch(() => {}).finally(resolve);
+              else resolve();
+            };
+            img.onerror = resolve;
+          });
+        })
+      ).then(triggerOnce);
+      setTimeout(triggerOnce, 2500);
     } else {
       setTimeout(executePrint, 150);
     }
@@ -267,13 +318,13 @@ export const printPermitFeeRecord = (selectedRecord, payments = []) => {
       <div class="fee-doc" style="background: #ffffff; padding: 0; border: none; margin-bottom: 20px;">
         <!-- Header Band -->
         <div class="fee-header-band avoid-break" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2D332F; padding-bottom: 8px; margin-bottom: 12px; break-inside: avoid; page-break-inside: avoid;">
-          <img src="/naga_city_seal.png" alt="City of Naga" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
+          <img src="${nagaCitySealImg}" alt="City of Naga" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
           <div style="text-align: center; flex: 1;">
             <p style="margin: 0; font-size: 10px; color: #5D6660; text-transform: uppercase; letter-spacing: 1px;">Republic of the Philippines</p>
             <p style="margin: 2px 0; font-size: 10px; color: #5D6660; text-transform: uppercase; letter-spacing: 1px;">Province of Cebu</p>
             <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #1A201C; letter-spacing: 1px; text-transform: uppercase;">City of Naga</h3>
           </div>
-          <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
+          <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
         </div>
 
         <!-- Meta Row -->
@@ -355,13 +406,13 @@ export const printPermitFeeRecord = (selectedRecord, payments = []) => {
       <!-- DOCUMENT 2: OFFICIAL RECEIPT COPY -->
       <div class="or-doc avoid-break" style="background: #ffffff; padding: 16px 20px; border: none; break-inside: avoid; page-break-inside: avoid;">
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #2D332F; padding-bottom: 8px; margin-bottom: 8px;">
-          <img src="/naga_city_seal.png" alt="City of Naga" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
+          <img src="${nagaCitySealImg}" alt="City of Naga" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
           <div style="text-align: center; flex: 1;">
             <p style="margin: 0; font-size: 10px; color: #5D6660; text-transform: uppercase; letter-spacing: 1px;">Republic of the Philippines</p>
             <p style="margin: 2px 0; font-size: 10px; color: #5D6660; text-transform: uppercase; letter-spacing: 1px;">Province of Cebu</p>
             <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: #1A201C; letter-spacing: 1px; text-transform: uppercase;">City of Naga</h3>
           </div>
-          <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
+          <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 55px; height: 55px; object-fit: contain; border-radius: 50%;" />
         </div>
 
         <div style="text-align: right; font-size: 11px; font-weight: 700; color: #5D6660; margin: 4px 0 2px 0; font-family: monospace;">Slip No.: FCR-${seqId}</div>
@@ -408,9 +459,7 @@ export const printMeatPermit = (permit) => {
   const owner = rawOwner.includes(" — ") ? rawOwner.split(" — ")[0] : (rawOwner.includes(" - ") ? rawOwner.split(" - ")[0] : rawOwner);
   const rawIssueDate = permit.permit_issued_at || permit.issued_at || permit.date || permit.slaughter_date_time;
   const dateFormatted = permit.dateFormatted || (rawIssueDate ? formatDate(rawIssueDate) : formatDate(new Date()));
-  const permitNo = permit.permit_no || permit.permitNo || (permit.receipt_no
-    ? "MIC-06-" + String(permit.receipt_no).replace(/\D/g, "").padStart(6, "0").slice(-6)
-    : "MIC-06-016246");
+  const permitNo = permit.permit_no || permit.permitNo || "Pending Issuance";
 
   const animals = permit.records || permit.animals || permit.displayAnimals || (permit.tag_number ? [permit] : []);
   const origin = permit.origin || "City of Naga Slaughterhouse Facility";
@@ -433,13 +482,13 @@ export const printMeatPermit = (permit) => {
       
       <!-- MEAT INSPECTION CERTIFICATE HEADER -->
       <div class="permit-header-top avoid-break" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000000; padding-bottom: 8px; margin-bottom: 12px; break-inside: avoid; page-break-inside: avoid;">
-        <img src="/naga_city_seal.png" alt="City of Naga" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
+        <img src="${nagaCitySealImg}" alt="City of Naga" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
         <div style="text-align: center; flex: 1;">
           <h1 style="font-size: 13px; margin: 0; font-weight: normal; color: #000;">Republic of the Philippines</h1>
           <h2 style="font-size: 12px; margin: 2px 0; font-weight: normal; color: #000;">Province of Cebu</h2>
           <h3 style="font-size: 14px; margin: 0; font-weight: bold; color: #000;">City of Naga</h3>
         </div>
-        <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
+        <img src="${bagongPilipinasImg}" alt="Bagong Pilipinas" style="width: 60px; height: 60px; object-fit: contain; border-radius: 50%;" />
       </div>
 
       <div class="avoid-break" style="display: flex; justify-content: space-between; align-items: flex-end; margin: 10px 0 15px 0; font-size: 12px; color: #000; break-inside: avoid; page-break-inside: avoid;">

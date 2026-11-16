@@ -74,6 +74,7 @@ export const AnimalMarking = ({ navTabs }) => {
     age: "",
   });
   const [savingEdit, setSavingEdit] = useState(false);
+  const [confirmEditOpen, setConfirmEditOpen] = useState(false);
 
   // Marking completed notification dialog state
   const [markSuccessNotice, setMarkSuccessNotice] = useState(null);
@@ -1173,9 +1174,9 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   };
 
-  const handleSaveEdit = async (e) => {
+  const handleSaveEdit = (e) => {
     e?.preventDefault?.();
-    if (!editTarget || !editTarget.id) return;
+    if (!editTarget || !editTarget.id || savingEdit) return;
     const cleanAge = (editForm.age || "").trim();
     if (!cleanAge) {
       showToast("Age is required.", "error");
@@ -1186,9 +1187,13 @@ export const AnimalMarking = ({ navTabs }) => {
       showToast(ageErr, "error");
       return;
     }
+    setConfirmEditOpen(true);
+  };
+
+  const executeSaveEdit = async () => {
+    if (!editTarget || !editTarget.id || savingEdit) return;
+    const cleanAge = (editForm.age || "").trim();
     const { age_months, age_value, age_unit } = extractAgeComponents(cleanAge);
-    const qty = parseInt(editForm.quantity, 10);
-    const validQty = isNaN(qty) || qty < 1 ? 1 : qty;
     setSavingEdit(true);
     try {
       const payload = {
@@ -1203,6 +1208,7 @@ export const AnimalMarking = ({ navTabs }) => {
       };
       await staffService.updateLivestock(editTarget.id, payload);
       showToast(`Livestock details for ${editTarget.tag_number || "record"} updated successfully.`, "success");
+      setConfirmEditOpen(false);
       setEditTarget(null);
       if (selected && selected.id === editTarget.id) {
         setSelected((prev) => ({ ...prev, ...payload }));
@@ -2686,6 +2692,20 @@ export const AnimalMarking = ({ navTabs }) => {
           </form>
         )}
       </Modal>
+      {/* Edit Livestock Details Confirmation Dialog */}
+      <ConfirmDialog
+        open={confirmEditOpen}
+        onCancel={() => {
+          if (!savingEdit) setConfirmEditOpen(false);
+        }}
+        onConfirm={executeSaveEdit}
+        title="Confirm Record Update"
+        confirmText="Confirm"
+        cancelText="Cancel"
+        confirmVariant="primary"
+        loading={savingEdit}
+        message={`Are you sure you want to update the livestock details for ${editTarget?.tag_number || "this record"}?`}
+      />
       {/* Marking Completed Notification Modal */}
       <AlertDialog
         open={Boolean(markSuccessNotice)}

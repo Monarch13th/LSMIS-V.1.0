@@ -10,6 +10,8 @@ import { calculateLivestockProgress } from "./Animals";
 import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 import { subscribeOwnerLiveRefresh, buildOwnerScope } from "../../utils/ownerLiveRefresh";
+import nagaCitySealImg from "../../assets/naga_city_seal.png";
+import bagongPilipinasImg from "../../assets/bagong_pilipinas.png";
 import "../../styles/admin_dash.css";
 
 export const OwnerDashboard = () => {
@@ -1975,13 +1977,13 @@ export const OwnerDashboard = () => {
           >
             {/* Government Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #C2CAC4", paddingBottom: 10, marginBottom: 12 }}>
-              <img src="/naga_city_seal.png" alt="City Seal" style={{ width: 44, height: 44, objectFit: "contain" }} />
+              <img src={nagaCitySealImg} alt="City Seal" style={{ width: 44, height: 44, objectFit: "contain" }} />
               <div style={{ textAlign: "center", flex: 1, padding: "0 6px" }}>
                 <div style={{ fontSize: 10, color: "#444C47" }}>Republic of the Philippines</div>
                 <div style={{ fontSize: 11, fontWeight: "bold", color: "#000000" }}>City of Naga, Cebu</div>
                 <div style={{ fontSize: 12, fontWeight: 900, color: "#187A56" }}>OFFICIAL MEAT INSPECTION PERMIT</div>
               </div>
-              <img src="/bagong_pilipinas.png" alt="Bagong Pilipinas" style={{ width: 44, height: 44, objectFit: "contain" }} />
+              <img src={bagongPilipinasImg} alt="Bagong Pilipinas" style={{ width: 44, height: 44, objectFit: "contain" }} />
             </div>
 
             {/* Certificate Details */}

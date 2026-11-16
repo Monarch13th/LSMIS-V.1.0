@@ -33,7 +33,7 @@
       ]
     },
     {
-      "source": "/(logo|apple-touch-icon|icon-192|icon-512|icon-maskable-512|favicon)\\.(png|jpg|ico)",
+      "source": "/(logo|naga_city_seal|bagong_pilipinas|apple-touch-icon|icon-192|icon-512|icon-maskable-512|favicon)\\.(png|jpg|ico)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -80,7 +80,7 @@
   ],
   "rewrites": [
     {
-      "source": "/((?!assets/|downloads/|sw\\.js|version\\.json|manifest\\.webmanifest|favicon\\.ico|logo\\.png|logo\\.jpg|apple-touch-icon\\.png|icon-192\\.png|icon-512\\.png|icon-maskable-512\\.png).*)",
+      "source": "/((?!assets/|downloads/|sw\\.js|version\\.json|manifest\\.webmanifest|favicon\\.ico|logo\\.png|logo\\.jpg|naga_city_seal\\.png|bagong_pilipinas\\.png|apple-touch-icon\\.png|icon-192\\.png|icon-512\\.png|icon-maskable-512\\.png).*)",
       "destination": "/index.html"
     }
   ]
