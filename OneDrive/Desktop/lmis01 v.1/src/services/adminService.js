@@ -27,6 +27,56 @@ const notifyChange = (table = TABLES.USERS, action = "update", record = null) =>
   notifyDbChange(table, action, record);
 };
 
+// In-flight and short-window deduplication guards for personnel welcome emails
+const _welcomeEmailInFlight = new Set();
+const _welcomeEmailSentRecently = new Map();
+
+const formatPersonnelRoleLabel = (rawRole) => {
+  const r = String(rawRole || "").trim().toLowerCase();
+  if (r === "vet" || r === "veterinarian" || r.includes("veterinarian")) {
+    return "Veterinarian";
+  }
+  if (r === "staff" || r === "slaughterhouse staff" || r === "meat_inspector" || r.includes("staff")) {
+    return "Slaughterhouse Staff";
+  }
+  return null;
+};
+
+const resolveOfficialLoginUrl = () => {
+  const envSite = String(import.meta.env?.VITE_SITE_URL || "").trim().replace(/\/+$/, "");
+  if (envSite && !/localhost|127\.0\.0\.1/i.test(envSite)) {
+    return `${envSite}/login`;
+  }
+  if (typeof window !== "undefined" && window.location?.origin && !/localhost|127\.0\.0\.1/i.test(window.location.origin)) {
+    return `${window.location.origin.replace(/\/+$/, "")}/login`;
+  }
+  return "https://lsmis.vercel.app/login";
+};
+
+const buildPersonnelWelcomeEmailCopy = ({ personnelName, email, roleLabel, loginUrl }) => {
+  const subject = "LSMIS Personnel Account Created";
+  const message = `Dear ${personnelName},
+
+Your personnel account for the Livestock Slaughter and Meat Inspection Management System (LSMIS) has been created by the Administrator.
+
+Account Information:
+- Name: ${personnelName}
+- Email: ${email}
+- Assigned Role: ${roleLabel}
+- Account Status: Active
+
+Your role as ${roleLabel} is an important part of maintaining an organized, efficient, and reliable livestock slaughter and meat inspection process.
+
+You may now sign in using your assigned login credentials at:
+${loginUrl}
+
+Thank you.
+
+LSMIS Operations
+Office of the City Veterinarian`;
+  return { subject, message };
+};
+
 // Check if an email is already registered across ANY account type (Staff, Vet, Admin, Owner)
 export const isEmailTakenAcrossSystem = async (email, excludeUserId = null) => {
   const cleanEmail = (email || "").trim().toLowerCase();
@@ -164,6 +214,120 @@ export const adminService = {
     
     notifyChange();
     return dbPayload;
+  },
+
+  sendPersonnelWelcomeEmail: async ({ fullName, email, role, isResend = false }) => {
+    const cleanEmail = String(email || "").trim().toLowerCase();
+    const personnelName = String(fullName || "").trim() || cleanEmail;
+    const roleLabel = formatPersonnelRoleLabel(role);
+
+    if (!cleanEmail) {
+      return { success: false, emailSent: false, error: "Recipient email address is missing." };
+    }
+    if (!roleLabel) {
+      return { success: false, emailSent: false, error: "Welcome emails are only sent for Veterinarian or Slaughterhouse Staff accounts." };
+    }
+
+    if (_welcomeEmailInFlight.has(cleanEmail)) {
+      return {
+        success: false,
+        emailSent: false,
+        duplicateBlocked: true,
+        error: "Welcome email dispatch is already in progress for this account.",
+      };
+    }
+
+    const lastSentAt = _welcomeEmailSentRecently.get(cleanEmail) || 0;
+    if (!isResend && Date.now() - lastSentAt < 15000) {
+      return { success: true, emailSent: true, deduplicated: true };
+    }
+
+    _welcomeEmailInFlight.add(cleanEmail);
+    const loginUrl = resolveOfficialLoginUrl();
+    const { subject, message } = buildPersonnelWelcomeEmailCopy({
+      personnelName,
+      email: cleanEmail,
+      roleLabel,
+      loginUrl,
+    });
+
+    let emailSent = false;
+    let provider = null;
+    let messageId = null;
+    let errorMsg = null;
+
+    try {
+      // Follow the exact same delivery pipeline, sender identity, and formatting as Owner email notifications
+      const sender = "LSMIS Operations";
+      try {
+        await supabase.rpc("set_owner_email_metadata", {
+          p_email: cleanEmail,
+          p_subject: subject,
+          p_message: message,
+        });
+      } catch (rpcErr) {
+        console.warn("RPC set_owner_email_metadata notice:", rpcErr);
+      }
+
+      try {
+        const { error: authMailError } = await supabase.auth.signInWithOtp({
+          email: cleanEmail,
+          options: {
+            shouldCreateUser: false,
+            data: {
+              sender_name: sender,
+              notification_type: "personnel_welcome",
+              subject,
+              message,
+              status: "Active",
+            },
+          },
+        });
+
+        if (!authMailError) {
+          emailSent = true;
+          provider = "supabase_auth_mailer";
+          errorMsg = null;
+        } else {
+          errorMsg = authMailError.message || "Failed to send welcome email.";
+        }
+      } catch (authErr) {
+        errorMsg = authErr?.message || "Failed to send welcome email.";
+      }
+
+      try {
+        await activityService.logActivity({
+          action: emailSent
+            ? `${isResend ? "Resent" : "Sent"} welcome email to ${personnelName} (${roleLabel})`
+            : `Welcome email delivery failed for ${personnelName} (${roleLabel})`,
+          module: "Personnel Management",
+          severity: emailSent ? "info" : "warning",
+          role: "admin",
+          new_value: emailSent
+            ? `${cleanEmail} | status: sent${provider ? ` | provider: ${provider}` : ""}`
+            : `${cleanEmail} | status: failed | error: ${errorMsg || "Unknown error"}`,
+          field_changed: emailSent ? "welcome_email_sent" : "welcome_email_failed",
+        });
+      } catch (_) {}
+
+      if (emailSent) {
+        _welcomeEmailSentRecently.set(cleanEmail, Date.now());
+        return {
+          success: true,
+          emailSent: true,
+          provider,
+          messageId,
+        };
+      }
+
+      return {
+        success: false,
+        emailSent: false,
+        error: errorMsg || "Failed to send welcome email.",
+      };
+    } finally {
+      _welcomeEmailInFlight.delete(cleanEmail);
+    }
   },
 
   updateUser: async (id, patch) => {

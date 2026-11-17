@@ -1262,35 +1262,45 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
   }, [carcass, payments, dbPermits, slaughterRecords, slaughterProcessing, livestock, dispatches, fees]);
 
-  const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "—";
-
-  const resolvedPermit = useMemo(() => {
-    if (!selectedGroup) return null;
-    if (selectedGroup.permit) return selectedGroup.permit;
-    if (selectedGroup.permit_id) {
-      const matchById = (dbPermits || []).find((p) => p.id === selectedGroup.permit_id);
+  const resolvePermitForGroup = (grp) => {
+    if (!grp) return null;
+    if (grp.permit) return grp.permit;
+    if (grp.permit_id) {
+      const matchById = (dbPermits || []).find((p) => p.id === grp.permit_id);
       if (matchById) return matchById;
     }
-    const grpTags = selectedGroup.tags || (selectedGroup.tag_number ? [selectedGroup.tag_number] : []);
+    const grpTags = grp.tags || (grp.tag_number ? [grp.tag_number] : []);
     const matchByTag = (dbPermits || []).find((p) => {
       const pTag = normTag(p.tag_number);
       return grpTags.some((t) => normTag(t) === pTag);
     });
     return matchByTag || null;
-  }, [selectedGroup, dbPermits]);
+  };
 
-  const resolvedPermitNo = useMemo(() => {
-    if (!selectedGroup) return "";
+  const resolvePermitNoForGroup = (grp, permitObj) => {
+    if (!grp) return "";
     const issued =
-      selectedGroup.status === "Permit Issued" ||
-      selectedGroup.issuedCount > 0 ||
-      selectedGroup.isIssued ||
-      Boolean(resolvedPermit?.permit_no);
+      grp.status === "Permit Issued" ||
+      grp.issuedCount > 0 ||
+      grp.isIssued ||
+      Boolean(permitObj?.permit_no);
     if (!issued) return "";
-    if (resolvedPermit?.permit_no) return resolvedPermit.permit_no;
-    if (selectedGroup.permit_no) return selectedGroup.permit_no;
+    if (permitObj?.permit_no) return permitObj.permit_no;
+    if (grp.permit_no) return grp.permit_no;
     return permitNo || "";
-  }, [selectedGroup, resolvedPermit, permitNo]);
+  };
+
+  const issuedTimeDisplay = formatPhTime(getIssuedTime(selectedGroup)) || "—";
+
+  const resolvedPermit = useMemo(
+    () => resolvePermitForGroup(selectedGroup),
+    [selectedGroup, dbPermits]
+  );
+
+  const resolvedPermitNo = useMemo(
+    () => resolvePermitNoForGroup(selectedGroup, resolvedPermit),
+    [selectedGroup, resolvedPermit, permitNo]
+  );
 
   // Is batch issued helper
   const isBatchIssued = (grp) => grp.status === "Permit Issued" || grp.issuedCount > 0 || grp.isIssued;
@@ -1510,76 +1520,116 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     0
   );
 
-  // Identify display items for print preview modal
-  const displayItems = selectedGroup
-    ? (() => {
-        if (Array.isArray(selectedGroup.items) && selectedGroup.items.length > 0) {
-          return selectedGroup.items.map((it) => {
-            const w = parseFloat(it.carcass_weight || it.total_weight || it.cold_weight || it.weight || 0);
-            return {
-              ...it,
-              tag_number: it.tag_number,
-              species: it.species || selectedGroup.species || "Hog",
-              sex: it.sex || "",
-              owner_name: it.owner_name || selectedGroup.owner_name,
-              quantity: it.quantity || 1,
-              total_weight: w,
-              cold_weight: w,
-            };
-          });
-        }
-        const tagList = Array.from(
-          new Set(
-            (selectedGroup.tags && selectedGroup.tags.length
-              ? selectedGroup.tags
-              : String(selectedGroup.tag_number || "").split(",")
-            )
-              .map((t) => String(t != null ? t : "").trim().toLowerCase())
-              .filter(Boolean)
-          )
-        );
-        if (tagList.length === 0) return [];
-
-        const resolveRow = (tag) => {
-          const carc = (carcass || []).find(
-            (cc) => String(cc.tag_number || "").trim().toLowerCase() === tag
-          );
-          if (carc) {
-            const l = (livestock || []).find(
-              (ll) => String(ll.tag_number || "").trim().toLowerCase() === tag
-            );
-            return {
-              ...carc,
-              species: (l && l.species) || selectedGroup.species || "Hog",
-              sex: (l && l.sex) || "",
-              owner_name: (l && l.owner_name) || selectedGroup.owner_name,
-              quantity: (l && l.quantity) || carc.quantity || 1,
-            };
-          }
-          const l = (livestock || []).find(
-            (ll) => String(ll.tag_number || "").trim().toLowerCase() === tag
-          );
-          return {
-            tag_number: (l && l.tag_number) || tag,
-            species: (l && l.species) || selectedGroup.species || "Hog",
-            sex: (l && l.sex) || "",
-            owner_name: (l && l.owner_name) || selectedGroup.owner_name,
-            quantity: (l && l.quantity) || 1,
-            total_weight: (l && l.weight) || 0,
-            cold_weight: undefined,
-          };
+  // Identify display items for permit view / direct print
+  const buildPermitDisplayItems = (grp) => {
+    if (!grp) return [];
+    if (Array.isArray(grp.items) && grp.items.length > 0) {
+      return grp.items.map((it) => {
+        const w = parseFloat(it.carcass_weight || it.total_weight || it.cold_weight || it.weight || 0);
+        return {
+          ...it,
+          tag_number: it.tag_number,
+          species: it.species || grp.species || "Hog",
+          sex: it.sex || "",
+          owner_name: it.owner_name || grp.owner_name,
+          quantity: it.quantity || 1,
+          total_weight: w,
+          cold_weight: w,
         };
+      });
+    }
+    const tagList = Array.from(
+      new Set(
+        (grp.tags && grp.tags.length
+          ? grp.tags
+          : String(grp.tag_number || "").split(",")
+        )
+          .map((t) => String(t != null ? t : "").trim().toLowerCase())
+          .filter(Boolean)
+      )
+    );
+    if (tagList.length === 0) return [];
 
-        return tagList
-          .map(resolveRow)
-          .sort((a, b) =>
-            (a.tag_number || "").localeCompare(b.tag_number || "", undefined, {
-              numeric: true,
-              sensitivity: "base",
-            })
-          );
-      })()
-    : [];
+    const resolveRow = (tag) => {
+      const carc = (carcass || []).find(
+        (cc) => String(cc.tag_number || "").trim().toLowerCase() === tag
+      );
+      if (carc) {
+        const l = (livestock || []).find(
+          (ll) => String(ll.tag_number || "").trim().toLowerCase() === tag
+        );
+        return {
+          ...carc,
+          species: (l && l.species) || grp.species || "Hog",
+          sex: (l && l.sex) || "",
+          owner_name: (l && l.owner_name) || grp.owner_name,
+          quantity: (l && l.quantity) || carc.quantity || 1,
+        };
+      }
+      const l = (livestock || []).find(
+        (ll) => String(ll.tag_number || "").trim().toLowerCase() === tag
+      );
+      return {
+        tag_number: (l && l.tag_number) || tag,
+        species: (l && l.species) || grp.species || "Hog",
+        sex: (l && l.sex) || "",
+        owner_name: (l && l.owner_name) || grp.owner_name,
+        quantity: (l && l.quantity) || 1,
+        total_weight: (l && l.weight) || 0,
+        cold_weight: undefined,
+      };
+    };
+
+    return tagList
+      .map(resolveRow)
+      .sort((a, b) =>
+        (a.tag_number || "").localeCompare(b.tag_number || "", undefined, {
+          numeric: true,
+          sensitivity: "base",
+        })
+      );
+  };
+
+  const displayItems = buildPermitDisplayItems(selectedGroup);
+
+  const handleDirectPrintPermit = (grp) => {
+    if (!grp) return;
+    const items = buildPermitDisplayItems(grp);
+    const permitObj = resolvePermitForGroup(grp);
+    const pNo = resolvePermitNoForGroup(grp, permitObj);
+    const resolvedIssueDate =
+      getIssuedTime(grp) ||
+      grp?.permit_issued_at ||
+      grp?.date ||
+      grp?.slaughter_date_time ||
+      new Date().toISOString();
+    const timeIssue = formatPhTime(getIssuedTime(grp)) || "—";
+    const tQuantity = items.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0);
+    const tWeight = items.reduce(
+      (acc, curr) => acc + (curr.total_weight || curr.cold_weight || 0),
+      0
+    );
+
+    printMeatPermit({
+      ...grp,
+      permit_no: pNo,
+      permitNo: pNo,
+      receipt_no: grp?.receipt_no || permitObj?.receipt_no,
+      date: resolvedIssueDate,
+      records: items,
+      origin: grp?.origin || permitObj?.origin || origin,
+      destination: grp?.destination || permitObj?.destination || destination,
+      address: grp?.address || permitObj?.address || address,
+      timeIssue,
+      conveyance: grp?.conveyance || permitObj?.conveyance || conveyance,
+      plateNo: grp?.plate_no || grp?.plateNo || permitObj?.plate_no || plateNo,
+      inspector: grp?.inspector || permitObj?.inspector || inspector,
+      veterinarian: grp?.veterinarian || permitObj?.veterinarian || veterinarian,
+      totalQuantity: tQuantity,
+      totalWeight: tWeight,
+    });
+    showToast("Opening print dialog for meat permit", "info");
+  };
 
   const totalQuantity = displayItems.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0);
   const totalWeight = displayItems.reduce(
@@ -2212,11 +2262,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => {
-                                  setSelectedGroup(grp);
-                                  setPermitModalMode("print");
-                                  showToast("Opening printable meat permit", "info");
-                                }}
+                                onClick={() => handleDirectPrintPermit(grp)}
                                 style={{
                                   padding: "5px 10px",
                                   fontSize: 12,
@@ -2483,30 +2529,13 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         footer={
           <div className="no-print" style={{ display: "flex", gap: 10, justifyContent: "flex-end", alignItems: "center", width: "100%", flexWrap: "wrap" }}>
             <Button variant="outline" onClick={() => setSelectedGroup(null)}>Close</Button>
-            <Button onClick={() => { 
-              const resolvedIssueDate = getIssuedTime(selectedGroup) || selectedGroup?.permit_issued_at || selectedGroup?.date || selectedGroup?.slaughter_date_time || new Date().toISOString();
-              printMeatPermit({ 
-                ...selectedGroup, 
-                permit_no: resolvedPermitNo,
-                permitNo: resolvedPermitNo,
-                receipt_no: selectedGroup?.receipt_no,
-                date: resolvedIssueDate,
-                records: displayItems, 
-                origin, 
-                destination, 
-                address, 
-                timeIssue: issuedTimeDisplay, 
-                conveyance, 
-                plateNo, 
-                inspector, 
-                veterinarian,
-                totalQuantity,
-                totalWeight
-              }); 
-              showToast("Permit sent to printer", "info"); 
-            }} className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700 }}>
-              <Icon.Printer size={14} /> Print Permit
-            </Button>
+            {permitModalMode === "print" && (
+              <Button onClick={() => { 
+                handleDirectPrintPermit(selectedGroup);
+              }} className="btn-primary" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 700 }}>
+                <Icon.Printer size={14} /> Print Permit
+              </Button>
+            )}
           </div>
         }>
         {selectedGroup && (

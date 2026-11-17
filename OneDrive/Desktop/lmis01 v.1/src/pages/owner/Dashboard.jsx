@@ -534,8 +534,7 @@ export const OwnerDashboard = () => {
   const condemnedCount = enrichedAnimals.filter(
     (a) => a.progress?.statusCategory === "condemned" ||
       a.progress?.statusCategory === "rejected" ||
-      ["condemned", "rejected"].includes(String(a.status || "").toLowerCase().trim()) ||
-      Boolean(milestones.condemnation[a.tag_number])
+      ["condemned", "rejected"].includes(String(a.status || "").toLowerCase().trim())
   ).length;
 
   // Handler for opening Condemnation Details with Pathology Photos
@@ -863,7 +862,7 @@ export const OwnerDashboard = () => {
             to="/owner/animals"
             style={{ fontSize: 12, fontWeight: 700, color: "#187A56", textDecoration: "none" }}
           >
-            See All Records ?
+            See All Records
           </Link>
         </div>
 

@@ -23,42 +23,42 @@ const ROW_ID = "default";
 
 export const DEFAULT_PERMIT_CONFIG = {
   permitPrefix: "permit-",
-  origin:       "TAPON TINAAN",
-  destination:  "NEW PEOPLES MARKET",
-  address:      "EAST POBLACION",
-  timeIssued:   "",
-  conveyance:   "MEAT VAN",
-  plateNo:      "",
-  inspector:    "NERISSA U. VELOSO",
-  cityVet:      "DR. RAYMUNDO VALENTINE P. PAMIREZ",
+  origin: "TAPON TINAAN",
+  destination: "NEW PEOPLES MARKET",
+  address: "EAST POBLACION",
+  timeIssued: "",
+  conveyance: "MEAT VAN",
+  plateNo: "",
+  inspector: "NERISSA U. VELOSO",
+  cityVet: "DR. RAYMUNDO VALENTINE P. PAMIREZ",
 };
 
 /** Map JS camelCase keys -> DB snake_case columns */
 export const toDbRow = (cfg) => ({
-  id:            ROW_ID,
+  id: ROW_ID,
   permit_prefix: cfg.permitPrefix,
-  origin:        cfg.origin,
-  destination:   cfg.destination,
-  address:       cfg.address,
-  time_issued:   cfg.timeIssued,
-  conveyance:    cfg.conveyance,
-  plate_no:      cfg.plateNo,
-  inspector:     cfg.inspector,
-  city_vet:      cfg.cityVet,
-  updated_at:    new Date().toISOString(),
+  origin: cfg.origin,
+  destination: cfg.destination,
+  address: cfg.address,
+  time_issued: cfg.timeIssued,
+  conveyance: cfg.conveyance,
+  plate_no: cfg.plateNo,
+  inspector: cfg.inspector,
+  city_vet: cfg.cityVet,
+  updated_at: new Date().toISOString(),
 });
 
 /** Map DB row -> JS object */
 export const fromDbRow = (row) => ({
   permitPrefix: row.permit_prefix ?? DEFAULT_PERMIT_CONFIG.permitPrefix,
-  origin:       row.origin       ?? DEFAULT_PERMIT_CONFIG.origin,
-  destination:  row.destination  ?? DEFAULT_PERMIT_CONFIG.destination,
-  address:      row.address      ?? DEFAULT_PERMIT_CONFIG.address,
-  timeIssued:   row.time_issued  ?? DEFAULT_PERMIT_CONFIG.timeIssued,
-  conveyance:   row.conveyance   ?? DEFAULT_PERMIT_CONFIG.conveyance,
-  plateNo:      row.plate_no     ?? DEFAULT_PERMIT_CONFIG.plateNo,
-  inspector:    row.inspector    ?? DEFAULT_PERMIT_CONFIG.inspector,
-  cityVet:      row.city_vet     ?? DEFAULT_PERMIT_CONFIG.cityVet,
+  origin: row.origin ?? DEFAULT_PERMIT_CONFIG.origin,
+  destination: row.destination ?? DEFAULT_PERMIT_CONFIG.destination,
+  address: row.address ?? DEFAULT_PERMIT_CONFIG.address,
+  timeIssued: row.time_issued ?? DEFAULT_PERMIT_CONFIG.timeIssued,
+  conveyance: row.conveyance ?? DEFAULT_PERMIT_CONFIG.conveyance,
+  plateNo: row.plate_no ?? DEFAULT_PERMIT_CONFIG.plateNo,
+  inspector: row.inspector ?? DEFAULT_PERMIT_CONFIG.inspector,
+  cityVet: row.city_vet ?? DEFAULT_PERMIT_CONFIG.cityVet,
 });
 
 /** Read config: Supabase first, localStorage fallback */
@@ -74,10 +74,10 @@ export const getPermitConfig = () => {
 export const PermitConfig = () => {
   const { showToast } = useToast();
   const { confirmModalProps, confirmAdminAction } = useAdminConfirmPassword();
-  const [form, setForm]       = useState({ ...DEFAULT_PERMIT_CONFIG });
+  const [form, setForm] = useState({ ...DEFAULT_PERMIT_CONFIG });
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving]   = useState(false);
-  const [saved, setSaved]     = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   /* Load from Supabase on mount */
   useEffect(() => {
@@ -134,7 +134,7 @@ export const PermitConfig = () => {
           new_value: JSON.stringify(form),
           field_changed: "permit_config",
         });
-      } catch (_) {}
+      } catch (_) { }
     } catch (err) {
       console.error("Failed to save permit config to Supabase:", err);
       showToast("Failed to save permit configuration to database: " + (err.message || "Database connection error"), "error");
@@ -182,7 +182,7 @@ export const PermitConfig = () => {
         new_value: JSON.stringify(DEFAULT_PERMIT_CONFIG),
         field_changed: "permit_config",
       });
-    } catch (_) {}
+    } catch (_) { }
   };
 
   if (loading) {

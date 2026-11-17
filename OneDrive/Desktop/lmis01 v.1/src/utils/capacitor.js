@@ -86,3 +86,35 @@ export function isStandalonePwa() {
 export function isInstalledApp() {
   return isCapacitorNativeApp() || isStandalonePwa();
 }
+
+/**
+ * Reliable device-capability detection (does NOT rely on screen width, so
+ * resizing a desktop/laptop browser window never masquerades as mobile).
+ */
+export function getMobileDeviceInfo() {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return { isMobileDevice: false, isAndroid: false, isIOS: false, isDesktop: true };
+  }
+
+  const ua = navigator.userAgent || "";
+  const platform = navigator.platform || "";
+  const maxTouchPoints = navigator.maxTouchPoints || 0;
+
+  const isAndroid = /Android/i.test(ua);
+  const isIOS =
+    /iPhone|iPad|iPod/i.test(ua) ||
+    ((/Macintosh/i.test(ua) || platform === "MacIntel") && maxTouchPoints > 1);
+  const uaDataMobile =
+    typeof navigator.userAgentData?.mobile === "boolean"
+      ? navigator.userAgentData.mobile
+      : false;
+  const isOtherMobile = /webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua);
+
+  const isMobileDevice = isAndroid || isIOS || uaDataMobile || isOtherMobile;
+  return {
+    isMobileDevice,
+    isAndroid,
+    isIOS,
+    isDesktop: !isMobileDevice,
+  };
+}

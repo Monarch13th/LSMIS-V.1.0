@@ -1348,27 +1348,6 @@ export const OwnerManagement = () => {
           approveConfirmOwner ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
               <div style={{
-                background: "#ecfdf5",
-                border: "1px solid #a7f3d0",
-                borderRadius: "8px",
-                padding: "10px 12px",
-                color: "#065f46",
-                fontSize: "0.85rem",
-                lineHeight: 1.45,
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 8,
-              }}>
-                <Icon.CheckCircle size={16} style={{ color: "#059669", flexShrink: 0, marginTop: 2 }} />
-                <div>
-                  <strong>You are approving this prospective livestock owner.</strong>
-                  <div style={{ marginTop: 2, fontSize: "0.8rem", textAlign: "justify", textJustify: "inter-word", textAlignLast: "left" }}>
-                    Approving will automatically assign the official Owner ID (e.g. <code>OWN-001-2026</code>) and activate portal sign-in access.
-                  </div>
-                </div>
-              </div>
-
-              <div style={{
                 background: "var(--color-bg)",
                 border: "1px solid var(--color-border)",
                 borderRadius: "10px",

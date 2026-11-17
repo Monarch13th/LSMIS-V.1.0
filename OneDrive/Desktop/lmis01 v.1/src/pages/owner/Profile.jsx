@@ -8,7 +8,7 @@ import { formatDate } from "../../utils/formatters";
 import { uploadAvatarFile } from "../../services/avatarService";
 import { authStore } from "../../store/authStore";
 import { ownerAuthService } from "../../services/ownerAuthService";
-import { isInstalledApp } from "../../utils/capacitor";
+import { isInstalledApp, getMobileDeviceInfo } from "../../utils/capacitor";
 import { AlertDialog, ConfirmDialog, Modal } from "../../components/ui";
 import {
   validatePhilippineMobileNumber,
@@ -85,6 +85,14 @@ export const OwnerProfile = () => {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   // Installed APK or installed PWA (Download Application is hidden in both)
   const isRunningInNativeApk = isInstalledApp();
+  const mobileDevice = useMemo(() => getMobileDeviceInfo(), []);
+  const resolvedRole = String(
+    session?.role || authStore.get()?.role || authUser?.user_metadata?.role || ""
+  )
+    .trim()
+    .toLowerCase();
+  const isOwnerAccount = resolvedRole === "owner";
+  const canShowMobileDownload = !isRunningInNativeApk && isOwnerAccount && mobileDevice.isMobileDevice;
 
   // Fetch real owner profile from Supabase (authoritative data from public.owners)
   const fetchProfile = async () => {
@@ -497,8 +505,13 @@ export const OwnerProfile = () => {
     }
   };
 
-  // Check Downloadable Package Availability and capture PWA beforeinstallprompt
+  // Check Downloadable Package Availability and capture PWA beforeinstallprompt (mobile Owner only)
   useEffect(() => {
+    if (!canShowMobileDownload) {
+      setDeferredPrompt(null);
+      return;
+    }
+
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -506,13 +519,7 @@ export const OwnerProfile = () => {
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
 
     const checkPackage = async () => {
-      if (isRunningInNativeApk) {
-        setAppPackage((prev) => ({
-          ...prev,
-          isAvailable: true,
-          fileSize: "Installed on Device (v1.0.0)",
-          isChecking: false,
-        }));
+      if (mobileDevice.isIOS) {
         return;
       }
       try {
@@ -552,7 +559,7 @@ export const OwnerProfile = () => {
     return () => {
       window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     };
-  }, [isRunningInNativeApk]);
+  }, [canShowMobileDownload, mobileDevice.isIOS]);
 
   const handleDownloadApp = () => {
     setDownloadMsg(null);
@@ -993,22 +1000,22 @@ export const OwnerProfile = () => {
         )}
       </div>
 
-      {/* Download Application is website-only: not rendered inside the installed Android app */}
-      {!isRunningInNativeApk && (
+      {/* Download Application is mobile-Owner-only: hidden on desktop, personnel, and installed apps */}
+      {canShowMobileDownload && (
       <>
       {/* ============================================================ */}
-      {/* SECTION F: DOWNLOAD APPLICATION (OWNER ACCOUNT ONLY)         */}
+      {/* SECTION F: DOWNLOAD APPLICATION (MOBILE OWNER ACCOUNT ONLY)  */}
       {/* ============================================================ */}
       <div className="owner-profile-card">
         <div className="owner-profile-section-title">
           <h2 className="owner-profile-section-heading">
             <Icon.Download size={15} style={{ color: "#187A56" }} />
-            <span>Download Application</span>
+            <span>{mobileDevice.isIOS ? "Install LSMIS App" : "Download Application"}</span>
           </h2>
         </div>
 
         {/* Download Progress Indicator */}
-        {(isDownloading || downloadProgress > 0) && (
+        {!mobileDevice.isIOS && (isDownloading || downloadProgress > 0) && (
           <div style={{ marginTop: 6 }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#187A56", marginBottom: 4 }}>
               <span>{downloadProgress < 100 ? `Downloading ${appPackage.fileName}...` : "APK Ready to Install"}</span>
@@ -1072,81 +1079,122 @@ export const OwnerProfile = () => {
 
         {/* Action Buttons */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
-          <button
-            type="button"
-            onClick={handleDownloadApp}
-            disabled={isDownloading}
-            className="owner-profile-action-btn primary"
-            style={{
-              width: "100%",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              minHeight: 46,
-              padding: "10px 18px",
-              borderRadius: 9999,
-              border: "1px solid rgba(24, 122, 86, 0.4)",
-              fontSize: 13.5,
-              fontWeight: 700,
-            }}
-          >
-            <Icon.Download size={16} />
-            <span>
-              {isDownloading
-                ? "Preparing APK Download..."
-                : `Download App (${appPackage.fileSize || "40.5 MB"})`}
-            </span>
-          </button>
+          {mobileDevice.isIOS ? (
+            <>
+              <div
+                style={{
+                  padding: "10px 12px",
+                  borderRadius: 10,
+                  background: "rgba(24, 122, 86, 0.08)",
+                  border: "1px solid rgba(24, 122, 86, 0.2)",
+                  fontSize: 12.5,
+                  lineHeight: 1.5,
+                  color: "var(--color-text, #1A201C)",
+                }}
+              >
+                To install LSMIS on your iPhone or iPad, tap the <strong>Share</strong> button in Safari and select <strong>Add to Home Screen</strong>.
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInstallGuide(true)}
+                className="owner-profile-action-btn primary"
+                style={{
+                  width: "100%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  minHeight: 46,
+                  padding: "10px 18px",
+                  borderRadius: 9999,
+                  border: "1px solid rgba(24, 122, 86, 0.4)",
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                }}
+              >
+                <Icon.Smartphone size={16} />
+                <span>Add to Home Screen Instructions</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={handleDownloadApp}
+                disabled={isDownloading}
+                className="owner-profile-action-btn primary"
+                style={{
+                  width: "100%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  minHeight: 46,
+                  padding: "10px 18px",
+                  borderRadius: 9999,
+                  border: "1px solid rgba(24, 122, 86, 0.4)",
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                }}
+              >
+                <Icon.Download size={16} />
+                <span>
+                  {isDownloading
+                    ? "Preparing APK Download..."
+                    : `Download App (${appPackage.fileSize || "40.5 MB"})`}
+                </span>
+              </button>
 
-          <button
-            type="button"
-            onClick={() => setShowInstallGuide(true)}
-            className="owner-profile-action-btn"
-            style={{
-              width: "100%",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 8,
-              minHeight: 46,
-              padding: "10px 18px",
-              borderRadius: 9999,
-              border: "1px solid rgba(24, 122, 86, 0.25)",
-              backgroundColor: "rgba(24, 122, 86, 0.1)",
-              color: "#187A56",
-              fontSize: 13.5,
-              fontWeight: 700,
-            }}
-          >
-            <Icon.Info size={16} />
-            <span>Installation Guide</span>
-          </button>
+              <button
+                type="button"
+                onClick={() => setShowInstallGuide(true)}
+                className="owner-profile-action-btn"
+                style={{
+                  width: "100%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                  minHeight: 46,
+                  padding: "10px 18px",
+                  borderRadius: 9999,
+                  border: "1px solid rgba(24, 122, 86, 0.25)",
+                  backgroundColor: "rgba(24, 122, 86, 0.1)",
+                  color: "#187A56",
+                  fontSize: 13.5,
+                  fontWeight: 700,
+                }}
+              >
+                <Icon.Info size={16} />
+                <span>Installation Guide</span>
+              </button>
 
-          {deferredPrompt && (
-            <button
-              type="button"
-              onClick={handleInstallPWA}
-              className="owner-profile-action-btn"
-              style={{
-                width: "100%",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-                minHeight: 44,
-                padding: "10px 16px",
-                borderRadius: 12,
-                border: "none",
-                backgroundColor: "var(--color-bg, #F9FAF8)",
-                color: "var(--color-text, #1A201C)",
-                fontSize: 13.5,
-                fontWeight: 700,
-              }}
-            >
-              <Icon.Smartphone size={16} />
-              <span>Install to Device (PWA)</span>
-            </button>
+              {deferredPrompt && (
+                <button
+                  type="button"
+                  onClick={handleInstallPWA}
+                  className="owner-profile-action-btn"
+                  style={{
+                    width: "100%",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    minHeight: 44,
+                    padding: "10px 16px",
+                    borderRadius: 12,
+                    border: "none",
+                    backgroundColor: "var(--color-bg, #F9FAF8)",
+                    color: "var(--color-text, #1A201C)",
+                    fontSize: 13.5,
+                    fontWeight: 700,
+                  }}
+                >
+                  <Icon.Smartphone size={16} />
+                  <span>Install to Device (PWA)</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -1204,14 +1252,38 @@ export const OwnerProfile = () => {
             </div>
             <div>
               <div style={{ fontSize: 13, fontWeight: 800, color: "var(--color-text, #1A201C)" }}>
-                Android APK Installation
+                {mobileDevice.isIOS ? "iOS Add to Home Screen" : "Android APK Installation"}
               </div>
               <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)" }}>
-                Follow these 4 simple steps to install LSMIS on your phone
+                {mobileDevice.isIOS
+                  ? "Follow these 3 simple steps to install LSMIS on your iPhone or iPad"
+                  : "Follow these 4 simple steps to install LSMIS on your phone"}
               </div>
             </div>
           </div>
 
+          {mobileDevice.isIOS ? (
+            <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 12, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-text, #1A201C)" }}>
+              <li>
+                <strong>Open LSMIS in Safari</strong>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
+                  Make sure you are viewing the LSMIS Owner portal in <strong>Safari</strong> on your iPhone or iPad.
+                </div>
+              </li>
+              <li>
+                <strong>Tap the Share Button</strong>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
+                  Tap the <strong>Share</strong> icon (square with an upward arrow) in the Safari toolbar.
+                </div>
+              </li>
+              <li>
+                <strong>Select Add to Home Screen</strong>
+                <div style={{ fontSize: 11.5, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
+                  Scroll down, tap <strong>Add to Home Screen</strong>, then tap <strong>Add</strong> in the top-right corner to install LSMIS.
+                </div>
+              </li>
+            </ol>
+          ) : (
           <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 12, fontSize: 12.5, lineHeight: 1.55, color: "var(--color-text, #1A201C)" }}>
             <li>
               <strong>Download the APK</strong>
@@ -1238,6 +1310,7 @@ export const OwnerProfile = () => {
               </div>
             </li>
           </ol>
+          )}
         </div>
       </Modal>
       </>

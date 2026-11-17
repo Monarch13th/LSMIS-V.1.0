@@ -2370,8 +2370,8 @@ export const InspectionForm = ({
                       <div
                         style={{
                           padding: "12px 16px",
-                          background: selectedCount > 0
-                            ? (isCondemned ? "rgba(239, 68, 68, 0.08)" : "var(--color-primary-light, rgba(5, 150, 105, 0.08))")
+                          background: selectedCount > 0 && isCondemned
+                            ? "rgba(239, 68, 68, 0.08)"
                             : "var(--color-surface, #ffffff)",
                           display: "flex",
                           alignItems: "center",
@@ -4073,12 +4073,12 @@ export const InspectionForm = ({
                     </div>
                     {pendingConfirm.summary.approvedCount > 0 && (
                       <div style={{ color: "#166534", fontWeight: 600 }}>
-                        ? Approved: {pendingConfirm.summary.approvedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.approvedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.approvedCount === 1 ? "carcass" : "carcasses")}
+                        Approved: {pendingConfirm.summary.approvedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.approvedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.approvedCount === 1 ? "carcass" : "carcasses")}
                       </div>
                     )}
                     {pendingConfirm.summary.condemnedCount > 0 && (
                       <div style={{ color: "#991b1b", fontWeight: 600 }}>
-                        ? Condemned: {pendingConfirm.summary.condemnedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.condemnedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.condemnedCount === 1 ? "carcass" : "carcasses")}
+                        Condemned: {pendingConfirm.summary.condemnedCount} {pendingConfirm.summary.type === "Ante-Mortem" ? (pendingConfirm.summary.condemnedCount === 1 ? "head" : "heads") : (pendingConfirm.summary.condemnedCount === 1 ? "carcass" : "carcasses")}
                       </div>
                     )}
                     {pendingConfirm.summary.partialCount > 0 && (

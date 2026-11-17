@@ -22,10 +22,14 @@ import {
   deleteSpeciesImage,
 } from "../../services/speciesService";
 import { scrollToFirstError } from "../../utils/formValidation";
+import { ConfirmAdminPasswordModal } from "../../components/admin/ConfirmAdminPasswordModal";
+import { useAdminConfirmPassword } from "../../hooks/useAdminConfirmPassword";
 
 export const SpeciesManagement = () => {
   const { showToast } = useToast();
   const fileInputRef = useRef(null);
+  const saveInFlightRef = useRef(false);
+  const { confirmModalProps, confirmAdminAction } = useAdminConfirmPassword();
 
   const [speciesList, setSpeciesList] = useState([]);
   const [livestockCounts, setLivestockCounts] = useState({});
@@ -57,7 +61,6 @@ export const SpeciesManagement = () => {
   });
 
   // Action Dialogs
-  const [confirmSaveSpecies, setConfirmSaveSpecies] = useState(false);
   const [confirmStatusToggle, setConfirmStatusToggle] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -223,6 +226,8 @@ export const SpeciesManagement = () => {
   // Save Species (Add or Update)
   const handleSave = async (e) => {
     e?.preventDefault();
+    if (submitting || saveInFlightRef.current || confirmModalProps.open) return;
+
     const errors = {};
 
     const cleanName = formData.name.trim();
@@ -264,11 +269,25 @@ export const SpeciesManagement = () => {
     }
 
     setFormErrors({});
-    setConfirmSaveSpecies(true);
+    const isEdit = Boolean(editingSpecies);
+    confirmAdminAction({
+      title: isEdit ? "Update Livestock Species" : "Add New Livestock Species",
+      actionDescription: isEdit
+        ? `You are about to update livestock species "${cleanName}". Please enter your administrator password to authorize this change.`
+        : `You are about to add "${cleanName}" as a livestock species. Please enter your administrator password to authorize this action.`,
+      confirmButtonText: isEdit ? "Confirm Update" : "Confirm & Save Species",
+      danger: false,
+      actionContext: {
+        action: `${isEdit ? "Updated" : "Added"} livestock species "${cleanName}"`,
+        module: "Species Management",
+      },
+      onConfirm: executeSave,
+    });
   };
 
   const executeSave = async () => {
-    if (submitting) return;
+    if (saveInFlightRef.current || submitting) return;
+    saveInFlightRef.current = true;
     const cleanName = formData.name.trim();
     setSubmitting(true);
     setFormErrors({});
@@ -315,22 +334,9 @@ export const SpeciesManagement = () => {
           }
         }
 
-        setAlertDialog({
-          open: true,
-          title: "Species Updated",
-          message: `Livestock species "${cleanName}" has been successfully updated.`,
-          variant: "success",
-        });
         showToast(`Species "${cleanName}" updated successfully`, "success");
       } else {
         await createSpecies(payload);
-
-        setAlertDialog({
-          open: true,
-          title: "Species Saved",
-          message: `New species "${cleanName}" has been added and is now available for Staff livestock registration.`,
-          variant: "success",
-        });
         showToast(`Species "${cleanName}" added successfully`, "success");
       }
 
@@ -351,8 +357,8 @@ export const SpeciesManagement = () => {
       const msg = err.message || "Failed to save species record";
       setFormErrors({ general: msg });
       showToast(msg, "error");
-      setConfirmSaveSpecies(false);
     } finally {
+      saveInFlightRef.current = false;
       setSubmitting(false);
     }
   };
@@ -757,17 +763,59 @@ export const SpeciesManagement = () => {
       </div>
 
       {/* ============================================================ */}
-      {/* ADD / EDIT SPECIES MODAL (CLEAN & REDESIGNED)                */}
+      {/* ADD / EDIT SPECIES MODAL (LANDSCAPE & REDESIGNED)            */}
       {/* ============================================================ */}
       <Modal
         open={formModalOpen}
         onClose={() => !submitting && setFormModalOpen(false)}
-        title={editingSpecies ? "Edit Livestock Species" : "Add New Livestock Species"}
-        size="md"
-        dialogStyle={{ maxWidth: "480px" }}
+        title={
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: "rgba(24, 122, 86, 0.12)",
+                color: "#187A56",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Icon.Cow size={20} />
+            </div>
+            <div>
+              <div style={{ fontWeight: 800, fontSize: "1.05rem", color: "var(--color-text, #192420)", lineHeight: 1.25 }}>
+                {editingSpecies ? "Edit Livestock Species" : "Add New Livestock Species"}
+              </div>
+              <div style={{ fontSize: "0.75rem", color: "var(--color-text-muted, #687D73)", fontWeight: 400, marginTop: 2 }}>
+                {editingSpecies
+                  ? "Update species details, reference picture, or availability status"
+                  : "Register a new livestock species for abattoir intake and inspection"}
+              </div>
+            </div>
+          </div>
+        }
+        size="lg"
+        dialogStyle={{ maxWidth: "780px", borderRadius: "16px" }}
         bodyStyle={{ padding: "20px 24px" }}
       >
-        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 15 }}>
+        <style>{`
+          .species-modal-grid {
+            display: grid;
+            grid-template-columns: 270px minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+          }
+          @media (max-width: 680px) {
+            .species-modal-grid {
+              grid-template-columns: 1fr;
+              gap: 16px;
+            }
+          }
+        `}</style>
+        <form onSubmit={handleSave} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           {formErrors.general && (
             <div
               style={{
@@ -788,184 +836,118 @@ export const SpeciesManagement = () => {
             </div>
           )}
 
-          {/* 1. Species Name (Required) */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label
-              htmlFor="species-name-input"
-              className="form-label"
-              style={{
-                fontSize: "0.8rem",
-                marginBottom: "6px",
-                fontWeight: 700,
-                display: "block",
-                color: "var(--color-text)",
-              }}
-            >
-              Species Name <span style={{ color: "#ef4444" }}>*</span>
-            </label>
-            <div style={{ position: "relative" }}>
-              <span
-                style={{
-                  position: "absolute",
-                  left: 13,
-                  top: "50%",
-                  transform: "translateY(-50%)",
-                  color: "var(--color-text-muted)",
-                  display: "flex",
-                  pointerEvents: "none",
-                }}
-              >
-                <Icon.Cow size={16} />
-              </span>
-              <input
-                id="species-name-input"
-                type="text"
-                className="form-control"
-                placeholder="e.g. Hog, Cattle, Carabao, Goat, Sheep"
-                value={formData.name}
-                onChange={(e) => {
-                  setFormData((prev) => ({ ...prev, name: e.target.value }));
-                  if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: null }));
-                }}
-                style={{
-                  height: "42px",
-                  paddingLeft: "38px",
-                  paddingRight: "14px",
-                  fontSize: "0.85rem",
-                  fontWeight: 500,
-                  borderRadius: "11px",
-                  border: formErrors.name ? "1.5px solid #ef4444" : "1px solid var(--color-border)",
-                  background: "var(--color-bg)",
-                  color: "var(--color-text)",
-                  width: "100%",
-                  boxSizing: "border-box",
-                }}
-                required
-              />
-            </div>
-            {formErrors.name && (
-              <span style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: 4, display: "block", fontWeight: 600 }}>
-                {formErrors.name}
-              </span>
-            )}
-          </div>
-
-          {/* 2. Animal Picture Upload Area (Required, Clean & Visual) */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-              <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: 0, fontWeight: 700, color: "var(--color-text)" }}>
-                Animal Picture <span style={{ color: "#ef4444" }}>*</span>
-              </label>
-              <span
-                style={{
-                  fontSize: "0.68rem",
-                  fontWeight: 600,
-                  color: "var(--color-text-muted)",
-                  background: "var(--color-bg)",
-                  border: "1px solid var(--color-border)",
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                }}
-              >
-                JPG, PNG, WEBP • Max 5MB
-              </span>
-            </div>
-
-            {/* Hidden native input */}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/png,image/jpeg,image/webp,image/jpg"
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-            />
-
-            {!imagePreview ? (
-              /* Empty Upload Dropzone */
-              <div
-                id="species-image-dropzone"
-                onClick={() => fileInputRef.current?.click()}
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                style={{
-                  border: formErrors.image
-                    ? "1.5px dashed #ef4444"
-                    : isDragging
-                    ? "1.5px dashed var(--color-primary)"
-                    : "1.5px dashed var(--color-border)",
-                  borderRadius: 12,
-                  padding: "18px 16px",
-                  background: isDragging
-                    ? "rgba(24, 122, 86, 0.06)"
-                    : "var(--color-bg)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                  cursor: "pointer",
-                  transition: "all 0.16s ease",
-                  textAlign: "center",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isDragging && !formErrors.image) {
-                    e.currentTarget.style.borderColor = "var(--color-primary)";
-                    e.currentTarget.style.background = "rgba(24, 122, 86, 0.04)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isDragging && !formErrors.image) {
-                    e.currentTarget.style.borderColor = "var(--color-border)";
-                    e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
-                  }
-                }}
-              >
-                <div
+          <div className="species-modal-grid">
+            {/* LEFT COLUMN: Animal Picture Upload & Preview */}
+            <div className="form-group" style={{ marginBottom: 0 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 6 }}>
+                <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: 0, fontWeight: 700, color: "var(--color-text)" }}>
+                  Animal Picture <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <span
                   style={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: 12,
-                    background: "rgba(24, 122, 86, 0.1)",
-                    border: "1px solid rgba(24, 122, 86, 0.22)",
-                    color: "var(--color-primary)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 4px 10px -2px rgba(24, 122, 86, 0.15)",
+                    fontSize: "0.66rem",
+                    fontWeight: 600,
+                    color: "var(--color-text-muted)",
+                    background: "var(--color-bg)",
+                    border: "1px solid var(--color-border)",
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  <Icon.Upload size={19} />
-                </div>
-                <div>
-                  <div style={{ fontSize: "0.84rem", fontWeight: 700, color: "var(--color-text)" }}>
-                    Click to upload animal picture
-                  </div>
-                  <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", marginTop: 2 }}>
-                    or drag and drop image file here
-                  </div>
-                </div>
+                  JPG, PNG, WEBP • 5MB
+                </span>
               </div>
-            ) : (
-              /* Selected Image Preview with Change Picture action */
-              <div
-                style={{
-                  borderRadius: 12,
-                  border: "1px solid var(--color-border)",
-                  padding: "10px 14px",
-                  background: "var(--color-bg)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  overflow: "hidden",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/jpg"
+                onChange={handleFileChange}
+                style={{ display: "none" }}
+              />
+
+              {!imagePreview ? (
+                <div
+                  id="species-image-dropzone"
+                  onClick={() => fileInputRef.current?.click()}
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  style={{
+                    border: formErrors.image
+                      ? "1.5px dashed #ef4444"
+                      : isDragging
+                      ? "1.5px dashed var(--color-primary)"
+                      : "1.5px dashed var(--color-border)",
+                    borderRadius: 14,
+                    padding: "24px 16px",
+                    minHeight: 236,
+                    background: isDragging ? "rgba(24, 122, 86, 0.06)" : "var(--color-bg)",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 10,
+                    cursor: "pointer",
+                    transition: "all 0.16s ease",
+                    textAlign: "center",
+                    boxSizing: "border-box",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isDragging && !formErrors.image) {
+                      e.currentTarget.style.borderColor = "var(--color-primary)";
+                      e.currentTarget.style.background = "rgba(24, 122, 86, 0.04)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isDragging && !formErrors.image) {
+                      e.currentTarget.style.borderColor = "var(--color-border)";
+                      e.currentTarget.style.background = "var(--lsmis-primary-subtle)";
+                    }
+                  }}
+                >
                   <div
                     style={{
-                      width: 50,
-                      height: 50,
+                      width: 48,
+                      height: 48,
+                      borderRadius: 14,
+                      background: "rgba(24, 122, 86, 0.1)",
+                      border: "1px solid rgba(24, 122, 86, 0.22)",
+                      color: "var(--color-primary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "0 4px 10px -2px rgba(24, 122, 86, 0.15)",
+                    }}
+                  >
+                    <Icon.Upload size={22} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.84rem", fontWeight: 700, color: "var(--color-text)" }}>
+                      Click to upload animal picture
+                    </div>
+                    <div style={{ fontSize: "0.74rem", color: "var(--color-text-muted)", marginTop: 3 }}>
+                      or drag and drop image file here
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  style={{
+                    borderRadius: 14,
+                    border: "1px solid var(--color-border)",
+                    padding: 12,
+                    background: "var(--color-bg)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 10,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "100%",
+                      height: 164,
                       borderRadius: 10,
                       border: "1px solid var(--color-border)",
                       background: "var(--color-surface)",
@@ -973,8 +955,8 @@ export const SpeciesManagement = () => {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: 3,
-                      flexShrink: 0,
+                      padding: 6,
+                      boxSizing: "border-box",
                     }}
                   >
                     <img
@@ -987,13 +969,15 @@ export const SpeciesManagement = () => {
                         height: "auto",
                         objectFit: "contain",
                         display: "block",
+                        borderRadius: 6,
                       }}
                     />
                   </div>
-                  <div style={{ minWidth: 0, flex: 1, overflow: "hidden" }}>
+
+                  <div style={{ minWidth: 0 }}>
                     <div
                       style={{
-                        fontSize: "0.82rem",
+                        fontSize: "0.8rem",
                         fontWeight: 700,
                         color: "var(--color-text)",
                         overflow: "hidden",
@@ -1004,184 +988,249 @@ export const SpeciesManagement = () => {
                     >
                       {imageFile ? imageFile.name : `${formData.name || "Species"} Picture`}
                     </div>
-                    <div style={{ fontSize: "0.72rem", color: "var(--color-primary)", fontWeight: 600, marginTop: 2 }}>
-                      ? Picture ready
+                    <div
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--color-primary)",
+                        fontWeight: 600,
+                        marginTop: 3,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                      }}
+                    >
+                      <Icon.CheckCircle size={13} />
+                      <span>Picture ready</span>
                     </div>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    style={{
+                      width: "100%",
+                      height: 36,
+                      padding: "0 12px",
+                      borderRadius: 9,
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-surface)",
+                      color: "var(--color-text)",
+                      fontSize: "0.78rem",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 6,
+                      transition: "all 0.15s ease",
+                    }}
+                    title="Upload a different picture"
+                  >
+                    <Icon.Upload size={14} />
+                    <span>Change Picture</span>
+                  </button>
                 </div>
+              )}
 
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: 8,
-                    border: "1px solid var(--color-border)",
-                    background: "var(--color-surface)",
-                    color: "var(--color-text)",
-                    fontSize: "0.78rem",
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    flexShrink: 0,
-                    transition: "all 0.15s ease",
-                  }}
-                  title="Upload a different picture"
-                >
-                  <Icon.Upload size={13} />
-                  <span>Change Picture</span>
-                </button>
-              </div>
-            )}
-
-            {formErrors.image && (
-              <span style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: 4, display: "block", fontWeight: 600 }}>
-                {formErrors.image}
-              </span>
-            )}
-          </div>
-
-          {/* 3. Description (Optional) */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label
-              className="form-label"
-              style={{
-                fontSize: "0.8rem",
-                marginBottom: "6px",
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                color: "var(--color-text)",
-              }}
-            >
-              <span>Description</span>
-              <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--color-text-muted)" }}>Optional</span>
-            </label>
-            <textarea
-              className="form-control"
-              rows={2}
-              placeholder="e.g. Swine livestock or domestic pig classification notes"
-              value={formData.description}
-              onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
-              style={{
-                fontSize: "0.84rem",
-                padding: "10px 14px",
-                borderRadius: "11px",
-                border: "1px solid var(--color-border)",
-                background: "var(--color-bg)",
-                color: "var(--color-text)",
-                resize: "vertical",
-                minHeight: "66px",
-                lineHeight: 1.45,
-                width: "100%",
-                boxSizing: "border-box",
-              }}
-            />
-          </div>
-
-          {/* 4. Status (Active / Inactive) */}
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "6px", fontWeight: 700, display: "block", color: "var(--color-text)" }}>
-              Status
-            </label>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <label
-                onClick={() => setFormData((prev) => ({ ...prev, status: "Active" }))}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 9,
-                  padding: "10px 14px",
-                  borderRadius: 11,
-                  border:
-                    formData.status === "Active"
-                      ? "1.5px solid var(--color-primary)"
-                      : "1px solid var(--color-border)",
-                  background:
-                    formData.status === "Active"
-                      ? "rgba(24, 122, 86, 0.08)"
-                      : "var(--color-bg)",
-                  color:
-                    formData.status === "Active"
-                      ? "var(--color-primary)"
-                      : "var(--color-text)",
-                  boxShadow:
-                    formData.status === "Active"
-                      ? "0 2px 8px rgba(24, 122, 86, 0.12)"
-                      : "none",
-                  cursor: "pointer",
-                  fontSize: "0.83rem",
-                  fontWeight: formData.status === "Active" ? 700 : 600,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <input
-                  type="radio"
-                  name="species_status"
-                  value="Active"
-                  checked={formData.status === "Active"}
-                  onChange={() => {}}
-                  style={{ accentColor: "var(--color-primary, #187A56)", width: 15, height: 15, margin: 0, cursor: "pointer" }}
-                />
-                <span>Active</span>
-              </label>
-
-              <label
-                onClick={() => setFormData((prev) => ({ ...prev, status: "Inactive" }))}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 9,
-                  padding: "10px 14px",
-                  borderRadius: 11,
-                  border:
-                    formData.status === "Inactive"
-                      ? "1.5px solid #ef4444"
-                      : "1px solid var(--color-border)",
-                  background:
-                    formData.status === "Inactive"
-                      ? "rgba(239, 68, 68, 0.08)"
-                      : "var(--color-bg)",
-                  color:
-                    formData.status === "Inactive"
-                      ? "#ef4444"
-                      : "var(--color-text)",
-                  boxShadow:
-                    formData.status === "Inactive"
-                      ? "0 2px 8px rgba(239, 68, 68, 0.12)"
-                      : "none",
-                  cursor: "pointer",
-                  fontSize: "0.83rem",
-                  fontWeight: formData.status === "Inactive" ? 700 : 600,
-                  transition: "all 0.15s ease",
-                }}
-              >
-                <input
-                  type="radio"
-                  name="species_status"
-                  value="Inactive"
-                  checked={formData.status === "Inactive"}
-                  onChange={() => {}}
-                  style={{ accentColor: "#ef4444", width: 15, height: 15, margin: 0, cursor: "pointer" }}
-                />
-                <span>Inactive</span>
-              </label>
+              {formErrors.image && (
+                <span style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: 4, display: "block", fontWeight: 600 }}>
+                  {formErrors.image}
+                </span>
+              )}
             </div>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                fontSize: "0.73rem",
-                color: "var(--color-text-muted)",
-                marginTop: 7,
-              }}
-            >
-              <Icon.Info size={13} style={{ color: "var(--color-primary)", flexShrink: 0 }} />
-              <span>Active species appear automatically in Staff Personnel&apos;s Register Livestock options.</span>
+
+            {/* RIGHT COLUMN: Species Details & Status */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
+              {/* 1. Species Name (Required) */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label
+                  htmlFor="species-name-input"
+                  className="form-label"
+                  style={{
+                    fontSize: "0.8rem",
+                    marginBottom: "6px",
+                    fontWeight: 700,
+                    display: "block",
+                    color: "var(--color-text)",
+                  }}
+                >
+                  Species Name <span style={{ color: "#ef4444" }}>*</span>
+                </label>
+                <div style={{ position: "relative" }}>
+                  <span
+                    style={{
+                      position: "absolute",
+                      left: 13,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      color: "var(--color-text-muted)",
+                      display: "flex",
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <Icon.Cow size={16} />
+                  </span>
+                  <input
+                    id="species-name-input"
+                    type="text"
+                    className="form-control"
+                    placeholder="e.g. Hog, Cattle, Carabao, Goat, Sheep"
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, name: e.target.value }));
+                      if (formErrors.name) setFormErrors((prev) => ({ ...prev, name: null }));
+                    }}
+                    style={{
+                      height: "42px",
+                      paddingLeft: "38px",
+                      paddingRight: "14px",
+                      fontSize: "0.85rem",
+                      fontWeight: 500,
+                      borderRadius: "11px",
+                      border: formErrors.name ? "1.5px solid #ef4444" : "1px solid var(--color-border)",
+                      background: "var(--color-bg)",
+                      color: "var(--color-text)",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
+                    required
+                  />
+                </div>
+                {formErrors.name && (
+                  <span style={{ fontSize: "0.75rem", color: "#ef4444", marginTop: 4, display: "block", fontWeight: 600 }}>
+                    {formErrors.name}
+                  </span>
+                )}
+              </div>
+
+              {/* 2. Description (Optional) */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label
+                  className="form-label"
+                  style={{
+                    fontSize: "0.8rem",
+                    marginBottom: "6px",
+                    fontWeight: 700,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    color: "var(--color-text)",
+                  }}
+                >
+                  <span>Description</span>
+                  <span style={{ fontSize: "0.72rem", fontWeight: 500, color: "var(--color-text-muted)" }}>Optional</span>
+                </label>
+                <textarea
+                  className="form-control"
+                  rows={3}
+                  placeholder="e.g. Swine livestock or domestic pig classification notes"
+                  value={formData.description}
+                  onChange={(e) => setFormData((prev) => ({ ...prev, description: e.target.value }))}
+                  style={{
+                    fontSize: "0.84rem",
+                    padding: "10px 14px",
+                    borderRadius: "11px",
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-bg)",
+                    color: "var(--color-text)",
+                    resize: "vertical",
+                    minHeight: "86px",
+                    lineHeight: 1.45,
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                />
+              </div>
+
+              {/* 3. Status (Active / Inactive) */}
+              <div className="form-group" style={{ marginBottom: 0 }}>
+                <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "6px", fontWeight: 700, display: "block", color: "var(--color-text)" }}>
+                  Status
+                </label>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                  <label
+                    onClick={() => setFormData((prev) => ({ ...prev, status: "Active" }))}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 9,
+                      padding: "10px 14px",
+                      borderRadius: 11,
+                      border:
+                        formData.status === "Active"
+                          ? "1.5px solid var(--color-primary)"
+                          : "1px solid var(--color-border)",
+                      background:
+                        formData.status === "Active"
+                          ? "rgba(24, 122, 86, 0.08)"
+                          : "var(--color-bg)",
+                      color:
+                        formData.status === "Active"
+                          ? "var(--color-primary)"
+                          : "var(--color-text)",
+                      boxShadow:
+                        formData.status === "Active"
+                          ? "0 2px 8px rgba(24, 122, 86, 0.12)"
+                          : "none",
+                      cursor: "pointer",
+                      fontSize: "0.83rem",
+                      fontWeight: formData.status === "Active" ? 700 : 600,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="species_status"
+                      value="Active"
+                      checked={formData.status === "Active"}
+                      onChange={() => {}}
+                      style={{ accentColor: "var(--color-primary, #187A56)", width: 15, height: 15, margin: 0, cursor: "pointer" }}
+                    />
+                    <span>Active</span>
+                  </label>
+
+                  <label
+                    onClick={() => setFormData((prev) => ({ ...prev, status: "Inactive" }))}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 9,
+                      padding: "10px 14px",
+                      borderRadius: 11,
+                      border:
+                        formData.status === "Inactive"
+                          ? "1.5px solid #ef4444"
+                          : "1px solid var(--color-border)",
+                      background:
+                        formData.status === "Inactive"
+                          ? "rgba(239, 68, 68, 0.08)"
+                          : "var(--color-bg)",
+                      color:
+                        formData.status === "Inactive"
+                          ? "#ef4444"
+                          : "var(--color-text)",
+                      boxShadow:
+                        formData.status === "Inactive"
+                          ? "0 2px 8px rgba(239, 68, 68, 0.12)"
+                          : "none",
+                      cursor: "pointer",
+                      fontSize: "0.83rem",
+                      fontWeight: formData.status === "Inactive" ? 700 : 600,
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    <input
+                      type="radio"
+                      name="species_status"
+                      value="Inactive"
+                      checked={formData.status === "Inactive"}
+                      onChange={() => {}}
+                      style={{ accentColor: "#ef4444", width: 15, height: 15, margin: 0, cursor: "pointer" }}
+                    />
+                    <span>Inactive</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -1410,24 +1459,8 @@ export const SpeciesManagement = () => {
         loading={deleting}
       />
 
-      {/* CONFIRM SAVE SPECIES DIALOG */}
-      <ConfirmDialog
-        open={confirmSaveSpecies}
-        onCancel={() => {
-          if (!submitting) setConfirmSaveSpecies(false);
-        }}
-        onConfirm={executeSave}
-        title={editingSpecies ? "Update Species" : "Add Species"}
-        message={
-          editingSpecies
-            ? `Are you sure you want to update "${formData.name.trim()}"?`
-            : `Are you sure you want to add "${formData.name.trim()}" as a livestock species?`
-        }
-        confirmText="Confirm"
-        cancelText="Cancel"
-        confirmVariant="primary"
-        loading={submitting}
-      />
+      {/* ADMIN PASSWORD CONFIRMATION MODAL */}
+      <ConfirmAdminPasswordModal {...confirmModalProps} />
 
       {/* ============================================================ */}
       {/* ALERT / NOTIFICATION DIALOG                                  */}

@@ -2217,7 +2217,7 @@ export const AnimalMarking = ({ navTabs }) => {
                     <strong style={{ fontWeight: 700, color: "var(--color-text)" }}>{spItem.species}:</strong>
                     <span style={{ fontWeight: 600, color: "#10b981" }}>{spItem.sexText}</span>
                     {idx < arr.length - 1 && (
-                      <span style={{ color: "var(--color-text-muted)", marginLeft: 8 }}>—</span>
+                      <span style={{ color: "var(--color-text-muted)" }}>,</span>
                     )}
                   </span>
                 ))}
@@ -2605,8 +2605,8 @@ export const AnimalMarking = ({ navTabs }) => {
                 </label>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, height: 38 }}>
                   {[
-                    { id: "Male", label: "Male ?", activeColor: "#187A56", activeBg: "rgba(24, 122, 86, 0.1)", activeBorder: "#24966D" },
-                    { id: "Female", label: "Female ?", activeColor: "#e11d48", activeBg: "rgba(225, 29, 72, 0.1)", activeBorder: "#fb7185" },
+                    { id: "Male", label: "Male", activeColor: "#187A56", activeBg: "rgba(24, 122, 86, 0.1)", activeBorder: "#24966D" },
+                    { id: "Female", label: "Female", activeColor: "#e11d48", activeBg: "rgba(225, 29, 72, 0.1)", activeBorder: "#fb7185" },
                   ].map((s) => {
                     const isSel = editForm.sex === s.id;
                     return (

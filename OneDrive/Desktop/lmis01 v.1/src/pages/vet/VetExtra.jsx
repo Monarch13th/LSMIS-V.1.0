@@ -3819,8 +3819,6 @@ export const EvidenceUpload = ({
     return () => window.removeEventListener("keydown", handleArrowKey);
   }, [viewingEv, viewerPhotos.length]);
 
-  const [confirmDeleteEv, setConfirmDeleteEv] = useState(null);
-  const [isDeletingEv, setIsDeletingEv] = useState(false);
   const [previewPhoto, setPreviewPhoto] = useState(null);
   const [internalFilterSpecies, setInternalFilterSpecies] = useState("all");
   const [internalSearchEv, setInternalSearchEv] = useState("");
@@ -5589,7 +5587,7 @@ export const EvidenceUpload = ({
                             setViewingEv(ev);
                           }}
                         >
-                          View Details ?
+                          View Details
                         </span>
                       </div>
                     </div>
@@ -6429,30 +6427,12 @@ export const EvidenceUpload = ({
                   paddingTop: 12,
                   borderTop: "1px solid var(--color-border)",
                   display: "flex",
-                  justifyContent: "space-between",
+                  justifyContent: "flex-end",
                   alignItems: "center",
                   gap: 10,
                   flexShrink: 0,
                 }}
               >
-                <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => {
-                    const rec = {
-                      id: viewingEv?.id,
-                      file_path: viewingEv?.file_path,
-                      tag_number: displayRecord?.tag_number || viewingEv?.tag_number,
-                      photo_url: currentPhoto?.url || null,
-                      stage: type,
-                      photoUrls: tagPhotos.map((p) => p.url).filter(Boolean),
-                    };
-                    closeEvidenceViewer();
-                    setConfirmDeleteEv(rec);
-                  }}
-                >
-                  <Icon.Trash size={14} /> Delete Evidence
-                </Button>
                 <Button variant="outline" onClick={closeEvidenceViewer}>
                   Close
                 </Button>
@@ -6525,58 +6505,6 @@ export const EvidenceUpload = ({
           );
         })()}
       </Modal>
-
-      {/* Evidence Delete Confirmation Dialog */}
-      <ConfirmDialog
-        open={!!confirmDeleteEv}
-        onConfirm={async () => {
-          if (!confirmDeleteEv || isDeletingEv) return;
-          setIsDeletingEv(true);
-          // Last-resort guard: the service already times out each Supabase call, but a
-          // guard here guarantees the button can never stay in a loading state.
-          const guard = setTimeout(() => {
-            setIsDeletingEv(false);
-            showToast("Delete is taking too long. Check your connection and try again.", "error");
-          }, 45000);
-          try {
-            const tagNum = confirmDeleteEv.tag_number;
-            const stage = confirmDeleteEv.stage || type || "Post-Mortem";
-            await vetService.deleteEvidenceRecord(
-              confirmDeleteEv.id,
-              confirmDeleteEv.file_path,
-              tagNum,
-              confirmDeleteEv.photo_url,
-              { stage, photoUrls: confirmDeleteEv.photoUrls }
-            );
-            await vetService.deleteInspectionByTag(stage, tagNum);
-            clearTimeout(guard);
-            showToast(
-              stage === "Ante-Mortem"
-                ? "Condemnation record deleted. Animal returned to Awaiting Livestock."
-                : "Condemnation record deleted.",
-              "success"
-            );
-            setConfirmDeleteEv(null);
-            setFilterCondemnedStatus("needs_evidence");
-            refreshAll();
-          } catch (err) {
-            clearTimeout(guard);
-            // The service throws the real Supabase message - show it instead of a generic one.
-            showToast(err?.message || "Failed to delete evidence", "error");
-          } finally {
-            clearTimeout(guard);
-            setIsDeletingEv(false);
-          }
-        }}
-        onCancel={() => {
-          if (!isDeletingEv) setConfirmDeleteEv(null);
-        }}
-        title="Confirm Deletion"
-        message="Are you sure you want to delete this evidence record?"
-        confirmText="Confirm Delete"
-        confirmVariant="danger"
-        loading={isDeletingEv}
-      />
 
       {/* Lightbox Preview Modal for selected draft photos */}
       {previewPhoto && (

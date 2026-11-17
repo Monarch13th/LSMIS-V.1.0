@@ -37,6 +37,8 @@ export const Users = () => {
   const [data, setData] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [failedWelcomeEmail, setFailedWelcomeEmail] = useState(null);
+  const [resendingWelcomeEmail, setResendingWelcomeEmail] = useState(false);
   const { confirmModalProps, confirmAdminAction } = useAdminConfirmPassword();
 
   const refresh = async () => {
@@ -299,12 +301,35 @@ export const Users = () => {
             setData((prev) => prev.map((u) => (u.id === editing.id ? { ...u, ...payload } : u)));
           } else {
             const created = await adminService.createUser(payload);
-            showToast("Personnel created successfully", "success");
             if (created) {
               const r = (created.role || "").toLowerCase().trim();
               if (r !== "admin" && (r === "vet" || r === "staff" || r.includes("vet") || r.includes("staff"))) {
                 setData((prev) => [created, ...prev]);
+                const emailResult = await adminService.sendPersonnelWelcomeEmail({
+                  fullName: created.full_name || payload.full_name,
+                  email: created.email || payload.email,
+                  role: created.role || payload.role,
+                });
+                if (emailResult?.emailSent) {
+                  setFailedWelcomeEmail(null);
+                  showToast(`Personnel account created and welcome email sent to ${created.email}.`, "success");
+                } else {
+                  setFailedWelcomeEmail({
+                    fullName: created.full_name || payload.full_name,
+                    email: created.email || payload.email,
+                    role: created.role || payload.role,
+                    error: emailResult?.error || "Email delivery failed.",
+                  });
+                  showToast(
+                    `Personnel account created, but welcome email delivery failed for ${created.email}. Use "Resend Welcome Email" to retry.`,
+                    "warning"
+                  );
+                }
+              } else {
+                showToast("Personnel created successfully", "success");
               }
+            } else {
+              showToast("Personnel created successfully", "success");
             }
           }
           setModalOpen(false);
@@ -315,6 +340,30 @@ export const Users = () => {
         }
       },
     });
+  };
+
+  const handleResendWelcomeEmail = async () => {
+    if (!failedWelcomeEmail || resendingWelcomeEmail) return;
+    setResendingWelcomeEmail(true);
+    try {
+      const emailResult = await adminService.sendPersonnelWelcomeEmail({
+        fullName: failedWelcomeEmail.fullName,
+        email: failedWelcomeEmail.email,
+        role: failedWelcomeEmail.role,
+        isResend: true,
+      });
+      if (emailResult?.emailSent) {
+        showToast(`Welcome email resent successfully to ${failedWelcomeEmail.email}.`, "success");
+        setFailedWelcomeEmail(null);
+      } else {
+        const errMsg = emailResult?.error || "Email delivery failed.";
+        setFailedWelcomeEmail((prev) => (prev ? { ...prev, error: errMsg } : null));
+        showToast(`Failed to resend welcome email: ${errMsg}`, "warning");
+      }
+      refresh();
+    } finally {
+      setResendingWelcomeEmail(false);
+    }
   };
 
   const del = async () => {
@@ -549,6 +598,66 @@ export const Users = () => {
             </button>
           </div>
         </div>
+
+        {failedWelcomeEmail && (
+          <div
+            role="alert"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              flexWrap: "wrap",
+              padding: "12px 18px",
+              background: "rgba(245, 158, 11, 0.12)",
+              borderBottom: "1px solid rgba(217, 119, 6, 0.35)",
+              color: "var(--color-text, #192420)",
+              fontSize: "0.84rem",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}>
+              <Icon.AlertTriangle size={18} style={{ color: "#d97706", flexShrink: 0 }} />
+              <div>
+                <div style={{ fontWeight: 700, color: "#92400e" }}>
+                  Welcome email delivery failed for {failedWelcomeEmail.fullName} ({failedWelcomeEmail.email})
+                </div>
+                <div style={{ fontSize: "0.78rem", color: "#78350f", marginTop: 2 }}>
+                  Account was created successfully without duplicates. {failedWelcomeEmail.error}
+                </div>
+              </div>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <Button
+                type="button"
+                size="sm"
+                variant="primary"
+                disabled={resendingWelcomeEmail}
+                onClick={handleResendWelcomeEmail}
+              >
+                {resendingWelcomeEmail ? (
+                  <>
+                    <Icon.RefreshCw size={14} className="spin-animation" />
+                    <span>Resending...</span>
+                  </>
+                ) : (
+                  <>
+                    <Icon.Mail size={14} />
+                    <span>Resend Welcome Email</span>
+                  </>
+                )}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                disabled={resendingWelcomeEmail}
+                onClick={() => setFailedWelcomeEmail(null)}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Responsive Table Container */}
         <div className="records-scrollable-content table-wrap" style={{ width: "100%", overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", flex: 1, minHeight: 0 }}>

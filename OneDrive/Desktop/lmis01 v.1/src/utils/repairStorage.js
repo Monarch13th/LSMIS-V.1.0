@@ -18,7 +18,7 @@ export const repairCorruptedMockData = () => {
     keysToRemove.forEach((k) => {
       try {
         localStorage.removeItem(k);
-      } catch (_) {}
+      } catch (_) { }
     });
   } catch (e) {
     // Non-blocking cleanup

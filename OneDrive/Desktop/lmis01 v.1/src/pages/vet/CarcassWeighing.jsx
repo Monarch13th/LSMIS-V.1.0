@@ -782,7 +782,7 @@ export const CarcassWeighing = () => {
       const raw = weights[a.tag_number];
       if (raw === undefined || raw === null || String(raw).trim() === "") return true;
       const w = parseFloat(raw);
-      return isNaN(w) || w <= 0;
+      return !Number.isFinite(w) || w <= 0;
     });
 
     if (invalidAnimals.length > 0) {
@@ -820,9 +820,10 @@ export const CarcassWeighing = () => {
   };
 
   const executeBatchSave = async () => {
-    setConfirmBatchModalOpen(false);
+    if (savingRef.current) return;
 
     if (displayedAnimals.length === 0) {
+      setConfirmBatchModalOpen(false);
       showToast("No eligible carcasses found for the selected owner.", "error");
       return;
     }
@@ -832,10 +833,11 @@ export const CarcassWeighing = () => {
       const raw = weights[a.tag_number];
       if (raw === undefined || raw === null || String(raw).trim() === "") return true;
       const w = parseFloat(raw);
-      return isNaN(w) || w <= 0;
+      return !Number.isFinite(w) || w <= 0;
     });
 
     if (invalidAnimals.length > 0) {
+      setConfirmBatchModalOpen(false);
       const invalidTags = invalidAnimals.map((a) => a.tag_number).join(", ");
       showToast(
         `Cannot save weighing: All ${displayedAnimals.length} carcass${displayedAnimals.length > 1 ? "es" : ""} must have a valid scale weight greater than 0 kg. Missing or invalid (${invalidAnimals.length}): ${invalidTags}`,
@@ -847,7 +849,6 @@ export const CarcassWeighing = () => {
 
     const tagsToSave = displayedAnimals.map((a) => a.tag_number);
 
-    if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
     const savedTags = [];
@@ -913,11 +914,13 @@ export const CarcassWeighing = () => {
       );
 
       if (failed.length === 0) {
-        const successMsg = singleAnimal
-          ? `Weighed, branded, and certified carcass ${tagsToSave[0]} (${brandCodes[tagsToSave[0]] || "Official Stamp"}) successfully! Proceeded to Fee Management.`
-          : `Weighed, branded, and certified all ${savedTags.length} carcasses in group successfully! Proceeded to Fee Management.`;
+        setConfirmBatchModalOpen(false);
+        const successMsg = "Carcass weight successfully recorded! The weighing information has been saved to the livestock record.";
 
-        setInAppAlert({ title: "Carcass Weighed & Branded", message: successMsg });
+        setInAppAlert({
+          title: "Carcass weight successfully recorded!",
+          message: "The weighing information has been saved to the livestock record.",
+        });
         showToast(successMsg, "success");
         setModalSuccessAlert(successMsg);
 
@@ -980,6 +983,7 @@ export const CarcassWeighing = () => {
         );
       }
     } finally {
+      setConfirmBatchModalOpen(false);
       savingRef.current = false;
       setSaving(false);
       // Fast targeted background refresh for carcass & livestock state
@@ -2798,7 +2802,7 @@ export const CarcassWeighing = () => {
         </form>
       </Modal>
 
-      {/* Batch Weighing Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
+      {/* Batch Weighing Confirmation Dialog */}
       <ConfirmDialog
         open={confirmBatchModalOpen}
         onCancel={() => {
@@ -2807,9 +2811,70 @@ export const CarcassWeighing = () => {
           }
         }}
         onConfirm={executeBatchSave}
-        title="Confirm Carcass Weighing"
-        message={`Are you sure you want to record the weights for ${batchToConfirm?.count || 0} selected carcass${(batchToConfirm?.count || 0) === 1 ? "" : "es"}?`}
-        confirmText="Confirm"
+        size="md"
+        title="Are you sure the entered carcass weight is correct?"
+        message={
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--color-text-muted, #5D6660)" }}>
+              Please review the recorded weight before confirming. Once submitted, this information will be saved to the livestock record.
+            </p>
+            <div
+              style={{
+                maxHeight: 220,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                padding: 10,
+                borderRadius: 10,
+                background: "var(--color-bg, #F9FAF8)",
+                border: "1px solid var(--color-border, #E2E6E3)",
+              }}
+            >
+              {(batchToConfirm?.items || []).map((item) => (
+                <div
+                  key={item.tag_number}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: "4px 12px",
+                    padding: "8px 10px",
+                    borderRadius: 8,
+                    background: "var(--color-surface, #ffffff)",
+                    border: "1px solid var(--color-border, #E2E6E3)",
+                    fontSize: 12.5,
+                  }}
+                >
+                  <div>
+                    <div style={{ fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
+                      Livestock ID: <span style={{ fontFamily: "ui-monospace, monospace" }}>{item.tag_number}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
+                      Owner: <strong style={{ color: "var(--color-text, #1A201C)" }}>{item.owner_name || "Unknown Owner"}</strong> • Species: <strong style={{ color: "var(--color-text, #1A201C)" }}>{item.species || "Hog"}</strong>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
+                    <span
+                      style={{
+                        padding: "3px 9px",
+                        borderRadius: 999,
+                        background: "rgba(24, 122, 86, 0.1)",
+                        color: "#187A56",
+                        fontWeight: 800,
+                        fontSize: 12.5,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {Number(item.weight || 0).toFixed(2)} kg
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        }
+        confirmText="Confirm Weight"
+        cancelText="Cancel"
         confirmVariant="success"
         loading={saving}
         backdropStyle={{ zIndex: 1250 }}

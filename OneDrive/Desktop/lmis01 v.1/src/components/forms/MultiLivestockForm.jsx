@@ -442,15 +442,25 @@ export const MultiLivestockForm = ({
         .livestock-entry-row {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 14px;
+          background: var(--color-surface, #ffffff);
+          border: 1px solid var(--color-border);
+          border-radius: 12px;
+          padding: 16px;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+          transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .livestock-entry-row:focus-within {
+          border-color: rgba(24, 122, 86, 0.45);
+          box-shadow: 0 3px 10px rgba(24, 122, 86, 0.07);
         }
         .entry-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-bottom: 8px;
+          padding-bottom: 10px;
           border-bottom: 1px solid var(--color-border);
-          gap: 8px;
+          gap: 10px;
         }
         .entry-form-grid {
           display: grid;
@@ -547,22 +557,35 @@ export const MultiLivestockForm = ({
             <div
               key={entry.id}
               className="livestock-entry-row"
-              style={{
-                borderTop: index > 0 ? "1px solid var(--color-border)" : "none",
-                paddingTop: index > 0 ? 14 : 0,
-              }}
             >
-              {/* Card Header: Clean Entry Number + Remove Button (No Outer Border) */}
+              {/* Card Header: Entry Badge + Head Count + Remove Button */}
               <div className="entry-header">
-                <span
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 800,
-                    color: "var(--color-text)",
-                  }}
-                >
-                  Livestock Entry #{index + 1}
-                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "3px 10px",
+                      borderRadius: 999,
+                      background: "rgba(24, 122, 86, 0.1)",
+                      color: "#187A56",
+                      fontSize: 12,
+                      fontWeight: 800,
+                    }}
+                  >
+                    Livestock Entry #{index + 1}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    {Number(entry.quantity) > 0 ? `${entry.quantity} ${Number(entry.quantity) === 1 ? "Head" : "Heads"}` : "0 Heads"}
+                  </span>
+                </div>
 
                 {/* Remove Entry Button */}
                 {entries.length > 1 && (
@@ -596,7 +619,7 @@ export const MultiLivestockForm = ({
                 {/* Field 1: Species Selection with Live Image Display */}
                 <div>
                   <label
-                    htmlFor={`species-${entry.id}`}
+                    htmlFor={`species_${entry.id}`}
                     style={{
                       fontSize: 12,
                       fontWeight: 700,
@@ -855,13 +878,28 @@ export const MultiLivestockForm = ({
           borderTop: "1px solid var(--color-border, #E2E6E3)",
           boxShadow: "0 -4px 12px rgba(0, 0, 0, 0.04)",
           display: "flex",
-          justifyContent: "flex-end",
+          justifyContent: "space-between",
           alignItems: "center",
-          gap: 10,
+          gap: 12,
+          flexWrap: "wrap",
           flexShrink: 0,
           zIndex: 40,
         }}
       >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            fontSize: 12.5,
+            fontWeight: 700,
+            color: "var(--color-text-muted)",
+          }}
+        >
+          <span>{entries.length} {entries.length === 1 ? "Entry" : "Entries"}</span>
+          <span aria-hidden="true">•</span>
+          <span style={{ color: "#187A56" }}>{totalHeadCount} Total {totalHeadCount === 1 ? "Head" : "Heads"}</span>
+        </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <Button
             type="button"
