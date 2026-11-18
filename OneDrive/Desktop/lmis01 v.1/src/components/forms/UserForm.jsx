@@ -3,6 +3,7 @@ import { Button } from "../ui/Button";
 import { Icon } from "../icons";
 import { PasswordRequirements } from "../ui/PasswordRequirements";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
+import { validateComEmail, isValidComEmail, EMAIL_COM_ERROR } from "../../utils/emailValidation";
 import { isEmailTakenAcrossSystem } from "../../services/adminService";
 import { initials } from "../../utils/helpers";
 import { ROLE_LABELS } from "../../utils/constants";
@@ -80,8 +81,16 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
   };
 
   const handleEmailBlur = async () => {
-    const clean = emailVal.trim().toLowerCase();
-    if (!clean || !clean.includes("@")) return;
+    const trimmed = emailVal.trim();
+    if (trimmed !== emailVal) {
+      setEmailVal(trimmed);
+    }
+    const clean = trimmed.toLowerCase();
+    if (!clean) return;
+    if (!isValidComEmail(clean)) {
+      setEmailError(EMAIL_COM_ERROR);
+      return;
+    }
     try {
       const taken = await isEmailTakenAcrossSystem(clean, initial?.id);
       if (taken) {
@@ -107,8 +116,10 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
       return;
     }
     const cleanEmail = emailVal.trim().toLowerCase();
-    if (!cleanEmail) {
-      setError("Email Address is required.");
+    const emailValidationMsg = validateComEmail(cleanEmail);
+    if (emailValidationMsg) {
+      setError(emailValidationMsg);
+      setEmailError(emailValidationMsg);
       scrollToFirstError("personnel-email", { offset: 80 });
       return;
     }

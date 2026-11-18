@@ -5,6 +5,7 @@ import { now, today, uuid } from "../utils/helpers.js";
 import { logActivity, notifyOwner, notifyRole, activityService } from "./activityService.js";
 import { validatePassword } from "../utils/passwordValidation.js";
 import { validatePhilippineMobileNumber } from "../utils/phoneValidation.js";
+import { isValidComEmail, EMAIL_COM_ERROR } from "../utils/emailValidation.js";
 import { authSecurityService } from "./authSecurityService.js";
 import { adminService } from "./adminService.js";
 
@@ -783,6 +784,9 @@ export const ownerAuthService = {
     if (!contact) throw new Error("Contact Number is required.");
     if (!address) throw new Error("Address is required.");
     if (!email) throw new Error("Email Address is required.");
+    if (!googleProfile && !isValidComEmail(email)) {
+      throw new Error(EMAIL_COM_ERROR);
+    }
     if (!username) throw new Error("Username is required.");
     if (!password) throw new Error("Password is required.");
 

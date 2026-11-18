@@ -684,10 +684,13 @@ export const staffService = {
     notifyChange(table, action, record);
   },
 
-  // Evaluate and apply automatic 24-hour fallback for livestock awaiting slaughter line intake (throttled)
+  // Evaluate and apply automatic 24-hour fallback for livestock awaiting slaughter line intake (throttled & deduplicated)
   processMarking24hFallback: async () => {
     if (typeof document !== "undefined" && document.hidden) {
       return { processed: 0 };
+    }
+    if (staffService._fallbackInFlight) {
+      return staffService._fallbackInFlight;
     }
     // Prevent overlapping or rapid consecutive executions (minimum 45s cooldown)
     const nowTs = Date.now();
@@ -696,77 +699,94 @@ export const staffService = {
     }
     staffService._lastFallbackRun = nowTs;
 
-    // 1. First attempt to call the PostgreSQL server-side RPC function
-    try {
-      const { data: rpcRes, error: rpcErr } = await supabase.rpc("process_marking_24h_fallback");
-      if (!rpcErr && rpcRes && rpcRes.success && rpcRes.processed_count > 0) {
-        notifyChange();
-        return rpcRes;
-      }
-    } catch (_) {}
+    staffService._fallbackInFlight = (async () => {
+      // 1. First attempt to call the PostgreSQL server-side RPC function
+      try {
+        const { data: rpcRes, error: rpcErr } = await supabase.rpc("process_marking_24h_fallback");
+        if (!rpcErr && rpcRes && rpcRes.success) {
+          if (rpcRes.processed_count > 0) notifyChange();
+          return rpcRes;
+        }
+      } catch (_) {}
 
-    // 2. Client-coordinated evaluation fallback against live database records
-    try {
-      const now = new Date();
-      const cutoffTime = now.getTime() - (24 * 60 * 60 * 1000); // 24 hours ago
-      const nowIso = now.toISOString();
-      const phTimeStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" }) + " " +
-        now.toLocaleTimeString("en-US", { timeZone: "Asia/Manila", hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      // 2. Client-coordinated evaluation fallback against live database records
+      try {
+        const now = new Date();
+        const cutoffTime = now.getTime() - (24 * 60 * 60 * 1000); // 24 hours ago
+        const nowIso = now.toISOString();
+        const phTimeStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" }) + " " +
+          now.toLocaleTimeString("en-US", { timeZone: "Asia/Manila", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
-      // Fetch livestock that are currently marked, awaiting slaughter, or stalled in queue
-      const { data: animals, error: fetchErr } = await supabase
-        .from(TABLES.LIVESTOCK)
-        .select("*")
-        .or("status.eq.Ready for Slaughter,status.eq.Pending Slaughter,status.eq.Pending Operator Reassignment,status.eq.In Progress,marked.eq.true");
+        // Fetch only the columns needed for 24h fallback evaluation (excludes heavy JSONB columns)
+        const { data: animals, error: fetchErr } = await supabase
+          .from(TABLES.LIVESTOCK)
+          .select("id, tag_number, species, owner_name, owner_id, status, marked, mark_date, mark_time, marked_at, created_at, fallback_at, reassigned_at, previous_operator, permit_issued_at, weighed_at")
+          .or("status.eq.Ready for Slaughter,status.eq.Pending Slaughter,status.eq.Pending Operator Reassignment,status.eq.In Progress,marked.eq.true");
 
-      if (fetchErr || !animals || animals.length === 0) return { processed: 0 };
+        if (fetchErr || !animals || animals.length === 0) return { processed: 0 };
 
-      // Fetch processing records to check if slaughter has already started or completed
-      const { data: processingList } = await supabase
-        .from(TABLES.SLAUGHTER_PROCESSING)
-        .select("tag_number, status, operator, steps, reassigned_at, started_at, created_at, fallback_at");
+        // Fetch related tables in parallel instead of sequentially
+        const [
+          { data: processingList },
+          { data: slaughterList },
+          { data: activePermits },
+          { data: existingNotifs },
+        ] = await Promise.all([
+          supabase
+            .from(TABLES.SLAUGHTER_PROCESSING)
+            .select("tag_number, status, operator, steps, reassigned_at, started_at, created_at, fallback_at"),
+          supabase
+            .from(TABLES.SLAUGHTER_RECORDS)
+            .select("id, tag_number, livestock_id, status, operator, previous_operator, reassigned_at, created_at, fallback_at"),
+          supabase
+            .from(TABLES.PERMITS)
+            .select("tag_number, status"),
+          supabase
+            .from(TABLES.NOTIFICATIONS)
+            .select("title, message, date")
+            .or("title.ilike.%24h Timeout%,title.ilike.%Operator Reassignment Required%"),
+        ]);
 
-      // Fetch slaughter records to cross-reference operator assignments & timestamps
-      const { data: slaughterList } = await supabase
-        .from(TABLES.SLAUGHTER_RECORDS)
-        .select("id, tag_number, livestock_id, status, operator, previous_operator, reassigned_at, created_at, fallback_at");
+        const procByTag = new Map();
+        (processingList || []).forEach((p) => {
+          const k = String(p.tag_number || "").trim().toUpperCase();
+          if (k && !procByTag.has(k)) procByTag.set(k, p);
+        });
 
-      // Identify animals with genuine active floor progress (at least 1 step completed) or completed slaughter
-      const inProcTags = new Set(
-        (processingList || [])
-          .filter((p) => {
-            const st = String(p.status || "").toLowerCase();
-            if (st === "completed" || st === "slaughtered" || st === "done") return true;
-            if (st === "in progress") {
-              const stepsObj = typeof p.steps === "string" ? (() => { try { return JSON.parse(p.steps); } catch (_) { return {}; } })() : (p.steps || {});
-              const hasCompletedStep = Object.entries(stepsObj).some(([k, v]) => {
-                if (k === "started_at" || k === "completed_at") return false;
-                if (typeof v === "boolean") return v;
-                if (v && typeof v === "object") return Boolean(v.done);
-                return Boolean(v);
-              });
-              return hasCompletedStep;
-            }
-            return false;
-          })
-          .map((p) => String(p.tag_number || "").trim().toUpperCase())
-      );
+        const srByTag = new Map();
+        const srByLivestockId = new Map();
+        (slaughterList || []).forEach((s) => {
+          const k = String(s.tag_number || "").trim().toUpperCase();
+          if (k && !srByTag.has(k)) srByTag.set(k, s);
+          if (s.livestock_id && !srByLivestockId.has(s.livestock_id)) srByLivestockId.set(s.livestock_id, s);
+        });
 
-      // Fetch permit tags to strictly prevent reverting permitted livestock
-      const { data: activePermits } = await supabase
-        .from(TABLES.PERMITS)
-        .select("tag_number, status");
-      const permittedTagSet = new Set(
-        (activePermits || [])
-          .filter((p) => String(p.status || "").toLowerCase() !== "revoked")
-          .map((p) => String(p.tag_number || "").trim().toUpperCase())
-      );
+        // Identify animals with genuine active floor progress (at least 1 step completed) or completed slaughter
+        const inProcTags = new Set(
+          (processingList || [])
+            .filter((p) => {
+              const st = String(p.status || "").toLowerCase();
+              if (st === "completed" || st === "slaughtered" || st === "done") return true;
+              if (st === "in progress") {
+                const stepsObj = typeof p.steps === "string" ? (() => { try { return JSON.parse(p.steps); } catch (_) { return {}; } })() : (p.steps || {});
+                const hasCompletedStep = Object.entries(stepsObj).some(([k, v]) => {
+                  if (k === "started_at" || k === "completed_at") return false;
+                  if (typeof v === "boolean") return v;
+                  if (v && typeof v === "object") return Boolean(v.done);
+                  return Boolean(v);
+                });
+                return hasCompletedStep;
+              }
+              return false;
+            })
+            .map((p) => String(p.tag_number || "").trim().toUpperCase())
+        );
 
-      // Fetch existing timeout notifications to prevent duplicate alerts
-      const { data: existingNotifs } = await supabase
-        .from(TABLES.NOTIFICATIONS)
-        .select("title, message, date")
-        .or("title.ilike.%24h Timeout%,title.ilike.%Operator Reassignment Required%");
+        const permittedTagSet = new Set(
+          (activePermits || [])
+            .filter((p) => String(p.status || "").toLowerCase() !== "revoked")
+            .map((p) => String(p.tag_number || "").trim().toUpperCase())
+        );
 
       let processedCount = 0;
 
@@ -800,13 +820,9 @@ export const staffService = {
         );
         if (isAlreadyPendingFallback) continue;
 
-        // Locate matching processing and slaughter record entries
-        const matchingProc = (processingList || []).find(
-          (p) => String(p.tag_number || "").trim().toUpperCase() === cleanTag
-        );
-        const matchingSr = (slaughterList || []).find(
-          (s) => String(s.tag_number || "").trim().toUpperCase() === cleanTag || (s.livestock_id && s.livestock_id === animal.id)
-        );
+        // Locate matching processing and slaughter record entries in O(1)
+        const matchingProc = procByTag.get(cleanTag) || null;
+        const matchingSr = srByTag.get(cleanTag) || (animal.id ? srByLivestockId.get(animal.id) : null) || null;
 
         // Check if animal has an assigned operator (entered Ready for Slaughter)
         const assignedOp = matchingProc?.operator && matchingProc.operator !== "Unassigned"
@@ -958,6 +974,13 @@ export const staffService = {
     } catch (err) {
       console.warn("Exception during processMarking24hFallback:", err);
       return { error: err.message };
+    }
+    })();
+
+    try {
+      return await staffService._fallbackInFlight;
+    } finally {
+      staffService._fallbackInFlight = null;
     }
   },
   updateLivestock: async (id, p) => {

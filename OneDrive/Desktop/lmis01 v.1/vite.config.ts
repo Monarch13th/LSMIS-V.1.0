@@ -161,6 +161,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "src"),
     },
   },
+  optimizeDeps: {
+    include: ["react", "react-dom", "react-router-dom", "@supabase/supabase-js"],
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,

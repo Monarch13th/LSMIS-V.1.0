@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import { ToastProvider } from "./components/notifications/Toast";
@@ -14,68 +14,92 @@ import { VetRoute } from "./routes/VetRoute";
 import { StaffRoute } from "./routes/StaffRoute";
 import { OwnerRoute } from "./routes/OwnerRoute";
 
-// Layouts
-import { AdminLayout } from "./layouts/AdminLayout";
-import { VetLayout } from "./layouts/VetLayout";
-import { StaffLayout } from "./layouts/StaffLayout";
-import { OwnerLayout } from "./layouts/OwnerLayout";
+// Public entry points (kept eager for instant mobile/desktop first paint)
 import { LandingPage } from "./pages/LandingPage";
+import { Login } from "./pages/auth/Login";
 import logoImg from "./assets/logo.png";
 
-// Auth
-import { Login } from "./pages/auth/Login";
-import { ForgotPassword } from "./pages/auth/ForgotPassword";
-import { ResetPassword } from "./pages/auth/ResetPassword";
+const lazyNamed = (loader, exportName) =>
+  lazy(() => loader().then((mod) => ({ default: mod[exportName] })));
+
+// Layouts (lazy-loaded per authenticated role)
+const AdminLayout = lazyNamed(() => import("./layouts/AdminLayout"), "AdminLayout");
+const VetLayout = lazyNamed(() => import("./layouts/VetLayout"), "VetLayout");
+const StaffLayout = lazyNamed(() => import("./layouts/StaffLayout"), "StaffLayout");
+const OwnerLayout = lazyNamed(() => import("./layouts/OwnerLayout"), "OwnerLayout");
+
+// Secondary Auth
+const ForgotPassword = lazyNamed(() => import("./pages/auth/ForgotPassword"), "ForgotPassword");
+const ResetPassword = lazyNamed(() => import("./pages/auth/ResetPassword"), "ResetPassword");
 
 // Admin core
-import { AdminDashboard } from "./pages/admin/Dashboard";
-import { Users } from "./pages/admin/Users";
-import { AuditLogs } from "./pages/admin/AuditLogs";
-import { OwnerManagement } from "./pages/admin/OwnerManagement";
-import { SpeciesManagement } from "./pages/admin/SpeciesManagement";
-import { AdminPermits } from "./pages/admin/AdminPermits";
+const AdminDashboard = lazyNamed(() => import("./pages/admin/Dashboard"), "AdminDashboard");
+const Users = lazyNamed(() => import("./pages/admin/Users"), "Users");
+const AuditLogs = lazyNamed(() => import("./pages/admin/AuditLogs"), "AuditLogs");
+const OwnerManagement = lazyNamed(() => import("./pages/admin/OwnerManagement"), "OwnerManagement");
+const SpeciesManagement = lazyNamed(() => import("./pages/admin/SpeciesManagement"), "SpeciesManagement");
+const AdminPermits = lazyNamed(() => import("./pages/admin/AdminPermits"), "AdminPermits");
 
-import { RoleReportsModule } from "./components/reports/RoleReportsModule";
-import { AdminSettings } from "./pages/admin/AdminSettings";
+const RoleReportsModule = lazyNamed(() => import("./components/reports/RoleReportsModule"), "RoleReportsModule");
+const AdminSettings = lazyNamed(() => import("./pages/admin/AdminSettings"), "AdminSettings");
 
 // Vet core
-import { VetDashboard } from "./pages/vet/Dashboard";
-import { AnteMortem } from "./pages/vet/AnteMortem";
-import { PostMortem } from "./pages/vet/PostMortem";
-import { InspectionHistory } from "./pages/vet/InspectionHistory";
-import { VetSettings } from "./pages/vet/VetSettings";
-import { VetAuditLogs } from "./pages/vet/VetAuditLogs";
+const VetDashboard = lazyNamed(() => import("./pages/vet/Dashboard"), "VetDashboard");
+const AnteMortem = lazyNamed(() => import("./pages/vet/AnteMortem"), "AnteMortem");
+const PostMortem = lazyNamed(() => import("./pages/vet/PostMortem"), "PostMortem");
+const InspectionHistory = lazyNamed(() => import("./pages/vet/InspectionHistory"), "InspectionHistory");
+const VetSettings = lazyNamed(() => import("./pages/vet/VetSettings"), "VetSettings");
+const VetAuditLogs = lazyNamed(() => import("./pages/vet/VetAuditLogs"), "VetAuditLogs");
 // Vet extra
-import {
-  OrganInspection,
-  CondemnedMeatRecords,
-  EvidenceUpload,
-  MeatApprovalRecords,
-  VetSlaughterHistory,
-  VetInspectionReport,
-  VetCondemnationReport,
-} from "./pages/vet/VetExtra";
+const OrganInspection = lazyNamed(() => import("./pages/vet/VetExtra"), "OrganInspection");
+const CondemnedMeatRecords = lazyNamed(() => import("./pages/vet/VetExtra"), "CondemnedMeatRecords");
+const EvidenceUpload = lazyNamed(() => import("./pages/vet/VetExtra"), "EvidenceUpload");
+const MeatApprovalRecords = lazyNamed(() => import("./pages/vet/VetExtra"), "MeatApprovalRecords");
+const VetSlaughterHistory = lazyNamed(() => import("./pages/vet/VetExtra"), "VetSlaughterHistory");
+const VetInspectionReport = lazyNamed(() => import("./pages/vet/VetExtra"), "VetInspectionReport");
+const VetCondemnationReport = lazyNamed(() => import("./pages/vet/VetExtra"), "VetCondemnationReport");
 
 // Staff core
-import { StaffDashboard } from "./pages/staff/Dashboard";
-import { Owners } from "./pages/staff/Owners";
-import { CarcassWeighing } from "./pages/vet/CarcassWeighing";
-import { StaffSettings } from "./pages/staff/StaffSettings";
-import { StaffAuditLogs } from "./pages/staff/StaffAuditLogs";
-import { Permits } from "./pages/staff/Permits";
+const StaffDashboard = lazyNamed(() => import("./pages/staff/Dashboard"), "StaffDashboard");
+const Owners = lazyNamed(() => import("./pages/staff/Owners"), "Owners");
+const CarcassWeighing = lazyNamed(() => import("./pages/vet/CarcassWeighing"), "CarcassWeighing");
+const StaffSettings = lazyNamed(() => import("./pages/staff/StaffSettings"), "StaffSettings");
+const StaffAuditLogs = lazyNamed(() => import("./pages/staff/StaffAuditLogs"), "StaffAuditLogs");
+const Permits = lazyNamed(() => import("./pages/staff/Permits"), "Permits");
 // Staff inspection views (read-only)
-import { AntemortemStatus, PostmortemStatus, PostmortemResult, InspectionResults } from "./pages/staff/InspectionResults";
+const AntemortemStatus = lazyNamed(() => import("./pages/staff/InspectionResults"), "AntemortemStatus");
+const PostmortemStatus = lazyNamed(() => import("./pages/staff/InspectionResults"), "PostmortemStatus");
+const PostmortemResult = lazyNamed(() => import("./pages/staff/InspectionResults"), "PostmortemResult");
+const InspectionResults = lazyNamed(() => import("./pages/staff/InspectionResults"), "InspectionResults");
 // Staff unified slaughter processing
-import { SlaughterProcessing } from "./pages/staff/SlaughterProcessing";
+const SlaughterProcessing = lazyNamed(() => import("./pages/staff/SlaughterProcessing"), "SlaughterProcessing");
 
 // Owner core (mobile-first livestock owner portal)
-import { OwnerDashboard } from "./pages/owner/Dashboard";
-import { OwnerAnimals } from "./pages/owner/Animals";
-import { OwnerRecords } from "./pages/owner/Records";
-import { OwnerProfile } from "./pages/owner/Profile";
-import { OwnerNotifications } from "./pages/owner/Notifications";
-import { LivestockInspectionDashboard } from "./pages/dashboard/LivestockInspectionDashboard";
-import { WaitingApproval } from "./pages/owner/WaitingApproval";
+const OwnerDashboard = lazyNamed(() => import("./pages/owner/Dashboard"), "OwnerDashboard");
+const OwnerAnimals = lazyNamed(() => import("./pages/owner/Animals"), "OwnerAnimals");
+const OwnerRecords = lazyNamed(() => import("./pages/owner/Records"), "OwnerRecords");
+const OwnerProfile = lazyNamed(() => import("./pages/owner/Profile"), "OwnerProfile");
+const OwnerNotifications = lazyNamed(() => import("./pages/owner/Notifications"), "OwnerNotifications");
+const LivestockInspectionDashboard = lazyNamed(() => import("./pages/dashboard/LivestockInspectionDashboard"), "LivestockInspectionDashboard");
+const WaitingApproval = lazyNamed(() => import("./pages/owner/WaitingApproval"), "WaitingApproval");
+
+const RouteFallback = () => (
+  <div
+    style={{
+      minHeight: "100dvh",
+      width: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "var(--color-bg, #FFFFFF)",
+      color: "#187A56",
+      fontSize: 14,
+      fontWeight: 600,
+    }}
+  >
+    Loading LSMIS...
+  </div>
+);
 
 import { repairCorruptedMockData } from "./utils/repairStorage";
 import { STORAGE_KEYS } from "./utils/constants";
@@ -287,6 +311,7 @@ const Shell = () => {
   return (
     <>
       <StartupSplash authLoading={authLoading} authInitialized={authInitialized} />
+      <Suspense fallback={<RouteFallback />}>
       <Routes>
         <Route path="/" element={<LandingGate />} />
       <Route path="/dashboard" element={<LivestockInspectionDashboard />} />
@@ -468,6 +493,7 @@ const Shell = () => {
 
       <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   );
 };

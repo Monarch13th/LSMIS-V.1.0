@@ -1526,9 +1526,25 @@ export const OwnerManagement = () => {
         title="Owner Registration Details"
         size="lg"
         footer={
-          <Button variant="outline" size="sm" onClick={() => setSelectedOwner(null)}>
-            Close
-          </Button>
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10, width: "100%" }}>
+            <Button variant="outline" size="sm" onClick={() => setSelectedOwner(null)}>
+              Close
+            </Button>
+            {selectedOwner && getNormalizedStatus(selectedOwner) !== "Pending Approval" && getNormalizedStatus(selectedOwner) !== "Rejected" && (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  const toEdit = selectedOwner;
+                  setSelectedOwner(null);
+                  openEditOwnerModal(toEdit);
+                }}
+              >
+                <Icon.Edit size={14} />
+                <span>Edit Profile</span>
+              </Button>
+            )}
+          </div>
         }
       >
         {selectedOwner && (() => {
@@ -1728,27 +1744,6 @@ export const OwnerManagement = () => {
                     ))}
                   </tbody>
                 </table>
-              </div>
-
-              {/* Action Buttons inside Details Modal */}
-              <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10, paddingTop: 10 }}>
-                <Button variant="outline" size="sm" onClick={() => setSelectedOwner(null)}>
-                  Close
-                </Button>
-                {getNormalizedStatus(selectedOwner) !== "Pending Approval" && getNormalizedStatus(selectedOwner) !== "Rejected" && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => {
-                      const toEdit = selectedOwner;
-                      setSelectedOwner(null);
-                      openEditOwnerModal(toEdit);
-                    }}
-                  >
-                    <Icon.Edit size={14} />
-                    <span>Edit Profile</span>
-                  </Button>
-                )}
               </div>
             </div>
           );

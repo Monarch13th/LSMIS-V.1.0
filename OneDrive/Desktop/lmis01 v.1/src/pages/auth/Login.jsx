@@ -10,6 +10,7 @@ import { authStore, normalizeRole, setSessionStorageItem, removeSessionStorageIt
 import { STORAGE_KEYS, TABLES, ROLE_LABELS } from "../../utils/constants";
 import { now, uuid } from "../../utils/helpers";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
+import { validateComEmail, isValidComEmail, EMAIL_COM_ERROR } from "../../utils/emailValidation";
 import { logActivity, registerLoginSession } from "../../services/activityService";
 import { ownerAuthService } from "../../services/ownerAuthService";
 import { supabase, initialOAuthCallback } from "../../services/supabaseClient";
@@ -1087,13 +1088,11 @@ export const Login = ({ embedded = false, initialView }) => {
       errs.address = "Please enter a complete address (Barangay, City, Province).";
     }
 
-    // 5. Email Address
+    // 5. Email Address (must be valid format ending in .com)
     const trimmedEmail = regEmail.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!trimmedEmail) {
-      errs.email = "Email Address is required.";
-    } else if (!emailRegex.test(trimmedEmail)) {
-      errs.email = "Please enter a valid email address (e.g. owner@example.com).";
+    const emailErr = validateComEmail(trimmedEmail);
+    if (emailErr) {
+      errs.email = emailErr;
     }
 
     // 6. Password
@@ -2977,17 +2976,23 @@ export const Login = ({ embedded = false, initialView }) => {
                           if (regError) setRegError("");
                         }}
                         onBlur={async () => {
-                          const em = regEmail.trim().toLowerCase();
-                          if (em && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)) {
-                            try {
-                              const dup = await ownerAuthService.checkDuplicate({
-                                email: em,
-                              });
-                              if (dup.duplicate && dup.field === "email") {
-                                setRegFieldErrors((prev) => ({ ...prev, email: dup.message }));
-                              }
-                            } catch (e) { }
+                          const trimmed = regEmail.trim();
+                          if (trimmed !== regEmail) {
+                            setRegEmail(trimmed);
                           }
+                          if (!trimmed) return;
+                          if (!isValidComEmail(trimmed)) {
+                            setRegFieldErrors((prev) => ({ ...prev, email: EMAIL_COM_ERROR }));
+                            return;
+                          }
+                          try {
+                            const dup = await ownerAuthService.checkDuplicate({
+                              email: trimmed.toLowerCase(),
+                            });
+                            if (dup.duplicate && dup.field === "email") {
+                              setRegFieldErrors((prev) => ({ ...prev, email: dup.message }));
+                            }
+                          } catch (e) { }
                         }}
                         placeholder="e.g. owner@example.com"
                         required

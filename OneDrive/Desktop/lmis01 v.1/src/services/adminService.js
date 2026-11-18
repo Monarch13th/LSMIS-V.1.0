@@ -6,6 +6,7 @@ import { createClient } from "@supabase/supabase-js";
 import { authStore } from "../store/authStore";
 import { activityService } from "./activityService";
 import { authSecurityService } from "./authSecurityService";
+import { isValidComEmail, EMAIL_COM_ERROR } from "../utils/emailValidation";
 
 // Helper for live Supabase data
 const fetchTable = async (table) => {
@@ -145,6 +146,9 @@ export const adminService = {
 
   createUser: async (payload) => {
     const cleanEmail = (payload.email || "").trim().toLowerCase();
+    if (!isValidComEmail(cleanEmail)) {
+      throw new Error(EMAIL_COM_ERROR);
+    }
     if (await isEmailTakenAcrossSystem(cleanEmail)) {
       throw new Error("This email address is already in use by another account. Please use another email.");
     }

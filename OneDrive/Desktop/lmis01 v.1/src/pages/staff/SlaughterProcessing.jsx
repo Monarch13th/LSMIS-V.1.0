@@ -351,15 +351,17 @@ export const SlaughterProcessing = () => {
     setPage(1);
   }, [search, filterSpecies, activeTab]);
 
-  // Check and apply 24-hour marking fallback on load and periodically when active
+  // Check and apply 24-hour marking fallback after initial render and periodically when active
   useEffect(() => {
-    staffService.processMarking24hFallback()
-      .then((res) => {
-        if (res && (res.processed > 0 || res.processed_count > 0)) {
-          refreshAll();
-        }
-      })
-      .catch(() => {});
+    const initialTimer = setTimeout(() => {
+      staffService.processMarking24hFallback()
+        .then((res) => {
+          if (res && (res.processed > 0 || res.processed_count > 0)) {
+            refreshAll();
+          }
+        })
+        .catch(() => {});
+    }, 1500);
 
     const intervalId = setInterval(() => {
       if (typeof document !== "undefined" && document.hidden) return;
@@ -372,8 +374,64 @@ export const SlaughterProcessing = () => {
         .catch(() => {});
     }, 60000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearTimeout(initialTimer);
+      clearInterval(intervalId);
+    };
   }, []);
+
+  // Pre-index records into O(1) Maps to eliminate O(N^2) nested .find() scans
+  const indexedRecords = useMemo(() => {
+    const livestockByTag = new Map();
+    const livestockById = new Map();
+    (livestock || []).forEach((l) => {
+      const tagKey = String(l.tag_number || "").trim().toUpperCase();
+      if (tagKey && !livestockByTag.has(tagKey)) livestockByTag.set(tagKey, l);
+      if (l.id && !livestockById.has(l.id)) livestockById.set(l.id, l);
+    });
+
+    const processingByTag = new Map();
+    (processing || []).forEach((p) => {
+      const tagKey = String(p.tag_number || "").trim().toUpperCase();
+      if (tagKey && !processingByTag.has(tagKey)) processingByTag.set(tagKey, p);
+    });
+
+    const slaughterByTag = new Map();
+    const slaughterByLivestockId = new Map();
+    (slaughter || []).forEach((s) => {
+      const tagKey = String(s.tag_number || "").trim().toUpperCase();
+      if (tagKey && !slaughterByTag.has(tagKey)) slaughterByTag.set(tagKey, s);
+      if (s.livestock_id && !slaughterByLivestockId.has(s.livestock_id)) slaughterByLivestockId.set(s.livestock_id, s);
+    });
+
+    const anteMortemByTag = new Map();
+    const anteMortemByLivestockId = new Map();
+    (anteMortem || []).forEach((a) => {
+      const tagKey = String(a.tag_number || "").trim().toUpperCase();
+      if (tagKey && !anteMortemByTag.has(tagKey)) anteMortemByTag.set(tagKey, a);
+      if (a.livestock_id && !anteMortemByLivestockId.has(a.livestock_id)) anteMortemByLivestockId.set(a.livestock_id, a);
+    });
+
+    const ownerNameByKey = new Map();
+    (owners || []).forEach((o) => {
+      if (!o?.name) return;
+      [o.id, o.owner_id, o.temp_reg_id, o.auth_user_id, o.name].forEach((k) => {
+        const clean = String(k || "").trim().toLowerCase();
+        if (clean && !ownerNameByKey.has(clean)) ownerNameByKey.set(clean, o.name);
+      });
+    });
+
+    return {
+      livestockByTag,
+      livestockById,
+      processingByTag,
+      slaughterByTag,
+      slaughterByLivestockId,
+      anteMortemByTag,
+      anteMortemByLivestockId,
+      ownerNameByKey,
+    };
+  }, [livestock, processing, slaughter, anteMortem, owners]);
 
   // Animals actively undergoing floor operations (In Progress / Active Floor Operations)
   // Merges processing table records and livestock/slaughter records with assigned operators or 'In Progress' status
@@ -390,7 +448,7 @@ export const SlaughterProcessing = () => {
       const isFallback = Boolean(fbAt && (!reAt || new Date(fbAt) > new Date(reAt)));
       if (isFallback || p.status === "Pending Reassignment" || p.operator === "Unassigned") return;
 
-      const l = (livestock || []).find((item) => String(item.tag_number || "").trim().toUpperCase() === tagKey);
+      const l = indexedRecords.livestockByTag.get(tagKey);
       const lowerLSt = String(l?.status || "").trim().toLowerCase();
       if (
         lowerLSt === "completed" ||
@@ -415,7 +473,7 @@ export const SlaughterProcessing = () => {
 
       if (p.status === "In Progress" || !p.status) {
         const startedAt = p.started_at || p.slaughter_started_at || stepsObj?.started_at || null;
-        const matchingSlaughter = (slaughter || []).find((s) => String(s.tag_number || "").trim().toUpperCase() === tagKey);
+        const matchingSlaughter = indexedRecords.slaughterByTag.get(tagKey);
         const resolvedSex = l?.sex || matchingSlaughter?.sex || p?.sex || "";
         map.set(tagKey, {
           ...(l || {}),
@@ -462,7 +520,7 @@ export const SlaughterProcessing = () => {
       const isFallback = Boolean(fbAt && (!reAt || new Date(fbAt) > new Date(reAt)));
       if (isFallback) return;
 
-      const p = (processing || []).find((proc) => String(proc.tag_number || "").trim().toUpperCase() === tagKey);
+      const p = indexedRecords.processingByTag.get(tagKey);
       const stepsObj = safeParseSteps(p?.steps) || extractStepsFromHistory(l);
       const doneCount = stepsObj ? Object.values(stepsObj).filter((v) => v === true || v?.done === true).length : 0;
       if (p?.status === "Completed" || doneCount >= 6) {
@@ -520,8 +578,8 @@ export const SlaughterProcessing = () => {
 
       const op = s.operator && s.operator !== "Unassigned" ? s.operator : null;
       if (op) {
-        const l = (livestock || []).find((item) => String(item.tag_number || "").trim().toUpperCase() === tagKey);
-        const p = (processing || []).find((proc) => String(proc.tag_number || "").trim().toUpperCase() === tagKey);
+        const l = indexedRecords.livestockByTag.get(tagKey);
+        const p = indexedRecords.processingByTag.get(tagKey);
         const stepsObj = safeParseSteps(p?.steps) || extractStepsFromHistory(l);
         const doneCount = stepsObj ? Object.values(stepsObj).filter((v) => v === true || v?.done === true).length : 0;
         if (p?.status === "Completed" || s.status === "Completed" || doneCount >= 6) {
@@ -557,7 +615,7 @@ export const SlaughterProcessing = () => {
       if (timeB !== timeA) return timeB - timeA;
       return (b.tag_number || "").localeCompare(a.tag_number || "", undefined, { numeric: true, sensitivity: "base" });
     });
-  }, [processing, livestock, slaughter]);
+  }, [processing, livestock, slaughter, indexedRecords]);
 
   // Animals with completed slaughter line
   // Merges processing table records and falls back to livestock records with 'Completed' status
@@ -568,7 +626,7 @@ export const SlaughterProcessing = () => {
     (processing || []).forEach((p) => {
       const tagKey = String(p.tag_number || "").trim().toUpperCase();
       if (!tagKey) return;
-      const l = (livestock || []).find((live) => String(live.tag_number || "").trim().toUpperCase() === tagKey);
+      const l = indexedRecords.livestockByTag.get(tagKey);
       const stepsObj = safeParseSteps(p.steps) || extractStepsFromHistory(l);
       const doneCount = stepsObj ? Object.values(stepsObj).filter((v) => v === true || v?.done === true).length : 0;
       if (p.status === "Completed" || doneCount >= 6) {
@@ -593,7 +651,7 @@ export const SlaughterProcessing = () => {
       if (!tagKey) return;
       const lowerSt = String(l.status || "").trim().toLowerCase();
       if ((lowerSt === "completed" || lowerSt === "slaughtered") && !map.has(tagKey)) {
-        const p = (processing || []).find((proc) => String(proc.tag_number || "").trim().toUpperCase() === tagKey);
+        const p = indexedRecords.processingByTag.get(tagKey);
         const stepsObj = safeParseSteps(p?.steps) || extractStepsFromHistory(l);
         const startedAt = resolveStartedAt(p, stepsObj, l);
         const completedAt = resolveCompletedAt(p, stepsObj, l);
@@ -628,7 +686,7 @@ export const SlaughterProcessing = () => {
       if (timeB !== timeA) return timeB - timeA;
       return (b.tag_number || "").localeCompare(a.tag_number || "", undefined, { numeric: true, sensitivity: "base" });
     });
-  }, [processing, livestock]);
+  }, [processing, livestock, indexedRecords]);
 
   // Animals marked & ready for slaughter but not yet in processing (sorted by Tag Number Ascending)
   const availableAnimals = useMemo(() => {
@@ -691,11 +749,12 @@ export const SlaughterProcessing = () => {
       ) {
         if (s.tag_number) unavailableTags.add(String(s.tag_number).trim().toUpperCase());
       } else if (!isFallback && st === "in progress") {
-        const matchingProc = (processing || []).find((p) => String(p.tag_number || "").trim().toUpperCase() === String(s.tag_number || "").trim().toUpperCase());
-        const matchingLive = (livestock || []).find((l) => String(l.tag_number || "").trim().toUpperCase() === String(s.tag_number || "").trim().toUpperCase());
+        const sTagKey = String(s.tag_number || "").trim().toUpperCase();
+        const matchingProc = indexedRecords.processingByTag.get(sTagKey);
+        const matchingLive = indexedRecords.livestockByTag.get(sTagKey);
         const liveSt = String(matchingLive?.status || "").toLowerCase();
         if (matchingProc?.status === "In Progress" || liveSt === "in progress" || liveSt === "slaughtering") {
-          if (s.tag_number) unavailableTags.add(String(s.tag_number).trim().toUpperCase());
+          if (s.tag_number) unavailableTags.add(sTagKey);
         }
       }
     });
@@ -707,8 +766,8 @@ export const SlaughterProcessing = () => {
       const tagKey = String(s.tag_number || "").trim().toUpperCase();
       if (!tagKey || unavailableTags.has(tagKey)) return;
       if (isWaitingForSlaughter(s, unavailableTags) && !map.has(tagKey)) {
-        const l = (livestock || []).find((item) => String(item.tag_number || "").trim().toUpperCase() === tagKey || item.id === s.livestock_id);
-        const am = anteMortem.find((a) => String(a.tag_number || "").trim().toUpperCase() === tagKey || (l?.id && a.livestock_id === l.id) || (s?.livestock_id && a.livestock_id === s.livestock_id));
+        const l = indexedRecords.livestockByTag.get(tagKey) || (s.livestock_id ? indexedRecords.livestockById.get(s.livestock_id) : undefined);
+        const am = indexedRecords.anteMortemByTag.get(tagKey) || (l?.id ? indexedRecords.anteMortemByLivestockId.get(l.id) : undefined) || (s?.livestock_id ? indexedRecords.anteMortemByLivestockId.get(s.livestock_id) : undefined);
         if (am) {
           const dec = String(am.decision || "").toLowerCase();
           const st = String(am.status || "").toLowerCase();
@@ -756,7 +815,7 @@ export const SlaughterProcessing = () => {
       const tagKey = String(l.tag_number || "").trim().toUpperCase();
       if (!tagKey || unavailableTags.has(tagKey)) return;
       if (isWaitingForSlaughter(l, unavailableTags)) {
-        const am = anteMortem.find((a) => String(a.tag_number || "").trim().toUpperCase() === tagKey || a.livestock_id === l.id);
+        const am = indexedRecords.anteMortemByTag.get(tagKey) || indexedRecords.anteMortemByLivestockId.get(l.id);
         if (am) {
           const dec = String(am.decision || "").toLowerCase();
           const st = String(am.status || "").toLowerCase();
@@ -770,7 +829,7 @@ export const SlaughterProcessing = () => {
         const fbAt = l.fallback_at || null;
         const reAt = l.reassigned_at || null;
         const isFallback = Boolean(fbAt && (!reAt || new Date(fbAt) > new Date(reAt)));
-        const sRec = (slaughter || []).find((item) => String(item.tag_number || "").trim().toUpperCase() === tagKey || item.livestock_id === l.id);
+        const sRec = indexedRecords.slaughterByTag.get(tagKey) || indexedRecords.slaughterByLivestockId.get(l.id);
         const resolvedOp = isFallback ? "Unassigned" : (sRec?.operator && sRec.operator !== "Unassigned" ? sRec.operator : (l.operator || l.previous_operator || "Unassigned"));
 
         if (!map.has(tagKey)) {
@@ -835,7 +894,7 @@ export const SlaughterProcessing = () => {
       if (timeB !== timeA) return timeB - timeA;
       return (b.tag_number || "").localeCompare(a.tag_number || "", undefined, { numeric: true, sensitivity: "base" });
     });
-  }, [slaughter, livestock, processing, anteMortem, inProgress]);
+  }, [slaughter, livestock, processing, anteMortem, inProgress, indexedRecords]);
 
   const isAnimalAssigned = (item) => {
     if (!item) return false;
@@ -884,36 +943,21 @@ export const SlaughterProcessing = () => {
   const resolveOwnerName = (item) => {
     if (!item) return "Unknown Owner";
     const ownerId = resolveOwnerId(item);
-    if (ownerId && Array.isArray(owners)) {
-      const cleanOId = String(ownerId).trim().toLowerCase();
-      const match = owners.find((o) => {
-        const oId = String(o.id || "").trim().toLowerCase();
-        const oOwnerId = String(o.owner_id || "").trim().toLowerCase();
-        const oTempId = String(o.temp_reg_id || "").trim().toLowerCase();
-        const oAuthId = String(o.auth_user_id || "").trim().toLowerCase();
-        return oId === cleanOId || oOwnerId === cleanOId || oTempId === cleanOId || oAuthId === cleanOId;
-      });
-      if (match?.name) return match.name;
+    if (ownerId) {
+      const matchedName = indexedRecords.ownerNameByKey.get(String(ownerId).trim().toLowerCase());
+      if (matchedName) return matchedName;
     }
     const direct = (item.owner_name || "").trim();
     if (direct && direct !== "Unknown Owner" && direct !== "—") {
-      if (Array.isArray(owners)) {
-        const match = owners.find((o) => (o.name || "").trim().toLowerCase() === direct.toLowerCase());
-        if (match?.name) return match.name;
-      }
-      return direct;
+      const matchedName = indexedRecords.ownerNameByKey.get(direct.toLowerCase());
+      return matchedName || direct;
     }
-    const animal = (livestock || []).find(
-      (l) => (l.id && l.id === item.livestock_id) || (l.tag_number && l.tag_number === item.tag_number)
-    );
-    if (animal?.owner_id && Array.isArray(owners)) {
-      const cleanAnimalOId = String(animal.owner_id).trim().toLowerCase();
-      const match = owners.find((o) => {
-        const oId = String(o.id || "").trim().toLowerCase();
-        const oOwnerId = String(o.owner_id || "").trim().toLowerCase();
-        return oId === cleanAnimalOId || oOwnerId === cleanAnimalOId;
-      });
-      if (match?.name) return match.name;
+    const animal =
+      (item.livestock_id ? indexedRecords.livestockById.get(item.livestock_id) : undefined) ||
+      (item.tag_number ? indexedRecords.livestockByTag.get(String(item.tag_number).trim().toUpperCase()) : undefined);
+    if (animal?.owner_id) {
+      const matchedName = indexedRecords.ownerNameByKey.get(String(animal.owner_id).trim().toLowerCase());
+      if (matchedName) return matchedName;
     }
     if (animal?.owner_name && animal.owner_name !== "Unknown Owner" && animal.owner_name !== "—") return animal.owner_name;
     return "Unknown Owner";
