@@ -1473,17 +1473,28 @@ export const OwnerAnimals = () => {
 
   return (
     <div
+      className="owner-animals-page"
       style={{
         display: "flex",
         flexDirection: "column",
-        height: "100%",
-        maxHeight: "100%",
-        overflow: "hidden",
         gap: 12,
       }}
     >
-      {/* 1. FIXED COMPACT HEADER & SEARCH (Minimized for Maximum Viewing Space) */}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", gap: 8, paddingBottom: 2 }}>
+      {/* 1. STICKY COMPACT HEADER & SEARCH (Remains visible while scrolling) */}
+      <div
+        className="owner-animals-sticky-header bg-white dark:bg-slate-900"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 20,
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          marginTop: -16,
+          paddingTop: 16,
+          paddingBottom: 6,
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <Icon.Calendar size={18} style={{ color: "var(--color-primary)" }} />
@@ -1591,16 +1602,10 @@ export const OwnerAnimals = () => {
         </div>
       </div>
 
-      {/* 2. DEDICATED INDEPENDENTLY SCROLLABLE LIVESTOCK RECORDS CONTAINER */}
+      {/* 2. LIVESTOCK RECORDS LIST (Scrolls naturally within .owner-mobile-main without nested scroll traps) */}
       <div
         className="owner-animal-list-scroll-wrapper"
         style={{
-          flex: 1,
-          minHeight: 0,
-          overflowY: "auto",
-          overscrollBehavior: "contain",
-          WebkitOverflowScrolling: "touch",
-          scrollbarWidth: "thin",
           paddingRight: 2,
           paddingBottom: 24,
         }}

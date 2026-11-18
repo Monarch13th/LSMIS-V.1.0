@@ -2770,18 +2770,6 @@ export const SlaughterProcessing = () => {
                             <div className="table-action-group">
                               <button
                                 type="button"
-                                className="action-btn action-btn-outline"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleOpenOwnerAssign(grp);
-                                }}
-                                title="View & Assign Team Operator"
-                              >
-                                <Icon.Eye size={13} />
-                                <span>View</span>
-                              </button>
-                              <button
-                                type="button"
                                 className="action-btn action-btn-warning"
                                 onClick={(e) => {
                                   e.stopPropagation();

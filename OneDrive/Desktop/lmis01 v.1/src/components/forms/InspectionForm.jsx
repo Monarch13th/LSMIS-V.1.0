@@ -2538,53 +2538,6 @@ export const InspectionForm = ({
                             padding: "10px 16px 12px",
                           }}
                         >
-                          <div
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              marginBottom: 8,
-                            }}
-                          >
-                            <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-text-muted, #5D6660)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-                              {type === "Ante-Mortem" ? "LIVESTOCK RECORDS" : "CARCASS RECORDS"} ({selectedCount} OF {grp.items.length} SELECTED)
-                            </span>
-                            <div style={{ display: "flex", gap: 6 }}>
-                              <button
-                                type="button"
-                                onClick={() => selectAllForOwner(grp, isCondemned)}
-                                style={{
-                                  background: "var(--color-surface, #ffffff)",
-                                  border: "1px solid var(--color-border, #C2CAC4)",
-                                  borderRadius: 4,
-                                  padding: "2px 8px",
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  color: isCondemned ? "#ef4444" : "#136647",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Select All
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => deselectAllForOwner(grp, isCondemned)}
-                                style={{
-                                  background: "var(--color-surface, #ffffff)",
-                                  border: "1px solid var(--color-border, #C2CAC4)",
-                                  borderRadius: 4,
-                                  padding: "2px 8px",
-                                  fontSize: 11,
-                                  fontWeight: 600,
-                                  color: "var(--color-text-muted, #5D6660)",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Deselect All
-                              </button>
-                            </div>
-                          </div>
-
                           {/* List of Animals in Responsive Grid (Scrollable) */}
                           <div
                             style={{
@@ -3084,53 +3037,6 @@ export const InspectionForm = ({
                               padding: "10px 16px 12px",
                             }}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: 8,
-                              }}
-                            >
-                              <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--color-text-muted, #5D6660)", textTransform: "uppercase", letterSpacing: "0.03em" }}>
-                                CARCASS RECORDS ({selectedCount} OF {grp.items.length} SELECTED)
-                              </span>
-                              <div style={{ display: "flex", gap: 6 }}>
-                                <button
-                                  type="button"
-                                  onClick={() => selectAllPartialForOwner(grp)}
-                                  style={{
-                                    background: "var(--color-surface, #ffffff)",
-                                    border: "1px solid var(--color-border, #C2CAC4)",
-                                    borderRadius: 4,
-                                    padding: "2px 8px",
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    color: "#d97706",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  Select All
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deselectAllPartialForOwner(grp)}
-                                  style={{
-                                    background: "var(--color-surface, #ffffff)",
-                                    border: "1px solid var(--color-border, #C2CAC4)",
-                                    borderRadius: 4,
-                                    padding: "2px 8px",
-                                    fontSize: 11,
-                                    fontWeight: 600,
-                                    color: "var(--color-text-muted, #5D6660)",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  Deselect All
-                                </button>
-                              </div>
-                            </div>
-
                             <div
                               style={{
                                 display: "grid",
