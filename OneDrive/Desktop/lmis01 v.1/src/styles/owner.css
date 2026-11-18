@@ -502,6 +502,8 @@
   box-sizing: border-box;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
 }
 
 /* Left Brand & Profile Group */
@@ -2889,6 +2891,9 @@
   width: 100%;
   padding: 10px 4px 6px 4px;
   overflow-x: auto;
+  overflow-y: hidden;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
   gap: 4px;
   box-sizing: border-box;
 }
