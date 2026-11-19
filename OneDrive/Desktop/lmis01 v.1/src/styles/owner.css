@@ -500,8 +500,6 @@
   overflow-y: auto;
   overflow-x: hidden;
   box-sizing: border-box;
-  scroll-behavior: smooth;
-  -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   overscroll-behavior-y: contain;
 }
@@ -2893,7 +2891,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   touch-action: pan-x pan-y;
-  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
   gap: 4px;
   box-sizing: border-box;
 }

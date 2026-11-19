@@ -2814,60 +2814,115 @@ export const CarcassWeighing = () => {
         size="md"
         title="Are you sure the entered carcass weight is correct?"
         message={
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left" }}>
-            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--color-text-muted, #5D6660)" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, textAlign: "left", width: "100%" }}>
+            <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "var(--color-text-muted, #5D6660)", textAlign: "center" }}>
               Please review the recorded weight before confirming. Once submitted, this information will be saved to the livestock record.
             </p>
+            {(batchToConfirm?.items || []).length > 0 && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  background: "rgba(24, 122, 86, 0.08)",
+                  border: "1px solid rgba(24, 122, 86, 0.18)",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  color: "#187A56",
+                }}
+              >
+                <span>
+                  {(batchToConfirm?.items || []).length}{" "}
+                  {(batchToConfirm?.items || []).length === 1 ? "Carcass" : "Carcasses"} Ready to Save
+                </span>
+                <span style={{ fontVariantNumeric: "tabular-nums" }}>
+                  Total:{" "}
+                  {(batchToConfirm?.items || [])
+                    .reduce((sum, it) => sum + Number(it.weight || 0), 0)
+                    .toFixed(2)}{" "}
+                  kg
+                </span>
+              </div>
+            )}
             <div
               style={{
-                maxHeight: 220,
+                maxHeight: 236,
                 overflowY: "auto",
                 display: "flex",
                 flexDirection: "column",
                 gap: 8,
                 padding: 10,
-                borderRadius: 10,
+                borderRadius: 12,
                 background: "var(--color-bg, #F9FAF8)",
                 border: "1px solid var(--color-border, #E2E6E3)",
+                scrollbarWidth: "thin",
               }}
             >
-              {(batchToConfirm?.items || []).map((item) => (
+              {(batchToConfirm?.items || []).map((item, idx) => (
                 <div
-                  key={item.tag_number}
+                  key={item.tag_number || idx}
                   style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: "4px 12px",
-                    padding: "8px 10px",
-                    borderRadius: 8,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    padding: "10px 12px",
+                    borderRadius: 10,
                     background: "var(--color-surface, #ffffff)",
                     border: "1px solid var(--color-border, #E2E6E3)",
-                    fontSize: 12.5,
+                    boxShadow: "0 1px 2px rgba(0, 0, 0, 0.03)",
+                    textAlign: "left",
                   }}
                 >
-                  <div>
-                    <div style={{ fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
-                      Livestock ID: <span style={{ fontFamily: "ui-monospace, monospace" }}>{item.tag_number}</span>
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--color-text-muted, #5D6660)", marginTop: 2 }}>
-                      Owner: <strong style={{ color: "var(--color-text, #1A201C)" }}>{item.owner_name || "Unknown Owner"}</strong> • Species: <strong style={{ color: "var(--color-text, #1A201C)" }}>{item.species || "Hog"}</strong>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end" }}>
-                    <span
+                  <div style={{ minWidth: 0, flex: 1, textAlign: "left", textAlignLast: "left" }}>
+                    <div
                       style={{
-                        padding: "3px 9px",
-                        borderRadius: 999,
-                        background: "rgba(24, 122, 86, 0.1)",
-                        color: "#187A56",
-                        fontWeight: 800,
-                        fontSize: 12.5,
-                        whiteSpace: "nowrap",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        fontWeight: 700,
+                        fontSize: 13,
+                        color: "var(--color-text, #1A201C)",
                       }}
                     >
-                      {Number(item.weight || 0).toFixed(2)} kg
-                    </span>
+                      <span style={{ fontFamily: "ui-monospace, monospace", letterSpacing: "0.02em" }}>
+                        {item.tag_number}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 11.5,
+                        color: "var(--color-text-muted, #5D6660)",
+                        marginTop: 2,
+                        textAlign: "left",
+                        textAlignLast: "left",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      Owner: <strong style={{ color: "var(--color-text, #1A201C)", fontWeight: 600 }}>{item.owner_name || "Unknown Owner"}</strong>
+                      {" • "}
+                      Species: <strong style={{ color: "var(--color-text, #1A201C)", fontWeight: 600 }}>{item.species || "Hog"}</strong>
+                    </div>
                   </div>
+                  <span
+                    style={{
+                      padding: "4px 11px",
+                      borderRadius: 999,
+                      background: "rgba(24, 122, 86, 0.12)",
+                      color: "#187A56",
+                      fontWeight: 800,
+                      fontSize: 12.5,
+                      fontVariantNumeric: "tabular-nums",
+                      whiteSpace: "nowrap",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {Number(item.weight || 0).toFixed(2)} kg
+                  </span>
                 </div>
               ))}
             </div>

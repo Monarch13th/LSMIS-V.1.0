@@ -13,7 +13,6 @@ import { formatDate, today } from "../../utils/helpers";
 import { getPermitConfig } from "./PermitConfig";
 import { printMeatPermit, printGatePass } from "../../utils/printHelpers";
 import { logActivity } from "../../services/activityService";
-import { resolveOwnerProfile, OwnerProfileCard, OwnerProfileModal } from "../../components/common/OwnerProfile";
 import { getCurrentActor } from "../../utils/processHistory";
 import { safeUpdateLivestockWithHistory } from "../../services/staffService";
 import { feeService } from "../../services/feeService";
@@ -203,7 +202,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
   const { data: postMortem = [] } = useSupabase(TABLES.POST_MORTEM);
   const { data: owners = [], refresh: refreshOwners } = useSupabase(TABLES.OWNERS);
   const { data: users = [] } = useSupabase(TABLES.USERS);
-  const [profileModalOwner, setProfileModalOwner] = useState(null);
 
   const [selectedGroup, setSelectedGroup] = useState(null); // holds group for print preview
   const [permitModalMode, setPermitModalMode] = useState("view"); // "view" | "print"
@@ -2403,13 +2401,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
           return (
             <div>
-              {/* Registered Owner Profile Card */}
-              <OwnerProfileCard
-                compact
-                owner={resolveOwnerProfile(viewingBatch.items?.[0] || viewingBatch, { owners, livestock, users })}
-                onOpenModal={(o) => setProfileModalOwner(o)}
-                style={{ marginBottom: 14 }}
-              />
               <div
                 style={{
                   overflowX: "auto",
@@ -3028,14 +3019,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         message={inAppAlert?.message}
         buttonText="OK"
         variant={inAppAlert?.variant || "success"}
-      />
-
-      {/* Standardized Owner Profile Dossier Modal */}
-      <OwnerProfileModal
-        open={Boolean(profileModalOwner)}
-        onClose={() => setProfileModalOwner(null)}
-        owner={profileModalOwner}
-        livestock={livestock}
       />
     </div>
   );

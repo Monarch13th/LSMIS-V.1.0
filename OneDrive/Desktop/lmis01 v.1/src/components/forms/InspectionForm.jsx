@@ -1778,7 +1778,7 @@ export const InspectionForm = ({
               missing.push({
                 category: "Text Input",
                 fieldId: `cut-reason-${cut.id}`,
-                label: `Cut Pathology / Reason (Tag #${entry.tag_number || `#${i + 1}`})`,
+                label: `Cut Reason (Tag #${entry.tag_number || `#${i + 1}`})`,
                 message: "Please select a pathology or reason.",
               });
               errors[`cut-reason-${cut.id}`] = "Pathology or reason is required.";
@@ -3463,10 +3463,10 @@ export const InspectionForm = ({
                                 )}
                               </div>
 
-                              {/* 4. Pathology / Reason */}
+                              {/* 4. Reason */}
                               <div>
                                 <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
-                                  Pathology / Reason <span style={{ color: "#ef4444" }}>*</span>
+                                  Reason <span style={{ color: "#ef4444" }}>*</span>
                                 </label>
                                 <select
                                   id={`cut-reason-${part.id}`}

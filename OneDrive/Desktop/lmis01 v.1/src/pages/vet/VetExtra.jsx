@@ -2780,7 +2780,7 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
 
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
-                Pathology / Reason <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
+                Reason <span style={{ color: "var(--color-danger, #ef4444)" }}>*</span>
               </label>
               <select
                 id="condemnation-reason-select"

@@ -1816,15 +1816,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           <div className="table-action-group">
                             <button
                               type="button"
-                              className="action-btn action-btn-outline"
-                              onClick={() => handleOpenModal(allTags)}
-                              title="View & Inspect Batch"
-                            >
-                              <Icon.Eye size={13} />
-                              <span>View</span>
-                            </button>
-                            <button
-                              type="button"
                               className="action-btn action-btn-purple"
                               onClick={() => handleOpenModal(allTags)}
                               title="Inspect all carcasses in this batch"
