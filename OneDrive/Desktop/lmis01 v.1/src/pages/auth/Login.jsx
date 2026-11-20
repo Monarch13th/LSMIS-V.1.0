@@ -2241,7 +2241,7 @@ export const Login = ({ embedded = false, initialView }) => {
             <div className="login-brand-hero">
               <h2>Livestock Slaughter and Meat Inspection Management System</h2>
               <p>
-                Developed exclusively for Tinaan, City of Naga, Cebu. A centralized web-based system for livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance.
+                Office of the City Veterinarian. A centralized web-based system designed to manage livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance.
               </p>
             </div>
             <div className="login-features">
@@ -2271,7 +2271,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
           <div className="login-brand-foot">
             <Icon.CheckCircle size={14} />
-            <span>Tinaan, City of Naga, Cebu</span>
+            <span>Office of the City Veterinarian</span>
           </div>
         </div>
 
@@ -2296,7 +2296,7 @@ export const Login = ({ embedded = false, initialView }) => {
               </div>
               <div className="login-mobile-title">LSMIS</div>
               <div className="login-mobile-subtitle">Livestock Slaughter &amp; Meat Inspection</div>
-              <span className="login-mobile-badge">Tinaan, City of Naga, Cebu</span>
+              <span className="login-mobile-badge">Office of the City Veterinarian</span>
             </div>
 
             {/* LOGIN SUCCESS ANIMATION OVERLAY */}

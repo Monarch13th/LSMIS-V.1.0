@@ -8,7 +8,7 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { vetService } from "../../services/vetService";
 import { InspectionForm } from "../../components/forms/InspectionForm";
-import { formatDate, formatPhDateTime, initials, today, formatSex } from "../../utils/helpers";
+import { formatDate, formatPhDateTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
 import { CondemnedMeatRecords, EvidenceUpload } from "./VetExtra";
 import { matchesStage, getPostOutcome, isPostWholeDecision, isPostPartialInspection } from "./condemnationStage";
 import { useCondemnationEvidenceIndex } from "./condemnationEvidenceIndex";
@@ -84,6 +84,8 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   const [modalSuccessAlert, setModalSuccessAlert] = useState(null);
   const [inAppAlert, setInAppAlert] = useState(null);
   const [selectedInspection, setSelectedInspection] = useState(null);
+  const [viewingAwaitingItem, setViewingAwaitingItem] = useState(null);
+  const [returnToOwnerKey, setReturnToOwnerKey] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const { showToast } = useToast();
@@ -701,6 +703,46 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [awaitingCarcasses, owners, search, filterSpecies]);
 
+  // Resolve full owner record for awaiting post-mortem View modal
+  const resolveOwnerDetails = (item) => {
+    if (!item) return { name: "-", official_id: "—", contact: "—", address: "—" };
+    const animal = resolveAnimal(item);
+    const cleanOId = String(item.owner_id || animal?.owner_id || "").trim().toLowerCase();
+    const resolvedName = resolveOwnerName(item);
+    const matched = (owners || []).find((o) => {
+      if (cleanOId) {
+        const ids = [o.id, o.owner_id, o.temp_reg_id, o.auth_user_id].filter(Boolean).map((v) => String(v).trim().toLowerCase());
+        if (ids.includes(cleanOId)) return true;
+      }
+      if (resolvedName && resolvedName !== "-" && o.name) {
+        return o.name.trim().toLowerCase() === resolvedName.trim().toLowerCase();
+      }
+      return false;
+    });
+    return {
+      name: matched?.name || (resolvedName && resolvedName !== "-" ? resolvedName : "Unknown Owner"),
+      official_id: matched?.official_id || matched?.owner_id || item.owner_id || animal?.owner_id || "—",
+      contact: matched?.contact || matched?.phone || matched?.contact_number || "—",
+      address: matched?.address || matched?.location || "—",
+    };
+  };
+
+  // Look up corresponding Ante-Mortem inspection result for an awaiting carcass
+  const resolveAnteMortemRecord = (item) => {
+    if (!item || !anteMortem || anteMortem.length === 0) return null;
+    const tag = String(item.tag_number || "").trim().toLowerCase();
+    const animal = resolveAnimal(item);
+    const livestockId = String(item.livestock_id || animal?.id || "").trim();
+    return (
+      anteMortem.find((am) => {
+        const amTag = String(am.tag_number || "").trim().toLowerCase();
+        if (tag && amTag && amTag === tag) return true;
+        if (livestockId && am.livestock_id && String(am.livestock_id).trim() === livestockId) return true;
+        return false;
+      }) || null
+    );
+  };
+
   // Grouped dataset for "Awaiting Inspection" carcasses (grouped strictly by actual registered owner)
   const groupedQueue = useMemo(() => {
     const groups = new Map();
@@ -718,6 +760,8 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           owner_name: owner,
           speciesList: [],
           items: [],
+          maleCount: 0,
+          femaleCount: 0,
           latestTimestamp: 0,
           rawDate: null,
           date: "",
@@ -725,7 +769,15 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
 
       const grp = groups.get(key);
-      grp.items.push(item);
+      const itemTagKey = String(item.tag_number || item.id || "").trim().toLowerCase();
+      const alreadyInGroup = grp.items.some((existing) => String(existing.tag_number || existing.id || "").trim().toLowerCase() === itemTagKey);
+      if (!alreadyInGroup) {
+        grp.items.push(item);
+        const animal = resolveAnimal(item);
+        const sexLabel = formatSex(item.sex || animal?.sex);
+        if (sexLabel === "Male") grp.maleCount += 1;
+        else if (sexLabel === "Female") grp.femaleCount += 1;
+      }
       const species = (item.species || "Unknown Species").trim();
       if (!grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
@@ -788,6 +840,8 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           owner_name: owner,
           speciesList: [],
           items: [],
+          maleCount: 0,
+          femaleCount: 0,
           latestTimestamp: 0,
           rawDate: null,
           date: "",
@@ -795,7 +849,15 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
 
       const grp = groups.get(key);
-      grp.items.push(item);
+      const itemTagKey = String(item.tag_number || item.id || "").trim().toLowerCase();
+      const alreadyInGroup = grp.items.some((existing) => String(existing.tag_number || existing.id || "").trim().toLowerCase() === itemTagKey);
+      if (!alreadyInGroup) {
+        grp.items.push(item);
+        const animal = resolveAnimal(item);
+        const sexLabel = formatSex(item.sex || animal?.sex);
+        if (sexLabel === "Male") grp.maleCount += 1;
+        else if (sexLabel === "Female") grp.femaleCount += 1;
+      }
       const species = (item.species || resolveAnimal(item)?.species || "Unknown Species").trim();
       if (species && species !== "-" && species !== "—" && species !== "Unknown Species" && !grp.speciesList.includes(species)) {
         grp.speciesList.push(species);
@@ -1816,6 +1878,22 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           <div className="table-action-group">
                             <button
                               type="button"
+                              className="action-btn action-btn-outline"
+                              onClick={() => {
+                                if (grp.items.length === 1) {
+                                  setReturnToOwnerKey(null);
+                                  setViewingAwaitingItem(grp.items[0]);
+                                } else {
+                                  setSelectedOwnerKey(grp.key);
+                                }
+                              }}
+                              title={grp.items.length === 1 ? `View details for ${grp.items[0]?.tag_number}` : `View ${grp.count} awaiting carcasses for ${grp.owner_name}`}
+                            >
+                              <Icon.Eye size={13} />
+                              <span>View</span>
+                            </button>
+                            <button
+                              type="button"
                               className="action-btn action-btn-purple"
                               onClick={() => handleOpenModal(allTags)}
                               title="Inspect all carcasses in this batch"
@@ -1963,6 +2041,17 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
             <div style={{ fontSize: 12, color: "var(--color-text-muted)" }}>
               {selectedOwnerView?.items?.length || 0} {activeTab === "inspected" ? "inspected record" : "carcass"}{selectedOwnerView?.items?.length === 1 ? "" : "es"}
+              {activeTab === "awaiting" && selectedOwnerView?.items?.length > 0 && (() => {
+                let m = 0;
+                let f = 0;
+                selectedOwnerView.items.forEach((it) => {
+                  const animal = resolveAnimal(it);
+                  const sx = formatSex(it.sex || animal?.sex);
+                  if (sx === "Male") m += 1;
+                  else if (sx === "Female") f += 1;
+                });
+                return ` • ${m} Male • ${f} Female`;
+              })()}
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               {activeTab === "awaiting" && selectedOwnerView && selectedOwnerView.items.length > 0 && (
@@ -2122,17 +2211,17 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 </table>
               </div>
             ) : (
-              <div className="table-wrap" style={{ overflowX: "hidden", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
-                <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
+              <div className="table-wrap" style={{ overflowX: "auto", overflowY: "auto", flex: 1, minHeight: "380px", maxHeight: "56vh", scrollbarWidth: "thin", border: "none", boxShadow: "none" }}>
+                <table className="table" style={{ width: "100%", minWidth: 820, borderCollapse: "separate", borderSpacing: 0, border: "none", tableLayout: "fixed" }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
                     <tr style={{ background: "var(--color-bg)", borderBottom: "1.5px solid var(--color-border)" }}>
-                      <th style={{ width: "15%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Tag Number</th>
-                      <th style={{ width: "10%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Species</th>
-                      <th style={{ width: "8%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Sex</th>
-                      <th style={{ width: "14%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Operator</th>
-                      <th style={{ width: "18%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Slaughter Completed Time</th>
-                      <th style={{ width: "17%", padding: "12px 14px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)" }}>Processing Status</th>
-                      <th className="table-action-th" style={{ width: "18%" }}>ACTIONS</th>
+                      <th style={{ width: "13%", padding: "12px 12px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", whiteSpace: "normal", lineHeight: 1.25 }}>Tag Number</th>
+                      <th style={{ width: "8%", padding: "12px 10px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", whiteSpace: "normal", lineHeight: 1.25 }}>Species</th>
+                      <th style={{ width: "7%", padding: "12px 10px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", whiteSpace: "normal", lineHeight: 1.25 }}>Sex</th>
+                      <th style={{ width: "13%", padding: "12px 12px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", whiteSpace: "normal", lineHeight: 1.25 }}>Slaughter Operator</th>
+                      <th style={{ width: "19%", padding: "12px 12px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", whiteSpace: "normal", lineHeight: 1.25 }}>Slaughter Completed Time</th>
+                      <th style={{ width: "18%", padding: "12px 12px", fontSize: 11.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", whiteSpace: "normal", lineHeight: 1.25 }}>Processing Status</th>
+                      <th className="table-action-th" style={{ width: "22%" }}>ACTIONS</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2184,6 +2273,20 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </td>
                         <td className="table-action-td">
                           <div className="table-action-group">
+                            <button
+                              type="button"
+                              className="action-btn action-btn-outline"
+                              onClick={() => {
+                                const ownerKey = selectedOwnerView?.key || null;
+                                setSelectedOwnerKey(null);
+                                setReturnToOwnerKey(ownerKey);
+                                setViewingAwaitingItem(item);
+                              }}
+                              title={`View details for ${item.tag_number}`}
+                            >
+                              <Icon.Eye size={13} />
+                              <span>View</span>
+                            </button>
                             <button
                               type="button"
                               className="action-btn action-btn-purple"
@@ -2517,6 +2620,276 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Awaiting Post-Mortem Record View Modal */}
+      <Modal
+        open={!!viewingAwaitingItem}
+        onClose={() => {
+          setViewingAwaitingItem(null);
+          setReturnToOwnerKey(null);
+        }}
+        title="Post-Mortem Waiting Record"
+        size="lg"
+        footer={
+          viewingAwaitingItem && (
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", flexWrap: "wrap", gap: 10 }}>
+              <div>
+                {returnToOwnerKey && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const key = returnToOwnerKey;
+                      setViewingAwaitingItem(null);
+                      setReturnToOwnerKey(null);
+                      setSelectedOwnerKey(key);
+                    }}
+                  >
+                    Back to Batch
+                  </Button>
+                )}
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setViewingAwaitingItem(null);
+                    setReturnToOwnerKey(null);
+                  }}
+                >
+                  Close
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const tag = viewingAwaitingItem.tag_number;
+                    setViewingAwaitingItem(null);
+                    setReturnToOwnerKey(null);
+                    handleOpenModal(tag);
+                  }}
+                  style={{
+                    background: "linear-gradient(135deg, #24966D, #136647)",
+                    color: "#ffffff",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    fontWeight: 700,
+                  }}
+                >
+                  <Icon.Activity size={14} />
+                  <span>Proceed to Post-Mortem Inspection</span>
+                </Button>
+              </div>
+            </div>
+          )
+        }
+      >
+        {viewingAwaitingItem && (() => {
+          const animal = resolveAnimal(viewingAwaitingItem);
+          const ownerInfo = resolveOwnerDetails(viewingAwaitingItem);
+          const anteRecord = resolveAnteMortemRecord(viewingAwaitingItem);
+          const formattedAge = formatLivestockAge(animal || viewingAwaitingItem);
+          const weightVal = animal?.weight ?? animal?.live_weight ?? viewingAwaitingItem.weight ?? viewingAwaitingItem.live_weight;
+          const slaughterTime =
+            viewingAwaitingItem.completed_at ||
+            viewingAwaitingItem.updated_at ||
+            viewingAwaitingItem.marked_at ||
+            viewingAwaitingItem.registered_at ||
+            viewingAwaitingItem.created_at ||
+            viewingAwaitingItem.slaughter_date ||
+            viewingAwaitingItem.date;
+
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              {/* Header Summary Banner */}
+              <div
+                style={{
+                  padding: "14px 16px",
+                  background: "var(--color-bg)",
+                  borderRadius: 10,
+                  border: "1px solid var(--color-border)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  gap: 10,
+                }}
+              >
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#187A56", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                    Carcass Identification
+                  </div>
+                  <div style={{ fontSize: 18, fontWeight: 800, fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace", color: "var(--color-text)", marginTop: 2 }}>
+                    {viewingAwaitingItem.tag_number || "—"}
+                  </div>
+                </div>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 5,
+                    padding: "4px 10px",
+                    borderRadius: 999,
+                    background: "rgba(24, 122, 86, 0.12)",
+                    color: "#187A56",
+                    fontSize: 12,
+                    fontWeight: 700,
+                  }}
+                >
+                  <Icon.Activity size={13} /> Slaughter Completed - Ready for Vet
+                </span>
+              </div>
+
+              {/* Livestock & Slaughter Information */}
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
+                  Livestock &amp; Slaughter Information
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+                    gap: 10,
+                    padding: "14px",
+                    borderRadius: 10,
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-surface)",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Species</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>{viewingAwaitingItem.species || animal?.species || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Sex</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>{formatSex(viewingAwaitingItem.sex || animal?.sex)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Age</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{formattedAge || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Live Weight</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{weightVal ? `${weightVal} kg` : "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Breed</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{animal?.breed || viewingAwaitingItem.breed || "—"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Slaughter Operator</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{viewingAwaitingItem.operator || "Assigned Operator"}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Slaughter Completed</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{slaughterTime ? formatPhDateTime(slaughterTime) : "—"}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Owner Information */}
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
+                  Owner Information
+                </div>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+                    gap: 10,
+                    padding: "14px",
+                    borderRadius: 10,
+                    border: "1px solid var(--color-border)",
+                    background: "var(--color-surface)",
+                  }}
+                >
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Owner Name</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>{ownerInfo.name}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Owner ID</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{ownerInfo.official_id}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Contact Number</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{ownerInfo.contact}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Address</div>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{ownerInfo.address}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Corresponding Ante-Mortem Inspection Results */}
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
+                  Ante-Mortem Inspection Results
+                </div>
+                {anteRecord ? (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+                      gap: 10,
+                      padding: "14px",
+                      borderRadius: 10,
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-surface)",
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Decision</div>
+                      <div style={{ marginTop: 2 }}>
+                        <Badge status={anteRecord.decision || "Approved"} />
+                      </div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Inspector</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>{anteRecord.inspector_name || anteRecord.created_by || "—"}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Date Inspected</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
+                        {anteRecord.inspected_at || anteRecord.action_timestamp || anteRecord.created_at || anteRecord.date
+                          ? formatPhDateTime(anteRecord.inspected_at || anteRecord.action_timestamp || anteRecord.created_at || anteRecord.date)
+                          : "—"}
+                      </div>
+                    </div>
+                    <div style={{ gridColumn: "1 / -1" }}>
+                      <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Clinical Findings</div>
+                      <div style={{ fontSize: 13, color: "var(--color-text)", marginTop: 2 }}>
+                        {anteRecord.findings || "No clinical abnormalities detected."}
+                      </div>
+                    </div>
+                    {anteRecord.remarks && (
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>Remarks</div>
+                        <div style={{ fontSize: 13, color: "var(--color-text)", marginTop: 2 }}>{anteRecord.remarks}</div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      padding: "12px 14px",
+                      borderRadius: 10,
+                      border: "1px solid var(--color-border)",
+                      background: "var(--color-bg)",
+                      fontSize: 12.5,
+                      color: "var(--color-text-muted)",
+                    }}
+                  >
+                    No ante-mortem inspection record found for this tag.
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
       </Modal>
 
       {/* Delete Dialog */}

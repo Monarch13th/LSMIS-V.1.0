@@ -284,14 +284,14 @@ export const LandingPage = () => {
               href="#top"
               onClick={(e) => scrollToSection(e, "#top")}
               className="nav-brand-link"
-              aria-label="Tinaan, City of Naga, Cebu LSMIS - Home"
+              aria-label="Office of the City Veterinarian LSMIS - Home"
             >
               <div className="nav-brand-logo">
-                <img src={logoImg} alt="Tinaan, City of Naga, Cebu LSMIS Seal" width="44" height="44" />
+                <img src={logoImg} alt="Office of the City Veterinarian LSMIS Seal" width="44" height="44" />
               </div>
               <div className="nav-brand-text">
                 <span className="nav-brand-title">LSMIS</span>
-                <span className="nav-brand-sub">Tinaan, City of Naga, Cebu</span>
+                <span className="nav-brand-sub">Office of the City Veterinarian</span>
               </div>
             </a>
 
@@ -451,24 +451,18 @@ export const LandingPage = () => {
 
         <div className="landing-container">
           <div className="hero-content-inner">
-            {/* Small Institutional Label */}
-            <div className="hero-badge-pill">
-              <span className="hero-badge-dot" />
-              <span>EXCLUSIVE SERVICE AREA: TINAAN, CITY OF NAGA, CEBU</span>
-            </div>
-
             {/* Main Headline */}
             <h1 className="hero-main-title">
               Livestock Slaughter and Meat Inspection Management System
             </h1>
 
             <p className="hero-subtitle">
-              Developed exclusively for Tinaan, City of Naga, Cebu.
+              Office of the City Veterinarian
             </p>
 
             {/* Description */}
             <p className="hero-lead-text">
-              A centralized web-based system designed to manage livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance within Tinaan, City of Naga, Cebu.
+              A centralized web-based system designed to manage livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance within the Office of the City Veterinarian.
             </p>
 
             {/* Action Buttons */}

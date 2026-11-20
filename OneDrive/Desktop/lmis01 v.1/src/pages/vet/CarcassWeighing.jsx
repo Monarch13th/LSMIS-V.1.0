@@ -856,14 +856,7 @@ export const CarcassWeighing = () => {
     try {
       const actor = getCurrentActor();
       const currentUser = actor.name || "Dr. Dave";
-      const nowDt = new Date();
-      if (weighTime) {
-        const [hh, mm] = weighTime.split(":").map(Number);
-        if (!isNaN(hh) && !isNaN(mm)) {
-          nowDt.setHours(hh, mm, 0, 0);
-        }
-      }
-      const weighingIso = nowDt.toISOString();
+      const weighingIso = new Date().toISOString();
 
       await Promise.allSettled(
         tagsToSave.map(async (tag) => {
@@ -1188,8 +1181,17 @@ export const CarcassWeighing = () => {
       });
   }, [filteredAwaiting]);
 
-  // Grouped dataset for "Weighed Carcasses" tab (grouped strictly by actual registered owner)
+  // Grouped dataset for "Weighed Carcasses" tab (grouped by registered owner + Philippine local date)
   const groupedWeighed = useMemo(() => {
+    const getPhDateKey = (val) => {
+      if (!val) return "undated";
+      const d = new Date(val);
+      if (!isNaN(d.getTime())) {
+        return d.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+      }
+      return String(val).split("T")[0] || "undated";
+    };
+
     const groups = new Map();
     (filteredCarcasses || []).forEach((item) => {
       if (!item.tag_number || String(item.tag_number).trim() === "") return;
@@ -1197,9 +1199,10 @@ export const CarcassWeighing = () => {
       const owner = item.owner_name || "Unknown Owner";
       const ownerId = item.owner_id;
 
-      const key = ownerId ? `owner_${String(ownerId).toLowerCase().trim()}` : `owner_${owner.toLowerCase().trim()}`;
       const rawTime = item.weighed_at || item.created_at || item.date;
-      const dateStr = rawTime ? String(rawTime).split("T")[0] : (item.date || "");
+      const dateStr = getPhDateKey(rawTime || item.date);
+      const ownerKey = ownerId ? `owner_${String(ownerId).toLowerCase().trim()}` : `owner_${owner.toLowerCase().trim()}`;
+      const key = `${ownerKey}__${dateStr}`;
       const itemTime = rawTime ? new Date(rawTime).getTime() : 0;
       const species = (item.species || "Unknown Species").trim();
 
@@ -2656,7 +2659,7 @@ export const CarcassWeighing = () => {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1.3fr 1.4fr 1.1fr",
+                  gridTemplateColumns: "1fr 1.2fr 1.6fr",
                   alignItems: "center",
                   padding: "8px 14px",
                   fontSize: 11,
@@ -2700,7 +2703,7 @@ export const CarcassWeighing = () => {
                       key={animal.tag_number}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "1.3fr 1.4fr 1.1fr",
+                        gridTemplateColumns: "1fr 1.2fr 1.6fr",
                         alignItems: "center",
                         gap: 12,
                         padding: "10px 14px",
@@ -2763,8 +2766,65 @@ export const CarcassWeighing = () => {
                         </div>
                       </div>
 
-                      {/* 3. Scale Weight */}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 5 }}>
+                      {/* 3. Scale Weight & Quick Presets */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+                        <div
+                          style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+                          role="group"
+                          aria-label={`Quick weight presets for ${animal.tag_number}`}
+                        >
+                          {[30, 40, 50, 60].map((preset) => {
+                            const isActive = hasValid && Math.abs(val - preset) < 0.001;
+                            return (
+                              <button
+                                key={preset}
+                                type="button"
+                                aria-pressed={isActive}
+                                aria-label={`Set weight to ${preset} kg for ${animal.tag_number}`}
+                                onClick={() => handleWeightChange(animal.tag_number, preset.toFixed(2))}
+                                onMouseEnter={(e) => {
+                                  if (!isActive) {
+                                    e.currentTarget.style.borderColor = "#187A56";
+                                    e.currentTarget.style.background = "rgba(24, 122, 86, 0.06)";
+                                    e.currentTarget.style.color = "#187A56";
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!isActive) {
+                                    e.currentTarget.style.borderColor = "var(--color-border, #d1d5db)";
+                                    e.currentTarget.style.background = "var(--color-surface, #ffffff)";
+                                    e.currentTarget.style.color = "var(--color-text, #1A201C)";
+                                  }
+                                }}
+                                style={{
+                                  height: 30,
+                                  padding: "0 9px",
+                                  borderRadius: 6,
+                                  fontSize: 11.5,
+                                  fontWeight: 700,
+                                  fontVariantNumeric: "tabular-nums",
+                                  cursor: "pointer",
+                                  transition: "all 140ms ease",
+                                  border: isActive
+                                    ? "1px solid #187A56"
+                                    : "1px solid var(--color-border, #d1d5db)",
+                                  background: isActive
+                                    ? "rgba(24, 122, 86, 0.12)"
+                                    : "var(--color-surface, #ffffff)",
+                                  color: isActive
+                                    ? "#187A56"
+                                    : "var(--color-text, #1A201C)",
+                                  boxShadow: isActive
+                                    ? "0 1px 2px rgba(24, 122, 86, 0.14)"
+                                    : "none",
+                                  whiteSpace: "nowrap",
+                                }}
+                              >
+                                {preset}
+                              </button>
+                            );
+                          })}
+                        </div>
                         <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
                           <input
                             id={`input-weight-${animal.tag_number}`}
