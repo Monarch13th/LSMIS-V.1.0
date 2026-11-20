@@ -214,33 +214,33 @@ export const ForgotPassword = () => {
             </div>
             <div className="login-brand-hero">
               <span className="login-pill">
-                <Icon.Shield size={13} /> Official Management System
+                <Icon.Shield size={13} /> Exclusive Service Area: Tinaan, City of Naga, Cebu
               </span>
               <h2>Livestock Slaughter and Meat Inspection Management System</h2>
               <p>
-                Integrated municipal gateway for livestock intake traceability, veterinary inspection certification, and regulatory fee auditing.
+                Developed exclusively for Tinaan, City of Naga, Cebu. A centralized web-based system for livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance.
               </p>
             </div>
             <div className="login-features">
               <div className="login-feature">
                 <div className="feature-icon"><Icon.Shield size={16} /></div>
                 <div>
-                  <h4>Food Safety Compliance</h4>
-                  <p>Certified under Republic Act No. 9296 and RA 10536 mandates.</p>
+                  <h4>Structured Slaughter Workflow</h4>
+                  <p>Step-by-step tracking from livestock registration and marking to meat permit issuance.</p>
                 </div>
               </div>
               <div className="login-feature">
                 <div className="feature-icon"><Icon.Stethoscope size={16} /></div>
                 <div>
-                  <h4>Veterinary Inspection Authority</h4>
-                  <p>Clinical ante-mortem and post-mortem clearance oversight.</p>
+                  <h4>Veterinary Clinical Oversight</h4>
+                  <p>Ante-mortem health screening and post-mortem carcass inspection.</p>
                 </div>
               </div>
               <div className="login-feature">
                 <div className="feature-icon"><Icon.Activity size={16} /></div>
                 <div>
-                  <h4>Traceability &amp; Revenue Audit</h4>
-                  <p>Digital records from pen intake to final meat transport release.</p>
+                  <h4>Livestock Traceability and Inspection Records</h4>
+                  <p>Digital records from livestock receiving and marking to carcass weighing and meat permit issuance.</p>
                 </div>
               </div>
             </div>
@@ -248,7 +248,7 @@ export const ForgotPassword = () => {
 
           <div className="login-brand-foot">
             <Icon.CheckCircle size={14} />
-            <span>Secure Municipal Government Portal</span>
+            <span>Tinaan, City of Naga, Cebu</span>
           </div>
         </div>
 
@@ -263,7 +263,7 @@ export const ForgotPassword = () => {
               </div>
               <div className="login-mobile-title">LSMIS</div>
               <div className="login-mobile-subtitle">Livestock Slaughter &amp; Meat Inspection</div>
-              <span className="login-mobile-badge">City Government of Naga, Cebu</span>
+              <span className="login-mobile-badge">Tinaan, City of Naga, Cebu</span>
             </div>
             
             <form onSubmit={handleResetPassword} className="login-form-body" noValidate>

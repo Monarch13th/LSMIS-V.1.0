@@ -284,14 +284,14 @@ export const LandingPage = () => {
               href="#top"
               onClick={(e) => scrollToSection(e, "#top")}
               className="nav-brand-link"
-              aria-label="City of Naga LSMIS - Home"
+              aria-label="Tinaan, City of Naga, Cebu LSMIS - Home"
             >
               <div className="nav-brand-logo">
-                <img src={logoImg} alt="City of Naga LSMIS Seal" width="44" height="44" />
+                <img src={logoImg} alt="Tinaan, City of Naga, Cebu LSMIS Seal" width="44" height="44" />
               </div>
               <div className="nav-brand-text">
                 <span className="nav-brand-title">LSMIS</span>
-                <span className="nav-brand-sub">City of Naga - Slaughterhouse</span>
+                <span className="nav-brand-sub">Tinaan, City of Naga, Cebu</span>
               </div>
             </a>
 
@@ -454,17 +454,21 @@ export const LandingPage = () => {
             {/* Small Institutional Label */}
             <div className="hero-badge-pill">
               <span className="hero-badge-dot" />
-              <span>Tinaan, City of Naga, Cebu</span>
+              <span>EXCLUSIVE SERVICE AREA: TINAAN, CITY OF NAGA, CEBU</span>
             </div>
 
             {/* Main Headline */}
             <h1 className="hero-main-title">
-              Modernizing Livestock <br className="hero-title-br" />Slaughter and Meat Inspection
+              Livestock Slaughter and Meat Inspection Management System
             </h1>
+
+            <p className="hero-subtitle">
+              Developed exclusively for Tinaan, City of Naga, Cebu.
+            </p>
 
             {/* Description */}
             <p className="hero-lead-text">
-              A digital system for managing livestock registration, inspections, slaughter operations, and meat permits.
+              A centralized web-based system designed to manage livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance within Tinaan, City of Naga, Cebu.
             </p>
 
             {/* Action Buttons */}
@@ -515,7 +519,7 @@ export const LandingPage = () => {
               </div>
 
               <p className="about-lead-paragraph">
-                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is the City of Naga&apos;s digital platform replacing manual logbooks with secure tracking from animal intake through veterinary inspections, humane slaughter, carcass weighing, and certified permit issuance.
+                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is a centralized web-based platform developed exclusively for Tinaan, City of Naga, Cebu—replacing manual logbooks with structured tracking from livestock registration and animal marking through veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance.
               </p>
 
               <div className="about-highlights-list">
@@ -550,7 +554,7 @@ export const LandingPage = () => {
                   <div className="about-highlight-body">
                     <h3 className="about-highlight-title">Permits &amp; Weights</h3>
                     <p className="about-highlight-desc">
-                      Certified carcass weight records and official meat inspection certificates.
+                      Verified carcass weight records and meat permit documentation.
                     </p>
                   </div>
                 </div>
@@ -800,22 +804,22 @@ export const LandingPage = () => {
               <div className="footer-brand-header">
                 <img
                   src={logoImg}
-                  alt="City of Naga LSMIS Official Seal"
+                  alt="Tinaan, City of Naga, Cebu LSMIS Seal"
                   width="48"
                   height="48"
                   className="footer-brand-logo"
                 />
                 <div className="footer-brand-titles">
-                  <h3 className="footer-brand-name">LSMIS · City of Naga</h3>
-                  <span className="footer-brand-dept">Office of the City Veterinarian</span>
+                  <h3 className="footer-brand-name">LSMIS · Tinaan, City of Naga</h3>
+                  <span className="footer-brand-dept">Tinaan, City of Naga, Cebu</span>
                 </div>
               </div>
               <p className="footer-brand-location">
                 <Icon.MapPin size={15} aria-hidden="true" />
-                <span>Tinaan, City of Naga</span>
+                <span>Tinaan, City of Naga, Cebu</span>
               </p>
               <p className="footer-brand-desc">
-                The Livestock Slaughter and Meat Inspection Management System (LSMIS) is the City of Naga&apos;s digital platform for animal receiving, ante-mortem and post-mortem inspections, humane slaughter operations, carcass weighing, and meat permit issuance.
+                A centralized web-based system designed to manage livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance within Tinaan, City of Naga, Cebu.
               </p>
             </div>
 
@@ -953,11 +957,11 @@ export const LandingPage = () => {
           {/* Bottom Bar: Divider & Dynamic Year Copyright */}
           <div className="footer-bottom-bar">
             <p className="footer-copyright">
-              &copy; {new Date().getFullYear()} LSMIS &ndash; Livestock Slaughter and Meat Inspection Management System · City Government of Naga, Cebu. All rights reserved.
+              &copy; {new Date().getFullYear()} LSMIS &ndash; Livestock Slaughter and Meat Inspection Management System · Tinaan, City of Naga, Cebu. All rights reserved.
             </p>
             <div className="footer-bottom-meta">
               <Icon.MapPin size={13} aria-hidden="true" />
-              <span>Tinaan, City of Naga</span>
+              <span>Tinaan, City of Naga, Cebu</span>
             </div>
           </div>
         </div>

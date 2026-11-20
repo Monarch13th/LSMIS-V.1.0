@@ -2,7 +2,7 @@
   "id": "/?v=lsmis20261116e",
   "name": "LSMIS - Livestock Slaughter & Meat Inspection System",
   "short_name": "LSMIS",
-  "description": "Official Livestock Slaughter and Meat Inspection Management System for the City Government of Naga, Cebu.",
+  "description": "Web-Based Livestock Slaughter and Meat Inspection Management System developed exclusively for Tinaan, City of Naga, Cebu.",
   "start_url": "/?source=pwa&v=lsmis20261116e",
   "scope": "/",
   "display": "standalone",

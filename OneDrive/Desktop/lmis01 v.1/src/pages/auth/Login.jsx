@@ -2241,15 +2241,15 @@ export const Login = ({ embedded = false, initialView }) => {
             <div className="login-brand-hero">
               <h2>Livestock Slaughter and Meat Inspection Management System</h2>
               <p>
-                City Government of Naga, Cebu • City Abattoir Complex. Providing certified animal traceability, veterinary meat inspection clearances, and automated statutory fee assessment.
+                Developed exclusively for Tinaan, City of Naga, Cebu. A centralized web-based system for livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance.
               </p>
             </div>
             <div className="login-features">
               <div className="login-feature">
                 <div className="feature-icon"><Icon.Shield size={16} /></div>
                 <div>
-                  <h4>Food Safety Compliance</h4>
-                  <p>Certified Class AA standards under RA 9296 and RA 10536 mandates.</p>
+                  <h4>Structured Slaughter Workflow</h4>
+                  <p>Step-by-step tracking from livestock registration and marking to meat permit issuance.</p>
                 </div>
               </div>
               <div className="login-feature">
@@ -2262,8 +2262,8 @@ export const Login = ({ embedded = false, initialView }) => {
               <div className="login-feature">
                 <div className="feature-icon"><Icon.Activity size={16} /></div>
                 <div>
-                  <h4>Traceability &amp; Revenue Audit</h4>
-                  <p>Digital records from pen receiving to official meat permit issuance.</p>
+                  <h4>Livestock Traceability and Inspection Records</h4>
+                  <p>Digital records from livestock receiving and marking to carcass weighing and meat permit issuance.</p>
                 </div>
               </div>
             </div>
@@ -2296,7 +2296,7 @@ export const Login = ({ embedded = false, initialView }) => {
               </div>
               <div className="login-mobile-title">LSMIS</div>
               <div className="login-mobile-subtitle">Livestock Slaughter &amp; Meat Inspection</div>
-              <span className="login-mobile-badge">City Government of Naga, Cebu</span>
+              <span className="login-mobile-badge">Tinaan, City of Naga, Cebu</span>
             </div>
 
             {/* LOGIN SUCCESS ANIMATION OVERLAY */}
@@ -3516,25 +3516,25 @@ export const Login = ({ embedded = false, initialView }) => {
             >
               <div className="agreement-modal-content">
                 <div className="agreement-modal-notice">
-                  <strong>Regulatory Notice (Republic of the Philippines)</strong>
+                  <strong>Service Area Notice (Republic of the Philippines)</strong>
                   <p>
-                    Standard abattoir operations operating under Republic Act No. 9296 (The Meat Inspection Code of the Philippines) as amended by RA 10536, and the National Meat Inspection Service (NMIS).
+                    Developed exclusively for livestock slaughter and meat inspection operations in Tinaan, City of Naga, Cebu.
                   </p>
                 </div>
 
                 <h4>1. Purpose of Account Registration</h4>
                 <p>
-                  By registering for the Livestock Slaughter and Meat Inspection System (LSMIS) Owner Portal, you are establishing an authorized profile as a livestock producer, farm operator, or consignee. This account allows you to securely monitor intake receiving, ante-mortem veterinary evaluations, slaughter stages, carcass weights, payments, and regulatory meat inspection certificates (MIC) for your registered animals.
+                  By registering for the Livestock Slaughter and Meat Inspection Management System (LSMIS) Owner Portal, you are establishing an authorized profile as a livestock owner in Tinaan, City of Naga, Cebu. This account allows you to securely monitor your registered animals, ante-mortem and post-mortem veterinary inspection records, slaughter stages, carcass weights, and meat permits.
                 </p>
 
                 <h4>2. View-Only Access &amp; Anti-Tamper Policy</h4>
                 <p>
-                  Livestock owners are granted strict <strong>View-Only</strong> access to their own animals and records. Official veterinary inspection findings, carcass scale weights, laboratory results, fee tariffs, and gate passes are recorded exclusively by authorized City Meat Inspectors, Licensed Veterinarians, and Abattoir Staff. Any attempt to tamper with or alter digital inspection records is strictly prohibited under Philippine law.
+                  Livestock owners are granted strict <strong>View-Only</strong> access to their own animals and records. Official veterinary inspection findings, carcass scale weights, and meat permits are recorded exclusively by authorized Veterinarians and Slaughterhouse Staff.
                 </p>
 
                 <h4>3. Data Privacy Act of 2012 (RA 10173) Consent</h4>
                 <p>
-                  You consent to the collection and processing of your full name, contact number, address, and livestock provenance details. This information is utilized solely for animal traceability, food safety oversight, official receipting, and disease outbreak containment in coordination with the Bureau of Animal Industry (BAI) and local government authorities.
+                  You consent to the collection and processing of your full name, contact number, address, and livestock records. This information is utilized solely for livestock traceability, inspection documentation, and operational record management within Tinaan, City of Naga, Cebu.
                 </p>
 
                 <h4>4. Administrator Approval &amp; Unique Owner ID</h4>
