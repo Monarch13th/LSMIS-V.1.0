@@ -1,6 +1,3 @@
-// LSMIS Production Service Worker
-// Ensures instant startup (eliminating black/blank loading screens) while keeping
-// the installed Android PWA and mobile web synchronized with new deployments.
 const CACHE_VERSION = "lsmis-pwa-v20261116f";
 const PRECACHE_URLS = [
   "/",
@@ -60,7 +57,6 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Never intercept API, Supabase, or APK binary downloads
   if (
     url.pathname.startsWith("/downloads/") ||
     url.pathname.endsWith(".apk") ||
@@ -69,7 +65,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 1. Navigation requests (HTML): fast network-first with 1.0s timeout fallback to cached shell
   if (req.mode === "navigate") {
     event.respondWith(
       (async () => {
@@ -92,7 +87,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. Hashed Vite static bundles (/assets/*): Cache-First (content-hashed filenames are immutable)
   if (url.pathname.startsWith("/assets/")) {
     event.respondWith(
       caches.open(CACHE_VERSION).then(async (cache) => {
@@ -108,7 +102,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Official logo, icons, and manifest: Stale-While-Revalidate for 0ms startup rendering
   if (
     url.pathname === "/logo.png" ||
     url.pathname.startsWith("/icon-") ||

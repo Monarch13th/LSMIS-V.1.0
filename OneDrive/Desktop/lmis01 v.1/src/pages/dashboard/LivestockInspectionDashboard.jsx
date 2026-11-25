@@ -7,15 +7,11 @@ import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import "../../styles/inspection_dashboard.css";
 
-// ==========================================================================
-// LIVE PRODUCTION SUPABASE DATABASE DASHBOARD
-// ==========================================================================
 
 export const LivestockInspectionDashboard = () => {
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
-  // Live Supabase Database Connections
   const { data: dbLivestock = [] } = useSupabase(TABLES.LIVESTOCK);
   const { data: dbAnteMortem = [] } = useSupabase(TABLES.ANTE_MORTEM);
   const { data: dbPostMortem = [] } = useSupabase(TABLES.POST_MORTEM);
@@ -23,7 +19,6 @@ export const LivestockInspectionDashboard = () => {
   const { data: dbPayments = [] } = useSupabase(TABLES.PAYMENTS);
   const { data: dbNotifications = [] } = useSupabase(TABLES.NOTIFICATIONS);
 
-  // Normalize real Supabase records into standard view models
   const liveLivestock = useMemo(() => {
     return dbLivestock.map((l) => ({
       id: l.id,
@@ -112,42 +107,35 @@ export const LivestockInspectionDashboard = () => {
     }));
   }, [dbNotifications]);
 
-  // Navigation & View State
-  const [activeTab, setActiveTab] = useState("tracker"); // tracker | certifications | permits | payments
-  const [certSubTab, setCertSubTab] = useState("antemortem"); // antemortem | postmortem
+  const [activeTab, setActiveTab] = useState("tracker");
+  const [certSubTab, setCertSubTab] = useState("antemortem");
   const [searchQuery, setSearchQuery] = useState("");
   const [speciesFilter, setSpeciesFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
 
-  // Alert System State
   const [alerts, setAlerts] = useState([]);
   useEffect(() => { setAlerts(liveAlerts); }, [liveAlerts]);
-  const [alertFilter, setAlertFilter] = useState("all"); // all | critical | warning | info
+  const [alertFilter, setAlertFilter] = useState("all");
   const [isAlertDrawerOpen, setIsAlertDrawerOpen] = useState(false);
 
-  // Detail Modal State
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Live System Clock
   const [currentTime, setCurrentTime] = useState(new Date());
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Alert Counter (Critical + Warning)
   const criticalWarningCount = useMemo(() => {
     return alerts.filter((a) => a.severity === "critical" || a.severity === "warning").length;
   }, [alerts]);
 
-  // Dismiss an Alert
   const handleDismissAlert = (e, alertId) => {
     e.stopPropagation();
     setAlerts((prev) => prev.filter((a) => a.id !== alertId));
   };
 
-  // Click an Alert to Jump / Filter
   const handleAlertClick = (alert) => {
     setActiveTab(alert.tab_target);
     setSearchQuery(alert.tag_ref);
@@ -156,25 +144,19 @@ export const LivestockInspectionDashboard = () => {
     }
   };
 
-  // Filtered Alerts
   const filteredAlerts = useMemo(() => {
     if (alertFilter === "all") return alerts;
     return alerts.filter((a) => a.severity === alertFilter);
   }, [alerts, alertFilter]);
 
-  // Open Record Details
   const handleOpenDetail = (record, type) => {
     setSelectedRecord({ ...record, _type: type });
     setIsModalOpen(true);
   };
 
-  // ==========================================================================
-  // DATA FILTERING (Real-time centered search across active view)
-  // ==========================================================================
 
   const query = searchQuery.trim().toLowerCase();
 
-  // 1. Livestock Tracker Data
   const filteredLivestock = useMemo(() => {
     return liveLivestock.filter((item) => {
       const matchSpecies = speciesFilter === "All" || item.species === speciesFilter;
@@ -191,7 +173,6 @@ export const LivestockInspectionDashboard = () => {
     });
   }, [query, speciesFilter, statusFilter]);
 
-  // 2. Certifications Data
   const filteredAnteCertifications = useMemo(() => {
     return liveAnteCertifications.filter((item) => {
       const matchSpecies = speciesFilter === "All" || item.species === speciesFilter;
@@ -225,7 +206,6 @@ export const LivestockInspectionDashboard = () => {
     });
   }, [query, speciesFilter, statusFilter]);
 
-  // 3. Permit Records Data
   const filteredPermits = useMemo(() => {
     return livePermits.filter((item) => {
       const matchStatus = statusFilter === "All" || item.validity.toLowerCase() === statusFilter.toLowerCase();
@@ -242,7 +222,6 @@ export const LivestockInspectionDashboard = () => {
     });
   }, [query, statusFilter]);
 
-  // 4. Payment Records Data
   const filteredPayments = useMemo(() => {
     return livePayments.filter((item) => {
       const matchStatus = statusFilter === "All" || item.status.toLowerCase() === statusFilter.toLowerCase();
@@ -259,7 +238,6 @@ export const LivestockInspectionDashboard = () => {
     });
   }, [query, statusFilter]);
 
-  // Helper Badge Renderers
   const renderStatusBadge = (status) => {
     const s = String(status || "").toLowerCase();
     if (s.includes("pass") || s.includes("valid") || s.includes("paid") || s.includes("healthy")) {
@@ -276,11 +254,7 @@ export const LivestockInspectionDashboard = () => {
 
   return (
     <div className="lid-container" data-theme={theme}>
-      {/* ====================================================================
-          1. STICKY TOP HEADER WITH CENTERED SEARCH BAR
-          ==================================================================== */}
       <header className="lid-header">
-        {/* Brand & Live Pulse */}
         <div className="lid-brand-group">
           <div className="lid-brand-badge">
             <Icon.Shield size={22} />
@@ -300,7 +274,6 @@ export const LivestockInspectionDashboard = () => {
           </div>
         </div>
 
-        {/* Centered Prominent Search Bar with Active Glow */}
         <div className="lid-search-container">
           <div className="lid-search-wrapper">
             <input
@@ -326,9 +299,7 @@ export const LivestockInspectionDashboard = () => {
           </div>
         </div>
 
-        {/* Header Right Actions */}
         <div className="lid-header-actions">
-          {/* Toggle Alert Drawer */}
           <button
             className="lid-alert-trigger"
             onClick={() => setIsAlertDrawerOpen((prev) => !prev)}
@@ -341,7 +312,6 @@ export const LivestockInspectionDashboard = () => {
             )}
           </button>
 
-          {/* Quick Refresh */}
           <button
             className="lid-action-btn"
             onClick={() => {
@@ -355,7 +325,6 @@ export const LivestockInspectionDashboard = () => {
             <span>Reset</span>
           </button>
 
-          {/* Export / Print */}
           <button
             className="lid-action-btn"
             onClick={() => window.print()}
@@ -365,7 +334,6 @@ export const LivestockInspectionDashboard = () => {
             <span>Print View</span>
           </button>
 
-          {/* Theme Toggle */}
           <button
             className="lid-action-btn"
             onClick={toggleTheme}
@@ -374,7 +342,6 @@ export const LivestockInspectionDashboard = () => {
             {theme === "dark" ? <Icon.Sun size={16} /> : <Icon.Moon size={16} />}
           </button>
 
-          {/* Return to Portal */}
           <button
             className="lid-action-btn"
             style={{ borderColor: "#059669", color: "#059669" }}
@@ -387,12 +354,8 @@ export const LivestockInspectionDashboard = () => {
         </div>
       </header>
 
-      {/* ====================================================================
-          2. TOP SUMMARY / LIVE LEDGER KPI STRIP (LOCKED)
-          ==================================================================== */}
       <section className="lid-top-kpi-bar">
         <div className="lid-kpi-grid">
-          {/* Total Livestock */}
           <div className="lid-kpi-card">
             <div className="lid-kpi-icon emerald">
               <Icon.Cow size={22} />
@@ -404,7 +367,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           </div>
 
-          {/* Swine Ledger */}
           <div className="lid-kpi-card">
             <div className="lid-kpi-icon blue">
               <Icon.Layers size={20} />
@@ -416,7 +378,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           </div>
 
-          {/* Cattle Ledger */}
           <div className="lid-kpi-card">
             <div className="lid-kpi-icon amber">
               <Icon.Box size={20} />
@@ -428,7 +389,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           </div>
 
-          {/* Carabao & Goats */}
           <div className="lid-kpi-card">
             <div className="lid-kpi-icon violet">
               <Icon.Award size={20} />
@@ -440,7 +400,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           </div>
 
-          {/* Quarantined / Suspect */}
           <div className="lid-kpi-card">
             <div className="lid-kpi-icon rose">
               <Icon.AlertTriangle size={20} />
@@ -452,7 +411,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           </div>
 
-          {/* Inspection Clearance Rate */}
           <div className="lid-kpi-card">
             <div className="lid-kpi-icon emerald">
               <Icon.ClipboardCheck size={20} />
@@ -466,11 +424,7 @@ export const LivestockInspectionDashboard = () => {
         </div>
       </section>
 
-      {/* ====================================================================
-          3. NAVIGATION BAR (MODULE TABS & VIEW FILTERS)
-          ==================================================================== */}
       <nav className="lid-nav-bar">
-        {/* Primary Module Tabs */}
         <div className="lid-tab-group">
           <button
             className={`lid-tab-btn ${activeTab === "tracker" ? "active" : ""}`}
@@ -511,7 +465,6 @@ export const LivestockInspectionDashboard = () => {
           </button>
         </div>
 
-        {/* Secondary Filter Dropdowns */}
         <div className="lid-filter-group">
           {(activeTab === "tracker" || activeTab === "certifications") && (
             <select
@@ -565,7 +518,6 @@ export const LivestockInspectionDashboard = () => {
             )}
           </select>
 
-          {/* Alert panel toggle for quick visual on the right */}
           <button
             className={`lid-action-btn ${isAlertDrawerOpen ? "active" : ""}`}
             onClick={() => setIsAlertDrawerOpen((prev) => !prev)}
@@ -580,14 +532,8 @@ export const LivestockInspectionDashboard = () => {
         </div>
       </nav>
 
-      {/* ====================================================================
-          4. MAIN WORKSPACE WITH INDEPENDENT VERTICAL SCROLLING
-          ==================================================================== */}
       <div className="lid-workspace">
         <main className="lid-main-scroll">
-          {/* ================================================================
-              VIEW 1: LIVESTOCK TRACKER (LIVE LEDGER)
-              ================================================================ */}
           {activeTab === "tracker" && (
             <div className="lid-table-card">
               <div className="lid-card-header">
@@ -692,12 +638,8 @@ export const LivestockInspectionDashboard = () => {
             </div>
           )}
 
-          {/* ================================================================
-              VIEW 2: CERTIFICATIONS (ANTE-MORTEM & POST-MORTEM SEPARATED)
-              ================================================================ */}
           {activeTab === "certifications" && (
             <div>
-              {/* Subtabs for Ante-Mortem vs Post-Mortem */}
               <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1.25rem" }}>
                 <button
                   className={`lid-action-btn ${certSubTab === "antemortem" ? "active" : ""}`}
@@ -732,7 +674,6 @@ export const LivestockInspectionDashboard = () => {
                 </button>
               </div>
 
-              {/* ANTE-MORTEM TABLE */}
               {certSubTab === "antemortem" && (
                 <div className="lid-table-card">
                   <div className="lid-card-header">
@@ -832,7 +773,6 @@ export const LivestockInspectionDashboard = () => {
                 </div>
               )}
 
-              {/* POST-MORTEM TABLE */}
               {certSubTab === "postmortem" && (
                 <div className="lid-table-card">
                   <div className="lid-card-header">
@@ -923,9 +863,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           )}
 
-          {/* ================================================================
-              VIEW 3: PERMIT RECORDS
-              ================================================================ */}
           {activeTab === "permits" && (
             <div className="lid-table-card">
               <div className="lid-card-header">
@@ -1016,9 +953,6 @@ export const LivestockInspectionDashboard = () => {
             </div>
           )}
 
-          {/* ================================================================
-              VIEW 4: PERMIT FEE RECORDS
-              ================================================================ */}
           {activeTab === "payments" && (
             <div className="lid-table-card">
               <div className="lid-card-header">
@@ -1112,11 +1046,7 @@ export const LivestockInspectionDashboard = () => {
           )}
         </main>
 
-        {/* ====================================================================
-            5. DEDICATED 3-TIER COLOR-CODED ALERT SYSTEM PANEL (SIDEBAR/DRAWER)
-            ==================================================================== */}
         <aside className={`lid-alert-panel ${isAlertDrawerOpen ? "" : "collapsed"}`}>
-          {/* Alert Header */}
           <div className="lid-alert-header">
             <div className="lid-alert-title-wrap">
               <Icon.Bell size={18} style={{ color: "#ef4444" }} />
@@ -1132,7 +1062,6 @@ export const LivestockInspectionDashboard = () => {
             </button>
           </div>
 
-          {/* Severity Filter Tabs */}
           <div className="lid-alert-tabs">
             <button
               className={`lid-alert-tab ${alertFilter === "all" ? "active" : ""}`}
@@ -1163,7 +1092,6 @@ export const LivestockInspectionDashboard = () => {
             </button>
           </div>
 
-          {/* Scrollable Alert List */}
           <div className="lid-alert-scroll">
             {filteredAlerts.length === 0 ? (
               <div style={{ textAlign: "center", padding: "2rem 1rem", color: "var(--color-text-muted)" }}>
@@ -1206,9 +1134,6 @@ export const LivestockInspectionDashboard = () => {
         </aside>
       </div>
 
-      {/* ====================================================================
-          6. RECORD DETAIL MODAL (INSPECTOR DRAWER)
-          ==================================================================== */}
       {isModalOpen && selectedRecord && (
         <div className="lid-modal-backdrop" onClick={() => setIsModalOpen(false)}>
           <div

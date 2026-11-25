@@ -12,15 +12,10 @@ export const DEFAULT_NOTIFICATION_PREFERENCES = {
 
 const STORAGE_PREFIX = "lsmis_notif_prefs_";
 
-/**
- * Get current user notification preferences, falling back to local storage and safe defaults.
- * Guarantees immediate resolution without hanging on remote queries.
- */
 export const getUserNotificationPreferences = async (userEmail, userId) => {
   const cleanEmail = (userEmail || "").trim().toLowerCase();
   const cleanId = (userId || "").trim();
 
-  // 1. Check localStorage cache first for instant resolution
   const cacheKey = `${STORAGE_PREFIX}${cleanEmail || cleanId || "guest"}`;
   let cached = null;
   try {
@@ -32,7 +27,6 @@ export const getUserNotificationPreferences = async (userEmail, userId) => {
     return { ...DEFAULT_NOTIFICATION_PREFERENCES, ...cached };
   }
 
-  // 2. Safe remote query with fast catch to prevent hanging
   if (cleanEmail || cleanId) {
     try {
       if (TABLES.USER_PREFERENCES) {
@@ -57,16 +51,12 @@ export const getUserNotificationPreferences = async (userEmail, userId) => {
         }
       }
     } catch (_) {
-      // Table does not exist or timed out; fall back gracefully
     }
   }
 
   return { ...DEFAULT_NOTIFICATION_PREFERENCES };
 };
 
-/**
- * Save user notification preferences to localStorage and broadcast change.
- */
 export const updateUserNotificationPreferences = async ({
   email,
   userId,
@@ -81,7 +71,6 @@ export const updateUserNotificationPreferences = async ({
     localStorage.setItem(cacheKey, JSON.stringify(merged));
   } catch (_) {}
 
-  // Safe background upsert if table exists
   try {
     if (TABLES.USER_PREFERENCES && (cleanEmail || cleanId)) {
       const payload = {
@@ -103,7 +92,6 @@ export const updateUserNotificationPreferences = async ({
     }
   } catch (_) {}
 
-  // Dispatch broadcast event for instant live reactive sync
   if (typeof window !== "undefined") {
     window.dispatchEvent(
       new CustomEvent("lsmis_notif_prefs_updated", { detail: merged })
@@ -113,11 +101,6 @@ export const updateUserNotificationPreferences = async ({
   return merged;
 };
 
-/**
- * Classifies an incoming notification title/message into a preference category:
- * 'account_notifications' | 'registration_updates' | 'approval_updates' |
- * 'livestock_process_updates' | 'inspection_updates' | 'system_announcements'
- */
 export const classifyNotificationCategory = (title = "", message = "") => {
   const text = `${title} ${message}`.toLowerCase();
   if (text.includes("registered") || text.includes("intake") || text.includes("tag")) {

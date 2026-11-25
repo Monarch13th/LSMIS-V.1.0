@@ -1,21 +1,6 @@
-/**
- * condemnationHelpers.js
- * Compiles condemnation details, pathology findings, disposition, and evidence photos for livestock owners.
- * Strictly read-only data normalization.
- */
 
 import { formatDate } from "./formatters";
 
-/**
- * Compiles complete condemnation details and evidence photos for a given livestock record.
- * @param {object} params
- * @param {object} params.animal - Livestock record
- * @param {object} [params.ante] - Ante-Mortem inspection record for this tag
- * @param {object} [params.post] - Post-Mortem inspection record for this tag
- * @param {object|array} [params.condemnation] - Condemnation record(s) for this tag
- * @param {array} [params.evidence] - Evidence records array for this tag
- * @returns {object|null} Detailed condemnation object or null if no condemnation exists.
- */
 export const getOwnerCondemnationDetails = ({
   animal,
   ante,
@@ -28,7 +13,6 @@ export const getOwnerCondemnationDetails = ({
   const tagNumber = animal?.tag_number || ante?.tag_number || post?.tag_number || (Array.isArray(condemnation) ? condemnation[0]?.tag_number : condemnation?.tag_number) || "—";
   const species = animal?.species || ante?.species || post?.species || (Array.isArray(condemnation) ? condemnation[0]?.species : condemnation?.species) || "Livestock";
 
-  // Normalize condemnation records into array
   const condList = Array.isArray(condemnation)
     ? condemnation
     : condemnation
@@ -39,7 +23,6 @@ export const getOwnerCondemnationDetails = ({
   const regTimestamp = animal?.registered_at || animal?.created_at || animal?.received_at || animal?.received_date;
   const regTimeMs = regTimestamp ? new Date(regTimestamp).getTime() : null;
 
-  // Strict ID & Date verification for post
   let validPost = post;
   if (validPost) {
     if (validPost.livestock_id && aId && String(validPost.livestock_id).trim() !== String(aId).trim()) {
@@ -50,7 +33,6 @@ export const getOwnerCondemnationDetails = ({
     }
   }
 
-  // Strict ID & Date verification for ante
   let validAnte = ante;
   if (validAnte) {
     if (validAnte.livestock_id && aId && String(validAnte.livestock_id).trim() !== String(aId).trim()) {
@@ -61,7 +43,6 @@ export const getOwnerCondemnationDetails = ({
     }
   }
 
-  // Strict ID & Date verification for condList
   const validCondList = condList.filter((c) => {
     if (c.livestock_id && aId && String(c.livestock_id).trim() !== String(aId).trim()) return false;
     if (regTimeMs && (c.created_at || c.date)) {
@@ -138,7 +119,6 @@ export const getOwnerCondemnationDetails = ({
 
   if (!isCondemned) return null;
 
-  // Determine Scope & Result
   let resultLabel = "Condemned";
   let scope = "whole";
 
@@ -165,7 +145,6 @@ export const getOwnerCondemnationDetails = ({
   }
 
 
-  // Determine Location / Area
   let locationArea = "Tinaan, City of Naga, Cebu, Philippines";
   if (scope.includes("ante")) {
     locationArea = "Ante-Mortem Holding Pen / Intake Area — Tinaan, City of Naga, Cebu, Philippines";
@@ -175,7 +154,6 @@ export const getOwnerCondemnationDetails = ({
     locationArea = "Post-Mortem Examination Station — Tinaan, City of Naga, Cebu, Philippines";
   }
 
-  // Compile Itemized Condemned Parts
   const parts = [];
 
   if (scope.includes("ante")) {
@@ -205,7 +183,6 @@ export const getOwnerCondemnationDetails = ({
       disposition: mainCond?.disposition || mainCond?.disposal_method || post?.disposition || "Denatured & Incinerated in Municipal Pit",
     });
   } else {
-    // Partial Condemnation — compile all excised cuts/organs
     if (Array.isArray(post?.condemned_parts) && post.condemned_parts.length > 0) {
       post.condemned_parts.forEach((cp) => {
         parts.push({
@@ -242,7 +219,6 @@ export const getOwnerCondemnationDetails = ({
     }
   }
 
-  // Total Weight / Quantity Summary
   let totalWeightQty = "N/A";
   let totalKg = 0;
   parts.forEach((p) => {
@@ -256,23 +232,18 @@ export const getOwnerCondemnationDetails = ({
     totalWeightQty = parts.map((p) => `${p.part}: ${p.quantityWeight}`).join(", ");
   }
 
-  // Combined Pathology & Findings
   const pathologyReasons = Array.from(new Set(parts.map((p) => p.reason).filter(Boolean))).join("; ") || "Pathological lesion / Clinical rejection";
   const inspectionFindings = post?.findings || ante?.findings || Array.from(new Set(parts.map((p) => p.findings).filter(Boolean))).join("; ") || "Recorded during veterinary examination";
   const dispositionSummary = Array.from(new Set(parts.map((p) => p.disposition).filter(Boolean))).join("; ") || "Denatured & Disposed per NMIS Regulations";
 
-  // Date and Time
   const inspectionDateRaw = post?.date || ante?.date || (condList[0]?.date) || post?.created_at || ante?.created_at || animal?.received_date || new Date().toISOString();
   const inspectionDateFormatted = formatDate(inspectionDateRaw);
 
-  // Veterinarian Inspector
   const vetName = post?.inspector_name || ante?.inspector_name || (condList[0]?.inspector) || "Dr. Dave (City Veterinary Inspector)";
 
-  // Helper to normalize and clean tag numbers for case/format agnostic matching
   const cleanTagStr = (t) => String(t || "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
   const targetTagClean = cleanTagStr(tagNumber);
 
-  // Helper to extract all valid image URLs/previews from any object or array
   const extractPhotoUrls = (item) => {
     if (!item) return [];
     const found = [];
@@ -354,7 +325,6 @@ export const getOwnerCondemnationDetails = ({
           foundInArray = true;
         }
       });
-      // Only check scalar fallback fields if NO array field had valid photos
       if (!foundInArray) {
         const scalarFields = [
           "dataUrl",
@@ -380,7 +350,6 @@ export const getOwnerCondemnationDetails = ({
     return found;
   };
 
-  // Compile Evidence Photos (Strict single-source fallback hierarchy with signature deduplication)
   const evidencePhotos = [];
   const seenUrls = new Set();
   const seenSignatures = new Set();
@@ -427,7 +396,6 @@ export const getOwnerCondemnationDetails = ({
     const sizeSig = fileSize && Number(fileSize) > 0 ? `${partClean}:size:${Number(fileSize)}` : null;
     const nameSig = fileName && !isGenericFileName(fileName) ? `${partClean}:name:${String(fileName).trim().toLowerCase()}` : null;
 
-    // If we've already added this exact URL, enrich its metadata if available
     if (seenUrls.has(key)) {
       const existing = urlToPhotoMap.get(key);
       if (existing) {
@@ -467,7 +435,6 @@ export const getOwnerCondemnationDetails = ({
     evidencePhotos.push(newPhoto);
   };
 
-  // 1. Primary Source: If Post-Mortem inspection record exists, extract photos from post & condemned_parts
   if (post) {
     if (Array.isArray(post.condemned_parts) && post.condemned_parts.length > 0) {
       post.condemned_parts.forEach((cp, idx) => {
@@ -500,7 +467,6 @@ export const getOwnerCondemnationDetails = ({
     });
   }
 
-  // 2. Condemnation Records: Direct cut-level condemnation photos matching individual parts
   if (Array.isArray(condList) && condList.length > 0) {
     condList.forEach((c, idx) => {
       if (scope.includes("ante")) {
@@ -528,7 +494,6 @@ export const getOwnerCondemnationDetails = ({
     });
   }
 
-  // 3. Evidence Records: Inspect evidence_records with signature deduplication
   if (Array.isArray(evidence) && evidence.length > 0) {
     evidence.forEach((ev, idx) => {
       if (ev.tag_number && targetTagClean && cleanTagStr(ev.tag_number) !== targetTagClean) {
@@ -563,7 +528,6 @@ export const getOwnerCondemnationDetails = ({
     });
   }
 
-  // 4. Fallback Source: Ante-Mortem rejection photos if no post-mortem photos exist
   if (evidencePhotos.length === 0 && ante) {
     if (Array.isArray(ante.condemned_parts)) {
       ante.condemned_parts.forEach((cp, idx) => {
@@ -596,7 +560,6 @@ export const getOwnerCondemnationDetails = ({
     });
   }
 
-  // If remote storage (http/https) URLs exist, filter out duplicate pre-upload base64 data URLs
   const hasStoragePhotos = evidencePhotos.some((p) => p.url && (p.url.startsWith("http://") || p.url.startsWith("https://")));
   const finalEvidencePhotos = hasStoragePhotos
     ? evidencePhotos.filter((p) => p.url && !p.url.startsWith("data:"))

@@ -9,9 +9,7 @@ import { adminService } from "./adminService";
 
 import { getCurrentActor, appendProcessEvent, parseHistory } from "../utils/processHistory";
 
-// Ensure Supabase Auth session is active before sensitive data operations
 const ensureAuthSession = async () => {
-  // If session has been terminated or replaced due to concurrent login, DO NOT auto sign-in!
   if (
     typeof sessionStorage !== "undefined" &&
     (sessionStorage.getItem("lsmis_concurrent_logout_notice") ||
@@ -20,7 +18,6 @@ const ensureAuthSession = async () => {
     throw new Error("Your session has ended because your account was signed in elsewhere.");
   }
 
-  // Validate active session with database
   await adminService.assertActiveSession();
 
   try {
@@ -33,7 +30,6 @@ const ensureAuthSession = async () => {
   }
 };
 
-// Fire database change notification to update all mounted hooks locally, cross-tab, and cross-browser.
 const notifyChange = (table = TABLES.LIVESTOCK, action = "update", record = null) => {
   notifyDbChange(table, action, record);
 };
@@ -62,10 +58,6 @@ const getDbRows = async (table) => {
   }
 };
 
-/**
- * Safely updates a livestock row with attribution fields and appends an immutable
- * event to process_history. If columns don't exist yet, gracefully falls back without failing.
- */
 export const safeUpdateLivestockWithHistory = async (id, tag, patch, processEvent = null, existingAnimal = null) => {
   await adminService.assertActiveSession();
   try {
@@ -96,7 +88,6 @@ export const safeUpdateLivestockWithHistory = async (id, tag, patch, processEven
 
     let { error } = await targetQuery;
 
-    // Gracefully handle column non-existence if database migration has not been applied yet
     if (error && /column|schema cache/i.test(`${error.message || ""} ${error.details || ""}`)) {
       const fallbackPatch = { ...patch };
       delete fallbackPatch.process_history;
@@ -108,7 +99,6 @@ export const safeUpdateLivestockWithHistory = async (id, tag, patch, processEven
           : supabase.from(TABLES.LIVESTOCK).update(fallbackPatch).eq("id", id));
       const res = await fbQuery;
       if (res.error) {
-        // Safe minimum patch with only known core columns
         const safeMin = {};
         if (patch.status) safeMin.status = patch.status;
         if (patch.marked !== undefined) safeMin.marked = patch.marked;
@@ -136,7 +126,6 @@ export const safeUpdateLivestockWithHistory = async (id, tag, patch, processEven
 };
 
 export const staffService = {
-  // Owners
   listOwners: () => getDbRows(TABLES.OWNERS),
   createOwner: async (p) => {
     await adminService.assertActiveSession();
@@ -192,7 +181,6 @@ export const staffService = {
   },
   updateOwner: async (id, p) => {
     const patch = { ...p };
-    // Prevent overwriting the original creator
     delete patch.created_by;
     delete patch.created_by_user_id;
     const { data, error } = await supabase.from(TABLES.OWNERS).update(patch).eq("id", id).select().maybeSingle();
@@ -221,7 +209,6 @@ export const staffService = {
     notifyChange(TABLES.OWNERS, "delete", { id });
   },
 
-  // Livestock
   listLivestock: () => getDbRows(TABLES.LIVESTOCK),
   createLivestock: async (p) => {
     await ensureAuthSession();
@@ -305,7 +292,6 @@ export const staffService = {
     const finalRow = (insertedData && insertedData[0]) || row;
     mutateTableCache(TABLES.LIVESTOCK, (prev) => [finalRow, ...(prev || []).filter((x) => x.id !== finalRow.id)]);
 
-    // Execute secondary operations (Owner sync, Owner notification, Activity log) concurrently
     const backgroundTasks = [];
 
     if (targetOwnerId || targetOwnerName) {
@@ -373,7 +359,6 @@ export const staffService = {
     const actor = getCurrentActor();
     const todayDate = today();
 
-    // Fetch latest owner names from owners table to guarantee consistent profile synchronization
     const distinctOwnerIds = Array.from(new Set(items.map((p) => p.owner_id).filter(Boolean)));
     const ownerNameMap = new Map();
     if (distinctOwnerIds.length > 0) {
@@ -475,7 +460,6 @@ export const staffService = {
 
     const finalRows = insertedRows && insertedRows.length > 0 ? insertedRows : rows;
 
-    // Instantly update client cache across all mounted components
     mutateTableCache(TABLES.LIVESTOCK, (prev) => {
       const existingIds = new Set((prev || []).map((x) => x.id));
       const fresh = finalRows.filter((r) => !existingIds.has(r.id));
@@ -571,7 +555,6 @@ export const staffService = {
     const markTime = nowObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     const markedAtIso = nowObj.toISOString();
 
-    // Preserve previous marking history for audit purposes
     let markingHistory = [];
     if (Array.isArray(animal?.marking_history)) {
       markingHistory = [...animal.marking_history];
@@ -625,7 +608,6 @@ export const staffService = {
       updateErr = res.error;
     }
 
-    // Gracefully handle column non-existence if database migration has not been run yet
     if (updateErr && /column|schema cache/i.test(`${updateErr.message || ""} ${updateErr.details || ""}`)) {
       const fallbackPatch = {
         marked: true,
@@ -684,7 +666,6 @@ export const staffService = {
     notifyChange(table, action, record);
   },
 
-  // Evaluate and apply automatic 24-hour fallback for livestock awaiting slaughter line intake (throttled & deduplicated)
   processMarking24hFallback: async () => {
     if (typeof document !== "undefined" && document.hidden) {
       return { processed: 0 };
@@ -692,7 +673,6 @@ export const staffService = {
     if (staffService._fallbackInFlight) {
       return staffService._fallbackInFlight;
     }
-    // Prevent overlapping or rapid consecutive executions (minimum 45s cooldown)
     const nowTs = Date.now();
     if (staffService._lastFallbackRun && nowTs - staffService._lastFallbackRun < 45000) {
       return { processed: 0 };
@@ -700,7 +680,6 @@ export const staffService = {
     staffService._lastFallbackRun = nowTs;
 
     staffService._fallbackInFlight = (async () => {
-      // 1. First attempt to call the PostgreSQL server-side RPC function
       try {
         const { data: rpcRes, error: rpcErr } = await supabase.rpc("process_marking_24h_fallback");
         if (!rpcErr && rpcRes && rpcRes.success) {
@@ -709,15 +688,13 @@ export const staffService = {
         }
       } catch (_) {}
 
-      // 2. Client-coordinated evaluation fallback against live database records
       try {
         const now = new Date();
-        const cutoffTime = now.getTime() - (24 * 60 * 60 * 1000); // 24 hours ago
+        const cutoffTime = now.getTime() - (24 * 60 * 60 * 1000);
         const nowIso = now.toISOString();
         const phTimeStr = now.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" }) + " " +
           now.toLocaleTimeString("en-US", { timeZone: "Asia/Manila", hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
-        // Fetch only the columns needed for 24h fallback evaluation (excludes heavy JSONB columns)
         const { data: animals, error: fetchErr } = await supabase
           .from(TABLES.LIVESTOCK)
           .select("id, tag_number, species, owner_name, owner_id, status, marked, mark_date, mark_time, marked_at, created_at, fallback_at, reassigned_at, previous_operator, permit_issued_at, weighed_at")
@@ -725,7 +702,6 @@ export const staffService = {
 
         if (fetchErr || !animals || animals.length === 0) return { processed: 0 };
 
-        // Fetch related tables in parallel instead of sequentially
         const [
           { data: processingList },
           { data: slaughterList },
@@ -761,7 +737,6 @@ export const staffService = {
           if (s.livestock_id && !srByLivestockId.has(s.livestock_id)) srByLivestockId.set(s.livestock_id, s);
         });
 
-        // Identify animals with genuine active floor progress (at least 1 step completed) or completed slaughter
         const inProcTags = new Set(
           (processingList || [])
             .filter((p) => {
@@ -794,13 +769,10 @@ export const staffService = {
         const cleanTag = String(animal.tag_number || "").trim().toUpperCase();
         if (!cleanTag) continue;
 
-        // Skip animals with issued permits or in permit records
         if (permittedTagSet.has(cleanTag)) continue;
 
-        // Skip animals already with genuine slaughter progress or completed slaughter
         if (inProcTags.has(cleanTag)) continue;
 
-        // Skip downstream, post-mortem, carcass weighing, permit, dispatch, condemned, or finalized animals
         const st = String(animal.status || "").toLowerCase();
         if (
           st === "slaughtering" || st === "completed" ||
@@ -813,18 +785,15 @@ export const staffService = {
           continue;
         }
 
-        // Prevent duplicate fallback processing for the same cycle
         const isAlreadyPendingFallback = Boolean(
           animal.fallback_at &&
           (!animal.reassigned_at || new Date(animal.fallback_at) > new Date(animal.reassigned_at))
         );
         if (isAlreadyPendingFallback) continue;
 
-        // Locate matching processing and slaughter record entries in O(1)
         const matchingProc = procByTag.get(cleanTag) || null;
         const matchingSr = srByTag.get(cleanTag) || (animal.id ? srByLivestockId.get(animal.id) : null) || null;
 
-        // Check if animal has an assigned operator (entered Ready for Slaughter)
         const assignedOp = matchingProc?.operator && matchingProc.operator !== "Unassigned"
           ? matchingProc.operator
           : (matchingSr?.operator && matchingSr.operator !== "Unassigned"
@@ -833,11 +802,8 @@ export const staffService = {
               ? animal.operator
               : (animal.previous_operator && animal.previous_operator !== "Unassigned" ? animal.previous_operator : null)));
 
-        // If the animal is not yet assigned an operator (waiting in Assign Team Operator),
-        // it has not entered Ready for Slaughter and cannot fall back.
         if (!assignedOp && st !== "in progress") continue;
 
-        // Determine exact timestamp when livestock entered Ready for Slaughter
         const readyForSlaughterTimestamp =
           animal.ready_for_slaughter_at ||
           animal.reassigned_at ||
@@ -851,12 +817,10 @@ export const staffService = {
         const entryTime = new Date(readyForSlaughterTimestamp).getTime();
         if (isNaN(entryTime)) continue;
 
-        // If livestock entered Ready for Slaughter less than 24 hours ago, remain in Ready for Slaughter
         if (entryTime > cutoffTime) continue;
 
         const prevOperator = assignedOp || matchingProc?.operator || matchingSr?.operator || animal.previous_operator || "Unassigned";
 
-        // Prepare updated marking history
         let markingHistory = [];
         if (Array.isArray(animal.marking_history)) {
           markingHistory = [...animal.marking_history];
@@ -888,7 +852,6 @@ export const staffService = {
         const res = await supabase.from(TABLES.LIVESTOCK).update(patch).eq("id", animal.id);
         updateError = res.error;
 
-        // If columns don't exist yet, update basic status
         if (updateError && /column.*does not exist/i.test(`${updateError.message || ""} ${updateError.details || ""}`)) {
           await supabase.from(TABLES.LIVESTOCK).update({
             status: "Ready for Slaughter",
@@ -898,7 +861,6 @@ export const staffService = {
           }).eq("id", animal.id);
         }
 
-        // Update pending slaughter record - reset operator to Unassigned so it returns to Assign Team Operator
         try {
           await supabase
             .from(TABLES.SLAUGHTER_RECORDS)
@@ -914,7 +876,6 @@ export const staffService = {
         } catch (_) {}
 
         try {
-          // If processing record exists without completed steps, reset to Pending Reassignment & Unassigned
           await supabase
             .from(TABLES.SLAUGHTER_PROCESSING)
             .update({
@@ -928,7 +889,6 @@ export const staffService = {
             .neq("status", "Completed");
         } catch (_) {}
 
-        // Prevent duplicate notifications for this specific fallback event cycle
         const hasNotif = (existingNotifs || []).some(
           (n) => n.message && n.message.includes(animal.tag_number) && new Date(n.date).getTime() >= entryTime
         );
@@ -951,7 +911,6 @@ export const staffService = {
           }
         }
 
-          // Record audit log
           try {
             await logActivity({
               action: `Automatic 24h Fallback: Returned ${animal.tag_number} to Assign Team Operator (exceeded 24h limit, reassign operator)`,
@@ -1061,7 +1020,6 @@ export const staffService = {
     notifyChange();
   },
 
-  // Slaughter
   listSlaughter: () => getDbRows(TABLES.SLAUGHTER_RECORDS),
   createSlaughter: async (p) => {
     if (p.tag_number) {
@@ -1109,7 +1067,6 @@ export const staffService = {
     return { data: patch };
   },
 
-  // Slaughter Processing
   listProcessing: () => getDbRows(TABLES.SLAUGHTER_PROCESSING),
   assignSlaughterOperator: async ({ tag_number, operator }, options = {}) => {
     if (!tag_number) throw new Error("Tag number is required");
@@ -1145,7 +1102,6 @@ export const staffService = {
       previous_operator: prevOperator || operator,
     };
 
-    // Check if slaughter_records entry exists, if not create one
     const { data: existingSr } = await supabase
       .from(TABLES.SLAUGHTER_RECORDS)
       .select("id")
@@ -1169,7 +1125,6 @@ export const staffService = {
       });
     }
 
-    // Ensure entry in slaughter_processing so it immediately becomes an Active Floor Operation
     try {
       const { data: existingProc } = await supabase
         .from(TABLES.SLAUGHTER_PROCESSING)
@@ -1276,7 +1231,6 @@ export const staffService = {
       throw new Error("At least one valid livestock tag must be selected");
     }
 
-    // 1. Batch fetch all candidate animals at once to prevent sequential DB round-trips
     const { data: animals, error: lError } = await supabase
       .from(TABLES.LIVESTOCK)
       .select("id, tag_number, species, sex, quantity, owner_name, owner_id, status, fallback_at, reassigned_at, marked, previous_operator")
@@ -1285,7 +1239,6 @@ export const staffService = {
     if (lError) throw lError;
     const animalMap = new Map((animals || []).map((a) => [String(a.tag_number || "").toUpperCase(), a]));
 
-    // 2. Batch fetch existing slaughter_processing rows
     const { data: existingProcRows } = await supabase
       .from(TABLES.SLAUGHTER_PROCESSING)
       .select("id, tag_number, status, operator, steps")
@@ -1331,7 +1284,6 @@ export const staffService = {
       validAnimalsToProcess.push(animal);
     }
 
-    // 3. Process assignments concurrently in parallel with skipNotify: true
     if (validAnimalsToProcess.length > 0) {
       await Promise.all(
         validAnimalsToProcess.map(async (animal) => {
@@ -1361,7 +1313,6 @@ export const staffService = {
       );
     }
 
-    // 4. Fire single consolidated notification after all records finish
     notifyChange(TABLES.SLAUGHTER_PROCESSING);
     notifyChange(TABLES.SLAUGHTER_RECORDS);
     notifyChange(TABLES.LIVESTOCK);
@@ -1383,7 +1334,6 @@ export const staffService = {
     const completionDate = nowIso.split("T")[0];
     const cleanTag = tag_number ? String(tag_number).trim() : null;
 
-    // 1. Locate and verify the livestock record from Supabase
     let animal = null;
     if (livestock_id) {
       const { data, error } = await supabase
@@ -1419,7 +1369,6 @@ export const staffService = {
     const effectiveOperator = operator || actor.name || "Team A";
     const effectiveOwner = animal.owner_name || owner_name || "Unknown Owner";
 
-    // 2. Update LIVESTOCK table directly with history and verify database confirmation
     const currentHistory = parseHistory(animal.process_history);
     const updatedHistory = appendProcessEvent(currentHistory, {
       stage: "Slaughter",
@@ -1463,7 +1412,6 @@ export const staffService = {
     }
 
     if (!updatedLive || updatedLive.length === 0) {
-      // Fallback check by tag_number if ID update didn't match a row
       const tagFallbackRes = await supabase
         .from(TABLES.LIVESTOCK)
         .update(livestockPatch)
@@ -1475,7 +1423,6 @@ export const staffService = {
       }
     }
 
-    // 3. Update SLAUGHTER_PROCESSING table
     const allStepsCompleted = {
       bathing: { done: true, completed_at: nowIso, completed_by: actor.name },
       stunning: { done: true, completed_at: nowIso, completed_by: actor.name },
@@ -1527,7 +1474,6 @@ export const staffService = {
       console.warn("Slaughter processing sync notice:", procErr);
     }
 
-    // 4. Update SLAUGHTER_RECORDS table
     try {
       await supabase
         .from(TABLES.SLAUGHTER_RECORDS)
@@ -1541,7 +1487,6 @@ export const staffService = {
       console.warn("Slaughter records update notice:", srErr);
     }
 
-    // 5. Activity log
     try {
       await logActivity({
         action: `Marked livestock ${effectiveTag} as done (Slaughtered)`,
@@ -1554,7 +1499,6 @@ export const staffService = {
       });
     } catch (_) {}
 
-    // 6. Broadcast real-time notifications
     notifyChange(TABLES.LIVESTOCK, "update", { id: effectiveId, tag: effectiveTag, status: "Completed" });
     notifyChange(TABLES.SLAUGHTER_PROCESSING, "update", { tag: effectiveTag, status: "Completed" });
     notifyChange(TABLES.SLAUGHTER_RECORDS, "update", { tag: effectiveTag, status: "Completed" });
@@ -1568,7 +1512,6 @@ export const staffService = {
     };
   },
   completeSlaughterGroup: async ({ owner_name, group_key, items = [], tag_numbers = [], operator = null }) => {
-    // Determine target list from provided items or tag_numbers
     let targets = [];
     if (Array.isArray(items) && items.length > 0) {
       targets = items.map((i) => ({
@@ -1593,7 +1536,6 @@ export const staffService = {
     const successes = [];
     const failures = [];
 
-    // Process every animal using the validated completeSlaughterSingle transition logic
     for (const target of targets) {
       try {
         const res = await staffService.completeSlaughterSingle({
@@ -1627,7 +1569,6 @@ export const staffService = {
       throw new Error(`Failed to mark records as done: ${failures.map((f) => `${f.tag} (${f.reason})`).join("; ")}`);
     }
 
-    // Consolidated audit log for the batch action
     if (successes.length > 0) {
       try {
         await logActivity({
@@ -1861,7 +1802,6 @@ export const staffService = {
       }
     }
 
-    // Always sync in-progress steps to livestock process history so steps persist reliably
     if (effectiveTag && patch.steps) {
       try {
         await safeUpdateLivestockWithHistory(
@@ -1962,7 +1902,6 @@ export const staffService = {
       notifyChange(TABLES.SLAUGHTER_RECORDS, "update", { tag: effectiveTag, status: "Completed" });
       notifyChange(TABLES.POST_MORTEM, "update", { tag: effectiveTag, status: "Completed" });
     } else if (!updated && lastError && !/row-level security/i.test(lastError.message || "")) {
-      // If in progress and failed for a non-RLS fatal reason, report error
       throw lastError;
     }
 
@@ -1970,7 +1909,6 @@ export const staffService = {
     return { data: patch };
   },
 
-  // Carcass
   listCarcass: () => getDbRows(TABLES.CARCASS),
   listCarcassBranding: () => getDbRows(TABLES.CARCASS_BRANDING),
   createCarcass: async (p) => {
@@ -2009,7 +1947,6 @@ export const staffService = {
       created_at: nowIso,
     };
 
-    // 1. Try atomic RPC first (SECURITY DEFINER transaction)
     let usedRpc = false;
     try {
       const { data: rpcData, error: rpcErr } = await supabase.rpc("record_carcass_weighing", {
@@ -2045,7 +1982,6 @@ export const staffService = {
       console.warn("RPC attempt threw:", rpcEx);
     }
 
-    // 2. Fallback to direct table operations if RPC not yet installed
     if (!usedRpc) {
       const { data: existingCarcass, error: existingErr } = await supabase
         .from(TABLES.CARCASS)
@@ -2076,7 +2012,6 @@ export const staffService = {
         throw error;
       }
 
-      // Check if branding record already exists to prevent duplicate key constraint violations
       try {
         const { data: existingBrand } = await supabase
           .from(TABLES.CARCASS_BRANDING)
@@ -2215,7 +2150,6 @@ export const staffService = {
     return { data: { id, ...dbPatch } };
   },
 
-  // Payments
   listPayments: () => getDbRows(TABLES.PAYMENTS),
   createPayment: async (p) => {
     const actor = getCurrentActor();
@@ -2286,6 +2220,5 @@ export const staffService = {
     return { data: row };
   },
 
-  // Notifications
   listNotifications: () => getDbRows(TABLES.NOTIFICATIONS),
 };

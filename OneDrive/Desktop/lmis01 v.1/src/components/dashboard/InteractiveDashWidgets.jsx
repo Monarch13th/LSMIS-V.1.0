@@ -1,14 +1,5 @@
 import { useState } from "react";
 
-/**
- * Interactive Dual-Series Smooth Area Chart
- * - Hovering any stage column, point, or axis pill highlights that stage,
- *   draws a vertical crosshair line, enlarges both series dots, and displays
- *   a floating tooltip with both series values and percentage details.
- * - Hovering either legend item highlights that series (primary vs secondary)
- *   across the entire chart.
- * - Clicking a stage point, hit column, or axis pill triggers `p.onClick` if provided.
- */
 export const InteractiveAreaChart = ({
   points = [],
   primaryLabel = "All-time volume",
@@ -16,7 +7,7 @@ export const InteractiveAreaChart = ({
   ariaLabel = "Operations throughput",
 }) => {
   const [hoveredIdx, setHoveredIdx] = useState(null);
-  const [hoveredSeries, setHoveredSeries] = useState(null); // 'primary' | 'secondary' | null
+  const [hoveredSeries, setHoveredSeries] = useState(null);
 
   const safePoints = points.length > 0 ? points : [{ label: "—", v: 0, sub: 0 }];
   const max = Math.max(...safePoints.map((p) => Math.max(Number(p.v) || 0, Number(p.sub) || 0)), 1);
@@ -65,7 +56,6 @@ export const InteractiveAreaChart = ({
   const activePoint = safePoints[activeIdx] || { label: "", v: 0, sub: 0 };
   const activeSharePct = totalPrimary > 0 ? Math.round(((Number(activePoint.v) || 0) / totalPrimary) * 100) : 0;
 
-  // Tooltip horizontal clamping so it never clips off the left/right edges
   const tooltipLeftPct = Math.min(Math.max((activeX / W) * 100, 18), 82);
 
   return (
@@ -98,7 +88,6 @@ export const InteractiveAreaChart = ({
         onMouseLeave={() => setHoveredIdx(null)}
       >
         <div className="ag-chart-stage-canvas">
-          {/* Floating Interactive Tooltip */}
           {hoveredIdx !== null && (
             <div
               className="ag-chart-floating-tooltip"
@@ -148,7 +137,6 @@ export const InteractiveAreaChart = ({
               />
             ))}
 
-            {/* Vertical guide line on active/hovered stage */}
             <line
               x1={activeX}
               x2={activeX}
@@ -174,7 +162,6 @@ export const InteractiveAreaChart = ({
               className={`ag-line-primary ${hoveredSeries === "secondary" ? "is-dimmed" : ""} ${hoveredSeries === "primary" ? "is-emphasized" : ""}`}
             />
 
-            {/* Secondary series dots */}
             {secondaryXY.map(([x, y], i) => {
               const isAct = i === activeIdx && (hoveredIdx !== null || hoveredSeries === "secondary");
               return (
@@ -188,7 +175,6 @@ export const InteractiveAreaChart = ({
               );
             })}
 
-            {/* Primary series dots */}
             {primaryXY.map(([x, y], i) => {
               const isAct = i === activeIdx;
               return (
@@ -211,7 +197,6 @@ export const InteractiveAreaChart = ({
               );
             })}
 
-            {/* Callout pill above active point */}
             <g
               transform={`translate(${activeX}, ${Math.max((hoveredSeries === "secondary" ? activeSubY : activeY) - 24, 3)})`}
               className="ag-peak-group"
@@ -222,7 +207,6 @@ export const InteractiveAreaChart = ({
               </text>
             </g>
 
-            {/* Invisible interactive hover/click columns for smooth cursor tracking */}
             {primaryXY.map(([x], i) => {
               const colW = W / safePoints.length;
               return (
@@ -263,12 +247,6 @@ export const InteractiveAreaChart = ({
   );
 };
 
-/**
- * Interactive Concentric Ring Gauge
- * - Hovering any legend item or ring highlights that ring, dims the others,
- *   and dynamically updates the center SVG readout to show the hovered item's
- *   percentage share or count and label.
- */
 export const InteractiveRings = ({
   rows = [],
   centerValue = "0%",

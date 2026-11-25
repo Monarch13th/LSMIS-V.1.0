@@ -3,10 +3,6 @@ import { supabase } from "./supabaseClient.js";
 const CLIENT_SESSION_STORAGE_KEY = "lsmis_client_session_id";
 
 export const authSecurityService = {
-  /**
-   * Get or initialize a unique client identifier for this browser instance.
-   * Stored in localStorage to recognize the same browser across tab reloads/reopens.
-   */
   getClientSessionId() {
     if (typeof window === "undefined") return null;
     try {
@@ -35,10 +31,6 @@ export const authSecurityService = {
     } catch {}
   },
 
-  /**
-   * Format lockout duration into a user-friendly string.
-   * e.g., "4 hours", "3 hours and 45 minutes", "25 minutes", or "less than a minute"
-   */
   formatLockoutTime(seconds) {
     const sec = Math.max(0, Math.ceil(Number(seconds) || 0));
     if (sec <= 0) return "a moment";
@@ -58,9 +50,6 @@ export const authSecurityService = {
     return "less than a minute";
   },
 
-  /**
-   * Server-side check if the account is currently locked due to failed attempts.
-   */
   async checkAccountLockout(email) {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail) {
@@ -89,10 +78,6 @@ export const authSecurityService = {
     }
   },
 
-  /**
-   * Record a failed login attempt on the server.
-   * Locks account for 4 hours upon reaching 5 failed attempts.
-   */
   async recordFailedLogin(email) {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail) {
@@ -122,9 +107,6 @@ export const authSecurityService = {
     }
   },
 
-  /**
-   * Server-side check if the account is already active on another device or browser.
-   */
   async checkActiveSession(email, clientSessionId = null) {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail) {
@@ -154,11 +136,6 @@ export const authSecurityService = {
     }
   },
 
-  /**
-   * Server-side registration of the active session on successful login.
-   * Resets failed login attempts and sets active_session_id.
-   * Rejects if account is already logged in on another device.
-   */
   async registerActiveSession(email, sessionId, clientSessionId = null) {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail || !sessionId) {
@@ -198,9 +175,6 @@ export const authSecurityService = {
     }
   },
 
-  /**
-   * Heartbeat to keep active_session_updated_at fresh while user is active.
-   */
   async heartbeatSession(email, sessionId) {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail || !sessionId) return { isValid: true };
@@ -227,9 +201,6 @@ export const authSecurityService = {
     }
   },
 
-  /**
-   * Server-side release of the active session on logout.
-   */
   async releaseActiveSession(email, sessionId = null) {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail) return { success: true };

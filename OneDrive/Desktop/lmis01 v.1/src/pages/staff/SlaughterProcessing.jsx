@@ -48,12 +48,10 @@ const isValidIsoTimestamp = (val) => {
 };
 
 const resolveStartedAt = (p, stepsObj, l, s) => {
-  // 1. Direct explicit started_at fields
   if (isValidIsoTimestamp(p?.started_at)) return p.started_at;
   if (isValidIsoTimestamp(p?.slaughter_started_at)) return p.slaughter_started_at;
   if (isValidIsoTimestamp(stepsObj?.started_at)) return stepsObj.started_at;
 
-  // 2. Earliest step completion timestamp
   if (stepsObj) {
     for (const step of STEPS) {
       const stepVal = stepsObj[step.key];
@@ -63,14 +61,12 @@ const resolveStartedAt = (p, stepsObj, l, s) => {
     }
   }
 
-  // 3. Livestock / Slaughter Record actual timestamps from Supabase
   if (isValidIsoTimestamp(l?.slaughter_started_at)) return l.slaughter_started_at;
   if (isValidIsoTimestamp(l?.marked_at)) return l.marked_at;
   if (isValidIsoTimestamp(p?.created_at)) return p.created_at;
   if (isValidIsoTimestamp(s?.created_at)) return s.created_at;
   if (isValidIsoTimestamp(l?.created_at)) return l.created_at;
 
-  // 4. Date string fallback
   const fallbackDate = p?.slaughter_start_date || p?.date || l?.slaughter_start_date || l?.mark_date || l?.date;
   if (fallbackDate) return fallbackDate;
 
@@ -78,12 +74,10 @@ const resolveStartedAt = (p, stepsObj, l, s) => {
 };
 
 const resolveCompletedAt = (p, stepsObj, l, s) => {
-  // 1. Direct explicit completed_at fields
   if (isValidIsoTimestamp(p?.completed_at)) return p.completed_at;
   if (isValidIsoTimestamp(p?.slaughter_completed_at)) return p.slaughter_completed_at;
   if (isValidIsoTimestamp(stepsObj?.completed_at)) return stepsObj.completed_at;
 
-  // 2. Latest step completion timestamp (e.g. final washing step)
   if (stepsObj) {
     for (let i = STEPS.length - 1; i >= 0; i--) {
       const stepVal = stepsObj[STEPS[i].key];
@@ -93,13 +87,11 @@ const resolveCompletedAt = (p, stepsObj, l, s) => {
     }
   }
 
-  // 3. Livestock / Slaughter Record actual completion timestamps from Supabase
   if (isValidIsoTimestamp(l?.slaughter_completed_at)) return l.slaughter_completed_at;
   if (isValidIsoTimestamp(p?.updated_at)) return p.updated_at;
   if (isValidIsoTimestamp(s?.updated_at)) return s.updated_at;
   if (isValidIsoTimestamp(l?.updated_at)) return l.updated_at;
 
-  // 4. Date string fallback
   const fallbackDate = p?.date || l?.slaughter_end_date || l?.slaughter_date || l?.date;
   if (fallbackDate) return fallbackDate;
 
@@ -134,7 +126,6 @@ const getSpeciesStyle = (species) => {
   }
 };
 
-// The sequential steps of the slaughterhouse operation
 const STEPS = [
   { key: "bathing", label: "Bathing", icon: <Icon.Droplet size={15} />, desc: "Clean hide & pre-slaughter shower" },
   { key: "stunning", label: "Stunning / Sticking", icon: <Icon.Activity size={15} />, desc: "Humane stunning & initial stick" },
@@ -243,7 +234,7 @@ export const SlaughterProcessing = () => {
 
   const { showToast } = useToast();
   const [startOpen, setStartOpen] = useState(false);
-  const [active, setActive] = useState(null); // record being updated in 6-step modal
+  const [active, setActive] = useState(null);
   const [startForm, setStartForm] = useState({ tag_number: "", operator: "Team A" });
   const [submittingStart, setSubmittingStart] = useState(false);
   const [updatingStep, setUpdatingStep] = useState(null);
@@ -318,7 +309,6 @@ export const SlaughterProcessing = () => {
     refreshAll();
   };
 
-  // Default view is 'awaiting': 'awaiting' | 'active'
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const urlTab = searchParams.get("tab");
@@ -343,7 +333,6 @@ export const SlaughterProcessing = () => {
     }
   }, [searchParams]);
 
-  // Pagination states for tables
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -351,7 +340,6 @@ export const SlaughterProcessing = () => {
     setPage(1);
   }, [search, filterSpecies, activeTab]);
 
-  // Check and apply 24-hour marking fallback after initial render and periodically when active
   useEffect(() => {
     const initialTimer = setTimeout(() => {
       staffService.processMarking24hFallback()
@@ -380,7 +368,6 @@ export const SlaughterProcessing = () => {
     };
   }, []);
 
-  // Pre-index records into O(1) Maps to eliminate O(N^2) nested .find() scans
   const indexedRecords = useMemo(() => {
     const livestockByTag = new Map();
     const livestockById = new Map();
@@ -433,12 +420,9 @@ export const SlaughterProcessing = () => {
     };
   }, [livestock, processing, slaughter, anteMortem, owners]);
 
-  // Animals actively undergoing floor operations (In Progress / Active Floor Operations)
-  // Merges processing table records and livestock/slaughter records with assigned operators or 'In Progress' status
   const inProgress = useMemo(() => {
     const map = new Map();
 
-    // 1. From slaughter_processing
     (processing || []).forEach((p) => {
       const tagKey = String(p.tag_number || "").trim().toUpperCase();
       if (!tagKey) return;
@@ -493,13 +477,11 @@ export const SlaughterProcessing = () => {
       }
     });
 
-    // 2. Synthesize from livestock table if status is "In Progress" or "Slaughtering" or if animal is assigned to an operator (and not fallback, and not downstream/finalized)
     (livestock || []).forEach((l) => {
       const tagKey = String(l.tag_number || "").trim().toUpperCase();
       if (!tagKey) return;
       const lowerSt = String(l.status || "").trim().toLowerCase();
 
-      // Exclude downstream or finalized
       if (
         lowerSt === "completed" ||
         lowerSt === "slaughtered" ||
@@ -558,7 +540,6 @@ export const SlaughterProcessing = () => {
       }
     });
 
-    // 3. Also check slaughter records if assigned operator and not yet in map
     (slaughter || []).forEach((s) => {
       const tagKey = String(s.tag_number || "").trim().toUpperCase();
       if (!tagKey || map.has(tagKey)) return;
@@ -617,12 +598,9 @@ export const SlaughterProcessing = () => {
     });
   }, [processing, livestock, slaughter, indexedRecords]);
 
-  // Animals with completed slaughter line
-  // Merges processing table records and falls back to livestock records with 'Completed' status
   const completed = useMemo(() => {
     const map = new Map();
 
-    // 1. From slaughter_processing
     (processing || []).forEach((p) => {
       const tagKey = String(p.tag_number || "").trim().toUpperCase();
       if (!tagKey) return;
@@ -645,7 +623,6 @@ export const SlaughterProcessing = () => {
       }
     });
 
-    // 2. Synthesize from livestock table if status is "Completed" or "Slaughtered"
     (livestock || []).forEach((l) => {
       const tagKey = String(l.tag_number || "").trim().toUpperCase();
       if (!tagKey) return;
@@ -688,9 +665,7 @@ export const SlaughterProcessing = () => {
     });
   }, [processing, livestock, indexedRecords]);
 
-  // Animals marked & ready for slaughter but not yet in processing (sorted by Tag Number Ascending)
   const availableAnimals = useMemo(() => {
-    // Exclude animals that are actively being processed OR have completed slaughter / downstream operations
     const unavailableTags = new Set();
 
     (inProgress || []).forEach((p) => {
@@ -761,7 +736,6 @@ export const SlaughterProcessing = () => {
 
     const map = new Map();
 
-    // 1. From slaughter_records
     (slaughter || []).forEach((s) => {
       const tagKey = String(s.tag_number || "").trim().toUpperCase();
       if (!tagKey || unavailableTags.has(tagKey)) return;
@@ -810,7 +784,6 @@ export const SlaughterProcessing = () => {
       }
     });
 
-    // 2. From livestock table
     (livestock || []).forEach((l) => {
       const tagKey = String(l.tag_number || "").trim().toUpperCase();
       if (!tagKey || unavailableTags.has(tagKey)) return;
@@ -885,7 +858,6 @@ export const SlaughterProcessing = () => {
     });
 
     return Array.from(map.values()).sort((a, b) => {
-      // Prioritize active fallback cases requiring reassignment
       if (a.is_fallback && !b.is_fallback) return -1;
       if (!a.is_fallback && b.is_fallback) return 1;
 
@@ -903,12 +875,10 @@ export const SlaughterProcessing = () => {
     return Boolean(op && op !== "Unassigned" && op !== "—");
   };
 
-  // 1. Unassigned / Fallback animals awaiting team operator assignment (Tab 1: Assign Team Operator)
   const unassignedAnimals = useMemo(() => {
     return availableAnimals.filter((s) => !isAnimalAssigned(s));
   }, [availableAnimals]);
 
-  // 2. Assigned animals ready for slaughter floor execution (Tab 2: Ready for Slaughter)
   const readyForSlaughterAnimals = useMemo(() => {
     return inProgress;
   }, [inProgress]);
@@ -987,7 +957,6 @@ export const SlaughterProcessing = () => {
     return "unspecified";
   };
 
-  // Filter Active Operations (In Progress)
   const filteredInProgress = useMemo(() => {
     const q = search.trim().toLowerCase();
     return inProgress
@@ -1019,7 +988,6 @@ export const SlaughterProcessing = () => {
       });
   }, [inProgress, livestock, owners, search, filterSpecies]);
 
-  // Filter Awaiting Animals (Tab 1: Assign Team Operator) - strictly unassigned or fallback
   const filteredAwaiting = useMemo(() => {
     const q = search.trim().toLowerCase();
     return unassignedAnimals
@@ -1060,7 +1028,6 @@ export const SlaughterProcessing = () => {
       });
   }, [unassignedAnimals, livestock, owners, search, filterSpecies]);
 
-  // Filter Ready for Slaughter Queue (Tab 2: Ready for Slaughter) - assigned animals awaiting floor processing start
   const filteredReady = useMemo(() => {
     const q = search.trim().toLowerCase();
     return readyForSlaughterAnimals
@@ -1098,7 +1065,6 @@ export const SlaughterProcessing = () => {
       });
   }, [readyForSlaughterAnimals, livestock, owners, search, filterSpecies]);
 
-  // Filter Completed Operations
   const filteredCompleted = useMemo(() => {
     const q = search.trim().toLowerCase();
     return completed
@@ -1130,8 +1096,6 @@ export const SlaughterProcessing = () => {
       });
   }, [completed, livestock, owners, search, filterSpecies]);
 
-  // Owner-Grouped datasets for all stages:
-  // 1. Tab 1: Grouped Awaiting Animals (Assign Team Operator)
   const groupedAwaiting = useMemo(() => {
     const groups = new Map();
     (filteredAwaiting || []).forEach((item) => {
@@ -1183,7 +1147,6 @@ export const SlaughterProcessing = () => {
     });
   }, [filteredAwaiting, livestock, owners]);
 
-  // 2. Tab 2: Grouped In-Progress Operations (Ready for Slaughter / Active Floor Operations) - Grouped by Owner & Slaughter Date
   const groupedInProgress = useMemo(() => {
     const groups = new Map();
     (filteredInProgress || []).forEach((item) => {
@@ -1257,7 +1220,6 @@ export const SlaughterProcessing = () => {
     });
   }, [filteredInProgress, livestock, owners]);
 
-  // 3. Tab 3: Grouped Completed Slaughter Records
   const groupedCompleted = useMemo(() => {
     const groups = new Map();
     (filteredCompleted || []).forEach((item) => {
@@ -1304,7 +1266,6 @@ export const SlaughterProcessing = () => {
     });
   }, [filteredCompleted, livestock, owners]);
 
-  // Group eligible unassigned animals by owner for the Assign Team Operator modal
   const modalOwnerGroups = useMemo(() => {
     const groups = new Map();
 
@@ -1447,7 +1408,6 @@ export const SlaughterProcessing = () => {
     setExpandedReadyOwnerKey((prev) => (prev === groupKey ? null : groupKey));
   };
 
-  // Collapsible Accordion State for Owner Groups (defaults to expanded)
   const [collapsedGroups, setCollapsedGroups] = useState(new Set());
   const isGroupExpanded = (key) => !collapsedGroups.has(key);
   const toggleGroupExpand = (key) => {
@@ -1461,7 +1421,6 @@ export const SlaughterProcessing = () => {
   const expandAllGroups = () => setCollapsedGroups(new Set());
   const collapseAllGroups = (groupsList) => setCollapsedGroups(new Set((groupsList || []).map((g) => g.key)));
 
-  // Selected Owner Dedicated View State across all stages (matches Condemnation pattern)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
   const [selectedReadyKeys, setSelectedReadyKeys] = useState(new Set());
   useEffect(() => {
@@ -1490,7 +1449,6 @@ export const SlaughterProcessing = () => {
     return (currentDataset || []).find((g) => g.key === selectedOwnerKey) || null;
   }, [currentDataset, selectedOwnerKey]);
 
-  // View records pagination (10 per page default)
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
@@ -1504,7 +1462,6 @@ export const SlaughterProcessing = () => {
     return selectedOwnerView.items.slice(start, start + ownerViewPageSize);
   }, [selectedOwnerView, ownerViewPage, ownerViewPageSize]);
 
-  // Selection calculations for Assign Team Operator (Tab 1)
   const isAllSelected = useMemo(() => {
     if (!filteredAwaiting.length) return false;
     return filteredAwaiting.every((s) => selectedTags.has(s.tag_number));
@@ -1557,7 +1514,6 @@ export const SlaughterProcessing = () => {
     return selectedAnimalsList.reduce((sum, s) => sum + (Number(s.quantity || s.head_count || 1) || 1), 0);
   }, [selectedAnimalsList]);
 
-  // Per-Owner group selection helpers
   const isOwnerAllSelected = (ownerGroup) => {
     return ownerGroup.items.length > 0 && ownerGroup.items.every((item) => selectedTags.has(item.tag_number));
   };
@@ -1595,7 +1551,6 @@ export const SlaughterProcessing = () => {
     setStartOpen(true);
   };
 
-  // Pagination current length (operates on Owner Groups)
   const totalCount =
     activeTab === "awaiting"
       ? groupedAwaiting.length
@@ -1676,7 +1631,6 @@ export const SlaughterProcessing = () => {
       return;
     }
 
-    // Resolve target livestock record objects
     const targetAnimals = tagsToProcess.map((tag) => {
       return (
         unassignedAnimals.find((a) => a.tag_number === tag) ||
@@ -1685,7 +1639,6 @@ export const SlaughterProcessing = () => {
       );
     });
 
-    // Validate that all selected livestock are still eligible
     const ineligible = targetAnimals.filter((a) => {
       const st = String(a.status || "").toLowerCase();
       return (
@@ -1705,7 +1658,6 @@ export const SlaughterProcessing = () => {
 
     const totalHeads = targetAnimals.reduce((sum, a) => sum + (Number(a.quantity || a.head_count || 1) || 1), 0);
 
-    // Open confirmation modal prior to saving
     setAssignConfirmData({
       operator: assignedOperator,
       tags: tagsToProcess,
@@ -1724,7 +1676,6 @@ export const SlaughterProcessing = () => {
 
     const { tags: tagsToProcess, operator: assignedOperator, animals: targetAnimals, totalHeads } = assignConfirmData;
 
-    // Re-validate that selected livestock records remain eligible before database commit
     const currentAnimals = tagsToProcess.map((tag) => {
       return (
         unassignedAnimals.find((a) => a.tag_number === tag) ||
@@ -1760,7 +1711,6 @@ export const SlaughterProcessing = () => {
 
       const isBatch = tagsToProcess.length > 1;
 
-      // Close both confirmation dialog and assignment modal
       setAssignConfirmData(null);
       setStartOpen(false);
       setTargetTagsForModal([]);
@@ -2158,9 +2108,7 @@ export const SlaughterProcessing = () => {
         }
       `}</style>
 
-      {/* MAIN CONTAINER (BORDERLESS RECORD VIEW MATCHING REGISTERED OWNERS) */}
       <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Swapped Toolbar: Segmented Tabs (Left) & Search + Filters (Right) */}
         <div
           className="records-fixed-header"
           style={{
@@ -2178,10 +2126,8 @@ export const SlaughterProcessing = () => {
             boxSizing: "border-box",
           }}
         >
-          {/* Left: Swapped Navigation Tabs */}
           {renderNavTabs()}
 
-          {/* Right: Search Bar beside Species Selector & Actions */}
           <div
             style={{
               display: "flex",
@@ -2192,7 +2138,6 @@ export const SlaughterProcessing = () => {
               justifyContent: "flex-end",
             }}
           >
-            {/* Search Box */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, width: 220, minWidth: 140, maxWidth: 250, flexShrink: 1, position: "relative" }}>
               <input
                 type="text"
@@ -2260,7 +2205,6 @@ export const SlaughterProcessing = () => {
               )}
             </div>
 
-            {/* Species Filter */}
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
               <select
                 value={filterSpecies}
@@ -2295,7 +2239,6 @@ export const SlaughterProcessing = () => {
               </select>
             </div>
 
-            {/* Right Action: Assign Team Operator Button (Only on awaiting tab) */}
             {activeTab === "awaiting" && (
               <Button
                 onClick={() => {
@@ -2358,7 +2301,6 @@ export const SlaughterProcessing = () => {
           </div>
         </div>
 
-        {/* Bulk Selection Action Bar for Assign Team Operator */}
         {activeTab === "awaiting" && selectedTags.size > 0 && (
           <div
             style={{
@@ -2430,7 +2372,6 @@ export const SlaughterProcessing = () => {
           </div>
         )}
 
-        {/* Tab 2: Ready for Slaughter (Active Floor Operations - Owner Grouped) */}
         {activeTab === "active" && (
           <div style={{ padding: 0 }}>
             {filteredInProgress.length === 0 ? (
@@ -2446,7 +2387,6 @@ export const SlaughterProcessing = () => {
                 />
               </div>
             ) : (
-              /* Main Owner List Table (EXACT match with Assign Team Operator pattern) */
               <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", flex: 1, minHeight: 0 }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
@@ -2577,7 +2517,6 @@ export const SlaughterProcessing = () => {
           </div>
         )}
 
-        {/* Tab 2: Assign Team Operator Records Table */}
         {activeTab === "awaiting" && (
           <div style={{ padding: 0 }}>
             {recordsError && unassignedAnimals.length === 0 ? (
@@ -2655,7 +2594,6 @@ export const SlaughterProcessing = () => {
                 icon={<Icon.Users size={36} />}
               />
             ) : (
-              /* Main Owner List Table (matches Condemnation pattern) */
               <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", flex: 1, minHeight: 0 }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "var(--color-bg)" }}>
@@ -2794,7 +2732,6 @@ export const SlaughterProcessing = () => {
 
       </div>
 
-      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -3280,7 +3217,6 @@ export const SlaughterProcessing = () => {
         )}
       </Modal>
 
-      {/* Assign Team Operator Modal (Matching Ante-Mortem Inspection Modal Layout) */}
       <Modal
         open={startOpen}
         onClose={() => {
@@ -3345,7 +3281,6 @@ export const SlaughterProcessing = () => {
             height: "100%",
           }}
         >
-          {/* Scrollable Form Body Container (Matching Ante-Mortem Inspection Modal) */}
           <div
             style={{
               flex: 1,
@@ -3358,7 +3293,6 @@ export const SlaughterProcessing = () => {
               scrollbarWidth: "thin",
             }}
           >
-            {/* Search filter within modal */}
             {modalOwnerGroups.length > 2 && (
               <div style={{ position: "relative" }}>
                 <input
@@ -3409,7 +3343,6 @@ export const SlaughterProcessing = () => {
               </div>
             )}
 
-            {/* Batch Tag Selection Header Bar (Matching Ante-Mortem lines 2156-2229) */}
             <div
               style={{
                 display: "flex",
@@ -3471,7 +3404,6 @@ export const SlaughterProcessing = () => {
               )}
             </div>
 
-            {/* Owner-Based Summary Cards (Matching Ante-Mortem Inspection Modal lines 2258-2580) */}
             <div
               style={{
                 display: "flex",
@@ -3518,7 +3450,6 @@ export const SlaughterProcessing = () => {
                         boxShadow: selectedInGrp.length > 0 ? "0 2px 8px rgba(5, 150, 105, 0.08)" : "none",
                       }}
                     >
-                      {/* Owner Card Header */}
                       <div
                         style={{
                           padding: "10px 14px",
@@ -3532,7 +3463,6 @@ export const SlaughterProcessing = () => {
                         }}
                         onClick={() => toggleOwnerExpanded(grp.key)}
                       >
-                        {/* Left: Checkbox + Owner Name */}
                         <div
                           style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: 1 }}
                           onClick={(e) => e.stopPropagation()}
@@ -3583,12 +3513,10 @@ export const SlaughterProcessing = () => {
                           )}
                         </div>
 
-                        {/* Right: Summary Badges + Expand Toggle (Exact match with Ante-Mortem modal) */}
                         <div
                           style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {/* Total Count Badge */}
                           <span
                             style={{
                               fontSize: 11,
@@ -3604,7 +3532,6 @@ export const SlaughterProcessing = () => {
                             Total: <strong>{grp.total}</strong>
                           </span>
 
-                          {/* Male Count Badge */}
                           <span
                             style={{
                               fontSize: 11,
@@ -3623,7 +3550,6 @@ export const SlaughterProcessing = () => {
                             <span style={{ fontSize: 12 }}>♂</span> Male: <strong>{grp.maleCount}</strong>
                           </span>
 
-                          {/* Female Count Badge */}
                           <span
                             style={{
                               fontSize: 11,
@@ -3659,7 +3585,6 @@ export const SlaughterProcessing = () => {
                             </span>
                           )}
 
-                          {/* Expand/Collapse Chevron (matching Ante-Mortem modal) */}
                           <span
                             onClick={() => toggleOwnerExpanded(grp.key)}
                             style={{
@@ -3678,7 +3603,6 @@ export const SlaughterProcessing = () => {
                         </div>
                       </div>
 
-                      {/* Expanded Livestock List Under This Owner (Matching Ante-Mortem lines 2440-2580) */}
                       {isExpanded && (
                         <div
                           style={{
@@ -3826,7 +3750,6 @@ export const SlaughterProcessing = () => {
               )}
             </div>
 
-            {/* Any selected fallback warnings */}
             {Array.from(modalSelectedTags).some((tag) => {
               const an = unassignedAnimals.find((a) => a.tag_number === tag);
               return Boolean(an?.is_fallback);
@@ -3851,7 +3774,6 @@ export const SlaughterProcessing = () => {
 
           </div>
 
-          {/* Fixed Actions Footer Pinned at Modal Bottom (Matching Ante-Mortem Modal) */}
           <div
             className="inspection-form-fixed-actions"
             style={{
@@ -3872,7 +3794,6 @@ export const SlaughterProcessing = () => {
               flexWrap: "wrap",
             }}
           >
-            {/* Operator Selection on the LEFT side */}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               <label
                 style={{
@@ -3919,7 +3840,6 @@ export const SlaughterProcessing = () => {
               </select>
             </div>
 
-            {/* Action Buttons on the RIGHT side */}
             <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
               <Button
                 type="button"
@@ -3982,7 +3902,6 @@ export const SlaughterProcessing = () => {
         </form>
       </Modal>
 
-      {/* Assign Team Operator Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
       <ConfirmDialog
         open={Boolean(assignConfirmData)}
         onCancel={handleCancelAssignmentConfirmation}
@@ -4001,7 +3920,6 @@ export const SlaughterProcessing = () => {
         backdropStyle={{ zIndex: 1100 }}
       />
 
-      {/* Ready for Slaughter Success Notification Dialog (Standardized to AlertDialog) */}
       <AlertDialog
         open={Boolean(assignSuccessData)}
         onClose={() => setAssignSuccessData(null)}
@@ -4011,7 +3929,6 @@ export const SlaughterProcessing = () => {
         variant="success"
       />
 
-      {/* Mark Single Livestock as Done Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
       <ConfirmDialog
         open={Boolean(singleToMarkDone)}
         onCancel={() => {
@@ -4034,7 +3951,6 @@ export const SlaughterProcessing = () => {
         backdropStyle={{ zIndex: 1100 }}
       />
 
-      {/* Mark Livestock as Done Success Notification Dialog */}
       <AlertDialog
         open={Boolean(singleSuccessData)}
         onClose={() => setSingleSuccessData(null)}
@@ -4044,7 +3960,6 @@ export const SlaughterProcessing = () => {
         variant="success"
       />
 
-      {/* Mark All as Done Success Notification Dialog */}
       <AlertDialog
         open={Boolean(groupSuccessData)}
         onClose={() => setGroupSuccessData(false)}
@@ -4054,7 +3969,6 @@ export const SlaughterProcessing = () => {
         variant="success"
       />
 
-      {/* Mark All as Done Confirmation Dialog (Standardized to Ante-Mortem ConfirmDialog) */}
       <ConfirmDialog
         open={Boolean(groupToMarkSlaughtered)}
         onCancel={() => {
@@ -4077,7 +3991,6 @@ export const SlaughterProcessing = () => {
         backdropStyle={{ zIndex: 1100 }}
       />
 
-      {/* Sequential Interactive Checklist Modal */}
       <Modal
         open={!!active}
         onClose={() => {
@@ -4104,7 +4017,6 @@ export const SlaughterProcessing = () => {
       >
         {active && (
           <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-            {/* Header info banner */}
             <div
               style={{
                 display: "flex",
@@ -4206,9 +4118,7 @@ export const SlaughterProcessing = () => {
               Advance through the standard sequential slaughter procedure. Once all steps are marked complete, the carcass is automatically routed for Veterinary Post-Mortem Inspection.
             </p>
 
-            {/* Scrollable step-by-step section */}
             <div style={{ flex: 1, minHeight: 0, overflowY: "auto", paddingRight: 4 }}>
-              {/* Step list */}
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {STEPS.map((s, i) => {
                   const isChecked = isStepDone(active.steps, s.key);
@@ -4216,7 +4126,6 @@ export const SlaughterProcessing = () => {
                   const stepUser = getStepUser(active.steps, s.key);
                   const isUpdatingThis = updatingStep === s.key;
                   
-                  // Enforce sequential execution
                   let isDisabled = active.status === "Completed" || Boolean(updatingStep);
                   if (!isDisabled) {
                     if (isChecked) {
@@ -4318,7 +4227,6 @@ export const SlaughterProcessing = () => {
                 })}
               </div>
 
-              {/* Complete Traceability & Audit Timeline */}
               <div style={{ marginTop: 14 }}>
                 <ProcessHistoryTimeline
                   livestock={(livestock || []).find((l) => (l.tag_number || "").trim().toLowerCase() === (active.tag_number || "").trim().toLowerCase()) || active}
@@ -4330,7 +4238,6 @@ export const SlaughterProcessing = () => {
         )}
       </Modal>
 
-      {/* Slaughter Completion Notification Modal (Matches Ante-Mortem and Post-Mortem) */}
       <AlertDialog
         open={!!completionPopup}
         onClose={handleConfirmCompletionPopup}

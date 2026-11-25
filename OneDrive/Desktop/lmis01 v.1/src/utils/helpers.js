@@ -1,4 +1,3 @@
-// Generic helper functions (no formatting — see formatters.js)
 export const uuid = () => {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
     return crypto.randomUUID();
@@ -18,7 +17,6 @@ export const dateOffset = (days) => {
   return d.toISOString().split("T")[0];
 };
 
-/** Get up to 2 uppercase initials from a full name */
 export const initials = (name = "") =>
   name.trim().split(/\s+/).map((n) => n[0]).join("").slice(0, 2).toUpperCase();
 
@@ -59,7 +57,6 @@ export const isWaitingForSlaughter = (livestockItem, processingTagSet = new Set(
   const status = String(livestockItem.status || "").trim();
   const lowerStatus = status.toLowerCase();
 
-  // Downstream or final statuses -> NEVER awaiting slaughter intake
   const nonAwaitingStatuses = [
     "in progress",
     "slaughtering",
@@ -99,7 +96,6 @@ export const isWaitingForSlaughter = (livestockItem, processingTagSet = new Set(
       livestockItem.marked !== false
   );
 
-  // Statuses that explicitly indicate slaughter readiness (post Ante-Mortem approval)
   if ([
     "ready for slaughter",
     "pending slaughter",
@@ -109,7 +105,6 @@ export const isWaitingForSlaughter = (livestockItem, processingTagSet = new Set(
     return true;
   }
 
-  // Marked livestock that have passed Ante-Mortem inspection
   if (isMarked) {
     if (
       [
@@ -125,14 +120,6 @@ export const isWaitingForSlaughter = (livestockItem, processingTagSet = new Set(
   return false;
 };
 
-/**
- * Checks whether an animal has fully completed the slaughter & inspection workflow:
- * 1. Livestock processing completed
- * 2. Required inspections completed (Ante-Mortem & Post-Mortem)
- * 3. Required meat inspection decision completed (Passed / Approved / Partial Condemnation)
- * 4. Weighing completed (Carcass recorded with weight in TABLES.CARCASS)
- * 5. Not condemned, rejected, or in an incomplete/in-progress stage
- */
 export const isLivestockWorkflowCompleted = (
   animal,
   { ante, post, cond, slaughterProc, slaughterRec, carcass } = {}
@@ -144,7 +131,6 @@ export const isLivestockWorkflowCompleted = (
   const postDecision = String(post?.decision || post?.result || "").toLowerCase();
   const condType = String(cond?.type || "").toLowerCase();
 
-  // 1. Condemned or Rejected animals NEVER qualify for permits
   const isCondemnedOrRejected =
     rawStatus === "condemned" ||
     rawStatus === "rejected" ||
@@ -158,7 +144,6 @@ export const isLivestockWorkflowCompleted = (
 
   if (isCondemnedOrRejected) return false;
 
-  // 2. Reject incomplete/in-progress statuses explicitly
   const incompleteStatuses = [
     "pending",
     "received",
@@ -180,8 +165,6 @@ export const isLivestockWorkflowCompleted = (
     return false;
   }
 
-  // 3. Livestock slaughter processing completed check
-  // If slaughter processing is active/in progress in processing or records table, not completed
   if (slaughterProc?.status === "In Progress" || slaughterRec?.status === "In Progress") {
     return false;
   }
@@ -199,8 +182,6 @@ export const isLivestockWorkflowCompleted = (
 
   if (!isSlaughterDone) return false;
 
-  // 4. Required Ante-Mortem inspection completed:
-  // If ante record exists, must be approved/passed (not suspect or pending)
   if (ante) {
     const isAnteApproved =
       anteDecision.includes("approv") ||
@@ -211,8 +192,6 @@ export const isLivestockWorkflowCompleted = (
     if (!isAnteApproved) return false;
   }
 
-  // 5. Required Post-Mortem inspection & Meat Inspection decision completed:
-  // Post-Mortem record must exist and have a valid passing / approved decision
   if (!post) {
     if (rawStatus !== "released" && rawStatus !== "dispatched") {
       return false;
@@ -236,8 +215,6 @@ export const isLivestockWorkflowCompleted = (
     if (!isPostApproved) return false;
   }
 
-  // 6. Weighing completed:
-  // Carcass record must exist in TABLES.CARCASS with positive weight
   const carcassWeight = parseFloat(carcass?.total_weight || carcass?.cold_weight || 0);
   const isCarcassWeighed =
     Boolean(carcass) &&
@@ -280,6 +257,5 @@ export const getStepUser = (steps, stepKey) => {
   return null;
 };
 
-// Re-exports for backward compatibility (canonical home is formatters.js)
 export { formatCurrency, formatDate, formatDateTime, formatPhDateTime, formatCertDateTime, formatPhDate, formatPhTime, formatLongDate, formatFullDate, formatNumber, formatTime, truncate, formatSex, formatLivestockAge } from "./formatters.js";
 

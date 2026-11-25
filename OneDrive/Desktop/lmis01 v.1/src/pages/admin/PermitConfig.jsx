@@ -1,11 +1,3 @@
-/**
- * PermitConfig.jsx
- * Meat Permit Configuration — Admin can view, edit, and save default parameters
- * used on the Meat Inspection Certificate and Gate Pass slips.
- * Values are stored in Supabase (permit_config table, row id='default')
- * with localStorage as an offline fallback.
- * Updates apply strictly to newly issued permits; previously issued records retain their snapshot.
- */
 
 import { useState, useEffect } from "react";
 import { useToast } from "../../components/notifications/Toast";
@@ -33,7 +25,6 @@ export const DEFAULT_PERMIT_CONFIG = {
   cityVet: "DR. RAYMUNDO VALENTINE P. PAMIREZ",
 };
 
-/** Map JS camelCase keys -> DB snake_case columns */
 export const toDbRow = (cfg) => ({
   id: ROW_ID,
   permit_prefix: cfg.permitPrefix,
@@ -48,7 +39,6 @@ export const toDbRow = (cfg) => ({
   updated_at: new Date().toISOString(),
 });
 
-/** Map DB row -> JS object */
 export const fromDbRow = (row) => ({
   permitPrefix: row.permit_prefix ?? DEFAULT_PERMIT_CONFIG.permitPrefix,
   origin: row.origin ?? DEFAULT_PERMIT_CONFIG.origin,
@@ -61,7 +51,6 @@ export const fromDbRow = (row) => ({
   cityVet: row.city_vet ?? DEFAULT_PERMIT_CONFIG.cityVet,
 });
 
-/** Read config: Supabase first, localStorage fallback */
 export const getPermitConfig = () => {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
@@ -79,7 +68,6 @@ export const PermitConfig = () => {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  /* Load from Supabase on mount */
   useEffect(() => {
     const load = async () => {
       try {
@@ -167,7 +155,7 @@ export const PermitConfig = () => {
       await supabase
         .from("permit_config")
         .upsert(row, { onConflict: "id" });
-    } catch { /* ignore */ }
+    } catch {  }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PERMIT_CONFIG));
     setSaved(false);
     showToast("Reset to default configuration values", "info");
@@ -197,7 +185,6 @@ export const PermitConfig = () => {
     <div className="permit-config-page" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <Card style={{ padding: 0, borderRadius: 16, overflow: "hidden" }}>
         <form onSubmit={handleSave}>
-          {/* Header */}
           <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--color-border)", background: "var(--color-bg)" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
               <div>
@@ -220,7 +207,6 @@ export const PermitConfig = () => {
                 gap: 20,
               }}
             >
-              {/* Point of Origin */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: "block" }}>
                   Point of Origin <span className="req">*</span>
@@ -239,7 +225,6 @@ export const PermitConfig = () => {
                 </div>
               </div>
 
-              {/* Destination */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: "block" }}>
                   Destination <span className="req">*</span>
@@ -258,7 +243,6 @@ export const PermitConfig = () => {
                 </div>
               </div>
 
-              {/* Physical Facility Address */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: "block" }}>
                   Physical Facility Address <span className="req">*</span>
@@ -277,7 +261,6 @@ export const PermitConfig = () => {
                 </div>
               </div>
 
-              {/* Conveyance Used */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: "block" }}>
                   Conveyance Used <span className="req">*</span>
@@ -296,7 +279,6 @@ export const PermitConfig = () => {
                 </div>
               </div>
 
-              {/* Meat Inspector Name */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: "block" }}>
                   Meat Inspector Name <span className="req">*</span>
@@ -315,7 +297,6 @@ export const PermitConfig = () => {
                 </div>
               </div>
 
-              {/* City Veterinarian Name */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6, display: "block" }}>
                   City Veterinarian Name <span className="req">*</span>
@@ -336,7 +317,6 @@ export const PermitConfig = () => {
             </div>
           </div>
 
-          {/* Footer Controls */}
           <div
             style={{
               display: "flex",

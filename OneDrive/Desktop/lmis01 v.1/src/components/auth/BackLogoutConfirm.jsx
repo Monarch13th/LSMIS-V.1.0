@@ -3,12 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { ConfirmDialog } from "../ui";
 import { useAuth } from "../../hooks/useAuth";
 
-/**
- * Intercepts browser Back (`popstate`) and Android hardware Back (`backbutton`)
- * only when the user attempts to leave the authenticated LSMIS portal,
- * prompting for logout confirmation without affecting internal module navigation
- * or the existing immediate Logout buttons.
- */
 export const BackLogoutConfirm = () => {
   const { signOut, isAuthenticated, role } = useAuth();
   const location = useLocation();
@@ -37,8 +31,6 @@ export const BackLogoutConfirm = () => {
   useEffect(() => {
     if (!isAuthenticated || !role || typeof window === "undefined") return;
 
-    // Record the React Router history index where the authenticated session began,
-    // and push a sentinel guard state right above it if not already present.
     const currentState = window.history.state || {};
     if (entryIdxRef.current === null) {
       entryIdxRef.current = typeof currentState.idx === "number" ? currentState.idx : 0;
@@ -79,7 +71,6 @@ export const BackLogoutConfirm = () => {
         return;
       }
 
-      // Restore current route & sentinel so the user stays logged in on the current page
       try {
         window.history.pushState(
           { ...(window.history.state || {}), idx: entryIdxRef.current ?? 0, lsmisAuthGuard: true },
@@ -124,7 +115,6 @@ export const BackLogoutConfirm = () => {
     try {
       await signOut();
     } catch (_) {
-      // ignore
     } finally {
       setConfirmOpen(false);
       setLoggingOut(false);

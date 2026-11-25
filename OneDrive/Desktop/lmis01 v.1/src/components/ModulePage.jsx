@@ -1,5 +1,3 @@
-// Generic, config-driven module page used to render the many list/record
-// screens across Admin, Vet, and Staff modules without duplicating code.
 import { useState } from "react";
 import { Card } from "./ui/Card";
 import { Button } from "./ui/Button";
@@ -9,18 +7,6 @@ import { EmptyState } from "./ui/EmptyState";
 import { Icon } from "./icons";
 import { useToast } from "./notifications/Toast";
 
-/**
- * props:
- *  - title, subtitle, icon
- *  - stats: [{ label, value, icon, color }]
- *  - columns: [{ key, label, badge?, mono?, render? }]
- *  - rows: array of data objects
- *  - searchKeys: array of keys to search
- *  - filters: [{ key, label, options: [{value,label}] }]
- *  - primaryAction: { label, icon, onClick }
- *  - rowActions: (row) => [{ icon, title, variant, onClick }]
- *  - emptyTitle, emptyMessage, emptyIcon
- */
 export const ModulePage = ({
   title, subtitle, icon,
   stats = [],

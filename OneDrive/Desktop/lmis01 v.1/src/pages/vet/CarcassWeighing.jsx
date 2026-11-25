@@ -13,7 +13,6 @@ import { getCurrentActor } from "../../utils/processHistory";
 import { getRemainingWeighingForOwner } from "../../services/modalLifecycleService";
 import { scrollToFirstError } from "../../utils/formValidation";
 
-// Theme-adaptive species style helper using native design tokens
 const getSpeciesStyle = (species) => {
   switch (species) {
     case "Hog":
@@ -87,7 +86,6 @@ const isWithinDateRange = (dateStr, range) => {
   return true;
 };
 
-// Copyable monospace tag badge that adapts natively to both light and dark mode
 const TagBadge = ({ tag }) => {
   const [copied, setCopied] = useState(false);
 
@@ -139,7 +137,6 @@ const calcNet = (item) => {
   return isNaN(val) ? null : val;
 };
 
-// Carcass Weighing display helper: normalizes partial condemnation results to "Passed"
 const getCarcassDisplayVerdict = (decision) => {
   const d = String(decision || "").toLowerCase();
   if (d.includes("partial")) {
@@ -172,7 +169,6 @@ export const CarcassWeighing = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { showToast } = useToast();
 
-  // Selected carcass for Dossier View Modal
   const [selectedCarcass, setSelectedCarcass] = useState(null);
 
   const [searchParams] = useSearchParams();
@@ -185,7 +181,7 @@ export const CarcassWeighing = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [filterSpecies, setFilterSpecies] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest"); // 'newest' | 'oldest' | 'weight_high' | 'weight_low' | 'tag_asc'
+  const [sortBy, setSortBy] = useState("newest");
 
   useEffect(() => {
     const urlTab = searchParams.get("tab");
@@ -203,7 +199,6 @@ export const CarcassWeighing = () => {
   const [brandMethods, setBrandMethods] = useState({});
   const [brandingStatus, setBrandingStatus] = useState({});
 
-  // Editing / Correction Modal States (Authorized Veterinary Personnel only)
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [editingCarcass, setEditingCarcass] = useState(null);
   const [editWeight, setEditWeight] = useState("");
@@ -213,7 +208,6 @@ export const CarcassWeighing = () => {
   const [editSaving, setEditSaving] = useState(false);
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
 
-  // Veterinary Authorization verification
   const currentActor = getCurrentActor();
   const isAuthorizedVet = currentActor.role === "vet" || currentActor.role === "admin";
 
@@ -225,11 +219,10 @@ export const CarcassWeighing = () => {
   };
   const [weighTime, setWeighTime] = useState(getNowTimeStr);
 
-  // Pagination states
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [expandedGroups, setExpandedGroups] = useState(new Set());
-  const [weighedViewMode, setWeighedViewMode] = useState("grouped"); // 'grouped' | 'individual'
+  const [weighedViewMode, setWeighedViewMode] = useState("grouped");
 
   const toggleGroupExpand = (groupKey) => {
     setExpandedGroups((prev) => {
@@ -264,7 +257,6 @@ export const CarcassWeighing = () => {
     }
   };
 
-  // Robust owner resolution querying TABLES.OWNERS
   const resolveOwner = (animal, item) => {
     const ownerId = item?.owner_id || animal?.owner_id;
     if (ownerId && Array.isArray(owners) && owners.length > 0) {
@@ -326,7 +318,6 @@ export const CarcassWeighing = () => {
         });
       }
     });
-    // Also include any animals in livestock already recorded as weighed/completed/etc.
     (livestock || []).forEach((l) => {
       const s = String(l.status || "").trim().toLowerCase();
       const ws = String(l.workflow_status || "").trim().toUpperCase();
@@ -338,12 +329,7 @@ export const CarcassWeighing = () => {
     return set;
   }, [data, livestock]);
 
-  // Animals eligible to be weighed:
-  // Must satisfy:
-  // 1. MUST have passed Post-Mortem Inspection by the Veterinarian (Approved / Passed / Partial)
-  // 2. Not yet weighed, not released, not condemned
   const eligibleToWeigh = useMemo(() => {
-    // If core records are still loading, do not prematurely evaluate the queue with partial data
     if (isRecordsLoading) return [];
 
     const list = [];
@@ -541,7 +527,6 @@ export const CarcassWeighing = () => {
       return;
     }
 
-    // Resolve target carcass record whether passed as an object or tag string
     const targetTag = typeof animalInput === "string" ? animalInput.trim().toLowerCase() : (animalInput?.tag_number || "").trim().toLowerCase();
     const candidate = typeof animalInput === "object" && animalInput?.tag_number
       ? animalInput
@@ -552,7 +537,6 @@ export const CarcassWeighing = () => {
       return;
     }
 
-    // Verify Post-Mortem inspection completion
     const cleanTag = candidate.tag_number.trim().toLowerCase();
     const pmRecord = candidate.postMortemRecord || (postMortem || []).find((p) => {
       if (candidate.id && p.livestock_id && p.livestock_id === candidate.id) return true;
@@ -588,7 +572,7 @@ export const CarcassWeighing = () => {
     const autoBrand = numPart ? `CAR-2026-${numPart}` : `CAR-2026-${candidate.tag_number}`;
     const existingWeight = candidate.cold_weight || candidate.net_weight || candidate.weightVal || candidate.weight || candidate.hot_weight || "";
 
-    setSelectedOwnerKey(null); // Dismiss owner queue modal
+    setSelectedOwnerKey(null);
     setModalSuccessAlert(null);
     setSingleAnimal({
       ...candidate,
@@ -777,7 +761,6 @@ export const CarcassWeighing = () => {
       return;
     }
 
-    // Comprehensive numeric scale weight validation
     const invalidAnimals = displayedAnimals.filter((a) => {
       const raw = weights[a.tag_number];
       if (raw === undefined || raw === null || String(raw).trim() === "") return true;
@@ -795,7 +778,6 @@ export const CarcassWeighing = () => {
       return;
     }
 
-    // Group selected carcasses by owner
     const grouped = {};
     displayedAnimals.forEach((animal) => {
       const owner = animal.owner_name || selectedOwner || "Unknown Owner";
@@ -828,7 +810,6 @@ export const CarcassWeighing = () => {
       return;
     }
 
-    // Comprehensive numeric scale weight validation
     const invalidAnimals = displayedAnimals.filter((a) => {
       const raw = weights[a.tag_number];
       if (raw === undefined || raw === null || String(raw).trim() === "") return true;
@@ -950,7 +931,6 @@ export const CarcassWeighing = () => {
               return;
             }
           }
-          // If query errored or returned null, do not close modal
           return;
         }
 
@@ -960,7 +940,6 @@ export const CarcassWeighing = () => {
         setWeights({});
         setModalSuccessAlert(null);
       } else {
-        // Keep entered weights for failed tags so user can retry without data loss
         if (savedTags.length > 0) {
           setWeights((prev) => {
             const next = {};
@@ -979,7 +958,6 @@ export const CarcassWeighing = () => {
       setConfirmBatchModalOpen(false);
       savingRef.current = false;
       setSaving(false);
-      // Fast targeted background refresh for carcass & livestock state
       Promise.allSettled([
         typeof refresh === "function" ? refresh() : Promise.resolve(),
         typeof refreshLivestock === "function" ? refreshLivestock() : Promise.resolve(),
@@ -987,7 +965,6 @@ export const CarcassWeighing = () => {
     }
   };
 
-  // Enriched Weighed Carcasses
   const enrichedCarcasses = useMemo(() => {
     return (data || []).map((c) => {
       const cleanTag = (c.tag_number || "").trim().toLowerCase();
@@ -1032,7 +1009,6 @@ export const CarcassWeighing = () => {
     });
   }, [data, livestock, processing, slaughter, postMortem, owners]);
 
-  // Filter & Sort Weighed Carcasses
   const filteredCarcasses = useMemo(() => {
     const q = search.trim().toLowerCase();
     const result = enrichedCarcasses.filter((c) => {
@@ -1083,7 +1059,6 @@ export const CarcassWeighing = () => {
     return result;
   }, [enrichedCarcasses, search, filterSpecies, dateFilter, sortBy]);
 
-  // Filter & Sort Awaiting Animals
   const filteredAwaiting = useMemo(() => {
     const q = search.trim().toLowerCase();
     const result = eligibleToWeigh.filter((l) => {
@@ -1118,7 +1093,6 @@ export const CarcassWeighing = () => {
     return result;
   }, [eligibleToWeigh, search, filterSpecies, dateFilter, sortBy]);
 
-  // Grouped dataset for "Awaiting Weighing Queue" tab (grouped strictly by actual registered owner)
   const groupedAwaiting = useMemo(() => {
     const groups = new Map();
     (filteredAwaiting || []).forEach((item) => {
@@ -1181,7 +1155,6 @@ export const CarcassWeighing = () => {
       });
   }, [filteredAwaiting]);
 
-  // Grouped dataset for "Weighed Carcasses" tab (grouped by registered owner + Philippine local date)
   const groupedWeighed = useMemo(() => {
     const getPhDateKey = (val) => {
       if (!val) return "undated";
@@ -1259,7 +1232,6 @@ export const CarcassWeighing = () => {
       });
   }, [filteredCarcasses]);
 
-  // Selected Owner Dedicated View State across all tabs (matches Condemnation pattern)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
   useEffect(() => {
     setSelectedOwnerKey(null);
@@ -1274,7 +1246,6 @@ export const CarcassWeighing = () => {
     return (currentDataset || []).find((g) => g.key === selectedOwnerKey) || null;
   }, [currentDataset, selectedOwnerKey]);
 
-  // View records pagination (10 per page default)
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
@@ -1301,7 +1272,6 @@ export const CarcassWeighing = () => {
   const paginatedGroupedWeighed = groupedWeighed.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const paginatedGroupedAwaiting = groupedAwaiting.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Overall KPI metrics
   const totalMassKg = (data || []).reduce((sum, c) => sum + (c.total_weight || c.cold_weight || c.hot_weight || 0), 0);
   const avgCarcassWeight = data && data.length > 0 ? (totalMassKg / data.length).toFixed(1) : "0.0";
 
@@ -1320,9 +1290,7 @@ export const CarcassWeighing = () => {
 
   return (
     <div className="carcass-weighing-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* Main Container */}
       <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Unified Single-Line Toolbar */}
         <div
           className="records-fixed-header"
           style={{
@@ -1338,7 +1306,6 @@ export const CarcassWeighing = () => {
             minHeight: 54,
           }}
         >
-          {/* Segmented Nav Tabs */}
           <div className="adm-seg-tabs">
             {[
               {
@@ -1375,9 +1342,7 @@ export const CarcassWeighing = () => {
             })}
           </div>
 
-          {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Search Input */}
             <div style={{ position: "relative", width: 220 }}>
               <input
                 type="text"
@@ -1431,7 +1396,6 @@ export const CarcassWeighing = () => {
               )}
             </div>
 
-            {/* Species Dropdown */}
             <select
               value={filterSpecies}
               onChange={(e) => {
@@ -1465,7 +1429,6 @@ export const CarcassWeighing = () => {
             </select>
 
 
-            {/* View Mode Selector (Weighed tab) */}
             {activeTab === "weighed" && (
               <select
                 value={weighedViewMode}
@@ -1499,7 +1462,6 @@ export const CarcassWeighing = () => {
           </div>
         </div>
 
-        {/* Tab 1: Weighed Carcasses Records Table */}
         {activeTab === "weighed" && (
           <div style={{ width: "100%" }}>
             {isRecordsLoading ? (
@@ -1589,7 +1551,6 @@ export const CarcassWeighing = () => {
                         onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                       >
-                        {/* Owner Name */}
                         <td style={{ padding: "14px 18px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div
@@ -1629,7 +1590,6 @@ export const CarcassWeighing = () => {
                           </div>
                         </td>
 
-                        {/* Date Weighed */}
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <Icon.Calendar size={13} style={{ opacity: 0.7, color: "var(--color-primary, #187A56)" }} />
@@ -1637,14 +1597,12 @@ export const CarcassWeighing = () => {
                           </div>
                         </td>
 
-                        {/* Species */}
                         <td style={{ padding: "14px 18px" }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                             {formatSpeciesList(grp.speciesList || [grp.species])}
                           </span>
                         </td>
 
-                        {/* Total Carcasses */}
                         <td style={{ padding: "14px 18px", textAlign: "center" }}>
                           <span
                             style={{
@@ -1657,7 +1615,6 @@ export const CarcassWeighing = () => {
                           </span>
                         </td>
 
-                        {/* Total Weight */}
                         <td style={{ padding: "14px 18px", textAlign: "center" }}>
                           <span
                             style={{
@@ -1671,7 +1628,6 @@ export const CarcassWeighing = () => {
                           </span>
                         </td>
 
-                        {/* Status */}
                         <td style={{ padding: "14px 18px" }}>
                           <span
                             style={{
@@ -1687,7 +1643,6 @@ export const CarcassWeighing = () => {
                           </span>
                         </td>
 
-                        {/* Action: View Records */}
                         <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                           <div className="table-action-group">
                             <button
@@ -1749,7 +1704,6 @@ export const CarcassWeighing = () => {
                           onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                         >
-                          {/* 1. Tag Number & Brand Code */}
                           <td>
                             <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-start" }}>
                               <TagBadge tag={c.tag_number} />
@@ -1774,7 +1728,6 @@ export const CarcassWeighing = () => {
                             </div>
                           </td>
 
-                          {/* 2. Species */}
                           <td>
                             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                               <span
@@ -1804,7 +1757,6 @@ export const CarcassWeighing = () => {
                             </div>
                           </td>
 
-                          {/* 3. Owner / Raiser */}
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
                               <div
@@ -1872,7 +1824,6 @@ export const CarcassWeighing = () => {
                             </div>
                           </td>
 
-                          {/* 4. Scale Weight */}
                           <td style={{ textAlign: "center" }}>
                             <span
                               style={{
@@ -1894,7 +1845,6 @@ export const CarcassWeighing = () => {
                             </span>
                           </td>
 
-                          {/* 5. Post-Mortem */}
                           <td>
                             <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
                               <div
@@ -1948,7 +1898,6 @@ export const CarcassWeighing = () => {
                             </div>
                           </td>
 
-                          {/* 6. Date & Time Weighed */}
                           <td>
                             <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                               <div
@@ -1984,7 +1933,6 @@ export const CarcassWeighing = () => {
                             </div>
                           </td>
 
-                          {/* 7. Actions */}
                           <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                             <div className="table-action-group">
                               <button
@@ -2008,7 +1956,6 @@ export const CarcassWeighing = () => {
           </div>
         )}
 
-        {/* Tab 2: Awaiting Weighing Queue - Grouped Batch View (Matching Condemnation UI) */}
         {activeTab === "awaiting" && (
           isRecordsLoading ? (
             <div
@@ -2148,7 +2095,6 @@ export const CarcassWeighing = () => {
           )
         )}
 
-        {/* Pagination Toolbar */}
         {false && currentDatasetLength > 0 && (
           <div
             style={{
@@ -2162,7 +2108,6 @@ export const CarcassWeighing = () => {
               background: "var(--color-surface)"
             }}
           >
-            {/* Info and Page Size Selector */}
             <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 13, color: "var(--color-text-muted)" }}>
               <span>
                 Showing <b>{(currentPage - 1) * pageSize + 1}</b> to <b>{Math.min(currentPage * pageSize, currentDatasetLength)}</b> of <b>{currentDatasetLength}</b> {activeTab === "awaiting" || weighedViewMode === "grouped" ? "batches" : "carcasses"}
@@ -2193,7 +2138,6 @@ export const CarcassWeighing = () => {
               </div>
             </div>
 
-            {/* Pagination Number Buttons */}
             {totalPages > 1 && (
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <button
@@ -2275,7 +2219,6 @@ export const CarcassWeighing = () => {
         )}
       </div>
 
-      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -2485,7 +2428,6 @@ export const CarcassWeighing = () => {
         )}
       </Modal>
 
-      {/* Record Weight Modal */}
       <Modal
         open={modalOpen}
         onClose={() => {
@@ -2614,7 +2556,6 @@ export const CarcassWeighing = () => {
 
           {(selectedOwner || singleAnimal) && displayedAnimals.length > 0 && (
             <div>
-              {/* Single Animal Mode Banner */}
               {singleAnimal && ownerAnimals.length > 1 && (
                 <div
                   style={{
@@ -2655,7 +2596,6 @@ export const CarcassWeighing = () => {
                 </div>
               )}
 
-              {/* Column Header for Carcasses - borderless outer */}
               <div
                 style={{
                   display: "grid",
@@ -2677,7 +2617,6 @@ export const CarcassWeighing = () => {
                 <span style={{ textAlign: "right", paddingRight: 4 }}>Scale Weight</span>
               </div>
 
-              {/* Scrollable Carcass List - borderless outer */}
               <div
                 style={{
                   display: "flex",
@@ -2718,7 +2657,6 @@ export const CarcassWeighing = () => {
                         transition: "all 140ms ease"
                       }}
                     >
-                      {/* 1. Official Carcass Branding */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start" }}>
                         <div
                           style={{
@@ -2743,7 +2681,6 @@ export const CarcassWeighing = () => {
                         </div>
                       </div>
 
-                      {/* 2. Carcass Tag & Status & Sex */}
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                           <span style={{ fontFamily: "monospace", fontSize: 13, fontWeight: 800, color: "var(--color-text)" }}>
@@ -2766,7 +2703,6 @@ export const CarcassWeighing = () => {
                         </div>
                       </div>
 
-                      {/* 3. Scale Weight & Quick Presets */}
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
                         <div
                           style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
@@ -2862,7 +2798,6 @@ export const CarcassWeighing = () => {
         </form>
       </Modal>
 
-      {/* Batch Weighing Confirmation Dialog */}
       <ConfirmDialog
         open={confirmBatchModalOpen}
         onCancel={() => {
@@ -2995,7 +2930,6 @@ export const CarcassWeighing = () => {
         backdropStyle={{ zIndex: 1250 }}
       />
 
-      {/* Scale Dossier View Details Modal */}
       <Modal
         open={!!selectedCarcass}
         onClose={() => setSelectedCarcass(null)}
@@ -3031,7 +2965,6 @@ export const CarcassWeighing = () => {
       >
         {selectedCarcass && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* 1. Dossier Identification Header Banner */}
             <div
               style={{
                 display: "flex",
@@ -3140,9 +3073,7 @@ export const CarcassWeighing = () => {
               </div>
             </div>
 
-            {/* 2. Structured 2x2 Dossier Information Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
-              {/* Card 1: Livestock Owner & Producer */}
               <div
                 style={{
                   borderRadius: 10,
@@ -3215,7 +3146,6 @@ export const CarcassWeighing = () => {
                 </div>
               </div>
 
-              {/* Card 2: Animal & Carcass Specifications */}
               <div
                 style={{
                   borderRadius: 10,
@@ -3288,7 +3218,6 @@ export const CarcassWeighing = () => {
                 </div>
               </div>
 
-              {/* Card 3: Veterinary Clearance */}
               <div
                 style={{
                   borderRadius: 10,
@@ -3359,7 +3288,6 @@ export const CarcassWeighing = () => {
                 </div>
               </div>
 
-              {/* Card 4: Scale Station Audit Trail */}
               <div
                 style={{
                   borderRadius: 10,
@@ -3459,7 +3387,6 @@ export const CarcassWeighing = () => {
               </div>
             </div>
 
-            {/* 4. Full-Width Carcass Traceability & Process Audit Trail */}
             <div>
               <ProcessHistoryTimeline
                 record={
@@ -3479,7 +3406,6 @@ export const CarcassWeighing = () => {
         )}
       </Modal>
 
-      {/* Edit Weight & Branding Modal (Authorized Veterinary Personnel only) */}
       <Modal
         open={editModalOpen}
         onClose={() => {
@@ -3680,7 +3606,6 @@ export const CarcassWeighing = () => {
         message={`Are you sure you want to submit the updated weighing results for ${editingCarcass?.tag_number || "this carcass"}?`}
       />
 
-      {/* Clean In-App Alert Dialog (replaces native window.alert to provide polished in-app UX) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}

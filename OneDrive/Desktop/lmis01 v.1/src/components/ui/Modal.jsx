@@ -71,7 +71,6 @@ export const Modal = ({
       className="modal-backdrop"
       style={{ zIndex: stackZIndex, ...(backdropStyle || {}) }}
       onClick={(e) => {
-        // Backdrop click-to-exit disabled by default: clicking outside does not close or dismiss modal
         if (closeOnBackdropClick && e.target === e.currentTarget) {
           onClose?.();
         }

@@ -444,7 +444,6 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
         </div>
       )}
 
-      {/* Lightbox Image Preview Modal */}
       {previewPhoto && (
         <div
           style={{
@@ -489,7 +488,6 @@ export const MultiEvidenceUploader = ({ photos = [], onChange, label = "Evidence
               <img src={previewPhoto.preview || previewPhoto.url} alt={previewPhoto.name} style={{ width: "100%", height: "100%", maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
             </div>
 
-            {/* Thumbnail selector gallery if multiple photos */}
             {photos && photos.length > 1 && (
               <div style={{ display: "flex", gap: 10, justifyContent: "center", padding: "10px 16px", background: "#1A201C", borderTop: "1px solid #2D332F" }}>
                 {photos.map((p, idx) => {
@@ -542,7 +540,6 @@ export const InspectionForm = ({
   const decision = propDecision !== undefined ? propDecision : internalDecision;
   const setDecision = onDecisionChange || setInternalDecision;
 
-  // Itemized condemned animals/carcasses state (Ante-Mortem & Whole Carcass Post-Mortem)
   const [anteCondemned, setAnteCondemned] = useState(() => {
     if ((propDecision || "Approved") === "Condemned") {
       const splitTags = String(initialTag || "")
@@ -565,7 +562,6 @@ export const InspectionForm = ({
     return [];
   });
 
-  // Multi-animal & multi-part Partial Condemnation state (Post-Mortem)
   const [partialAnimals, setPartialAnimals] = useState(() => {
     if ((propDecision || "") === "Partial") {
       const splitTags = String(initialTag || "")
@@ -638,7 +634,6 @@ export const InspectionForm = ({
     }
   };
 
-  // Get all tags currently selected or targeted across decisions without losing context
   const getCurrentSelectedTags = useCallback(() => {
     if (decision === "Condemned" && anteCondemned.length > 0) {
       return anteCondemned.map((c) => String(c.tag_number || "").trim()).filter(Boolean);
@@ -661,14 +656,11 @@ export const InspectionForm = ({
     return [];
   }, [decision, anteCondemned, partialAnimals, selectedBatchTags, selectedSingleTag, initialTag]);
 
-  // Robust, mutually-exclusive category switching (Fit for Consumption <-> Condemned <-> Partially Condemned)
   const handleSelectDecision = useCallback((val) => {
     if (!val) return;
     setDecision(val);
     setInternalDecision(val);
 
-    // If initialTag is set and contains a SINGLE tag (single animal mode):
-    // Switching decision switches that tag's classification exclusively!
     const splitInitialTags = String(initialTag || "")
       .split(",")
       .map((t) => t.trim())
@@ -698,7 +690,6 @@ export const InspectionForm = ({
           ]);
         }
       } else {
-        // Post-Mortem
         if (val === "Approved") {
           setFindings(POST_APPROVED_PRESETS[0]);
           setSelectedBatchTags([cleanInitial]);
@@ -734,7 +725,6 @@ export const InspectionForm = ({
         }
       }
     } else {
-      // In batch mode: switching tabs switches the view without wiping already assigned tags
       if (type === "Ante-Mortem") {
         if (val === "Approved") setFindings(ANTE_APPROVED_PRESETS[0]);
         else if (val === "Condemned") setFindings(ANTE_CONDEMNED_PRESETS[0]);
@@ -762,10 +752,8 @@ export const InspectionForm = ({
         type: "success",
         message: pendingConfirm.successMessage,
       });
-      // Preserve currently inspected record and tag
       setPendingConfirm(null);
 
-      // Automatically exit the modal upon successful recording
       if (typeof onSuccess === "function") {
         onSuccess();
       } else if (typeof onCancel === "function") {
@@ -848,7 +836,6 @@ export const InspectionForm = ({
     return formatSex(found?.sex);
   }, [livestock]);
 
-  // Sync initialTag or livestock tags when provided
   useEffect(() => {
     if (hasInitializedRef.current) return;
     hasInitializedRef.current = true;
@@ -910,7 +897,6 @@ export const InspectionForm = ({
     );
   }, [livestock]);
 
-  // Set of tags currently marked in whole condemnation entries
   const condemnedTagsSet = useMemo(() => {
     const s = new Set();
     anteCondemned.forEach((c) => {
@@ -924,7 +910,6 @@ export const InspectionForm = ({
     return s;
   }, [anteCondemned]);
 
-  // Set of tags currently marked in partial condemnation entries
   const partialTagsSet = useMemo(() => {
     const s = new Set();
     partialAnimals.forEach((a) => {
@@ -938,7 +923,6 @@ export const InspectionForm = ({
     return s;
   }, [partialAnimals]);
 
-  // Approved tags strictly excludes any tag selected for whole or partial condemnation
   const approvedTags = useMemo(() => {
     return selectedBatchTags.filter((tag) => {
       const clean = String(tag || "").trim().toLowerCase();
@@ -977,7 +961,6 @@ export const InspectionForm = ({
     return partialTagsSet.has(clean);
   }, [partialTagsSet]);
 
-  // All active selected tags
   const selectedTags = useMemo(() => {
     if (type === "Post-Mortem" && decision === "Partial") {
       return partialAnimals.map((a) => a.tag_number).filter(Boolean);
@@ -988,9 +971,6 @@ export const InspectionForm = ({
     return approvedTags;
   }, [type, decision, partialAnimals, approvedTags, anteCondemned]);
 
-  // --- MUTUAL EXCLUSIVITY OPERATORS ---
-  // 1. Select for Fit to slaughter / Passed (Approved)
-  // Automatically removes from Whole Condemnation and Partial Condemnation
   const selectFitToSlaughter = (tag) => {
     if (!tag) return;
     const clean = String(tag).trim().toLowerCase();
@@ -1012,8 +992,6 @@ export const InspectionForm = ({
     }
   };
 
-  // 2. Select for Whole Condemnation
-  // Automatically removes from Fit to Slaughter and Partial Condemnation
   const selectCondemned = (tag) => {
     if (!tag) return;
     const clean = String(tag).trim().toLowerCase();
@@ -1050,8 +1028,6 @@ export const InspectionForm = ({
     }
   };
 
-  // 3. Select for Partial Condemnation (Post-Mortem)
-  // Automatically removes from Fit to Slaughter and Whole Condemnation
   const selectPartial = (tag) => {
     if (!tag) return;
     const clean = String(tag).trim().toLowerCase();
@@ -1083,9 +1059,6 @@ export const InspectionForm = ({
     }
   };
 
-  // All eligible livestock/carcasses available for inspection selection
-  // Mutually exclusive: animals marked as Condemned or Partial do not display in Fit for Slaughter/Consumption;
-  // animals marked in Fit for Slaughter/Consumption do not show in Condemned.
   const displayedApprovedLivestock = useMemo(() => {
     return sortedLivestock.filter((l) => {
       const clean = String(l.tag_number || "").trim().toLowerCase();
@@ -1107,7 +1080,6 @@ export const InspectionForm = ({
     });
   }, [sortedLivestock, approvedTagsSet, condemnedTagsSet]);
 
-  // Owner-level selection toggles (select/deselect all livestock for an owner)
   const toggleOwnerApproved = (grp) => {
     const grpTags = (grp.items || []).map((a) => a.tag_number).filter(Boolean);
     const allSelected = grpTags.length > 0 && grpTags.every((t) => isTagApproved(t));
@@ -1235,7 +1207,6 @@ export const InspectionForm = ({
     deselectCondemned(tag);
   };
 
-  // Global selection helpers (Select All across all owners)
   const allApprovedGlobalSelected = useMemo(() => {
     const tags = (displayedApprovedLivestock || []).map((l) => l.tag_number).filter(Boolean);
     return tags.length > 0 && tags.every((t) => isTagApproved(t));
@@ -1331,7 +1302,6 @@ export const InspectionForm = ({
     }
   };
 
-  // Partial Condemnation Helpers
   const addPartialAnimal = (tag = "") => {
     let resolvedTag = tag;
     if (!resolvedTag) {
@@ -1499,7 +1469,6 @@ export const InspectionForm = ({
     e.preventDefault();
     setAttemptedSubmit(true);
 
-    // Ante-Mortem Submission
     if (type === "Ante-Mortem") {
       const missing = [];
       const errors = {};
@@ -1536,7 +1505,6 @@ export const InspectionForm = ({
         errors["input-livestock-tags"] = "Please select at least one animal to condemn.";
       }
 
-      // Validate condemned entries
       const seen = new Set();
       for (let i = 0; i < anteCondemned.length; i++) {
         const entry = anteCondemned[i];
@@ -1594,7 +1562,6 @@ export const InspectionForm = ({
 
       const records = [];
 
-      // Approved records
       for (const tag of approvedTags) {
         const details = getAnimalDetails(tag);
         records.push({
@@ -1607,7 +1574,6 @@ export const InspectionForm = ({
         });
       }
 
-      // Condemned records
       for (const entry of anteCondemned) {
         const details = getAnimalDetails(entry.tag_number);
         const isCustom = isOtherReason(entry.reason);
@@ -1681,7 +1647,6 @@ export const InspectionForm = ({
       return;
     }
 
-    // Post-Mortem Submission
     if (type === "Post-Mortem") {
       const missing = [];
       const errors = {};
@@ -1697,7 +1662,6 @@ export const InspectionForm = ({
         errors["input-livestock-tags"] = "Please select at least one carcass tag.";
       }
 
-      // 1. Validate Partial Condemnation entries (if any)
       if (partialAnimals.length > 0) {
         const seenPartialTags = new Set();
         for (let i = 0; i < partialAnimals.length; i++) {
@@ -1797,7 +1761,6 @@ export const InspectionForm = ({
         }
       }
 
-      // 2. Validate Whole Condemnation entries (if any)
       if (anteCondemned.length > 0) {
         const seenCondemned = new Set();
         for (let i = 0; i < anteCondemned.length; i++) {
@@ -1854,11 +1817,9 @@ export const InspectionForm = ({
 
       setValidationErrors({});
 
-      // 3. Assemble records across all categories (with strict mutual exclusivity)
       const records = [];
       const seenSubmittedTags = new Set();
 
-      // Priority 1: Whole Carcass Condemned records
       for (const entry of anteCondemned) {
         const clean = String(entry.tag_number || "").trim().toLowerCase();
         if (!clean || seenSubmittedTags.has(clean)) continue;
@@ -1878,7 +1839,6 @@ export const InspectionForm = ({
         });
       }
 
-      // Priority 2: Partial Condemnation records
       for (const entry of partialAnimals) {
         const clean = String(entry.tag_number || "").trim().toLowerCase();
         if (!clean || seenSubmittedTags.has(clean)) continue;
@@ -1926,7 +1886,6 @@ export const InspectionForm = ({
         });
       }
 
-      // Priority 3: Passed / Fit for Consumption records
       for (const tag of approvedTags) {
         const clean = String(tag || "").trim().toLowerCase();
         if (!clean || seenSubmittedTags.has(clean)) continue;
@@ -2042,7 +2001,6 @@ export const InspectionForm = ({
         height: "100%",
       }}
     >
-      {/* Scrollable Form Body Container */}
       <div
         style={{
           flex: 1,
@@ -2055,7 +2013,6 @@ export const InspectionForm = ({
           scrollbarWidth: "thin",
         }}
       >
-      {/* Intercepted Success State Alert Notification */}
       {formAlert && (
         <div
           role="alert"
@@ -2098,7 +2055,6 @@ export const InspectionForm = ({
         </div>
       )}
 
-      {/* Sticky Top Header: Keeps Banner & Veterinary Decision Pinned at Top (fallback only when propDecision not passed) */}
       {type !== "Ante-Mortem" && !propDecision && (
         <div
           style={{
@@ -2115,7 +2071,6 @@ export const InspectionForm = ({
             gap: 12,
           }}
         >
-          {/* Header Badge */}
           <div
             style={{
               display: "flex",
@@ -2154,7 +2109,6 @@ export const InspectionForm = ({
             </div>
           </div>
 
-          {/* Decision Radio Pills */}
           <div>
             <label style={{ fontSize: 12.5, fontWeight: 700, color: "#444C47", display: "block", marginBottom: 6 }}>
               Veterinary Decision <span style={{ color: "#ef4444" }}>*</span>
@@ -2202,7 +2156,6 @@ export const InspectionForm = ({
         </div>
       )}
 
-      {/* Select Animal/Carcass Tags (Batch Tag Selection Interface) */}
       {(decision === "Approved" || decision === "Condemned") && (
         <div
           id="input-livestock-tags"
@@ -2300,7 +2253,6 @@ export const InspectionForm = ({
             })()}
           </div>
 
-          {/* Animals/Carcasses List Grouped per Owner with Dropdown Accordion */}
           {(() => {
             const currentList = decision === "Condemned" ? displayedCondemnedLivestock : displayedApprovedLivestock;
             if (currentList.length === 0) {
@@ -2366,7 +2318,6 @@ export const InspectionForm = ({
                           : "none",
                       }}
                     >
-                      {/* Owner Card Header */}
                       <div
                         style={{
                           padding: "12px 16px",
@@ -2382,7 +2333,6 @@ export const InspectionForm = ({
                         }}
                         onClick={() => toggleOwnerExpand(grp.owner_name)}
                       >
-                        {/* Left: Checkbox + Owner Name */}
                         <div
                           style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 200, flex: "1 1 auto" }}
                           onClick={(e) => e.stopPropagation()}
@@ -2421,12 +2371,10 @@ export const InspectionForm = ({
                           </div>
                         </div>
 
-                        {/* Right: Summary Badges + Expand Toggle */}
                         <div
                           style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          {/* Total Count Badge */}
                           <span
                             style={{
                               fontSize: 12,
@@ -2442,7 +2390,6 @@ export const InspectionForm = ({
                             Total: <strong>{grp.total || grp.items.length}</strong>
                           </span>
 
-                          {/* Male Count Badge */}
                           <span
                             style={{
                               fontSize: 12,
@@ -2461,7 +2408,6 @@ export const InspectionForm = ({
                             <span style={{ fontSize: 13 }}>♂</span> Male: <strong>{grp.maleCount || 0}</strong>
                           </span>
 
-                          {/* Female Count Badge */}
                           <span
                             style={{
                               fontSize: 12,
@@ -2497,7 +2443,6 @@ export const InspectionForm = ({
                             </span>
                           )}
 
-                          {/* Expand/Collapse Button */}
                           <button
                             type="button"
                             onClick={() => toggleOwnerExpand(grp.owner_name)}
@@ -2529,7 +2474,6 @@ export const InspectionForm = ({
                         </div>
                       </div>
 
-                      {/* Expanded Livestock List Under This Owner */}
                       {isExpanded && (
                         <div
                           style={{
@@ -2538,7 +2482,6 @@ export const InspectionForm = ({
                             padding: "10px 16px 12px",
                           }}
                         >
-                          {/* List of Animals in Responsive Grid (Scrollable) */}
                           <div
                             style={{
                               display: "grid",
@@ -2775,10 +2718,8 @@ export const InspectionForm = ({
         </div>
       )}
 
-      {/* Multi-Animal & Multi-Part Condemnation Section for Post-Mortem */}
       {type === "Post-Mortem" && decision === "Partial" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Multi-Select Carcass Tags Checklist */}
           <div
             style={{
               display: "flex",
@@ -2838,7 +2779,6 @@ export const InspectionForm = ({
               )}
             </div>
 
-              {/* Checkbox List Grouped per Owner with Dropdown Accordion */}
               {displayedPartialLivestock.length === 0 ? (
                 <div
                   style={{
@@ -2883,7 +2823,6 @@ export const InspectionForm = ({
                           boxShadow: selectedCount > 0 ? "0 2px 8px rgba(217, 119, 6, 0.08)" : "none",
                         }}
                       >
-                        {/* Owner Card Header */}
                         <div
                           onClick={() => toggleOwnerExpand(grp.owner_name)}
                           style={{
@@ -2899,7 +2838,6 @@ export const InspectionForm = ({
                             transition: "background 0.14s ease",
                           }}
                         >
-                          {/* Left: Checkbox + Owner Name */}
                           <div
                             style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 200, flex: "1 1 auto" }}
                             onClick={(e) => e.stopPropagation()}
@@ -2925,12 +2863,10 @@ export const InspectionForm = ({
                             </div>
                           </div>
 
-                          {/* Right: Summary Badges + Expand Toggle */}
                           <div
                             style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
                             onClick={(e) => e.stopPropagation()}
                           >
-                            {/* Total Count Badge */}
                             <span
                               style={{
                                 fontSize: 12,
@@ -2946,7 +2882,6 @@ export const InspectionForm = ({
                               Total: <strong>{grp.total || grp.items.length}</strong>
                             </span>
 
-                            {/* Male Count Badge */}
                             <span
                               style={{
                                 fontSize: 12,
@@ -2965,7 +2900,6 @@ export const InspectionForm = ({
                               <span style={{ fontSize: 13 }}>♂</span> Male: <strong>{grp.maleCount || 0}</strong>
                             </span>
 
-                            {/* Female Count Badge */}
                             <span
                               style={{
                                 fontSize: 12,
@@ -3000,7 +2934,6 @@ export const InspectionForm = ({
                               </span>
                             )}
 
-                            {/* Expand/Collapse Button */}
                             <button
                               type="button"
                               onClick={() => toggleOwnerExpand(grp.owner_name)}
@@ -3028,7 +2961,6 @@ export const InspectionForm = ({
                           </div>
                         </div>
 
-                        {/* Dropdown Items (Scrollable Responsive Grid) */}
                         {isExpanded && (
                           <div
                             style={{
@@ -3228,7 +3160,6 @@ export const InspectionForm = ({
               )}
             </div>
 
-          {/* Dedicated Partial Condemnation Card for Each Carcass */}
           {partialAnimals.length === 0 ? (
             <div style={{ textAlign: "center", padding: "20px", background: "#fffdf7", border: "1.5px dashed #fde68a", borderRadius: 10, color: "#92400e" }}>
               <Icon.Scale size={28} style={{ margin: "0 auto 8px", display: "block", opacity: 0.6 }} />
@@ -3253,7 +3184,6 @@ export const InspectionForm = ({
                       gap: 14,
                     }}
                   >
-                    {/* Carcass Header */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid var(--color-border, #fef3c7)", paddingBottom: 10, flexWrap: "wrap", gap: 8 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span
@@ -3307,7 +3237,6 @@ export const InspectionForm = ({
                       </button>
                     </div>
 
-                    {/* Tag Dropdown (shown if unassigned or if user wants to reassign) */}
                     {!animal.tag_number && (
                       <div>
                         <label style={{ fontSize: 12, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 4 }}>
@@ -3331,7 +3260,6 @@ export const InspectionForm = ({
                       </div>
                     )}
 
-                    {/* Condemned Cuts for this Carcass */}
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       {animal.parts.map((part, partIdx) => {
                         return (
@@ -3345,7 +3273,6 @@ export const InspectionForm = ({
                               borderTop: partIdx > 0 ? "1px solid var(--color-border, #E2E6E3)" : "none",
                             }}
                           >
-                            {/* Grid Row 1: Carcass Area, Specific Part, Weight (kg), Pathology/Reason, Remove Button */}
                             <div
                               style={{
                                 display: "grid",
@@ -3354,7 +3281,6 @@ export const InspectionForm = ({
                                 alignItems: "start",
                               }}
                             >
-                              {/* 1. Main Carcass Area */}
                               <div>
                                 <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Carcass Area <span style={{ color: "#ef4444" }}>*</span>
@@ -3372,7 +3298,6 @@ export const InspectionForm = ({
                                 </select>
                               </div>
 
-                              {/* 2. Specific Condemned Part */}
                               <div>
                                 <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Specific Part <span style={{ color: "#ef4444" }}>*</span>
@@ -3425,7 +3350,6 @@ export const InspectionForm = ({
                                 )}
                               </div>
 
-                              {/* 3. Weight (kg) */}
                               <div>
                                 <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Weight (kg) <span style={{ color: "#ef4444" }}>*</span>
@@ -3463,7 +3387,6 @@ export const InspectionForm = ({
                                 )}
                               </div>
 
-                              {/* 4. Reason */}
                               <div>
                                 <label style={{ fontSize: 11, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 3 }}>
                                   Reason <span style={{ color: "#ef4444" }}>*</span>
@@ -3498,7 +3421,6 @@ export const InspectionForm = ({
                                 )}
                               </div>
 
-                              {/* Remove Cut Button */}
                               <div style={{ display: "flex", justifyContent: "center", paddingTop: 18 }}>
                                 <button
                                   type="button"
@@ -3522,7 +3444,6 @@ export const InspectionForm = ({
                               </div>
                             </div>
 
-                            {/* Row 2: Evidence Photo Upload */}
                             <div id={`cut-photos-${part.id}`} tabIndex={-1} style={{ outline: "none" }}>
                               <MultiEvidenceUploader
                                 photos={part.photos || []}
@@ -3535,7 +3456,6 @@ export const InspectionForm = ({
                         );
                     })}
 
-                      {/* Add Another Part Button (Matching Add Another Livestock Button) */}
                       <div style={{ marginTop: 6, marginBottom: 4 }}>
                         <button
                           type="button"
@@ -3581,7 +3501,6 @@ export const InspectionForm = ({
         </div>
       )}
 
-      {/* Condemned Animals/Carcasses Section (Ante-Mortem & Whole Carcass Post-Mortem) */}
       {decision === "Condemned" && (
         <div
           style={{
@@ -3624,7 +3543,6 @@ export const InspectionForm = ({
                       boxShadow: "0 1px 3px rgba(26, 32, 28, 0.04)",
                     }}
                   >
-                    {/* Minimalist Card Header: Tag + Animal Info + Remove Icon */}
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #EFF2F0", paddingBottom: 10 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                         <span
@@ -3672,7 +3590,6 @@ export const InspectionForm = ({
                       </button>
                     </div>
 
-                    {/* Fallback Tag Selector only if entry has no tag_number */}
                     {!entry.tag_number && (
                       <div>
                         <label style={{ fontSize: 11.5, fontWeight: 700, color: "#5D6660", display: "block", marginBottom: 4 }}>
@@ -3715,7 +3632,6 @@ export const InspectionForm = ({
                       </div>
                     )}
 
-                    {/* Condemnation Reason */}
                     <div>
                       <label style={{ fontSize: 12, fontWeight: 700, color: "#444C47", display: "block", marginBottom: 5 }}>
                         Condemnation Reason <span style={{ color: "#ef4444" }}>*</span>
@@ -3786,7 +3702,6 @@ export const InspectionForm = ({
                       )}
                     </div>
 
-                    {/* Multi-Evidence Upload Section (Ante-Mortem & Post-Mortem Condemnation) */}
                     <div id={`condemned-photos-${entry.id}`} tabIndex={-1} style={{ outline: "none" }}>
                       <MultiEvidenceUploader
                         photos={entry.photos || []}
@@ -3817,11 +3732,9 @@ export const InspectionForm = ({
         </div>
       )}
 
-      {/* Passed / Approved Animals & Carcasses Section deleted per user request to match Ante-Mortem layout */}
 
       </div>
 
-      {/* Actions (Fixed Footer Pinned at Modal Bottom) */}
       <div
         className="inspection-form-fixed-actions"
         style={{
@@ -3893,7 +3806,6 @@ export const InspectionForm = ({
         </Button>
       </div>
 
-      {/* Confirmation Modal prior to submitting inspection decisions */}
       <ConfirmDialog
         open={!!pendingConfirm}
         title={

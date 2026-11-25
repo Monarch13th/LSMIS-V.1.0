@@ -10,7 +10,6 @@ import { useToast } from "../../components/notifications/Toast";
 import { authStore } from "../../store/authStore";
 import { adminService } from "../../services/adminService";
 
-// Official Google 4-Color "G" Brand Logo
 const GoogleLogo = ({ size = 18 }) => (
   <svg
     width={size}
@@ -59,11 +58,9 @@ export const WaitingApproval = () => {
   const [avatarError, setAvatarError] = useState(false);
   const [isApproved, setIsApproved] = useState(false);
 
-  // Load latest owner info from database
   const loadOwnerStatus = useCallback(async (isManual = false) => {
     if (isManual) setChecking(true);
     try {
-      // 1. Get authenticated Supabase user or target email
       const { data: authData } = await supabase.auth.getUser();
       const authUser = authData?.user;
 
@@ -74,14 +71,12 @@ export const WaitingApproval = () => {
         null;
 
       if (!email && !authUser) {
-        // No session or cached state
         if (!ownerInfo) {
           navigate("/login", { replace: true });
         }
         return;
       }
 
-      // Query public.owners for status
       let query = supabase.from(TABLES.OWNERS).select("*");
       if (email) {
         query = query.ilike("email", email.trim().toLowerCase());
@@ -138,7 +133,6 @@ export const WaitingApproval = () => {
     loadOwnerStatus();
   }, [loadOwnerStatus]);
 
-  // Supabase Realtime listener to immediately detect when Admin clicks "Approve"
   useEffect(() => {
     let channel = null;
     try {
@@ -180,7 +174,6 @@ export const WaitingApproval = () => {
     };
   }, [ownerInfo?.email, ownerInfo?.id, showToast]);
 
-  // Sign out cleanly
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
@@ -199,7 +192,6 @@ export const WaitingApproval = () => {
     }
   };
 
-  // Enter dashboard after approval
   const handleProceedToDashboard = async () => {
     setChecking(true);
     try {
@@ -207,7 +199,6 @@ export const WaitingApproval = () => {
       const user = authData?.user;
       const email = ownerInfo?.email || user?.email;
 
-      // Register session in authStore
       let activeSessionId = "sess_" + Date.now();
       try {
         const regRes = await adminService.registerActiveSession({
@@ -281,7 +272,6 @@ export const WaitingApproval = () => {
           overflow: "hidden",
         }}
       >
-        {/* Top Accent Bar */}
         <div
           style={{
             height: 6,
@@ -294,7 +284,6 @@ export const WaitingApproval = () => {
         />
 
         <div style={{ padding: "32px 28px" }}>
-          {/* Header Status Icon */}
           <div style={{ textAlign: "center", marginBottom: 22 }}>
             <div
               style={{
@@ -376,7 +365,6 @@ export const WaitingApproval = () => {
             </p>
           </div>
 
-          {/* Details Card */}
           <div
             style={{
               background: "var(--color-surface-subtle, #F9FAF8)",
@@ -389,7 +377,6 @@ export const WaitingApproval = () => {
               gap: 12,
             }}
           >
-            {/* Owner Identity Header */}
             <div
               style={{
                 display: "flex",
@@ -465,7 +452,6 @@ export const WaitingApproval = () => {
               </div>
             </div>
 
-            {/* Email */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
               <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Registration Email:</span>
               <strong style={{ color: "var(--color-text, #1A201C)", wordBreak: "break-all" }}>
@@ -473,7 +459,6 @@ export const WaitingApproval = () => {
               </strong>
             </div>
 
-            {/* Account Status */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
               <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Current Account Status:</span>
               <span
@@ -509,7 +494,6 @@ export const WaitingApproval = () => {
               </span>
             </div>
 
-            {/* Reference ID */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
               <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Reference ID:</span>
               <span className="mono" style={{ fontWeight: 700, color: "var(--color-primary, #136647)" }}>
@@ -517,14 +501,12 @@ export const WaitingApproval = () => {
               </span>
             </div>
 
-            {/* Submitted Date */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.88rem" }}>
               <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>Submitted On:</span>
               <span style={{ color: "var(--color-text-secondary, #5D6660)" }}>{displayDate}</span>
             </div>
           </div>
 
-          {/* Informational Notice */}
           <div
             style={{
               padding: "12px 14px",
@@ -558,7 +540,6 @@ export const WaitingApproval = () => {
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {isApproved ? (
               <Button

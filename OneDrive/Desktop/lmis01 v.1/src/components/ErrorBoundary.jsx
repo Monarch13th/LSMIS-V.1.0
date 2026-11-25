@@ -1,7 +1,5 @@
 import { Component } from "react";
 
-// Catches any rendering error and shows a friendly fallback
-// instead of a white screen.
 export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);

@@ -10,7 +10,6 @@ export const OwnerBottomNav = () => {
   const { ownerId } = useAuth();
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // Fetch unread notifications for this owner
   const fetchUnread = async () => {
     try {
       let targetId = ownerId;
@@ -55,8 +54,6 @@ export const OwnerBottomNav = () => {
     };
   }, [ownerId]);
 
-  // Exactly 5 Essential Navigation Sections for Livestock Owners in exact specified order:
-  // 1. Home, 2. Today Livestock, 3. Records, 4. Notification, 5. Profile
   const navItems = [
     {
       to: "/owner",

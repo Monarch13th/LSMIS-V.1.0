@@ -153,7 +153,6 @@ export const OwnerNotifications = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* 1. COMPACT TOP CONTROLS (Title + Badge + Mark Read + Refresh) */}
       <div
         style={{
           display: "flex",
@@ -252,7 +251,6 @@ export const OwnerNotifications = () => {
         </div>
       </div>
 
-      {/* 2. NOTIFICATIONS LIST */}
       {loading ? (
         <div className="owner-section-card" style={{ textAlign: "center", padding: 32, color: "#9BA49E", fontSize: 12 }}>
           Loading alerts...

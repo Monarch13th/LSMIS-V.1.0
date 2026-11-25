@@ -1,6 +1,3 @@
-// Dashboard-only metric helpers. Pure functions: no network, no side effects.
-// Used by the Administrator, Veterinary and Staff dashboards so every number
-// on screen is derived from real records instead of hard-coded placeholders.
 
 export const num = (v) => {
   const n = Number(v);
@@ -23,7 +20,6 @@ export const isSameDay = (a, b) => !!a && !!b && startOfDay(a).getTime() === sta
 export const isSameMonth = (a, b) =>
   !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth();
 
-/** First usable date among the given candidate fields of a record. */
 export const pickDate = (row, fields) => {
   for (const f of fields) {
     const d = toDate(row?.[f]);
@@ -36,7 +32,6 @@ export const PAYMENT_DATE_FIELDS = ["paid_at", "date", "created_at"];
 export const INSPECTION_DATE_FIELDS = ["inspected_at", "date", "created_at"];
 export const LIVESTOCK_DATE_FIELDS = ["registered_at", "created_at", "received_date"];
 
-/** A payment counts as collected revenue only when it is settled. */
 export const isPaidPayment = (p) => {
   const s = String(p?.status || "Paid").toLowerCase();
   return s === "paid" || s === "completed" || s === "settled";
@@ -45,7 +40,6 @@ export const isPaidPayment = (p) => {
 export const sumPaid = (payments) =>
   (payments || []).filter(isPaidPayment).reduce((s, p) => s + num(p.amount), 0);
 
-/** Revenue (or any value) grouped by calendar month for the last `n` months. */
 export const monthlySeries = (rows, dateFields, valueOf = () => 1, n = 6) => {
   const now = new Date();
   const buckets = [];
@@ -63,7 +57,6 @@ export const monthlySeries = (rows, dateFields, valueOf = () => 1, n = 6) => {
   return { labels: buckets.map((b) => b.label), values: buckets.map((b) => b.value) };
 };
 
-/** Count (or sum) grouped by day for the last `n` days, oldest first. */
 export const dailySeries = (rows, dateFields, valueOf = () => 1, n = 7) => {
   const today = startOfDay();
   const buckets = [];
@@ -81,7 +74,6 @@ export const dailySeries = (rows, dateFields, valueOf = () => 1, n = 7) => {
   return { labels: buckets.map((b) => b.label), values: buckets.map((b) => b.value) };
 };
 
-/** "+12%" style delta text. Returns null when there is nothing to compare. */
 export const deltaText = (current, previous, suffix = "vs last month") => {
   if (!previous) return current > 0 ? `New this period` : null;
   const pct = Math.round(((current - previous) / previous) * 100);
@@ -90,7 +82,6 @@ export const deltaText = (current, previous, suffix = "vs last month") => {
 
 const norm = (v) => String(v || "").trim().toLowerCase();
 
-/** Normalises the many decision labels used across ante/post-mortem records. */
 export const decisionBucket = (decision) => {
   const d = norm(decision);
   if (!d) return "pending";
@@ -112,7 +103,6 @@ export const countDecisions = (rows) => {
 
 const truthy = (v) => v === true || v === "true" || v === 1 || v === "1" || v === "t";
 
-/** Where a livestock record currently sits in the slaughterhouse workflow. */
 export const livestockStage = (l) => {
   const s = norm(l?.status);
   if (s.includes("condemn") || s.includes("reject")) return "condemned";
@@ -140,16 +130,8 @@ export const countStages = (livestock) => {
   return out;
 };
 
-/** Best-effort sort key (ms) for "most recent first" lists. */
 export const recency = (row, fields) => pickDate(row, fields)?.getTime() || 0;
 
-/**
- * Computes inspection counts across the 4 primary categories for Admin Dashboard:
- * - Ante-Mortem
- * - Post-Mortem
- * - Condemnation
- * - Partially Condemned
- */
 export const calculateInspectionCategoryCounts = ({
   ante = [],
   post = [],
@@ -158,7 +140,6 @@ export const calculateInspectionCategoryCounts = ({
 } = {}) => {
   const normTag = (v) => String(v == null ? "" : v).trim().toLowerCase();
 
-  // 1. Antemortem count
   const anteList = (ante || []).map((a) => normTag(a.tag_number));
   (livestock || [])
     .filter((l) => l.status === "Condemned" || l.status === "Rejected")
@@ -168,10 +149,8 @@ export const calculateInspectionCategoryCounts = ({
     });
   const antemortem = Math.max((ante || []).length, anteList.length);
 
-  // Condemned/Partial tags for wholesome separation
   const condOrPartTags = new Set((condemned || []).map((c) => normTag(c.tag_number)).filter(Boolean));
 
-  // 2. Postmortem wholesome count
   const pmList = [];
   (post || []).forEach((p) => {
     const cleanTag = normTag(p.tag_number);
@@ -201,7 +180,6 @@ export const calculateInspectionCategoryCounts = ({
     return !d.includes("condemn") && !d.includes("reject") && !d.includes("partial");
   }).length;
 
-  // 3. Partially Condemned count
   const pmCond = (condemned || []).filter((c) => {
     const isLive = c.part === "Live Animal" || (c.notes && c.notes.toLowerCase().includes("ante")) || c.stage === "Ante-Mortem";
     return !isLive;
@@ -222,7 +200,6 @@ export const calculateInspectionCategoryCounts = ({
   });
   const partial = partialMap.size > 0 ? partialMap.size : (post || []).filter((p) => String(p.decision || "").toLowerCase().includes("partial")).length;
 
-  // 4. Condemnation count
   const condList = [];
   (ante || []).filter((a) => a.decision === "Rejected" || a.decision === "Condemned").forEach((a) => {
     condList.push({ tag: normTag(a.tag_number), stage: "Ante-Mortem Screening" });

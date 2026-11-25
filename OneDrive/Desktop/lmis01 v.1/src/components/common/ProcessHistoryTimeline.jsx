@@ -9,7 +9,6 @@ export const ProcessHistoryTimeline = ({ record, className = "" }) => {
 
   const rawHistory = parseHistory(record.process_history || record.history);
 
-  // If no explicit process_history array exists yet, construct stage cards from existing columns
   const syntheticEvents = [];
   if (rawHistory.length === 0) {
     if (record.created_by || record.registered_by || record.registered_at || record.received_date) {
@@ -119,7 +118,6 @@ export const ProcessHistoryTimeline = ({ record, className = "" }) => {
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Header Attribution Overview */}
       <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-4 border border-slate-200 dark:border-slate-700/60">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -156,7 +154,6 @@ export const ProcessHistoryTimeline = ({ record, className = "" }) => {
         </div>
       </div>
 
-      {/* Chronological Step History */}
       <div>
         <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">
           Process History & Stage Attribution ({events.length} {events.length === 1 ? "Event" : "Events"})
@@ -172,7 +169,6 @@ export const ProcessHistoryTimeline = ({ record, className = "" }) => {
               const isVet = evt.role === "vet" || evt.stage?.toLowerCase().includes("mortem") || evt.stage?.toLowerCase().includes("condemn");
               return (
                 <div key={evt.id || idx} className="relative group">
-                  {/* Timeline Node Bullet */}
                   <div
                     className={`absolute -left-[25px] top-1.5 w-4 h-4 rounded-full border-2 border-white dark:border-slate-900 ${
                       isVet ? "bg-cyan-500" : "bg-emerald-500"
@@ -216,7 +212,6 @@ export const ProcessHistoryTimeline = ({ record, className = "" }) => {
                       )}
                     </div>
 
-                    {/* Additional Details if available */}
                     {evt.details && Object.keys(evt.details).length > 0 && (
                       <div className="mt-2 bg-slate-50 dark:bg-slate-900/50 rounded p-2 text-[11px] text-slate-600 dark:text-slate-400 flex flex-wrap gap-x-3 gap-y-1">
                         {Object.entries(evt.details).map(([k, v]) => {

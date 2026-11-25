@@ -1,11 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
-/**
- * WorkflowPipelineRibbon
- * Compact horizontal workflow tracker enabling direct monitoring and navigation
- * across the complete livestock slaughterhouse lifecycle.
- */
 export const WorkflowPipelineRibbon = ({ stages = [] }) => {
   const navigate = useNavigate();
 

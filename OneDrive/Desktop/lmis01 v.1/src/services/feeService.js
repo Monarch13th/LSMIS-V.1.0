@@ -1,5 +1,3 @@
-// Flexible fee & payment service.
-// Admin defines fee rules; Staff payment auto-loads & calculates totals.
 import { supabase } from "./supabaseClient";
 import { notifyDbChange } from "./realtimeSync";
 import { TABLES } from "../utils/constants";
@@ -46,7 +44,6 @@ export const normalizeAnimalType = (value = "") => {
 };
 
 export const feeService = {
-  /* ===== Fee rules (Admin) ===== */
   normalizeAnimalType,
   resolveFeeRule: (animalType, fees = []) => {
     const target = normalizeAnimalType(animalType);
@@ -144,20 +141,17 @@ export const feeService = {
     return { data };
   },
 
-  /** Find the active fee rule for an animal type */
   findFeeForAnimal: async (animalType) => {
     const fees = await supabase.from(TABLES.FEES).select().then((r) => r.data);
     return feeService.resolveFeeRule(animalType, fees);
   },
 
-  /** Calculate total based on method */
   calculate: ({ method, rate, quantity = 1, weight = 0 }) => {
     const r = parseFloat(rate) || 0;
     if (method === "Per Kilo") return Math.round(r * (parseFloat(weight) || 0));
-    return Math.round(r * (parseInt(quantity) || 1)); // Per Head
+    return Math.round(r * (parseInt(quantity) || 1));
   },
 
-  /* ===== Payments (Staff) ===== */
   listPayments: () => supabase.from(TABLES.PAYMENTS).select().then((r) => r.data),
 
   createPayment: async (p) => {

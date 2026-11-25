@@ -8,10 +8,6 @@ import { calculateLivestockProgress } from "./Animals";
 import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 
-/**
- * Owner Records • view-only complete livestock history for the authenticated owner.
- * Permits and payments are intentionally not shown here.
- */
 export const OwnerRecords = () => {
   const { ownerId } = useAuth();
   const [allLivestock, setAllLivestock] = useState([]);
@@ -20,11 +16,9 @@ export const OwnerRecords = () => {
   const [condemnationDetails, setCondemnationDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Search & Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
 
-  // Asia/Manila date helpers
   const getManilaTodayStr = () => {
     try {
       return new Intl.DateTimeFormat("en-CA", {
@@ -65,7 +59,6 @@ export const OwnerRecords = () => {
     const isSilent = opts.silent === true;
     if (!isSilent) setLoading(true);
     try {
-      // 1. Resolve authentic owner from active Supabase session
       const { data: authUser } = await supabase.auth.getUser();
       const email = authUser?.user?.email;
       let targetOwnerId = null;
@@ -109,7 +102,6 @@ export const OwnerRecords = () => {
       }
 
 
-      // 2. Fetch Animals strictly belonging to this owner
       let liveAnimals = [];
       if (targetOwnerId) {
         try {
@@ -120,7 +112,6 @@ export const OwnerRecords = () => {
           if (!aErr && aData) liveAnimals = aData;
         } catch (e) {}
 
-        // Fallback by owner name if no records found by ID
         if (liveAnimals.length === 0 && foundOwner?.name) {
           try {
             const { data: aByName } = await supabase
@@ -133,7 +124,6 @@ export const OwnerRecords = () => {
       }
       const tagNumbers = liveAnimals.map((a) => a.tag_number).filter(Boolean);
 
-      // 3. Fetch staff & veterinarian milestone data used for livestock progress
       let cMap = {};
       let anteMap = {};
       let postMap = {};
@@ -198,7 +188,6 @@ export const OwnerRecords = () => {
         } catch (e) {}
       }
 
-      // Save complete livestock history and milestone maps
       setAllLivestock(liveAnimals || []);
       const permMap = {};
       (permList || []).forEach((p) => {
@@ -246,7 +235,6 @@ export const OwnerRecords = () => {
     };
   }, [ownerId]);
 
-  // Sync selectedLivestock with fresh data when allLivestock is silently updated
   useEffect(() => {
     if (selectedLivestock?.tag_number) {
       const activeTag = String(selectedLivestock.tag_number).trim().toUpperCase();
@@ -259,7 +247,6 @@ export const OwnerRecords = () => {
     }
   }, [allLivestock]);
 
-  // Escape key handler for selectedLivestock (only closes if condemnationDetails is NOT open)
   useEffect(() => {
     if (!selectedLivestock || condemnationDetails) return;
     const handleKeyDown = (e) => {
@@ -272,7 +259,6 @@ export const OwnerRecords = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedLivestock, condemnationDetails]);
 
-  // Enrich full livestock history with milestone progress
   const enrichedLivestock = useMemo(() => {
     return (allLivestock || []).map((a) => {
       const progress = calculateLivestockProgress(a, milestones);
@@ -283,7 +269,6 @@ export const OwnerRecords = () => {
     });
   }, [allLivestock, milestones]);
 
-  // Filter full livestock history without today's-only restriction
   const filteredLivestock = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     return enrichedLivestock.filter((a) => {
@@ -304,7 +289,6 @@ export const OwnerRecords = () => {
     });
   }, [enrichedLivestock, searchQuery, dateFilter]);
 
-  // Handler for opening Condemnation Details with Pathology Photos
   const handleOpenCondemnation = (tagNumber, e) => {
     if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     const tagUpper = String(tagNumber || "").trim().toUpperCase();
@@ -349,7 +333,6 @@ export const OwnerRecords = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      {/* 1. COMPACT FIXED TOP CONTROLS (Title + Badge + Refresh + Search) */}
       <div
         style={{
           display: "flex",
@@ -359,7 +342,6 @@ export const OwnerRecords = () => {
           flexShrink: 0,
         }}
       >
-        {/* Title row */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
             <Icon.FileText size={18} style={{ color: "var(--color-primary)" }} />
@@ -405,7 +387,6 @@ export const OwnerRecords = () => {
           </div>
         </div>
 
-        {/* Compact Search Bar */}
         <div style={{ position: "relative", width: "100%" }}>
           <span
             style={{
@@ -466,7 +447,6 @@ export const OwnerRecords = () => {
           )}
         </div>
 
-        {/* Date Filter Controls */}
         <div style={{ display: "flex", alignItems: "center", gap: 6, width: "100%", marginTop: 2 }}>
           <div style={{ position: "relative", flex: 1 }}>
             <span
@@ -553,7 +533,6 @@ export const OwnerRecords = () => {
         </div>
       </div>
 
-      {/* 2. LIVESTOCK HISTORY */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div className="flex items-center justify-between px-1">
             <h2 className="text-xs font-extrabold uppercase tracking-wider text-slate-700 dark:text-slate-200">
@@ -626,7 +605,6 @@ export const OwnerRecords = () => {
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
                   : "Pathological cuts removed";
 
-              // 2. FULLY CONDEMNED CARD (Mobile Records)
               if (isActuallyCondemned) {
                 const condStageName = progress.condemnationStage || (progress.currentStageIndex === 3 ? "Ante-Mortem" : "Post-Mortem");
                 const condTimeFormatted =
@@ -680,7 +658,6 @@ export const OwnerRecords = () => {
                       </span>
                     </div>
 
-                    {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                         <span style={{ color: "#5D6660", fontWeight: 600 }}>Stage:</span>
@@ -742,7 +719,6 @@ export const OwnerRecords = () => {
                   style={{ cursor: "pointer" }}
                   title="Tap to view full lifecycle history"
                 >
-                  {/* Animal Card Header: Tag No. & Status Pill */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                     <span
                       className="owner-animal-tag"
@@ -787,7 +763,6 @@ export const OwnerRecords = () => {
                     </span>
                   </div>
 
-                  {/* Clean Info Row: Sex and Date */}
                   <div
                     style={{
                       display: "flex",
@@ -829,7 +804,6 @@ export const OwnerRecords = () => {
                     )}
                   </div>
 
-                  {/* Small Clear Indication for Partially Condemned Livestock with View button */}
                   {isPartial && (
                     <div
                       style={{
@@ -879,7 +853,6 @@ export const OwnerRecords = () => {
                     </div>
                   )}
 
-                  {/* 7-Milestone Visual Progress Tracker */}
                   {Array.isArray(progress.trackerStages) && progress.trackerStages.length > 0 && (
                     <div
                       className="owner-tracker-wrap no-scrollbar"
@@ -950,7 +923,6 @@ export const OwnerRecords = () => {
                     </div>
                   )}
 
-                  {/* View Details Action Button */}
                   <div
                     style={{
                       marginTop: 10,
@@ -973,7 +945,6 @@ export const OwnerRecords = () => {
           )}
         </div>
 
-      {/* 4. VIEW LIVESTOCK HISTORY DETAILS MODAL */}
       {selectedLivestock && (() => {
         const selTag = selectedLivestock.tag_number;
         const selTagUpper = String(selTag || "").trim().toUpperCase();
@@ -1039,7 +1010,6 @@ export const OwnerRecords = () => {
                 gap: 16,
               }}
             >
-              {/* Header */}
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <span
@@ -1094,7 +1064,6 @@ export const OwnerRecords = () => {
                 </button>
               </div>
 
-              {/* Status Hero Banner */}
               <div
                 style={{
                   padding: "14px 16px",
@@ -1163,7 +1132,6 @@ export const OwnerRecords = () => {
                   </span>
                 </div>
 
-                {/* Progress Bar */}
                 <div
                   style={{
                     height: 6,
@@ -1185,7 +1153,6 @@ export const OwnerRecords = () => {
                 </div>
               </div>
 
-              {/* Small Clear Indication for Partially Condemned Livestock with View button */}
               {prog.isPartialCondemned && (
                 <div
                   style={{
@@ -1234,7 +1201,6 @@ export const OwnerRecords = () => {
                 </div>
               )}
 
-              {/* Core Particulars Grid (Species, Sex, Carcass Weight) */}
               <div
                 className="owner-animal-modal-stats-grid"
                 style={{
@@ -1296,7 +1262,6 @@ export const OwnerRecords = () => {
               </div>
 
 
-              {/* 7 Official Processing Milestones */}
               <div>
                 <div
                   style={{
@@ -1503,7 +1468,6 @@ export const OwnerRecords = () => {
                 </div>
               </div>
 
-              {/* Close Button Footer */}
               <button
                 type="button"
                 onClick={() => setSelectedLivestock(null)}
@@ -1532,7 +1496,6 @@ export const OwnerRecords = () => {
         );
       })()}
 
-      {/* Condemnation & Pathology Photo Viewer Modal */}
       {condemnationDetails && (
         <OwnerCondemnationModal
           open={!!condemnationDetails}

@@ -6,13 +6,11 @@ import { ownerAuthService } from "../services/ownerAuthService";
 import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
 import logoImg from "../assets/logo.png";
 
-// Photography Assets (Public URLs for parallel preloading & PWA caching)
 const heroInspectorImg = "/hero-inspector.jpg";
 const aboutVetImg = "/about-veterinarian.jpg";
 const inspectionImg = "/inspection-postmortem.jpg";
 const facilityBgImg = "/lsmis-facility-bg.jpg";
 
-// Official Google 4-Color "G" Brand Logo
 const GoogleLogo = ({ size = 18 }) => (
   <svg
     width={size}
@@ -169,7 +167,6 @@ export const LandingPage = () => {
   const { role, isAuthenticated, loading: authLoading, isInitialized: authInitialized } = useAuth();
   const navigate = useNavigate();
 
-  // Installed app check: direct bypass to dashboard or login
   useEffect(() => {
     if (isInstalledApp()) {
       if (authLoading || !authInitialized) return;
@@ -181,7 +178,6 @@ export const LandingPage = () => {
     }
   }, [authLoading, authInitialized, isAuthenticated, role, navigate]);
 
-  // Scroll detection for navbar transition
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 30);
@@ -191,7 +187,6 @@ export const LandingPage = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // IntersectionObserver for active nav scroll-spy
   useEffect(() => {
     const sectionIds = ["top", "about", "features", "workflow", "contact"];
     const observerOptions = {
@@ -217,7 +212,6 @@ export const LandingPage = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Mobile drawer keyboard accessibility & body scroll lock
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape" && mobileMenuOpen) {
@@ -236,7 +230,6 @@ export const LandingPage = () => {
     };
   }, [mobileMenuOpen]);
 
-  // Smooth scroll handler with offset
   const scrollToSection = useCallback((e, href) => {
     e.preventDefault();
     setMobileMenuOpen(false);
@@ -249,7 +242,6 @@ export const LandingPage = () => {
     }
   }, []);
 
-  // Preserved Google Sign-In for Livestock Owners
   const handleMobileGoogleSignIn = async () => {
     if (googleLoading) return;
     setGoogleLoading(true);
@@ -270,16 +262,12 @@ export const LandingPage = () => {
 
   return (
     <div className="landing-page" id="top">
-      {/* =========================================================
-          1. NAVIGATION BAR
-          ========================================================= */}
       <header
         className={`landing-nav-header ${isScrolled ? "nav-scrolled" : "nav-transparent"}`}
         role="banner"
       >
         <div className="landing-container">
           <div className="landing-nav-inner">
-            {/* Brand Logo & Institutional Label */}
             <a
               href="#top"
               onClick={(e) => scrollToSection(e, "#top")}
@@ -295,7 +283,6 @@ export const LandingPage = () => {
               </div>
             </a>
 
-            {/* Desktop Navigation Links */}
             <nav className="nav-menu-desktop" aria-label="Main Navigation">
               {NAV_ITEMS.map((item) => {
                 const id = item.href.replace("#", "");
@@ -314,7 +301,6 @@ export const LandingPage = () => {
               })}
             </nav>
 
-            {/* Nav Actions: Register, Login, Mobile Toggle */}
             <div className="nav-actions">
               <Link to="/register" className="nav-btn-register" aria-label="Register Owner Account">
                 <Icon.UserPlus size={15} />
@@ -340,7 +326,6 @@ export const LandingPage = () => {
         </div>
       </header>
 
-      {/* Mobile Nav Backdrop Overlay */}
       {mobileMenuOpen && (
         <div
           className="mobile-nav-backdrop"
@@ -349,7 +334,6 @@ export const LandingPage = () => {
         />
       )}
 
-      {/* Mobile Nav Drawer */}
       <div
         ref={mobileMenuRef}
         className={`mobile-nav-panel ${mobileMenuOpen ? "open" : ""}`}
@@ -430,11 +414,7 @@ export const LandingPage = () => {
         </div>
       </div>
 
-      {/* =========================================================
-          2. HERO SECTION
-          ========================================================= */}
       <section className="landing-hero landing-section" aria-label="Hero Introduction">
-        {/* Large inspection photograph with dark forest green overlay */}
         <div className="hero-media-wrapper" aria-hidden="true">
           <img
             src={heroInspectorImg}
@@ -451,7 +431,6 @@ export const LandingPage = () => {
 
         <div className="landing-container">
           <div className="hero-content-inner">
-            {/* Main Headline */}
             <h1 className="hero-main-title">
               Livestock Slaughter and Meat Inspection Management System
             </h1>
@@ -460,12 +439,10 @@ export const LandingPage = () => {
               Office of the City Veterinarian
             </p>
 
-            {/* Description */}
             <p className="hero-lead-text">
               A centralized web-based system designed to manage livestock registration, veterinary inspections, slaughter processing, carcass weighing, and meat permit issuance within the Office of the City Veterinarian.
             </p>
 
-            {/* Action Buttons */}
             <div className="hero-cta-group">
               <Link to="/login" className="btn-hero-primary">
                 <span>Access System</span>
@@ -480,7 +457,6 @@ export const LandingPage = () => {
               </a>
             </div>
 
-            {/* Institutional Trust Badges */}
             <div className="hero-trust-chips">
               <div className="hero-chip-item">
                 <Icon.CheckCircle size={16} />
@@ -499,13 +475,9 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* =========================================================
-          3. ABOUT SECTION (Single-Frame Responsive Fit)
-          ========================================================= */}
       <section className="landing-about landing-section" id="about" aria-label="About the System">
         <div className="landing-container">
           <div className="about-grid-layout">
-            {/* Text Column */}
             <div className="about-text-content">
               <div className="about-header-wrap">
                 <span className="section-header-badge">System Overview</span>
@@ -555,7 +527,6 @@ export const LandingPage = () => {
               </div>
             </div>
 
-            {/* Supporting Photograph Column */}
             <div className="about-media-card">
               <img
                 src={aboutVetImg}
@@ -575,9 +546,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* =========================================================
-          4. FEATURES SECTION
-          ========================================================= */}
       <section className="landing-features landing-section" id="features" aria-label="System Features">
         <div className="landing-container">
           <div className="section-header-center">
@@ -588,7 +556,6 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          {/* 8 Implemented Modules Grid */}
           <div className="features-grid-container">
             {FEATURE_MODULES.map((feat) => (
               <div key={feat.title} className="feature-module-card">
@@ -599,7 +566,6 @@ export const LandingPage = () => {
             ))}
           </div>
 
-          {/* Post-Mortem Examination Showcase Banner */}
           <div className="feature-showcase-banner">
             <div className="feature-showcase-photo-wrap">
               <img
@@ -631,9 +597,6 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* =========================================================
-          5. WORKFLOW SECTION
-          ========================================================= */}
       <section className="landing-workflow landing-section" id="workflow" aria-label="System Workflow">
         <div className="landing-container">
           <div className="section-header-center">
@@ -644,7 +607,6 @@ export const LandingPage = () => {
             </p>
           </div>
 
-          {/* Desktop Horizontal Timeline Grid */}
           <div className="workflow-desktop-timeline">
             {WORKFLOW_STEPS.map((step) => {
               const isVet = step.roleType === "vet";
@@ -664,7 +626,6 @@ export const LandingPage = () => {
             })}
           </div>
 
-          {/* Mobile Vertical Timeline */}
           <div className="workflow-mobile-timeline">
             {WORKFLOW_STEPS.map((step) => {
               const isVet = step.roleType === "vet";
@@ -689,13 +650,9 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* =========================================================
-          6. CONTACT SECTION
-          ========================================================= */}
       <section className="landing-contact landing-section" id="contact" aria-label="Contact Information">
         <div className="landing-container">
           <div className="contact-layout-box">
-            {/* Official Facility & Office Details */}
             <div className="contact-info-col">
               <div>
                 <span className="section-header-badge">Inquiries &amp; Support</span>
@@ -756,7 +713,6 @@ export const LandingPage = () => {
               </div>
             </div>
 
-            {/* Facility Photograph & Authorized Access Panel */}
             <div className="contact-media-col">
               <div className="contact-facility-img-wrap">
                 <img
@@ -786,14 +742,10 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* =========================================================
-          7. PROFESSIONAL LSMIS MUNICIPAL FOOTER
-          ========================================================= */}
       <footer className="landing-footer" role="contentinfo">
         <h2 className="footer-sr-only">Footer Information and System Directory</h2>
         <div className="landing-container">
           <div className="footer-grid">
-            {/* Column 1: LSMIS Municipal Identity */}
             <div className="footer-col footer-col-brand">
               <div className="footer-brand-header">
                 <img
@@ -817,7 +769,6 @@ export const LandingPage = () => {
               </p>
             </div>
 
-            {/* Column 2: LSMIS Abattoir Modules */}
             <div className="footer-col footer-col-modules">
               <h4 className="footer-col-heading">System Modules</h4>
               <ul className="footer-links-list">
@@ -866,7 +817,6 @@ export const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Column 3: Legal Mandates & Regulations */}
             <div className="footer-col footer-col-legal">
               <h4 className="footer-col-heading">Legal Mandates</h4>
               <ul className="footer-links-list">
@@ -921,7 +871,6 @@ export const LandingPage = () => {
               </ul>
             </div>
 
-            {/* Column 4: Facility & Operations Contact */}
             <div className="footer-col footer-col-contact">
               <h4 className="footer-col-heading">Facility Operations</h4>
               <div className="footer-contact-block">

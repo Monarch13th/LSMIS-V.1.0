@@ -1,19 +1,5 @@
 import { useState, useCallback } from "react";
 
-/**
- * Custom hook to trigger admin password confirmation before executing sensitive actions.
- * Usage:
- * const { confirmModalProps, confirmAdminAction } = useAdminConfirmPassword();
- * 
- * confirmAdminAction({
- *   title: "Delete User",
- *   actionDescription: "Are you sure you want to delete user Juan Dela Cruz?",
- *   confirmButtonText: "Delete Account",
- *   danger: true,
- *   actionContext: { action: "Delete User Account", module: "Users" },
- *   onConfirm: async () => { await deleteUser(); }
- * });
- */
 export const useAdminConfirmPassword = () => {
   const [modalState, setModalState] = useState({
     open: false,

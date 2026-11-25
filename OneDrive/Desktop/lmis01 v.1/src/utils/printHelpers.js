@@ -51,11 +51,6 @@ const inlinePrintImages = async (html) => {
   return out;
 };
 
-/**
- * Generic Popup Window Launcher using the exact procedure as Vet Certify
- * (window.open -> write HTML -> auto window.focus() & window.print()).
- * Completely self-contained with explicit inline styling to avoid blank print previews.
- */
 export const printHtmlViaPopup = async (title, bodyHtml) => {
   const printWin = window.open("", "_blank", "width=850,height=1100");
   if (!printWin) {
@@ -134,12 +129,6 @@ export const printHtmlViaPopup = async (title, bodyHtml) => {
   printWin.document.close();
 };
 
-/**
- * Direct In-Page Print Launcher using an isolated hidden iframe.
- * Automatically loads content, waits for image assets (logos), and invokes native print()
- * directly without opening extra tabs, popups, or redirecting the user.
- * Falls back to popup if iframe printing is restricted.
- */
 export const printHtmlDirect = async (title, bodyHtml) => {
   try {
     const preparedBodyHtml = await inlinePrintImages(bodyHtml);
@@ -236,7 +225,6 @@ export const printHtmlDirect = async (title, bodyHtml) => {
       printHtmlViaPopup(title, preparedBodyHtml);
     };
 
-    // Ensure images (seals, logos) are loaded and decoded before invoking print
     const imgs = Array.from(doc.images || []);
     if (imgs.length > 0) {
       let printTriggered = false;
@@ -269,10 +257,6 @@ export const printHtmlDirect = async (title, bodyHtml) => {
   }
 };
 
-/**
- * Print Handler 1: Permit Fee Record (Fee Collection Report & Official Receipt)
- * Renders the complete, detailed Fee Collection Report and Official Receipt Owner Copy.
- */
 export const printPermitFeeRecord = (selectedRecord, payments = []) => {
   if (!selectedRecord) return;
 
@@ -280,9 +264,6 @@ export const printPermitFeeRecord = (selectedRecord, payments = []) => {
   const dateStr = selectedRecord.date ? selectedRecord.date.split("T")[0] : "unknown";
   const selSp = normalizeAnimalType(selectedRecord.animal_type || selectedRecord.species).toLowerCase();
 
-  // Find every payment record in this owner + date + species batch (the same key the
-  // Permit Fee Records list groups by) so the slip shows the true head count instead of
-  // only the single clicked transaction.
   let groupRecords = payments.filter(
     (p) =>
       (p.owner_name || "").toLowerCase() === owner.toLowerCase() &&
@@ -449,9 +430,6 @@ export const printPermitFeeRecord = (selectedRecord, payments = []) => {
   printHtmlViaPopup("Permit Fee Record — Fee Collection Slip & Official Receipt", bodyHtml);
 };
 
-/**
- * Print Handler 2: Meat Inspection Permit
- */
 export const printMeatPermit = (permit) => {
   if (!permit) return;
 
@@ -467,9 +445,6 @@ export const printMeatPermit = (permit) => {
   const address = permit.address || "EAST POBLACION";
   const conveyance = permit.conveyance || "Inspected Refrigerated Meat Transport";
   const plateNo = permit.plateNo || "NGA-001";
-  // Never substitute a placeholder clock time here: an unissued permit must print an
-  // em dash rather than a fabricated issuance time. Callers pass the real
-  // Asia/Manila issuance time read from the permit record.
   const timeIssue = permit.timeIssue || permit.displayTime || "—";
   const inspector = permit.inspector || "Dr. Dave";
   const veterinarian = permit.veterinarian || "DR. RAYMUNDO VALENTINE P. PAMIREZ";
@@ -665,9 +640,6 @@ export const printMeatPermit = (permit) => {
   printHtmlDirect("Official Meat Inspection Certificate & Permit", bodyHtml);
 };
 
-/**
- * Print Handler 3: Abattoir Gate Pass
- */
 export const printGatePass = (dispatch) => {
   if (!dispatch) return;
   const owner = dispatch.owner_name || dispatch.ownerName || "Authorized Owner";

@@ -1,4 +1,3 @@
-// Additional Vet module pages
 import { ModulePage } from "../../components/ModulePage";
 import { RoleReportsModule } from "../../components/reports/RoleReportsModule";
 import { Card, PageHeader, Button, Input, Select, Textarea, Modal, ConfirmDialog, AlertDialog, Badge, StatCard, EmptyState, Pagination } from "../../components/ui";
@@ -40,7 +39,6 @@ import {
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
 import { getCurrentActor } from "../../utils/processHistory";
 
-/* ---------- Ante-mortem records & inspection history ---------- */
 export const AnteMortemRecords = () => null;
 
 export const AnimalInspectionHistory = () => {
@@ -56,7 +54,6 @@ export const AnimalInspectionHistory = () => {
   const [filterStatus, setFilterStatus] = useState("");
   const [expandedTag, setExpandedTag] = useState(null);
 
-  // Build enriched animal records
   const animals = livestock.map((l) => {
     const ante = anteMortem.filter((a) => (a.livestock_id && a.livestock_id === l.id) || (a.tag_number === l.tag_number && (!a.livestock_id || l.status !== "Pending")));
     const post = postMortem.filter((p) => p.tag_number === l.tag_number);
@@ -142,10 +139,8 @@ export const AnimalInspectionHistory = () => {
 
   return (
     <div style={{ padding: "0 0 32px" }}>
-      {/* Header */}
       <PageHeader title="Inspection History" subtitle="Inspection records and timeline per animal" icon={<Icon.ClipboardCheck />} />
 
-      {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 16, marginBottom: 24 }}>
         {[
           { label: "Total Animals", value: animals.length, color: "#187A56", icon: <Icon.Users /> },
@@ -163,7 +158,6 @@ export const AnimalInspectionHistory = () => {
         ))}
       </div>
 
-      {/* Filters */}
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
         <div style={{ position: "relative", flex: "1 1 220px" }}>
           <input
@@ -199,7 +193,6 @@ export const AnimalInspectionHistory = () => {
         <span style={{ fontSize: 12, color: "var(--color-text-muted)", marginLeft: "auto" }}>{filtered.length} animal{filtered.length !== 1 ? "s" : ""}</span>
       </div>
 
-      {/* Animal Cards */}
       {filtered.length === 0 ? (
         <div style={{ textAlign: "center", padding: "60px 0", color: "var(--color-text-muted)" }}>
           <div style={{ display: "flex", justifyContent: "center", marginBottom: 12 }}><Icon.Inbox size={40} style={{ color: "var(--color-text-muted)" }} /></div>
@@ -212,13 +205,10 @@ export const AnimalInspectionHistory = () => {
             const totalEvents = a.ante.length + a.post.length + a.dis.length + (a.car ? 1 : 0);
             return (
               <div key={a.tag_number} style={{ background: "var(--color-surface)", border: `1px solid var(--color-border)`, borderRadius: 14, overflow: "hidden", transition: "box-shadow 0.2s", boxShadow: isOpen ? "0 4px 24px rgba(0,0,0,0.12)" : "none" }}>
-                {/* Card Header */}
                 <button onClick={() => setExpandedTag(isOpen ? null : a.tag_number)}
                   style={{ width: "100%", display: "flex", alignItems: "center", gap: 16, padding: "16px 20px", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}>
-                  {/* Status dot */}
                   <div style={{ width: 12, height: 12, borderRadius: "50%", background: statusColor(a.overallStatus), boxShadow: `0 0 0 3px ${statusBg(a.overallStatus)}`, flexShrink: 0 }} />
 
-                  {/* Tag + species */}
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                       <span style={{ fontFamily: "monospace", fontWeight: 800, fontSize: 14, color: "var(--color-text)" }}>{a.tag_number}</span>
@@ -232,14 +222,12 @@ export const AnimalInspectionHistory = () => {
                     </div>
                   </div>
 
-                  {/* Event count + chevron */}
                   <div style={{ display: "flex", alignItems: "center", gap: 12, flexShrink: 0 }}>
                     <span style={{ fontSize: 12, color: "var(--color-text-muted)" }}>{totalEvents} record{totalEvents !== 1 ? "s" : ""}</span>
                     <span style={{ color: "var(--color-text-muted)", transition: "transform 0.2s", display: "block", transform: isOpen ? "rotate(180deg)" : "none" }}><Icon.ChevronDown /></span>
                   </div>
                 </button>
 
-                {/* Expanded Timeline */}
                 {isOpen && (
                   <div style={{ padding: "0 20px 20px", borderTop: "1px solid var(--color-border)" }}>
                     <div style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "16px 0 8px" }}>Inspection Timeline</div>
@@ -248,7 +236,6 @@ export const AnimalInspectionHistory = () => {
                       <div style={{ color: "var(--color-text-muted)", fontSize: 13, padding: "12px 0" }}>No inspection records found for this animal.</div>
                     ) : (
                       <div>
-                        {/* Ante-Mortem */}
                         {a.ante.map((ev, i) => (
                           <TimelineEvent key={`ante-${i}`}
                             icon={<Icon.Eye />} color="#24966D"
@@ -258,7 +245,6 @@ export const AnimalInspectionHistory = () => {
                             badge={decisionBadge(ev.decision)}
                           />
                         ))}
-                        {/* Post-Mortem */}
                         {a.post.map((ev, i) => (
                           <TimelineEvent key={`post-${i}`}
                             icon={<Icon.Layers />} color="#24966D"
@@ -268,7 +254,6 @@ export const AnimalInspectionHistory = () => {
                             badge={decisionBadge(ev.decision)}
                           />
                         ))}
-                        {/* Disease */}
                         {a.dis.map((ev, i) => (
                           <TimelineEvent key={`dis-${i}`}
                             icon={<Icon.AlertTriangle />} color="#f59e0b"
@@ -281,7 +266,6 @@ export const AnimalInspectionHistory = () => {
                             }}>{ev.status}</span>}
                           />
                         ))}
-                        {/* Carcass */}
                         {a.car && (
                           <TimelineEvent
                             icon={<Icon.Scale />} color="#10b981"
@@ -307,7 +291,6 @@ export const AnimalInspectionHistory = () => {
 export const AnimalHealthHistory = AnimalInspectionHistory;
 
 
-/* ---------- Post-mortem: carcass, organ, records ---------- */
 export const CarcassInspection = () => {
   const { data: post, refresh } = useSupabase(TABLES.POST_MORTEM);
   const { data: livestock } = useSupabase(TABLES.LIVESTOCK);
@@ -323,17 +306,14 @@ export const CarcassInspection = () => {
       await vetService.createInspection("Post-Mortem", { ...payload, livestock_id: animal?.id || "", species: animal?.species || "Unknown" });
       const successMsg = `Carcass inspection successfully recorded and certified for tag ${payload.tag_number || ""}!`;
 
-      // Intercept success state: trigger clean in-app alert notification
       setInAppAlert({
         title: "Carcass Inspection Certified",
         message: successMsg,
       });
 
-      // Trigger application alert notification (toast & in-modal alert)
       showToast(successMsg, "success");
       setModalSuccessAlert(successMsg);
 
-      // Keep modal open: do NOT call setModalOpen(false)
       refresh();
     } catch (err) {
       console.error(err);
@@ -400,7 +380,6 @@ export const CarcassInspection = () => {
         />
       </Modal>
 
-      {/* Clean In-App Alert Dialog (replaces native window.alert to provide polished in-app UX) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}
@@ -426,7 +405,6 @@ export const OrganInspection = () => {
     processing.some((p) => p.tag_number === l.tag_number && p.status === "Completed")
   );
 
-  // Group eligible animals by owner
   const eligibleGroups = [];
   const ownerToTags = {};
 
@@ -531,8 +509,6 @@ export const OrganInspection = () => {
 
 export const PostMortemRecords = () => null;
 
-/* ---------- Disease monitoring ---------- */
-/* ---------- Disease monitoring ---------- */
 export const DiseaseRecords = () => {
   const { data } = useSupabase("diseases");
   return (
@@ -641,7 +617,6 @@ const diseaseCols = () => [
   { key: "status", label: "Status", badge: true },
 ];
 
-/* ---------- Condemnation ---------- */
 const CONDEMNATION_REASONS = [
   "Abnormal Appearance",
   "Wounds or Lesions",
@@ -748,7 +723,7 @@ export const resolveCondemningPersonnel = ({ record, livestock, inspection, cut,
   return "Not recorded";
 };
 
-export const NEW_CONDEMNATION_WINDOW_MS = 12 * 60 * 60 * 1000; // 12 hours
+export const NEW_CONDEMNATION_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 export const parseCondemnationTimestampMs = (val) => {
   if (!val) return NaN;
@@ -877,8 +852,6 @@ export const resolveCondemnationTimestamp = ({
   );
 };
 
-// Reactive clock that schedules an exact timeout for the next record expiring at its
-// 24-hour boundary so highlights clear automatically without lag or unnecessary re-renders.
 const use24HourRefreshClock = (timestamps = []) => {
   const [nowMs, setNowMs] = useState(() => Date.now());
 
@@ -936,8 +909,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     [missingPhotoUrls]
   );
 
-  // Helper: convert any value to a displayable browser URL.
-  // Handles full https URLs, data: URIs, and raw Supabase storage paths.
   const resolveStorageUrl = (val) => {
     return resolveEvidencePhotoUrl(val);
   };
@@ -945,10 +916,10 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
   const [addOpen, setAddOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState(null);
   const [viewRec, setViewRec] = useState(null);
-  const [scopeFilter, setScopeFilter] = useState("all"); // "all" | "partial" | "whole"
+  const [scopeFilter, setScopeFilter] = useState("all");
   const [searchCondemned, setSearchCondemned] = useState("");
-  const [addScope, setAddScope] = useState("partial"); // "partial" | "whole"
-  const [formPhotos, setFormPhotos] = useState([]); // [{ id, file, url, preview, dataUrl, name }]
+  const [addScope, setAddScope] = useState("partial");
+  const [formPhotos, setFormPhotos] = useState([]);
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const recordFileInputRef = useRef(null);
 
@@ -1063,7 +1034,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     }
 
     const accepted = files.slice(0, remainingSlots);
-    // Convert each file to a persistent base64 dataUrl so previews survive page refresh
     accepted.forEach((file, idx) => {
       const reader = new FileReader();
       reader.onload = (ev) => {
@@ -1090,7 +1060,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     setFormPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
-  // Animals eligible for condemnation
   const eligibleAnimals = useMemo(() => {
     if (type === "Ante-Mortem") {
       const anteApprovedTags = new Set(
@@ -1126,14 +1095,12 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     return livestock.filter((l) => tags.has(l.tag_number));
   }, [type, livestock, processing, post, ante]);
 
-  // Helper to determine whether a condemnation is Partial (cuts/organs) or Whole (entire carcass/animal)
   const getCondemnationScope = (record) => {
     if (!record) return "whole";
 
     const part = String(record.part || "").trim().toLowerCase();
     const decision = String(record.decision || "").trim().toLowerCase();
 
-    // 1. Part is Whole Carcass or Live Animal or Entire Carcass -> ALWAYS WHOLE
     if (
       part === "whole carcass" ||
       part === "entire carcass" ||
@@ -1144,7 +1111,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return "whole";
     }
 
-    // 2. Official Whole Condemnation decisions -> ALWAYS WHOLE
     if (
       decision === "condemned" ||
       decision === "rejected" ||
@@ -1154,7 +1120,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return "whole";
     }
 
-    // 3. Official Partial Condemnation decisions -> ALWAYS PARTIAL
     if (
       decision === "passed with partial condemnation" ||
       decision === "partially condemned" ||
@@ -1164,19 +1129,16 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return "partial";
     }
 
-    // 4. Explicit scope property if already set
     if (record.scope === "whole" || record.scope === "partial") {
       return record.scope;
     }
 
-    // 5. Part is a known individual organ/cut (and not whole) -> PARTIAL
     if (CONDEMNED_PARTS_LIST.some((p) => p !== "Other" && part === p.toLowerCase())) {
       return "partial";
     }
 
     const combined = `${record.notes || ""} ${record.reason || ""} ${record.findings || ""} ${record.quantity || ""}`.toLowerCase();
 
-    // 6. Descriptive keywords for whole
     if (
       combined.includes("whole carcass") ||
       combined.includes("entire carcass") ||
@@ -1186,7 +1148,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return "whole";
     }
 
-    // 7. Descriptive keywords for partial
     if (
       combined.includes("carcass passed") ||
       combined.includes("partial") ||
@@ -1196,8 +1157,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return "partial";
     }
 
-    // Ante-Mortem condemnations always target the live animal (whole scope);
-    // unclassified Post-Mortem records default to a condemned cut (partial scope).
     return getCondemnationStage(record) === "Ante-Mortem" ? "whole" : "partial";
   };
 
@@ -1205,19 +1164,15 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     if (!rawReason) return "Unfit for human consumption";
     let str = String(rawReason).trim();
 
-    // Remove "— Condemned cuts: ..." and anything after it
     str = str.split(/—\s*Condemned cuts:/i)[0].trim();
-    // Remove any "(undefined kg)" or "(undefined"
     str = str.replace(/\(undefined\s*kg\)/gi, "").replace(/\(undefined\)/gi, "").trim();
 
-    // If it has "[Reason]" brackets, extract what's inside the brackets!
     const bracketMatches = Array.from(str.matchAll(/\[([^\]]+)\]/g)).map((m) => m[1].trim());
     if (bracketMatches.length > 0) {
       const uniqueReasons = Array.from(new Set(bracketMatches));
       return uniqueReasons.join(", ");
     }
 
-    // Remove prefixes:
     str = str
       .replace(/^Whole Carcass Condemned:\s*/i, "")
       .replace(/^Post-Mortem Whole Condemned:\s*/i, "")
@@ -1227,7 +1182,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       .replace(/^Condemned:\s*/i, "")
       .trim();
 
-    // If it still contains "Left Foreleg - 1 kg", extract just the pathology
     if (str.includes(" - ") && str.includes("kg")) {
       const parts = str.split(";").map((s) => {
         return s.replace(/^[^-]+-\s*[\d.]+\s*kg\s*/i, "").trim();
@@ -1253,7 +1207,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       if (parts.length > 0) return parts;
     }
 
-    // Look inside raw reason / notes text
     const text = `${r.reason || ""} ${r.notes || ""}`;
     const found = [];
     for (const p of CONDEMNED_PARTS_LIST) {
@@ -1279,13 +1232,11 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return { main: "Full Carcass", sub: "" };
     }
 
-    // Partial cut
     const w = parseFloat(r.weight_kg);
     if (!isNaN(w) && w > 0) {
       return { main: `${w.toFixed(2)} kg`, sub: r.quantity || "1 cut" };
     }
 
-    // Parse weight from reason text if e.g. "Left Foreleg - 1 kg; Right Foreleg - 2 kg"
     const text = `${r.reason || ""} ${r.notes || ""}`;
     const cleanText = text.split(/—\s*Condemned cuts:/i)[0];
     const matches = Array.from(cleanText.matchAll(/([\d.]+)\s*kg/gi));
@@ -1300,15 +1251,12 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     return { main: r.quantity || "1 Cut", sub: "" };
   };
 
-  // Also include animals rejected in inspections
   const rejectedFromInspection = (type === "Ante-Mortem" ? ante : post).filter((i) =>
     i.decision === "Rejected" || i.decision === "Condemned" ||
     (i.decision && (i.decision.toLowerCase().includes("reject") || i.decision.toLowerCase().includes("condemn")))
   );
 
   const filteredCondemned = useMemo(() => {
-    // Strict Ante-Mortem vs Post-Mortem separation, derived from each record itself
-    // (never from "does this tag have an ante inspection").
     const list = condemned.filter((c) => matchesStage(c, type)).map((c) => {
       const animal = livestock.find((l) => (l.tag_number || "").trim().toLowerCase() === (c.tag_number || "").trim().toLowerCase());
       return { ...c, sex: c.sex || animal?.sex || "" };
@@ -1317,7 +1265,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     const existingTags = new Set(list.map((c) => String(c.tag_number).trim()));
 
     if (type === "Ante-Mortem") {
-      // Merge rejected/condemned ante inspections
       (ante || []).forEach((a) => {
         const isCond = a.decision === "Rejected" || a.decision === "Condemned" ||
           (a.decision && (a.decision.toLowerCase().includes("reject") || a.decision.toLowerCase().includes("condemn")));
@@ -1354,8 +1301,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         }
       });
 
-      // Merge condemned livestock from intake / ante-mortem outcome
-      // (post-mortem outcomes such as "Partially Condemned" are excluded here)
       (livestock || []).forEach((l) => {
         const isCond = isAnteCondemnedStatus(l.status);
         if (isCond && l.tag_number && !existingTags.has(String(l.tag_number).trim())) {
@@ -1377,7 +1322,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         }
       });
     } else {
-      // Merge rejected/condemned post-mortem inspections
       (post || []).forEach((p) => {
         const d = String(p.decision || "").trim().toLowerCase();
         const isWholeCondemnedDecision =
@@ -1402,7 +1346,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
           const animal = livestock.find((l) => l.tag_number === cleanTag);
 
           if (isWholeCondemnedDecision) {
-            // Whole Carcass Condemnation: regardless of itemized parts in inspection, this is a WHOLE condemnation
             if (!existingTags.has(cleanTag)) {
               existingTags.add(cleanTag);
               list.push({
@@ -1421,7 +1364,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
               });
             }
           } else if (isPartialDecision) {
-            // Partial Condemnation: cuts are condemned, carcass passes
             if (Array.isArray(p.condemned_parts) && p.condemned_parts.length > 0) {
               p.condemned_parts.forEach((cp, idx) => {
                 const partKey = `${cleanTag}_${cp.part}_${idx}`;
@@ -1466,7 +1408,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         }
       });
 
-      // Normalize pre-existing records for whole condemned carcasses so they are scope: "whole"
       list.forEach((item) => {
         const tag = String(item.tag_number || "").trim();
         const matchPost = (post || []).find((p) => String(p.tag_number || "").trim() === tag);
@@ -1570,9 +1511,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return;
     }
 
-    // Pass the real File plus the Storage key when the photo is already stored, so the
-    // upload step can tell a stored object from a browser preview. A preview is never
-    // a durable link, so it is deliberately not sent.
     const photosToSubmit = formPhotos
       .map((p) => {
         if (p.file) {
@@ -1620,7 +1558,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       .filter((p) => p.file || p.file_path);
 
     setConfirmCondemnOpen(false);
-    // Edit Mode
     if (editingRecord) {
       setSaving(true);
       try {
@@ -1650,7 +1587,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
       return;
     }
 
-    // Create Mode: Ante-Mortem
     if (type === "Ante-Mortem") {
       setSaving(true);
       try {
@@ -1678,7 +1614,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         setSaving(false);
       }
     } else if (addScope === "whole") {
-      // Create Mode: Post-Mortem Whole Carcass
       setSaving(true);
       try {
         const animal = livestock.find((l) => l.tag_number === form.tag_number);
@@ -1708,7 +1643,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         setSaving(false);
       }
     } else {
-      // Create Mode: Post-Mortem Partial Condemnation
       setSaving(true);
       try {
         const animal = livestock.find((l) => l.tag_number === form.tag_number);
@@ -1753,8 +1687,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
     return filteredCondemned.filter((r) => getCondemnationScope(r) === "whole");
   }, [filteredCondemned]);
 
-  // UNIQUE condemned animals / carcasses (by tag): one partial condemnation with several
-  // condemned parts = ONE count, and evidence photos never affect the count.
   const partialTagCount = useMemo(
     () => new Set(partialRecords.map((r) => String(r.tag_number || "").trim()).filter(Boolean)).size,
     [partialRecords]
@@ -1877,7 +1809,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         />
       )}
 
-      {/* Stats */}
       {!hideStats && (
         type === "Post-Mortem" ? (
           <div className="grid grid-4 mb-6" style={{ gap: 16 }}>
@@ -1957,11 +1888,9 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         )
       )}
 
-      {/* Records Section */}
       {(() => {
         const tableContent = (
           <div style={{ display: "flex", flexDirection: "column", gap: 14, width: "100%" }}>
-            {/* Post-Mortem Partial vs Whole Segmented Scope Sub-tabs & Search */}
             {type === "Post-Mortem" && (
               <div
                 style={{
@@ -1976,7 +1905,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   border: "1px solid var(--color-border)",
                 }}
               >
-                {/* Search input with icon and clear button */}
                 <div style={{ position: "relative", minWidth: 260 }}>
                   <input
                     type="text"
@@ -2032,7 +1960,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                   )}
                 </div>
 
-                {/* Scope Filter Dropdown */}
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ position: "relative", minWidth: 240 }}>
                     <span
@@ -2198,7 +2125,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             e.currentTarget.style.background = isNew ? "rgba(245, 158, 11, 0.08)" : "transparent";
                           }}
                         >
-                          {/* TAG # */}
                           <td
                             style={{
                               padding: "12px 14px",
@@ -2241,17 +2167,14 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             </div>
                           </td>
 
-                          {/* SPECIES */}
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
                             {r.species || "—"}
                           </td>
 
-                          {/* SEX */}
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap", fontWeight: 600, fontSize: 12.5, color: "var(--color-text)" }}>
                             {formatSex(r.sex)}
                           </td>
 
-                          {/* SCOPE */}
                           {type === "Post-Mortem" && (
                             <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                               {isWhole ? (
@@ -2286,7 +2209,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             </td>
                           )}
 
-                          {/* CONDEMNED PART */}
                           <td style={{ padding: "12px 14px" }}>
                             {isWhole ? (
                               <span
@@ -2328,7 +2250,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             )}
                           </td>
 
-                          {/* REASON / PATHOLOGY */}
                           <td style={{ padding: "12px 14px", maxWidth: 280 }}>
                             <span
                               style={{
@@ -2343,7 +2264,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             </span>
                           </td>
 
-                          {/* WEIGHT / QTY */}
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                             <div style={{ display: "flex", flexDirection: "column" }}>
                               <span
@@ -2364,7 +2284,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             </div>
                           </td>
 
-                          {/* CARCASS FINAL FATE */}
                           {type === "Post-Mortem" && (
                             <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                               {isWhole ? (
@@ -2407,7 +2326,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             </td>
                           )}
 
-                          {/* INSPECTOR */}
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                             {(() => {
                               const cleanTag = String(r.tag_number || "").trim().toLowerCase();
@@ -2442,7 +2360,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             })()}
                           </td>
 
-                          {/* DATE & TIME */}
                           <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                               <span style={{ color: isNew ? "var(--color-text)" : "var(--color-text-muted)", fontWeight: isNew ? 700 : 400, fontSize: 12 }}>
@@ -2451,7 +2368,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                             </div>
                           </td>
 
-                          {/* ACTIONS */}
                           <td className="table-action-td">
                             <div className="table-action-group">
                               <button
@@ -2515,7 +2431,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         );
       })()}
 
-      {/* Add / Edit Condemnation Modal */}
       <Modal
         open={addOpen}
         onClose={() => { setAddOpen(false); setEditingRecord(null); }}
@@ -2552,7 +2467,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             </>
           )}
 
-          {/* Scope Selector for Post-Mortem when creating */}
           {type === "Post-Mortem" && !editingRecord && (
             <div style={{ marginBottom: 4 }}>
               <label style={{ display: "block", fontSize: 12.5, fontWeight: 700, color: "var(--color-text)", marginBottom: 6 }}>
@@ -2613,7 +2527,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             </div>
           )}
 
-          {/* 1. Condemned Part & 2. Specific Part / Location */}
           <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 12 }}>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
@@ -2742,7 +2655,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             )}
           </div>
 
-          {/* 3. Weight (kg) & 4. Pathology / Reason */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1.4fr", gap: 12 }}>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: attemptedSave && (!form.weight_kg || parseFloat(form.weight_kg) <= 0) ? "#ef4444" : "var(--color-text)", marginBottom: 4 }}>
@@ -2805,7 +2717,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             </div>
           </div>
 
-          {/* If Ante-Mortem: Heads quantity */}
           {type === "Ante-Mortem" && (
             <Input
               label="Quantity (heads)"
@@ -2816,7 +2727,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             />
           )}
 
-          {/* 6. Evidence Photos (up to 3 photos directly inside record) */}
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
               <label style={{ fontWeight: 700, fontSize: 13, margin: 0, color: "var(--color-text)" }}>
@@ -2833,7 +2743,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
               </span>
             </div>
 
-            {/* Thumbnail previews */}
             {formPhotos.length > 0 && (
               <div
                 style={{
@@ -2926,7 +2835,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
               </div>
             )}
 
-            {/* Photo picker trigger */}
             {formPhotos.length < 3 ? (
               <div
                 onClick={() => recordFileInputRef.current?.click()}
@@ -2964,7 +2872,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
             )}
           </div>
 
-          {/* 7. Disposition - Only shown for Whole Carcass / Ante-Mortem, REMOVED for Partial Condemnation */}
           {addScope !== "partial" && (
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text)", marginBottom: 4 }}>
@@ -3010,7 +2917,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         </form>
       </Modal>
 
-      {/* View Record Modal */}
       <Modal
         open={!!viewRec}
         onClose={() => setViewRec(null)}
@@ -3121,7 +3027,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 </div>
               </div>
 
-              {/* Attached Evidence Photos */}
               <div style={{ background: "var(--color-surface)", borderRadius: 8, padding: "12px 14px", border: "1px solid var(--color-border)" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                   <div style={{ fontSize: "0.72rem", color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", gap: 6 }}>
@@ -3232,7 +3137,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
                 )}
               </div>
 
-              {/* Complete Process History & Audit Timeline */}
               <div style={{ marginTop: 4 }}>
                 <ProcessHistoryTimeline
                   livestock={(livestock || []).find((l) => (l.id && l.id === viewRec.livestock_id) || (l.tag_number && l.tag_number === viewRec.tag_number)) || viewRec}
@@ -3244,7 +3148,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
         })()}
       </Modal>
 
-      {/* Lightbox Preview Modal */}
       {lightboxPhoto && (
         <div
           style={{
@@ -3311,7 +3214,6 @@ export const CondemnedMeatRecords = ({ type, hideHeader = false, hideStats = fal
           </div>
         </div>
       )}
-      {/* Confirm Condemnation Action Dialog */}
       <ConfirmDialog
         open={confirmCondemnOpen}
         onCancel={() => {
@@ -3347,7 +3249,6 @@ export const DisposalRecords = ({ type }) => {
 
   const filteredCondemned = condemned.filter((c) => matchesStage(c, type));
 
-  // Tags that have been condemned (from direct records or inspection rejections)
   const condemnedTags = [
     ...filteredCondemned.map((c) => c.tag_number),
     ...(type === "Ante-Mortem" ? ante : post)
@@ -3409,7 +3310,6 @@ export const DisposalRecords = ({ type }) => {
         }
       />
 
-      {/* Stats */}
       <div className="grid grid-4 mb-6">
         <div className="stat-card rose">
           <div className="stat-card-body">
@@ -3445,7 +3345,6 @@ export const DisposalRecords = ({ type }) => {
         </div>
       </div>
 
-      {/* Awaiting Disposal Alert */}
       {awaitingDisposal.length > 0 && (
         <div style={{ background: "color-mix(in srgb, var(--color-danger) 12%, transparent)", border: "1px solid color-mix(in srgb, var(--color-danger) 30%, transparent)", borderRadius: 12, padding: "14px 18px", marginBottom: 24, display: "flex", alignItems: "center", gap: 12 }}>
           <Icon.AlertTriangle size={20} style={{ color: "var(--color-danger)", flexShrink: 0 }} />
@@ -3461,7 +3360,6 @@ export const DisposalRecords = ({ type }) => {
         </div>
       )}
 
-      {/* Records Table */}
       <Card title="Disposal Records" icon={<Icon.Trash />}>
         {filteredRows.length === 0 ? (
           <div className="empty-state">
@@ -3517,7 +3415,6 @@ export const DisposalRecords = ({ type }) => {
         )}
       </Card>
 
-      {/* Add Disposal Modal */}
       <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Record Disposal" size="lg"
         footer={<>
           <Button variant="outline" onClick={() => setModalOpen(false)}>Cancel</Button>
@@ -3555,7 +3452,6 @@ export const DisposalRecords = ({ type }) => {
         </form>
       </Modal>
 
-      {/* View Modal */}
       <Modal open={!!viewRec} onClose={() => setViewRec(null)} title="Disposal Record Details"
         footer={<Button variant="outline" size="sm" onClick={() => setViewRec(null)} style={{ height: 32 }}>Close</Button>}>
         {viewRec && (
@@ -3617,7 +3513,6 @@ export const EvidenceUpload = ({
   const { role } = useAuth();
   const isVetViewer = viewerVariant === "vet" && (!role || role === "vet");
 
-  // Supabase is the source of truth for both Post-Mortem and Ante-Mortem evidence.
   const { data: evidence = [], loading: loadingEvidence, error: errorEvidence, refresh: refreshEvidence } = useSupabase(
     TABLES.EVIDENCE_RECORDS || "evidence_records"
   );
@@ -3626,14 +3521,12 @@ export const EvidenceUpload = ({
   const { data: livestock = [], loading: loadingLivestock, error: errorLivestock, refresh: refreshLivestock } = useSupabase(TABLES.LIVESTOCK);
   const { data: condemned = [], refresh: refreshCondemned } = useSupabase(TABLES.CONDEMNATION_RECORDS);
   const { data: owners = [], loading: loadingOwners, error: errorOwners, refresh: refreshOwners } = useSupabase(TABLES.OWNERS);
-  // One row per condemned part, written by the Post-Mortem inspection save. It carries
-  // photo_url / photo_name and is the only place those photos exist, so it must be read.
   const { data: postCuts = [], refresh: refreshPostCuts } = useSupabase("post_mortem_condemned_cuts");
   const { data: users = [] } = useSupabase(TABLES.USERS);
   const { showToast } = useToast();
   const [viewingEv, setViewingEv] = useState(null);
   const [activePhotoIndex, setActivePhotoIndex] = useState(0);
-  const [imgLoadState, setImgLoadState] = useState("idle"); // "idle" | "loading" | "loaded" | "error"
+  const [imgLoadState, setImgLoadState] = useState("idle");
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isEnlarged, setIsEnlarged] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
@@ -3641,11 +3534,6 @@ export const EvidenceUpload = ({
   const viewerImgRef = useRef(null);
   const lastTriggerRef = useRef(null);
 
-  // Ante-Mortem only. A row can point at a storage object that no longer exists (bucket
-  // cleanup, a delete that removed the file but kept the row, an upload that never
-  // completed). Such a reference is unrecoverable, so it must report itself instead of
-  // rendering a broken image. Keyed by URL without query string so a cache-busting
-  // parameter cannot make the same missing file look present again.
   const [missingPhotoUrls, setMissingPhotoUrls] = useState(() => new Set());
   const markPhotoMissing = useCallback((url) => {
     const key = String(url || "").split("?")[0];
@@ -3667,8 +3555,6 @@ export const EvidenceUpload = ({
     [missingPhotoUrls]
   );
 
-  // Every stored photo for this condemnation, regardless of which field or table it was
-  // written to. See condemnationEvidencePhotos for why the lookup has to be this wide.
   const getTagPhotosList = useCallback(
     (targetEv) =>
       collectCondemnationEvidencePhotos({
@@ -3735,7 +3621,6 @@ export const EvidenceUpload = ({
     return isNonImageDoc ? "document" : "image";
   }, [viewingEv, currentViewerUrl, currentViewerPhoto]);
 
-  // Reset viewer state cleanly when switching records so no stale content flashes
   useEffect(() => {
     setActivePhotoIndex(0);
     setZoomLevel(1);
@@ -3743,12 +3628,10 @@ export const EvidenceUpload = ({
     setRetryCount(0);
   }, [viewingEv?.id, viewingEv?.tag_number]);
 
-  // Reset zoom when switching between photos of the same record
   useEffect(() => {
     setZoomLevel(1);
   }, [currentViewerIndex]);
 
-  // Track loading / error state per photo with sequence token to ignore out-of-order loads
   useEffect(() => {
     const seq = ++loadSeqRef.current;
     if (!viewingEv || currentViewerFileKind !== "image" || !currentViewerUrl) {
@@ -3801,7 +3684,6 @@ export const EvidenceUpload = ({
     closeEvidenceViewer();
   }, [isEnlarged, closeEvidenceViewer]);
 
-  // Keyboard arrow navigation when viewing a record with multiple photos
   useEffect(() => {
     if (!viewingEv || viewerPhotos.length <= 1) return;
     const handleArrowKey = (e) => {
@@ -3830,7 +3712,7 @@ export const EvidenceUpload = ({
   const [searchCondemned, setSearchCondemned] = useState("");
   const [filterCondemnedSpecies, setFilterCondemnedSpecies] = useState("all");
   const [filterCondemnedStatus, setFilterCondemnedStatus] = useState("needs_evidence");
-  const [evidenceScopeFilter, setEvidenceScopeFilter] = useState("all"); // "all" | "partial" | "whole"
+  const [evidenceScopeFilter, setEvidenceScopeFilter] = useState("all");
 
   const refreshAll = () => {
     refreshEvidence();
@@ -3842,9 +3724,6 @@ export const EvidenceUpload = ({
     refreshPostCuts?.();
   };
 
-  // Condemnation evidence index: the single derived dataset shared with the
-  // Ante-Mortem / Post-Mortem cards, so the card count always equals the number
-  // of evidence records rendered below.
   const evidenceIndex = useCondemnationEvidenceIndex(
     type,
     { ante, post, livestock, condemned, evidence, owners },
@@ -3907,7 +3786,6 @@ export const EvidenceUpload = ({
   };
 
 
-  // Map each condemned tag to its attached evidence count (per inspection stage)
   const evidenceCountByTag = useMemo(() => {
     const counts = {};
     const inCurrentStageList = (t) => {
@@ -3923,7 +3801,6 @@ export const EvidenceUpload = ({
     return counts;
   }, [evidence, type, allCondemnedTags]);
 
-  // Only condemned livestock with missing or unsubmitted evidence (fileCount === 0)
   const pendingEvidenceCondemnedList = useMemo(() => {
     return allCondemnedList.filter((c) => {
       const fileCount = evidenceCountByTag[c.tag_number] || 0;
@@ -3931,7 +3808,6 @@ export const EvidenceUpload = ({
     });
   }, [allCondemnedList, evidenceCountByTag]);
 
-  // Filtered condemned list for the top table
   const filteredCondemnedList = useMemo(() => {
     const q = searchCondemned.trim().toLowerCase();
     return allCondemnedList.filter((c) => {
@@ -3965,8 +3841,6 @@ export const EvidenceUpload = ({
     return str.trim();
   };
 
-  // Scope totals are computed over the grouped (one-per-condemnation) set so the
-  // partial + whole split always adds up to the number of records shown.
   const partialEvidenceCount = useMemo(() => {
     return groupedEvidenceByContext.filter((ev) => getEvidenceScope(ev) === "partial").length;
   }, [groupedEvidenceByContext, allCondemnedList, condemned]);
@@ -3991,15 +3865,12 @@ export const EvidenceUpload = ({
     );
   };
 
-  // Traces condemnation record -> inspection -> livestock -> registered owner
-  // using existing relations only (livestock.owner_id -> owners.id is the FK).
   const getEvidenceOwner = (ev) => {
     if (!ev) return "—";
 
     const cleanTag = String(ev.tag_number || "").trim().toLowerCase();
     const cleanId = String(ev.livestock_id || "").trim();
 
-    // The inspection this evidence belongs to (records may only carry the tag)
     const findInspection = (rows) =>
       (rows || []).find((i) => {
         const iTag = String(i.tag_number || "").trim().toLowerCase();
@@ -4019,7 +3890,6 @@ export const EvidenceUpload = ({
       return (wantedId && lId === wantedId) || (cleanTag && lTag === cleanTag);
     });
 
-    // livestock -> owners table (canonical display name via the existing FK)
     if (animal) {
       const ownerId = String(animal.owner_id || "").trim().toLowerCase();
       if (ownerId) {
@@ -4172,7 +4042,6 @@ export const EvidenceUpload = ({
     });
 
     const groups = Array.from(map.values()).map((grp) => {
-      // Sort items within each owner group by actual condemnation timestamp, newest first
       const sortedItems = [...grp.items].sort((a, b) => {
         const msA = parseCondemnationTimestampMs(getEvidenceTimestamp(a));
         const msB = parseCondemnationTimestampMs(getEvidenceTimestamp(b));
@@ -4225,7 +4094,6 @@ export const EvidenceUpload = ({
     return { all, partial, whole };
   }, [selectedOwnerKey, groupedEvidenceByContext, getEvidenceOwner, getEvidenceOwnerId, getEvidenceScope]);
 
-  // View records pagination (10 per page default)
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
@@ -4269,7 +4137,6 @@ export const EvidenceUpload = ({
     if (!targetEv) return [];
     const cleanTag = String(targetEv.tag_number || "").trim().toLowerCase();
 
-    // Check if this tag represents a Whole Carcass Condemnation or Ante-Mortem Rejection
     const evScope = getEvidenceScope(targetEv);
     const postRecord = type === "Post-Mortem"
       ? (post || []).find((p) => String(p.tag_number || "").trim().toLowerCase() === cleanTag)
@@ -4364,7 +4231,6 @@ export const EvidenceUpload = ({
       });
     };
 
-    // 1. Search post-mortem inspections for this tag (Post-Mortem view only)
     if (type === "Post-Mortem") {
       (post || []).forEach((p) => {
         if (String(p.tag_number || "").trim().toLowerCase() === cleanTag) {
@@ -4391,7 +4257,6 @@ export const EvidenceUpload = ({
       });
     }
 
-    // 2. Search condemnation_records table for this tag (current stage only)
     (condemned || []).forEach((c) => {
       if (matchesStage(c, type) && String(c.tag_number || "").trim().toLowerCase() === cleanTag) {
         addPart({
@@ -4402,7 +4267,6 @@ export const EvidenceUpload = ({
       }
     });
 
-    // 3. Search ante-mortem inspections if ante (Ante-Mortem view only)
     if (type === "Ante-Mortem" && partsList.length === 0) {
       (ante || []).forEach((a) => {
         if (String(a.tag_number || "").trim().toLowerCase() === cleanTag) {
@@ -4422,7 +4286,6 @@ export const EvidenceUpload = ({
       });
     }
 
-    // 4. Fallback from targetEv itself
     if (partsList.length === 0) {
       if (Array.isArray(targetEv.condemned_parts) && targetEv.condemned_parts.length > 0) {
         targetEv.condemned_parts.forEach((cp) => addPart(cp));
@@ -4447,7 +4310,6 @@ export const EvidenceUpload = ({
       }
     }
 
-    // 5. Guarantee evidence photos are linked to each part
     const tagPhotos = getTagPhotosList(targetEv);
 
     partsList.forEach((partItem) => {
@@ -4507,7 +4369,6 @@ export const EvidenceUpload = ({
     }
   };
 
-  // Stats
   const statTotalFiles = filteredEvidenceByContext.length;
   const statCondemnedCount = allCondemnedList.length;
   const statPendingEvidenceCount = pendingEvidenceCondemnedList.length;
@@ -4528,7 +4389,6 @@ export const EvidenceUpload = ({
         />
       )}
 
-      {/* KPI Stats Row */}
       {!hideStats && (
         type === "Post-Mortem" ? (
           <div className="grid grid-4" style={{ gap: 16 }}>
@@ -4595,7 +4455,6 @@ export const EvidenceUpload = ({
         )
       )}
 
-      {/* -- EVIDENCE REPOSITORY -- */}
       <div id="evidence-repository-card" style={{ width: "100%" }}>
         {hideHeader ? (
           <div style={{ width: "100%", background: "transparent", border: "none", boxShadow: "none" }}>
@@ -4654,7 +4513,6 @@ export const EvidenceUpload = ({
                 )}
               </div>
             ) : (
-              /* Main Owner List Table (matches Awaiting List layout) */
               <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", border: "none", boxShadow: "none", flex: 1, minHeight: 0 }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
@@ -4693,7 +4551,6 @@ export const EvidenceUpload = ({
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
-                          {/* Owner Name */}
                           <td style={{ padding: "14px 18px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                               <div
@@ -4727,7 +4584,6 @@ export const EvidenceUpload = ({
                             </div>
                           </td>
 
-                          {/* Date Condemned */}
                           <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               <Icon.Calendar size={13} style={{ opacity: 0.7, color: type === "Ante-Mortem" ? "#187A56" : "#24966D" }} />
@@ -4735,14 +4591,12 @@ export const EvidenceUpload = ({
                             </div>
                           </td>
 
-                          {/* Species */}
                           <td style={{ padding: "14px 18px" }}>
                             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                               {formatSpeciesList(grp.speciesList)}
                             </span>
                           </td>
 
-                          {/* Total Heads / Records */}
                           <td style={{ padding: "14px 18px", textAlign: "center" }}>
                             <span
                               style={{
@@ -4755,7 +4609,6 @@ export const EvidenceUpload = ({
                             </span>
                           </td>
 
-                          {/* Status / Scope */}
                           <td style={{ padding: "14px 18px" }}>
                             {type === "Ante-Mortem" ? (
                               <span
@@ -4849,7 +4702,6 @@ export const EvidenceUpload = ({
                             )}
                           </td>
 
-                          {/* Action */}
                           <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                             <div className="table-action-group">
                               <button
@@ -4872,7 +4724,6 @@ export const EvidenceUpload = ({
             )}
           </div>
         ) : (
-          /* Evidence Repository Card */
           <Card
             title="Evidence Repository"
             icon={<Icon.FileText />}
@@ -4904,7 +4755,6 @@ export const EvidenceUpload = ({
               </div>
             }
           >
-            {/* Repository Toolbar: Search Bar (Left), Species Filter (Center), Scope Filter (Right) */}
             <div
               style={{
                 display: "flex",
@@ -4915,7 +4765,6 @@ export const EvidenceUpload = ({
                 marginBottom: 14,
               }}
             >
-              {/* Search Bar (searches owner name, tag #, findings, or file) */}
               <div style={{ position: "relative", flex: 1, minWidth: 240 }}>
                 <input
                   type="text"
@@ -5027,7 +4876,6 @@ export const EvidenceUpload = ({
                 )}
               </div>
             ) : (
-              /* Main Owner List Table (matches Awaiting List layout) */
               <div className="table-wrap" style={{ overflowX: "auto", border: "none", boxShadow: "none" }}>
                 <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                   <thead>
@@ -5066,7 +4914,6 @@ export const EvidenceUpload = ({
                           onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
-                          {/* Owner Name */}
                           <td style={{ padding: "14px 18px" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                               <div
@@ -5100,7 +4947,6 @@ export const EvidenceUpload = ({
                             </div>
                           </td>
 
-                          {/* Date Condemned */}
                           <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                               <Icon.Calendar size={13} style={{ opacity: 0.7, color: type === "Ante-Mortem" ? "#187A56" : "#24966D" }} />
@@ -5108,14 +4954,12 @@ export const EvidenceUpload = ({
                             </div>
                           </td>
 
-                          {/* Species */}
                           <td style={{ padding: "14px 18px" }}>
                             <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                               {formatSpeciesList(grp.speciesList)}
                             </span>
                           </td>
 
-                          {/* Total Heads / Records */}
                           <td style={{ padding: "14px 18px", textAlign: "center" }}>
                             <span
                               style={{
@@ -5128,7 +4972,6 @@ export const EvidenceUpload = ({
                             </span>
                           </td>
 
-                          {/* Status / Scope */}
                           <td style={{ padding: "14px 18px" }}>
                             {type === "Ante-Mortem" ? (
                               <span
@@ -5222,7 +5065,6 @@ export const EvidenceUpload = ({
                             )}
                           </td>
 
-                          {/* Action */}
                           <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                             <div className="table-action-group">
                               <button
@@ -5247,7 +5089,6 @@ export const EvidenceUpload = ({
         )}
       </div>
 
-      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => {
@@ -5259,7 +5100,6 @@ export const EvidenceUpload = ({
         headerRight={
           selectedOwnerView && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {/* Species Filter */}
               <div style={{ position: "relative", minWidth: 140 }}>
                 <select
                   value={filterSpecies}
@@ -5290,7 +5130,6 @@ export const EvidenceUpload = ({
                   ))}
                 </select>
               </div>
-              {/* Scope Filter for Post-Mortem */}
               {type === "Post-Mortem" && (
                 <div style={{ position: "relative", minWidth: 140 }}>
                   <select
@@ -5362,7 +5201,6 @@ export const EvidenceUpload = ({
       >
         {selectedOwnerView && (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* All Condemnation Cards for this Owner */}
             <div
               style={{
                 display: "grid",
@@ -5496,7 +5334,6 @@ export const EvidenceUpload = ({
                         {resolvedOwner}
                       </div>
 
-                      {/* Display All Condemned Parts & Quantities separately */}
                       <div
                         style={{
                           background: isWhole ? "rgba(220, 38, 38, 0.04)" : "var(--color-bg)",
@@ -5599,7 +5436,6 @@ export const EvidenceUpload = ({
         )}
       </Modal>
 
-      {/* Vet Personnel Condemnation Evidence View File Modal */}
       <Modal
         open={!!viewingEv}
         onClose={handleModalDismiss}
@@ -5637,7 +5473,6 @@ export const EvidenceUpload = ({
           const cleanId = String(displayRecord?.livestock_id || viewingEv?.livestock_id || "").trim();
           const stage = displayRecord?.inspection_type || type || "Ante-Mortem";
 
-          // Authoritative parts & scope extraction from Supabase
           const condPartsInfo = getCondemnationRecordParts({
             record: displayRecord,
             stage,
@@ -5649,7 +5484,6 @@ export const EvidenceUpload = ({
           });
           const isWhole = condPartsInfo.isWhole;
 
-          // Look up source records without inventing values
           const matchedAnimal = (livestock || []).find((l) => {
             const lId = String(l.id || "").trim();
             const lTag = String(l.tag_number || "").trim().toLowerCase();
@@ -5670,14 +5504,11 @@ export const EvidenceUpload = ({
             (c) => cleanTag && String(c.tag_number || "").trim().toLowerCase() === cleanTag && matchesStage(c, stage)
           );
 
-          // 1. Owner
           const rawOwner = getEvidenceOwner(displayRecord);
           const ownerDisplay = isValidOwnerName(rawOwner) ? rawOwner : "Not recorded";
 
-          // 2. Livestock / Carcass Tag Number
           const tagValue = String(displayRecord?.tag_number || viewingEv?.tag_number || matchedAnimal?.tag_number || "").trim();
 
-          // 3. Species
           const isRealSpecies = (val) => {
             if (!val || typeof val !== "string") return false;
             const s = val.trim().toLowerCase();
@@ -5692,10 +5523,8 @@ export const EvidenceUpload = ({
           ];
           const resolvedSpecies = speciesCandidates.find(isRealSpecies)?.trim() || "Not recorded";
 
-          // 4. Condemnation Classification
           const condemnationTypeDisplay = condPartsInfo.scopeLabel;
 
-          // 5. Findings
           const rawPhotoNotes = cleanEvidenceNotes(currentPhoto?.notes || (!displayRecord?.is_synthetic ? displayRecord?.notes : ""));
           const rawInspFindings = String(matchedInspection?.findings || matchedInspection?.remarks || "").trim();
           const rawCondReason = matchedCondemnedRows
@@ -5708,7 +5537,6 @@ export const EvidenceUpload = ({
             .filter((s) => s && s !== "—" && s !== "-");
           const findingsDisplay = findingsCandidates[0] || "Not recorded";
 
-          // 6. Condemnation Date & Time & Inspector
           const matchedCut = (postCuts || []).find(
             (c) => cleanTag && String(c.tag_number || "").trim().toLowerCase() === cleanTag
           );
@@ -5720,7 +5548,6 @@ export const EvidenceUpload = ({
             users,
           });
 
-          // Priority for timestamp: specific inspection/cut timestamptz -> condemnation/evidence created_at -> date
           const rawTimestamp =
             (stage === "Post-Mortem"
               ? (matchedCut?.created_at || matchedAnimal?.post_inspected_at || matchedCondemnedRows[0]?.created_at)
@@ -5751,9 +5578,7 @@ export const EvidenceUpload = ({
           return (
             <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               <div className="vet-evidence-viewer-grid">
-                {/* -- LEFT / TOP: PRIMARY PHOTO & FILE VIEWER -- */}
                 <div className="vet-evidence-viewer-media-col">
-                  {/* Viewer Top Bar: Photo Counter & Zoom/Action Controls */}
                   <div
                     style={{
                       display: "flex",
@@ -5797,7 +5622,6 @@ export const EvidenceUpload = ({
                       )}
                     </div>
 
-                    {/* Zoom & Open Controls */}
                     {currentViewerFileKind === "image" && currentPhoto?.url && !isCurrentFailed && (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <button
@@ -5905,7 +5729,6 @@ export const EvidenceUpload = ({
                     )}
                   </div>
 
-                  {/* Primary Media Stage - Compact and cleanly framed */}
                   <div
                     style={{
                       position: "relative",
@@ -5920,7 +5743,6 @@ export const EvidenceUpload = ({
                       padding: 10,
                     }}
                   >
-                    {/* STATE 1: No evidence file exists */}
                     {currentViewerFileKind === "none" ? (
                       <div
                         data-testid="evidence-empty-state"
@@ -5954,7 +5776,6 @@ export const EvidenceUpload = ({
                         </div>
                       </div>
                     ) : currentViewerFileKind === "document" ? (
-                      /* STATE 2: Non-image document */
                       <div
                         data-testid="evidence-document-state"
                         style={{
@@ -5996,7 +5817,6 @@ export const EvidenceUpload = ({
                         </div>
                       </div>
                     ) : isCurrentFailed ? (
-                      /* STATE 3: Image failed to load */
                       <div
                         data-testid="evidence-error-state"
                         style={{
@@ -6034,7 +5854,6 @@ export const EvidenceUpload = ({
                         </div>
                       </div>
                     ) : (
-                      /* STATE 4: Loading & Image View */
                       <>
                         {isCurrentLoading && (
                           <div
@@ -6090,7 +5909,6 @@ export const EvidenceUpload = ({
                       </>
                     )}
 
-                    {/* Previous / Next Controls */}
                     {tagPhotos.length > 1 && (
                       <>
                         <button
@@ -6153,7 +5971,6 @@ export const EvidenceUpload = ({
                     )}
                   </div>
 
-                  {/* Multi-Photo Thumbnail Strip */}
                   {tagPhotos.length > 1 && (
                     <div
                       style={{
@@ -6219,7 +6036,6 @@ export const EvidenceUpload = ({
                   )}
                 </div>
 
-                {/* -- RIGHT / BOTTOM: TWO-LINE LABELED EVIDENCE DETAILS -- */}
                 <div className="vet-evidence-viewer-details-col">
                   <div
                     className="vet-evidence-viewer-details-header"
@@ -6254,13 +6070,11 @@ export const EvidenceUpload = ({
                   </div>
 
                   <dl className="vet-evidence-viewer-dl">
-                    {/* 1. Owner */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Owner</dt>
                       <dd>{ownerDisplay}</dd>
                     </div>
 
-                    {/* 2. Tag Number */}
                     <div className="vet-evidence-viewer-row">
                       <dt>{stage === "Post-Mortem" ? "Carcass Tag #" : "Livestock Tag #"}</dt>
                       <dd>
@@ -6268,13 +6082,11 @@ export const EvidenceUpload = ({
                       </dd>
                     </div>
 
-                    {/* 3. Species */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Species</dt>
                       <dd>{resolvedSpecies}</dd>
                     </div>
 
-                    {/* 4. Condemnation Classification */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Condemnation Classification</dt>
                       <dd>
@@ -6301,7 +6113,6 @@ export const EvidenceUpload = ({
                       </dd>
                     </div>
 
-                    {/* 5. Condemned Parts & Quantities */}
                     <div className="vet-evidence-viewer-row">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <dt>Condemned Parts & Quantities</dt>
@@ -6398,19 +6209,16 @@ export const EvidenceUpload = ({
                       </dd>
                     </div>
 
-                    {/* 6. Findings */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Inspection Findings & Pathology Notes</dt>
                       <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45, fontSize: 12.5 }}>{findingsDisplay}</dd>
                     </div>
 
-                    {/* 7. Condemnation Date & Time */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Condemnation Date & Time</dt>
                       <dd>{condemnationDateTimeDisplay}</dd>
                     </div>
 
-                    {/* 8. Condemned By */}
                     <div className="vet-evidence-viewer-row" style={{ borderBottom: "none" }}>
                       <dt>Condemned By (Veterinarian / Inspector)</dt>
                       <dd style={{ fontWeight: 600 }}>{condemnedInspector}</dd>
@@ -6419,7 +6227,6 @@ export const EvidenceUpload = ({
                 </div>
               </div>
 
-              {/* Modal Actions Footer (Always reachable in every state) */}
               <div
                 className="form-actions"
                 style={{
@@ -6438,7 +6245,6 @@ export const EvidenceUpload = ({
                 </Button>
               </div>
 
-              {/* Fullscreen Enlarge Lightbox when user clicks image or Enlarge */}
               {isEnlarged && currentPhoto?.url && !isCurrentFailed && (
                 <div
                   role="dialog"
@@ -6506,7 +6312,6 @@ export const EvidenceUpload = ({
         })()}
       </Modal>
 
-      {/* Lightbox Preview Modal for selected draft photos */}
       {previewPhoto && (
         <div
           style={{
@@ -6664,7 +6469,6 @@ export const MeatApprovalRecords = () => {
   );
 };
 
-/* ---------- Livestock ---------- */
 const SPECIES_CONFIG = {
   Hog: { label: "Hog", bg: "#fdf2f8", text: "#be185d", border: "#fbcfe8" },
   Cattle: { label: "Cattle", bg: "#eff6ff", text: "#1d4ed8", border: "#bfdbfe" },
@@ -6731,18 +6535,15 @@ export const VetSlaughterHistory = () => {
     return "Hog";
   };
 
-  // Merge and deduplicate records across slaughter_records, slaughter_processing, and carcass_records
   const unifiedRecords = useMemo(() => {
     const map = new Map();
 
-    // 1. Ingest from slaughter_records
     (slaughterRecords || []).forEach((r) => {
       if (!r?.tag_number) return;
       const key = String(r.tag_number).trim().toLowerCase();
       map.set(key, { ...r, source: "slaughter_records" });
     });
 
-    // 2. Merge from slaughter_processing
     (processingRecords || []).forEach((p) => {
       if (!p?.tag_number) return;
       const key = String(p.tag_number).trim().toLowerCase();
@@ -6757,7 +6558,6 @@ export const VetSlaughterHistory = () => {
       });
     });
 
-    // 3. Merge from carcass_records (if carcass exists, the animal underwent slaughter)
     (carcass || []).forEach((c) => {
       if (!c?.tag_number) return;
       const key = String(c.tag_number).trim().toLowerCase();
@@ -6773,7 +6573,6 @@ export const VetSlaughterHistory = () => {
       }
     });
 
-    // Normalize and enrich every record
     return Array.from(map.values())
       .map((r) => {
         const tagKey = String(r.tag_number || "").trim().toLowerCase();
@@ -6843,7 +6642,6 @@ export const VetSlaughterHistory = () => {
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  // Statistics calculation
   const totalCarcassWeight = useMemo(() => {
     return unifiedRecords.reduce((sum, r) => sum + (Number(r.carcass_weight) || 0), 0);
   }, [unifiedRecords]);
@@ -6902,7 +6700,6 @@ export const VetSlaughterHistory = () => {
         icon={<Icon.Layers size={24} />}
       />
 
-      {/* Interactive KPI Stats Cards */}
       <div className="grid grid-4 mb-6" style={{ gap: 14 }}>
         <StatCard
           label="Total Operations"
@@ -6945,9 +6742,7 @@ export const VetSlaughterHistory = () => {
         />
       </div>
 
-      {/* Main Records Container Card */}
       <Card>
-        {/* Improved Search & Filter Toolbar */}
         <div
           style={{
             display: "flex",
@@ -6960,7 +6755,6 @@ export const VetSlaughterHistory = () => {
             background: "#ffffff",
           }}
         >
-          {/* Search Box */}
           <div style={{ display: "flex", alignItems: "center", flex: "1 1 300px", maxWidth: 420, position: "relative" }}>
             <input
               type="text"
@@ -7026,9 +6820,7 @@ export const VetSlaughterHistory = () => {
             )}
           </div>
 
-          {/* Filter Controls (Species Dropdown + Date Range Segment) */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-            {/* Species Dropdown with Emojis */}
             <div style={{ position: "relative" }}>
               <select
                 value={filterSpecies}
@@ -7063,7 +6855,6 @@ export const VetSlaughterHistory = () => {
               </select>
             </div>
 
-            {/* Segmented Date Range Buttons */}
             <div
               style={{
                 display: "inline-flex",
@@ -7106,7 +6897,6 @@ export const VetSlaughterHistory = () => {
               })}
             </div>
 
-            {/* Quick Clear Filter Reset Button */}
             {hasActiveFilters && (
               <Button
                 variant="ghost"
@@ -7120,7 +6910,6 @@ export const VetSlaughterHistory = () => {
           </div>
         </div>
 
-        {/* Compact Pro Table (Fitted Layout, No Horizontal Swipe Needed) */}
         {filtered.length === 0 ? (
           <div style={{ padding: "40px 20px" }}>
             <EmptyState
@@ -7164,7 +6953,6 @@ export const VetSlaughterHistory = () => {
 
                   return (
                     <tr key={r.id || r.tag_number} style={{ height: 54 }}>
-                      {/* Tag Number */}
                       <td style={{ padding: "8px 12px" }}>
                         <span
                           style={{
@@ -7184,12 +6972,10 @@ export const VetSlaughterHistory = () => {
                         </span>
                       </td>
 
-                      {/* Species */}
                       <td style={{ padding: "8px 12px", fontSize: 12.5, fontWeight: 600, color: "var(--color-text)" }}>
                         {r.species || "—"}
                       </td>
 
-                      {/* Owner Name */}
                       <td style={{ padding: "8px 12px" }}>
                         <div
                           style={{
@@ -7234,12 +7020,10 @@ export const VetSlaughterHistory = () => {
                         </div>
                       </td>
 
-                      {/* Slaughter Date */}
                       <td style={{ padding: "8px 12px", color: "#5D6660", fontSize: 12.5, whiteSpace: "nowrap" }}>
                         {r.slaughter_date ? formatDate(r.slaughter_date) : "—"}
                       </td>
 
-                      {/* Operator */}
                       <td style={{ padding: "8px 12px" }}>
                         <span
                           style={{
@@ -7257,7 +7041,6 @@ export const VetSlaughterHistory = () => {
                         </span>
                       </td>
 
-                      {/* Carcass Weight */}
                       <td style={{ padding: "8px 12px", textAlign: "center" }}>
                         {r.carcass_weight ? (
                           <span
@@ -7280,7 +7063,6 @@ export const VetSlaughterHistory = () => {
                         )}
                       </td>
 
-                      {/* Action Button */}
                       <td className="table-action-td">
                         <div className="table-action-group">
                           <button
@@ -7302,7 +7084,6 @@ export const VetSlaughterHistory = () => {
           </div>
         )}
 
-        {/* Clean Pagination Footer */}
         {filtered.length > 0 && (
           <div
             style={{
@@ -7401,7 +7182,6 @@ export const VetSlaughterHistory = () => {
         )}
       </Card>
 
-      {/* Slaughter Operation & Carcass Dressing Detail Modal */}
       <Modal
         open={!!selectedRecord}
         onClose={() => setSelectedRecord(null)}
@@ -7421,7 +7201,6 @@ export const VetSlaughterHistory = () => {
 
           return (
             <div style={{ padding: "4px" }}>
-              {/* Header Box */}
               <div
                 style={{
                   display: "flex",
@@ -7499,7 +7278,6 @@ export const VetSlaughterHistory = () => {
                 </div>
               </div>
 
-              {/* Carcass Dressing & Yield Analytics Grid */}
               <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <Icon.Scale size={15} /> Carcass Yield &amp; Scale Metrics
@@ -7543,7 +7321,6 @@ export const VetSlaughterHistory = () => {
                 </div>
               </div>
 
-              {/* Consignment & Operational Specifications */}
               <div
                 style={{
                   display: "grid",
@@ -7577,7 +7354,6 @@ export const VetSlaughterHistory = () => {
                 </div>
               </div>
 
-              {/* 8-Step Abattoir Process Pipeline Status */}
               <div style={{ background: "#ffffff", border: "1px solid #E2E6E3", borderRadius: 10, padding: "14px 16px", marginBottom: 16 }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "#5D6660", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: 12, display: "flex", alignItems: "center", gap: 6 }}>
                   <Icon.CheckCircle size={15} /> 8-Step Abattoir Protocol Execution
@@ -7621,7 +7397,6 @@ export const VetSlaughterHistory = () => {
                 </div>
               </div>
 
-              {/* Veterinary Post-Mortem Clearance Note */}
               <div style={{ background: "#F9FAF8", border: "1px solid #E2E6E3", borderRadius: 10, padding: "12px 14px", marginBottom: 16 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
                   <span style={{ fontSize: 12, fontWeight: 800, color: "#444C47", display: "flex", alignItems: "center", gap: 6 }}>
@@ -7647,7 +7422,6 @@ export const VetSlaughterHistory = () => {
                 </div>
               </div>
 
-              {/* Modal Footer Close Button */}
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <Button variant="outline" onClick={() => setSelectedRecord(null)}>
                   Close
@@ -7661,7 +7435,6 @@ export const VetSlaughterHistory = () => {
   );
 };
 
-/* ---------- Role-Based Vet Reports ---------- */
 export const VetInspectionReport = () => (
   <RoleReportsModule role="vet" initialReportType="antemortem" />
 );

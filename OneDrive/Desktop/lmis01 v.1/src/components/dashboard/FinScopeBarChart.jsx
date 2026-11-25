@@ -12,10 +12,6 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-/**
- * FinScopeBarChart
- * Multi-colored vertical bar chart inspired by FinScope "Account Activity".
- */
 export const FinScopeBarChart = ({
   labels = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"],
   data = [12, 19, 28, 34, 45, 22, 18],

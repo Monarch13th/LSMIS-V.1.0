@@ -1,9 +1,3 @@
-// Shared Condemnation Evidence derivation.
-//
-// SINGLE SOURCE OF TRUTH for "which condemnation evidence records belong to a stage"
-// and "how many of them are actually displayed". The Condemnation Evidence page
-// (EvidenceUpload) and the Ante-Mortem / Post-Mortem StatCard counts all build from
-// this module, so a card count can never drift from the records shown on the page.
 
 import { useMemo } from "react";
 import {
@@ -18,9 +12,6 @@ import { today } from "../../utils/helpers";
 
 const normTag = (v) => String(v == null ? "" : v).trim().toLowerCase();
 
-// evidence_records.status defaults to 'Active'. Deletion in this app is a hard delete
-// (vetService issues a real .delete()), so this only guards rows that were explicitly
-// flagged as removed/archived.
 const REMOVED_EVIDENCE_STATUSES = new Set([
   "deleted", "removed", "archived", "inactive", "void", "voided", "cancelled", "canceled",
 ]);
@@ -28,11 +19,10 @@ const REMOVED_EVIDENCE_STATUSES = new Set([
 export const isActiveEvidenceRecord = (ev) => {
   if (!ev) return false;
   const s = String(ev.status || "").trim().toLowerCase();
-  if (!s) return true; // legacy rows written before the status column existed
+  if (!s) return true;
   return !REMOVED_EVIDENCE_STATUSES.has(s);
 };
 
-// Compile ALL animals/carcasses marked as condemned across all tables for one stage.
 export const buildCondemnedList = ({
   type,
   ante = [],
@@ -44,7 +34,6 @@ export const buildCondemnedList = ({
   const map = new Map();
 
   if (type === "Ante-Mortem") {
-    // 1. Ante-Mortem inspections marked Condemned / Rejected
     (ante || []).forEach((i) => {
       const d = String(i.decision || "").trim().toLowerCase();
       const isApproved = d.includes("approv") || d.includes("pass") || d.includes("cleared");
@@ -86,8 +75,6 @@ export const buildCondemnedList = ({
       }
     });
 
-    // 2. Livestock records marked as Condemned or Rejected in registry/intake
-    //    (post-mortem outcomes like "Partially Condemned" belong to Post-Mortem)
     (livestock || []).forEach((l) => {
       const isCond = isAnteCondemnedStatus(l.status) ||
         (!isPostCondemnedStatus(l.status) && l.remarks && l.remarks.toLowerCase().includes("condemn"));
@@ -112,7 +99,6 @@ export const buildCondemnedList = ({
       }
     });
 
-    // 3. Condemnation records for live animals (stage decided by the record itself)
     (condemned || []).forEach((c) => {
       const stage = getCondemnationStage(c);
       const unmarked = !c.part && !c.inspection_type && !c.stage && !c.type;
@@ -145,8 +131,6 @@ export const buildCondemnedList = ({
       }
     });
 
-    // 4. Any existing evidence records captured for Ante-Mortem inspection
-    //    (untyped/legacy evidence is only attributed when its tag is not a post-mortem condemnation)
     const postCondTagsForEvidence = new Set();
     (condemned || []).forEach((c) => {
       if (c && c.tag_number && getCondemnationStage(c) === "Post-Mortem") {
@@ -187,7 +171,6 @@ export const buildCondemnedList = ({
       }
     });
   } else {
-    // Post-Mortem inspections & carcass condemnations
     (post || []).forEach((p) => {
       const d = String(p.decision || "").trim().toLowerCase();
       const isWholeCondemnedDecision =
@@ -235,7 +218,6 @@ export const buildCondemnedList = ({
     });
 
     (condemned || []).forEach((c) => {
-      // Strict stage separation: only Post-Mortem condemnations feed this list
       if (getCondemnationStage(c) !== "Post-Mortem") return;
 
       if (c.tag_number) {
@@ -276,8 +258,6 @@ export const buildCondemnedList = ({
   return Array.from(map.values()).map((item) => {
     const cleanTag = String(item.tag_number || "").trim();
 
-    // 1. Condemnation records (sums all itemized cuts or recorded weights for this tag)
-    //    Only records from the currently viewed inspection stage are counted.
     const matchingCondemned = (condemned || []).filter(
       (c) => String(c.tag_number || "").trim() === cleanTag && matchesStage(c, type)
     );
@@ -291,7 +271,6 @@ export const buildCondemnedList = ({
       }, 0);
     }
 
-    // 2. Post-Mortem inspections (condemned_parts array)
     if (totalW <= 0) {
       const matchingPost = (post || []).filter(
         (p) => String(p.tag_number || "").trim() === cleanTag
@@ -309,7 +288,6 @@ export const buildCondemnedList = ({
       }
     }
 
-    // 3. Ante-Mortem inspections (condemned_parts array)
     if (totalW <= 0) {
       const matchingAnte = (ante || []).filter(
         (a) => String(a.tag_number || "").trim() === cleanTag
@@ -327,7 +305,6 @@ export const buildCondemnedList = ({
       }
     }
 
-    // 4. Livestock registry (intake live weight or carcass weight)
     if (totalW <= 0) {
       const animal = (livestock || []).find(
         (l) => String(l.tag_number || "").trim() === cleanTag
@@ -347,17 +324,14 @@ export const buildCondemnedList = ({
   }).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 };
 
-// Scope detector for evidence items
 export const getEvidenceScope = (ev, type, allCondemnedList, post = [], condemned = []) => {
   if (!ev) return "whole";
 
   const cleanTag = String(ev.tag_number || "").trim();
 
-  // 1. Match against allCondemnedList (primary source of truth for the active view)
   const match = allCondemnedList.find((c) => String(c.tag_number).trim() === cleanTag);
   if (match?.condemnation_scope) return match.condemnation_scope;
 
-  // 2. Match against post-mortem inspections (Post-Mortem view only)
   const matchPost = type === "Post-Mortem"
     ? (post || []).find((p) => String(p.tag_number).trim() === cleanTag)
     : null;
@@ -371,7 +345,6 @@ export const getEvidenceScope = (ev, type, allCondemnedList, post = [], condemne
     }
   }
 
-  // 3. Match against condemnation_records of the currently viewed stage
   const matchCondemned = (condemned || []).filter(
     (c) => String(c.tag_number).trim() === cleanTag && matchesStage(c, type)
   );
@@ -382,16 +355,13 @@ export const getEvidenceScope = (ev, type, allCondemnedList, post = [], condemne
     return "partial";
   }
 
-  // 4. Explicit scope property if present on record
   if (ev.scope === "whole" || ev.scope === "partial") return ev.scope;
 
-  // 5. Check notes and filename for explicit whole cues
   const notes = `${ev.notes || ""} ${ev.file_name || ""}`.toLowerCase();
   if (notes.includes("whole carcass") || notes.includes("whole condemnation") || notes.includes("full carcass")) {
     return "whole";
   }
 
-  // 6. Check notes and filename for explicit partial cues
   if (
     notes.includes("carcass passed") ||
     notes.includes("partial") ||
@@ -401,14 +371,10 @@ export const getEvidenceScope = (ev, type, allCondemnedList, post = [], condemne
     return "partial";
   }
 
-  // Ante-Mortem condemnations are always whole (the live animal);
-  // unclassified Post-Mortem evidence belongs to an excised cut (partial).
   return type === "Ante-Mortem" ? "whole" : "partial";
 };
 
-// Extract cut / organ name for partial evidence
 export const getEvidencePartLabel = (ev, type, allCondemnedList, post = [], condemned = []) => {
-  // Ante-Mortem condemnations always target the whole live animal
   if (type === "Ante-Mortem" && String(ev?.inspection_type || "").trim() !== "Post-Mortem") {
     return "Live Animal";
   }
@@ -458,11 +424,6 @@ export const getEvidenceSpecies = (ev, allCondemnedList, livestock = []) => {
   return anim?.species || "Livestock";
 };
 
-/**
- * Extracts complete, accurate condemnation parts and quantities for a record
- * directly from real Supabase data (condemnation_records, post_mortem_inspections, ante_mortem_inspections).
- * Distinguishes fully condemned from partially condemned records and preserves every individual rejected part.
- */
 export const getCondemnationRecordParts = ({
   record,
   stage = "Post-Mortem",
@@ -475,7 +436,6 @@ export const getCondemnationRecordParts = ({
   const cleanTag = String(record?.tag_number || "").trim().toLowerCase();
   const cleanId = String(record?.livestock_id || "").trim();
 
-  // Find source matches across tables
   const matchedAnimal = (livestock || []).find((l) => {
     const lId = String(l.id || "").trim();
     const lTag = String(l.tag_number || "").trim().toLowerCase();
@@ -505,7 +465,6 @@ export const getCondemnationRecordParts = ({
     );
   });
 
-  // 1. Ante-Mortem condemnation: always Whole Animal
   const isAnte =
     effStage === "Ante-Mortem" ||
     (!matchedPost && matchedAnte) ||
@@ -547,7 +506,6 @@ export const getCondemnationRecordParts = ({
     };
   }
 
-  // 2. Post-Mortem: check if Whole Carcass Condemnation
   const postDecision = String(matchedPost?.decision || "").trim().toLowerCase();
   const isWholeCarcass =
     postDecision.includes("whole") ||
@@ -594,10 +552,8 @@ export const getCondemnationRecordParts = ({
     };
   }
 
-  // 3. Partial Condemnation: Extract EVERY individual rejected part separately
   const parts = [];
 
-  // Source A: post_mortem_inspections.condemned_parts JSON array
   if (Array.isArray(matchedPost?.condemned_parts) && matchedPost.condemned_parts.length > 0) {
     matchedPost.condemned_parts.forEach((cp, idx) => {
       const pName = cp.part || cp.name || "Excised Cut";
@@ -617,7 +573,6 @@ export const getCondemnationRecordParts = ({
       });
     });
   } else if (matchedCondemnedRows.length > 0) {
-    // Source B: condemnation_records matching rows
     matchedCondemnedRows.forEach((cr, idx) => {
       const pName = cr.part || "Excised Cut";
       const loc = cr.location || "";
@@ -636,7 +591,6 @@ export const getCondemnationRecordParts = ({
       });
     });
   } else {
-    // Source C: post_mortem_condemned_cuts
     const matchingCuts = (postCuts || []).filter(
       (cut) => cleanTag && String(cut?.tag_number || "").trim().toLowerCase() === cleanTag
     );
@@ -660,7 +614,6 @@ export const getCondemnationRecordParts = ({
     }
   }
 
-  // Fallback if nothing matched
   if (parts.length === 0 && (record?.part || record?.notes)) {
     const pName = record.part || "Excised Cut";
     const loc = record.location || "";
@@ -690,19 +643,6 @@ export const getCondemnationRecordParts = ({
   };
 };
 
-/**
- * Builds the Condemnation Evidence repository for one inspection stage.
- *
- * Returns:
- *   repository - stage-scoped evidence rows, including a synthetic row for every
- *                condemnation whose photos live on the condemnation/inspection record
- *                instead of evidence_records. One synthetic row per tag, so a carcass
- *                carrying both partial-condemnation details and photos is still ONE record.
- *   display    - the rows actually rendered as cards: search/species/scope filters
- *                applied, then grouped one-per-tag so duplicate photos for the same
- *                condemnation never inflate the list. `display.length` is the number
- *                of records the user sees.
- */
 export const buildEvidenceRepository = ({
   type,
   ante = [],
@@ -724,8 +664,6 @@ export const buildEvidenceRepository = ({
     return allCondemnedTags.some((x) => normTag(x) === key);
   };
 
-  // Evidence explicitly captured for the other stage is never shown here.
-  // Untyped/legacy evidence is attributed through this stage's condemned tags.
   const directEvidence = (evidence || [])
     .filter(isActiveEvidenceRecord)
     .filter((ev) => {
@@ -796,8 +734,6 @@ export const buildEvidenceRepository = ({
 
   const repository = [...directEvidence, ...syntheticEntries];
 
-  // One card per condemned tag - duplicate evidence rows/photos for the same
-  // condemnation collapse into the single record the user sees.
   const groupByTag = (rows) => {
     const groupedMap = new Map();
     rows.forEach((ev) => {
@@ -813,7 +749,6 @@ export const buildEvidenceRepository = ({
     return Array.from(groupedMap.values());
   };
 
-  // Grouped but filter-free: the totals every filter dropdown offers against.
   const displayAll = groupByTag(repository);
 
   const rawList = repository.filter((ev) => {
@@ -871,10 +806,6 @@ export const buildEvidenceRepository = ({
   };
 };
 
-/**
- * Hook wrapper so the page and the module cards derive counts from one dataset.
- * Call with no `filters` for the canonical (unfiltered) page view used by card counts.
- */
 export const useCondemnationEvidenceIndex = (type, sources, filters) => {
   const {
     ante = [],
@@ -901,7 +832,6 @@ export const useCondemnationEvidenceIndex = (type, sources, filters) => {
     [type, ante, post, livestock, condemned, evidence, owners, allCondemnedList, allCondemnedTags, filters]
   );
 
-  // Number of condemnation evidence records shown on the page for this stage.
   const evidenceCount = display.length;
 
   return {

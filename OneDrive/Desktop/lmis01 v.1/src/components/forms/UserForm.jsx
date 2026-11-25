@@ -28,22 +28,17 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
 
   const isPasswordValid = initial || validatePassword(password).isValid;
 
-  // ---- Handle Contact Number: strict digits, 11 length max, 09/08 prefix (same as register) ----
   const handleContactChange = (e) => {
-    // 1. Keep only numeric digits (immediately reject letters/symbols)
     let val = e.target.value.replace(/\D/g, "");
 
-    // 2. If user begins by typing 9 or 8, intelligently auto-prepend 0 so it forms 09 or 08
     if (val.length === 1 && (val === "9" || val === "8")) {
       val = "0" + val;
     }
 
-    // 3. Stop strictly at exactly 11 digits
     val = val.slice(0, 11);
 
     setContactVal(val);
 
-    // 4. Real-time validation for 09 or 08 prefix
     if (val.length >= 2) {
       if (!val.startsWith("09") && !val.startsWith("08")) {
         setContactError("Contact number must start with 09 or 08 (e.g. 09171234567).");
@@ -51,7 +46,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
       }
     }
 
-    // If valid prefix or currently typing, clear previous contact error
     if (val.length === 11) {
       if (val.startsWith("09") || val.startsWith("08")) {
         setContactError("");
@@ -124,7 +118,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
       return;
     }
 
-    // Validate Contact if provided
     const rawContact = contactVal.trim().replace(/\D/g, "");
     if (rawContact) {
       if (!rawContact.startsWith("09") && !rawContact.startsWith("08")) {
@@ -200,7 +193,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
 
   return (
     <form onSubmit={handleSubmit} className="user-form-modal-wrap" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      {/* Header Profile Summary if editing */}
       {initial ? (
         <div
           style={{
@@ -284,7 +276,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         </div>
       ) : null}
 
-      {/* Error Notice */}
       {error && (
         <div
           style={{
@@ -304,13 +295,9 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         </div>
       )}
 
-      {/* Main Form Fields Grid */}
       {!initial ? (
-        /* Registration Layout: Balanced 2-Column Grid (One Page, No Scrolling) */
         <div className="user-form-modal-grid">
-          {/* Left Column: Personal Identity & Role */}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {/* Full Name & Username */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" htmlFor="personnel-fullname">
@@ -355,7 +342,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               </div>
             </div>
 
-            {/* Email Address */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="personnel-email">
                 Email Address <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -395,7 +381,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               )}
             </div>
 
-            {/* Contact Number (Strict 11 Digits, 09/08 Prefix, Same as Register) */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
                 <label className="form-label" htmlFor="personnel-contact" style={{ marginBottom: 0 }}>
@@ -450,7 +435,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               )}
             </div>
 
-            {/* Role Selection */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="personnel-role">
                 Role <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -471,7 +455,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             </div>
           </div>
 
-          {/* Right Column: Password & Security Checklist */}
           <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label" htmlFor="personnel-password">
@@ -503,10 +486,8 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
               </div>
             </div>
 
-            {/* Compact Real-Time Password Requirements Card */}
             <PasswordRequirements password={password} compact={true} />
 
-            {/* Security Notice */}
             <div
               style={{
                 display: "flex",
@@ -527,9 +508,7 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
           </div>
         </div>
       ) : (
-        /* Edit Mode Layout: 2-Column Balanced Grid */
         <div className="user-form-edit-grid">
-          {/* Row 1, Col 1: Full Name */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="personnel-fullname">
               Full Name <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -551,7 +530,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             </div>
           </div>
 
-          {/* Row 1, Col 2: Username */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="personnel-username">
               Username <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -573,7 +551,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             </div>
           </div>
 
-          {/* Row 2, Col 1: Role */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="personnel-role">
               Role <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -594,7 +571,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             </div>
           </div>
 
-          {/* Row 2, Col 2: Account Status */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="personnel-status">
               Account Status <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -614,7 +590,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             </div>
           </div>
 
-          {/* Row 3, Col 1: Email Address */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <label className="form-label" htmlFor="personnel-email">
               Email Address <span className="req" style={{ color: "#dc2626" }}>*</span>
@@ -654,7 +629,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
             )}
           </div>
 
-          {/* Row 3, Col 2: Contact Number (Strict 11 Digits, 09/08 Prefix, Same as Register) */}
           <div className="form-group" style={{ marginBottom: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "3px" }}>
               <label className="form-label" htmlFor="personnel-contact" style={{ marginBottom: 0 }}>
@@ -711,7 +685,6 @@ export const UserForm = ({ initial, onSubmit, onCancel }) => {
         </div>
       )}
 
-      {/* Modal Actions */}
       <div
         style={{
           display: "flex",

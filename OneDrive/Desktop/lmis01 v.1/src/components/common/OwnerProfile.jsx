@@ -4,9 +4,6 @@ import { Icon } from "../icons";
 import { formatDate, initials, formatSex } from "../../utils/helpers";
 import { formatOwnerId as baseFormatOwnerId } from "../../pages/admin/OwnerManagement";
 
-/**
- * Robust formatOwnerId with safe fallback if base formatter fails or owner is null
- */
 export const formatOwnerId = (owner, fallbackIndex = 1) => {
   if (!owner) return "REG-001-2026";
   try {
@@ -17,12 +14,6 @@ export const formatOwnerId = (owner, fallbackIndex = 1) => {
   }
 };
 
-/**
- * Resolves full registered owner dossier details from any animal/batch/permit item
- * @param {Object} entity - The record containing owner identifiers or name
- * @param {Object} context - { owners, livestock, users }
- * @returns {Object|null} Consolidated owner profile object
- */
 export const resolveOwnerProfile = (entity, { owners = [], livestock = [], users = [] } = {}) => {
   if (!entity) return null;
 
@@ -62,7 +53,6 @@ export const resolveOwnerProfile = (entity, { owners = [], livestock = [], users
     }
   }
 
-  // Look for matching user to grab avatar or enriched email
   let matchedUser = null;
   if (Array.isArray(users) && users.length > 0) {
     const searchId = matchedOwner?.id || entityOwnerId;
@@ -94,9 +84,6 @@ export const resolveOwnerProfile = (entity, { owners = [], livestock = [], users
   };
 };
 
-/**
- * Filter all livestock belonging to an owner
- */
 export const getOwnerLivestock = (owner, livestockList = []) => {
   if (!owner || !Array.isArray(livestockList)) return [];
 
@@ -117,9 +104,6 @@ export const getOwnerLivestock = (owner, livestockList = []) => {
   });
 };
 
-/**
- * Owner Profile Card (Compact or Expanded)
- */
 export const OwnerProfileCard = ({
   owner,
   compact = false,
@@ -153,7 +137,6 @@ export const OwnerProfileCard = ({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
-        {/* Avatar / Initials */}
         <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
           {avatarUrl ? (
             <img
@@ -190,7 +173,6 @@ export const OwnerProfileCard = ({
           )}
         </div>
 
-        {/* Info */}
         <div style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             <span
@@ -266,7 +248,6 @@ export const OwnerProfileCard = ({
         </div>
       </div>
 
-      {/* Action / Dossier trigger */}
       {onOpenModal && (
         <Button
           type="button"
@@ -292,9 +273,6 @@ export const OwnerProfileCard = ({
   );
 };
 
-/**
- * Standardized Owner Profile Dossier Modal
- */
 const getLivestockStatusStyle = (status) => {
   const s = String(status || "").toLowerCase();
   if (s.includes("condemn") || s.includes("reject") || s.includes("discard")) {
@@ -358,7 +336,6 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
       }
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        {/* Profile Header Banner */}
         <div
           style={{
             display: "flex",
@@ -437,7 +414,6 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
             </div>
           </div>
 
-          {/* Status Badge */}
           <span
             style={{
               display: "inline-flex",
@@ -464,7 +440,6 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
           </span>
         </div>
 
-        {/* 4-Stat Particulars Card */}
         <div
           style={{
             display: "grid",
@@ -589,7 +564,6 @@ export const OwnerProfileModal = ({ open, onClose, owner, livestock = [] }) => {
           </div>
         </div>
 
-        {/* Livestock Table Section */}
         <div>
           <div
             style={{

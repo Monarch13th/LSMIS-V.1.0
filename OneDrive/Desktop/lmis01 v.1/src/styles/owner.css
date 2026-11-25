@@ -1,14 +1,7 @@
 @import "tailwindcss";
 @variant dark (&:where([data-theme="dark"], [data-theme="dark"] *, .dark, .dark *));
 
-/* ============================================================
-   LSMIS • Livestock Owner Mobile Portal & Desktop Gatekeeper Styles
-   ============================================================ */
 
-/* ============================================================
-   1. DESKTOP RESTRICTION GATEKEEPER
-   Shown when an owner portal route is accessed on desktop (>=768px)
-   ============================================================ */
 .owner-desktop-gate {
   min-height: 100vh;
   width: 100%;
@@ -118,7 +111,6 @@
   max-width: 380px;
 }
 
-/* Scannable QR container */
 .owner-gate-qr-box {
   width: 100%;
   background: rgba(2, 6, 23, 0.7);
@@ -198,7 +190,6 @@
   color: #ffffff;
 }
 
-/* Action Buttons */
 .owner-gate-actions {
   width: 100%;
   display: flex;
@@ -259,10 +250,6 @@
   z-index: 10;
 }
 
-/* ============================================================
-   2. SIMULATION MODE CONTAINER
-   For developers and admins testing the mobile portal on desktop
-   ============================================================ */
 .owner-sim-wrapper {
   min-height: 100vh;
   width: 100%;
@@ -309,7 +296,6 @@
   opacity: 0.9;
 }
 
-/* Phone Bezel */
 .owner-sim-phone {
   width: 100%;
   max-width: 412px;
@@ -325,12 +311,10 @@
   overflow: hidden;
 }
 
-/* Dark mode phone shell */
 [data-theme="dark"] .owner-sim-phone {
   background: #1A201C;
 }
 
-/* Realistic Smartphone Top Status Bar (Prevents notch from clipping header) */
 .owner-sim-status-bar {
   height: 36px;
   min-height: 36px;
@@ -362,7 +346,6 @@
   color: #F9FAF8;
 }
 
-/* Dynamic Island / Speaker Notch */
 .owner-sim-notch {
   width: 110px;
   height: 20px;
@@ -434,9 +417,6 @@
   border-radius: 1px;
 }
 
-/* ============================================================
-   3. MOBILE APP CONTAINER & DEDICATED HEADER (Pixel-Perfect Alignment)
-   ============================================================ */
 .owner-mobile-container {
   width: 100%;
   max-width: 1024px;
@@ -452,7 +432,6 @@
   background: #1A201C;
 }
 
-/* Mobile App Frame Root & Card Layout */
 .owner-mobile-layout-root {
   height: 100vh;
   height: 100dvh;
@@ -472,7 +451,6 @@
   position: relative;
 }
 
-/* Mobile Sticky Header (Inside .owner-top-nav-group) */
 .owner-mobile-header {
   position: relative;
   z-index: 10;
@@ -491,7 +469,6 @@
   border-bottom-color: rgba(51, 65, 85, 0.85);
 }
 
-/* Mobile Scrollable Body Content Container (Starts cleanly directly below fixed top header & navigation) */
 .owner-mobile-main {
   flex: 1 1 0%;
   min-height: 0;
@@ -504,7 +481,6 @@
   overscroll-behavior-y: contain;
 }
 
-/* Left Brand & Profile Group */
 .owner-header-left {
   display: flex;
   align-items: center;
@@ -608,7 +584,6 @@
   color: #9BA49E;
 }
 
-/* Right Action Buttons Group */
 .owner-header-right {
   display: flex;
   align-items: center;
@@ -690,7 +665,6 @@
   border-color: #2D332F;
 }
 
-/* Strict Logo Sizing */
 .owner-header-logo {
   width: 38px !important;
   height: 38px !important;
@@ -709,12 +683,10 @@
   border-color: #444C47;
 }
 
-/* Safe Area Inset Padding for Bottom Nav */
 .safe-bottom {
   padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
 }
 
-/* Hide scrollbars gracefully on mobile chips */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -723,11 +695,7 @@
   scrollbar-width: none;
 }
 
-/* ============================================================
-   4. LIVESTOCK OWNER MOBILE DASHBOARD & COMPONENTS
-   ============================================================ */
 
-/* Hero Banner Card */
 .owner-hero-card {
   position: relative;
   overflow: hidden;
@@ -830,7 +798,6 @@
   white-space: nowrap;
 }
 
-/* High-contrast Primary Action Button (fixes white-on-white bug!) */
 .owner-btn-white-action {
   background: #ffffff !important;
   color: var(--lsmis-primary-text) !important;
@@ -874,7 +841,6 @@
   background: rgba(255, 255, 255, 0.26) !important;
 }
 
-/* KPI Metrics Tiles */
 .owner-kpi-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -945,7 +911,6 @@
   font-weight: 500;
 }
 
-/* 9-Stage Workflow Stepper Section */
 .owner-section-card {
   background: #ffffff;
   border: 1px solid #E2E6E3;
@@ -982,7 +947,6 @@
   color: #EFF2F0;
 }
 
-/* Horizontal Scrollable Stepper */
 .owner-stepper-scroll {
   display: flex;
   gap: 8px;
@@ -1059,7 +1023,6 @@
   color: #E2E6E3;
 }
 
-/* Livestock Card Redesign */
 .owner-animal-list {
   display: flex;
   flex-direction: column;
@@ -1145,7 +1108,6 @@
   border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-/* 9-Segment Mini Progress Bar */
 .owner-progress-segmented {
   display: flex;
   gap: 3.5px;
@@ -1179,7 +1141,6 @@
   box-shadow: 0 0 6px rgba(14, 165, 233, 0.5);
 }
 
-/* Quick Services 4-Grid */
 .owner-services-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1240,7 +1201,6 @@
   color: #9BA49E;
 }
 
-/* Abattoir Schedule & Notice Box */
 .owner-notice-card {
   background: linear-gradient(135deg, rgba(26, 32, 28, 0.03) 0%, rgba(24, 122, 86, 0.06) 100%);
   border: 1px dashed #C2CAC4;
@@ -1253,7 +1213,6 @@
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-/* Modal Drawer for Stage Detail */
 .owner-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1307,9 +1266,6 @@
   background: #5D6660;
 }
 
-/* ============================================================
-   5. TOP NAVIGATION BAR (Directly Below Header, Sticky at Top)
-   ============================================================ */
 .owner-top-nav-group {
   position: sticky;
   top: 0;
@@ -1438,7 +1394,6 @@
   font-weight: 750;
 }
 
-/* Compact layout adjustments for narrow mobile screens */
 @media (max-width: 380px) {
   .owner-bottom-grid {
     height: 48px;
@@ -1460,7 +1415,6 @@
   }
 }
 
-/* Installed PWA Standalone Mode adjustments */
 @media (display-mode: standalone) {
   .owner-mobile-layout-card {
     border-left: none !important;
@@ -1473,7 +1427,6 @@
   }
 }
 
-/* Floating Action Button (Register) */
 .owner-fab-wrap {
   display: flex;
   flex-direction: column;
@@ -1526,11 +1479,7 @@
   color: var(--lsmis-accent-light);
 }
 
-/* ============================================================
-   5. LIVESTOCK SEARCH, FILTER BAR & ENHANCED CARD FOOTER
-   ============================================================ */
 
-/* Vertically Centered Search Bar */
 .owner-search-wrap {
   position: relative;
   width: 100%;
@@ -1624,7 +1573,6 @@
   background-color: var(--lsmis-primary-soft);
 }
 
-/* Horizontal Filter Bar & Interactive Chips */
 .owner-filter-bar {
   display: flex;
   gap: 8px;
@@ -1633,7 +1581,6 @@
   scroll-snap-type: x mandatory;
 }
 
-/* Equal-Width Filter Bar (Ensures all chips have the exact same size) */
 .owner-filter-bar.owner-filter-equal {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -1724,7 +1671,6 @@
   color: #ffffff;
 }
 
-/* Card Interactive Footer Tap Cue */
 .owner-card-footer {
   display: flex;
   align-items: center;
@@ -1747,9 +1693,6 @@
   color: var(--lsmis-primary-text);
 }
 
-/* ============================================================
-   6. OWNER NOTIFICATIONS STYLES
-   ============================================================ */
 
 .owner-btn-mark-read {
   display: inline-flex;
@@ -1959,9 +1902,6 @@
   color: var(--lsmis-primary-text);
 }
 
-/* ============================================================
-   7. OWNER PROFILE STYLES
-   ============================================================ */
 
 .owner-profile-avatar-wrap {
   width: 84px;
@@ -2536,9 +2476,6 @@
   transform: scale(0.98);
 }
 
-/* ============================================================
-   8. OWNER PAYMENT STATUS & PERMIT OF FEES STYLES
-   ============================================================ */
 
 .owner-pay-card {
   background: #ffffff;
@@ -2616,7 +2553,6 @@
   color: var(--lsmis-accent-soft);
 }
 
-/* High-Fidelity Official Permit Document Paper */
 .owner-permit-modal-sheet {
   background: #ffffff;
   border-radius: 24px;
@@ -2749,7 +2685,6 @@
   margin-top: 1px;
 }
 
-/* Dual Staff & Vet Verification Audit Strip */
 .owner-role-audit-strip {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2831,7 +2766,6 @@
   color: #EFF2F0;
 }
 
-/* Gate Pass Document Styling */
 .owner-gate-pass-box {
   margin-top: 14px;
   padding: 12px;
@@ -2850,7 +2784,6 @@
   color: #1A201C;
 }
 
-/* Print Optimization */
 @media print {
   body * {
     visibility: hidden;
@@ -2876,11 +2809,7 @@
   }
 }
 
-/* ============================================================
-   7. MY LIVESTOCK TRACKER, SLAUGHTER ACTIVITIES & ERROR STATE
-   ============================================================ */
 
-/* 8-Milestone Tracker Container */
 .owner-tracker-wrap {
   display: flex;
   align-items: flex-start;
@@ -2922,7 +2851,6 @@
   border: 1.5px solid transparent;
 }
 
-/* Tracker Node States */
 .owner-tracker-step.completed .owner-tracker-dot {
   background-color: #10b981;
   color: #ffffff;
@@ -3033,7 +2961,6 @@
   color: #9BA49E;
 }
 
-/* Slaughter Processing Activities Checklist Grid */
 .owner-activity-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -3117,7 +3044,6 @@
   color: #9BA49E;
 }
 
-/* Date Filter Ribbon */
 .owner-date-filter-wrap {
   display: flex;
   align-items: center;
@@ -3169,7 +3095,6 @@
   color: #ef4444;
 }
 
-/* Status Pill Rejected / Condemned */
 .owner-status-pill.rejected,
 .owner-status-pill.condemned {
   background: rgba(239, 68, 68, 0.15);
@@ -3183,7 +3108,6 @@
   border-color: rgba(239, 68, 68, 0.4);
 }
 
-/* Error Card State */
 .owner-error-card {
   background: #ffffff;
   border: 1.5px solid #fecaca;
@@ -3224,18 +3148,13 @@
   transform: scale(0.97);
 }
 
-/* ============================================================
-   7. OWNER MOBILE ANIMAL DETAIL & CONDEMNATION EVIDENCE STYLES
-   ============================================================ */
 
-/* Desktop: hide mobile-only condemnation quick-trigger button */
 @media (min-width: 768px) {
   .owner-condemnation-mobile-only {
     display: none !important;
   }
 }
 
-/* Mobile & PWA: responsive animal detail modal (Screenshot 2 fix) */
 @media (max-width: 640px) {
   .owner-animal-detail-overlay {
     padding: 10px !important;
@@ -3285,7 +3204,6 @@
     gap: 8px !important;
   }
 
-  /* Responsive Condemnation Evidence Modal on Mobile */
   .owner-condemnation-modal-card {
     width: 100% !important;
     max-width: 100% !important;
@@ -3323,7 +3241,6 @@
   }
 }
 
-/* Condemned & Partially Condemned Simplified Cards */
 .owner-condemned-card {
   border-left: 4px solid #dc2626 !important;
   background-color: #ffffff !important;

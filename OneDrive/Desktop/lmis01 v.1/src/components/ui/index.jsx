@@ -1,4 +1,3 @@
-// Re-exports for cleaner imports
 export { Button } from "./Button";
 export { Input, Select, Textarea } from "./Input";
 export { Card } from "./Card";

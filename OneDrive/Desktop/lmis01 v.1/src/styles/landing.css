@@ -1,15 +1,5 @@
-/* =========================================================
-   LSMIS Landing Page — Premium Modern Government Design System
-   Tinaan, City of Naga, Cebu
-   Primary: Sage Green (#187A56) + Warm Beige (#E6F7F0)
-   Backgrounds: #FFFFFF / #F3F4F0 Alternate Sections
-   Text: Dark Charcoal (#1A201C, #2B302D)
-   Typography: Inter (font-display: swap)
-   Strictly Accessible (WCAG AA), Zero Layout Shift, Responsive
-   ========================================================= */
 
 :root {
-  /* Core Design Tokens • Theme No. 3: Sage Green + Warm Beige */
   --lsmis-green-950: #262E27;
   --lsmis-green-900: #187A56;
   --lsmis-green-800: #136647;
@@ -49,7 +39,6 @@
   --lsmis-radius-xl: 20px;
 }
 
-/* Dark mode theme token mapping */
 [data-theme="dark"] .landing-page {
   --lsmis-white: #1B221C;
   --lsmis-bg-alt: #141A15;
@@ -66,9 +55,6 @@
   --lsmis-shadow-card: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* =========================================================
-   BASE PAGE LAYOUT & SCROLL BEHAVIOR
-   ========================================================= */
 .landing-page {
   font-family: var(--lsmis-font-sans);
   background-color: var(--lsmis-white);
@@ -108,7 +94,6 @@
   }
 }
 
-/* Section Header Shared Pattern */
 .section-header-badge {
   display: inline-flex;
   align-items: center;
@@ -156,9 +141,6 @@
   margin-bottom: 48px;
 }
 
-/* =========================================================
-   1. NAVIGATION BAR
-   ========================================================= */
 .landing-nav-header {
   position: fixed;
   top: 0;
@@ -170,7 +152,6 @@
   border-bottom: 1px solid transparent;
 }
 
-/* Transparent state over Hero */
 .landing-nav-header.nav-transparent {
   background: linear-gradient(180deg, rgba(8, 24, 19, 0.85) 0%, rgba(8, 24, 19, 0.45) 75%, transparent 100%);
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -235,7 +216,6 @@
   color: #FFFFFF;
 }
 
-/* Scrolled state */
 .landing-nav-header.nav-scrolled {
   background-color: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
@@ -310,7 +290,6 @@
   color: var(--lsmis-charcoal-900);
 }
 
-/* Nav Inner Layout */
 .landing-nav-inner {
   display: flex;
   align-items: center;
@@ -475,7 +454,6 @@
   }
 }
 
-/* Mobile Nav Drawer */
 .mobile-nav-backdrop {
   position: fixed;
   inset: 0;
@@ -591,9 +569,6 @@
   box-shadow: 0 2px 6px rgba(24, 122, 86, 0.2);
 }
 
-/* =========================================================
-   2. HERO SECTION
-   ========================================================= */
 .landing-hero {
   position: relative;
   min-height: 100vh;
@@ -776,10 +751,6 @@
   flex-shrink: 0;
 }
 
-/* =========================================================
-   DESKTOP VIEWPORT CONTAINMENT (One-Screen Layout Across All Desktop Resolutions)
-   Tested: 1920x1080, 1600x900, 1440x900, 1366x768, 1280x720, 1024x768
-   ========================================================= */
 @media (min-width: 961px) {
   .landing-hero {
     height: 100vh;
@@ -931,7 +902,6 @@
   }
 }
 
-/* Compact desktop screen heights (e.g., 1280x720, 1024x768, 1366x768 with browser toolbars) */
 @media (min-width: 961px) and (max-height: 740px) {
   .landing-hero {
     padding-top: 64px;
@@ -1005,9 +975,6 @@
   }
 }
 
-/* =========================================================
-   3. ABOUT SECTION (One-Frame Responsive Layout)
-   ========================================================= */
 .landing-about {
   padding: clamp(36px, 5vh, 60px) 0;
   background-color: var(--lsmis-white);
@@ -1157,9 +1124,6 @@
   color: var(--lsmis-charcoal-700);
 }
 
-/* =========================================================
-   4. FEATURES SECTION
-   ========================================================= */
 .landing-features {
   padding: 96px 0;
   background-color: var(--lsmis-bg-alt);
@@ -1236,7 +1200,6 @@
   margin: 0;
 }
 
-/* Feature Showcase Banner with Inspection Photo */
 .feature-showcase-banner {
   background-color: var(--lsmis-white);
   border: 1px solid var(--lsmis-charcoal-200);
@@ -1314,15 +1277,11 @@
   color: #B4C6B2;
 }
 
-/* =========================================================
-   5. WORKFLOW SECTION
-   ========================================================= */
 .landing-workflow {
   padding: 96px 0;
   background-color: var(--lsmis-white);
 }
 
-/* Desktop Horizontal Timeline Grid (8 Steps) */
 .workflow-desktop-timeline {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1455,7 +1414,6 @@
   margin: 0;
 }
 
-/* Mobile Vertical Timeline connector styling */
 .mobile-step-card {
   display: flex;
   gap: 16px;
@@ -1476,9 +1434,6 @@
   flex: 1;
 }
 
-/* =========================================================
-   6. CONTACT SECTION
-   ========================================================= */
 .landing-contact {
   padding: 96px 0;
   background-color: var(--lsmis-bg-alt);
@@ -1590,7 +1545,6 @@
   text-decoration: underline;
 }
 
-/* Facility Visual Panel */
 .contact-media-col {
   background-color: #136647;
   position: relative;
@@ -1676,9 +1630,6 @@
   transform: translateY(-1px);
 }
 
-/* =========================================================
-   7. PROFESSIONAL LSMIS MUNICIPAL FOOTER
-   ========================================================= */
 .landing-footer {
   --footer-bg: #071F17;
   --footer-heading: #FFFFFF;
@@ -1711,7 +1662,6 @@
   border-width: 0;
 }
 
-/* 4-Column Professional Grid */
 .footer-grid {
   display: grid;
   grid-template-columns: 1.35fr 1fr 1.15fr 1.1fr;
@@ -1725,7 +1675,6 @@
   flex-direction: column;
 }
 
-/* Column 1: Brand & Municipal Identity */
 .footer-col-brand {
   gap: 14px;
 }
@@ -1793,7 +1742,6 @@
   overflow-wrap: break-word;
 }
 
-/* Headings */
 .footer-col-heading {
   font-size: 15.5px;
   font-weight: 800;
@@ -1804,7 +1752,6 @@
   text-transform: uppercase;
 }
 
-/* Link Lists (Modules & Legal) */
 .footer-links-list {
   list-style: none;
   padding: 0;
@@ -1864,7 +1811,6 @@
   margin-top: 1px;
 }
 
-/* Column 4: Facility Operations & Contact */
 .footer-col-contact {
   gap: 16px;
 }
@@ -1923,7 +1869,6 @@
   text-decoration: underline;
 }
 
-/* Bottom Bar */
 .footer-bottom-bar {
   margin-top: clamp(36px, 5.5vh, 48px);
   padding-top: 24px;
@@ -1958,7 +1903,6 @@
   flex-shrink: 0;
 }
 
-/* Tablet (2 columns) */
 @media (max-width: 1024px) {
   .footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1966,7 +1910,6 @@
   }
 }
 
-/* Mobile (1 stacked column) */
 @media (max-width: 680px) {
   .footer-grid {
     grid-template-columns: 1fr;
@@ -1979,9 +1922,6 @@
   }
 }
 
-/* =========================================================
-   ACCESSIBILITY & REDUCED MOTION
-   ========================================================= */
 :focus-visible {
   outline: 2px solid var(--lsmis-green-600);
   outline-offset: 3px;

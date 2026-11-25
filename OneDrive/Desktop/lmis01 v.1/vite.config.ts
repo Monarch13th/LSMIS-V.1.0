@@ -18,7 +18,6 @@ function getLocalLanIp(): string {
       for (const addr of addrs) {
         if (addr.family === "IPv4" && !addr.internal) {
           const lower = name.toLowerCase();
-          // Deprioritize virtual adapters and local hotspot gateway interfaces
           const isVirtual =
             lower.includes("vethernet") ||
             lower.includes("vmware") ||
@@ -71,9 +70,6 @@ function apkMimePlugin() {
   };
 }
 
-/**
- * Dev service worker interceptor: prevents stale service worker from intercepting localhost dev.
- */
 function devServiceWorkerPlugin() {
   return {
     name: "lsmis-dev-sw-interceptor",
@@ -105,10 +101,6 @@ self.addEventListener("activate", (event) => {
   };
 }
 
-/**
- * Stamps public/sw.js with a unique build id and outputs version.json in production
- * so each deployment ships a byte-different service worker and verifiable build id.
- */
 function lsmisServiceWorkerPlugin() {
   let outDir = "dist";
   return {
@@ -118,14 +110,12 @@ function lsmisServiceWorkerPlugin() {
       outDir = path.resolve(config.root, config.build.outDir);
     },
     closeBundle() {
-      // 1. Stamp sw.js
       const swPath = path.join(outDir, "sw.js");
       if (fs.existsSync(swPath)) {
         const stamped = fs.readFileSync(swPath, "utf8").replace(/__BUILD_ID__/g, appBuildId);
         fs.writeFileSync(swPath, stamped);
       }
 
-      // 2. Output version.json for client version verification
       const versionPath = path.join(outDir, "version.json");
       fs.writeFileSync(
         versionPath,
@@ -143,7 +133,6 @@ function lsmisServiceWorkerPlugin() {
   };
 }
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     apkMimePlugin(),

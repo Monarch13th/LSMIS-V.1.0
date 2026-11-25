@@ -1,19 +1,12 @@
-// React hook wrapping the Supabase client with in-memory deduplication and caching.
-// `data` is always an array (starts as []) and `loading` is always a boolean.
-// Auto-refreshes whenever ANY role writes to this table or related tables (shared data flow).
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "../services/supabaseClient";
 import { shouldTableReload, initRealtimeSync } from "../services/realtimeSync";
 
-// ---------------------------------------------------------------------------
-// Global In-Memory Cache, Subscriber Registry & In-Flight Promise Registry
-// ---------------------------------------------------------------------------
-const CACHE_TTL_MS = 45000; // 45s freshness window unless invalidated by a DB mutation
-const tableDataCache = new Map(); // table -> { data: Array, timestamp: number, stale: boolean }
-const inFlightPromises = new Map(); // table -> Promise<Array>
-const tableSubscribers = new Map(); // table -> Set<Function>
+const CACHE_TTL_MS = 45000;
+const tableDataCache = new Map();
+const inFlightPromises = new Map();
+const tableSubscribers = new Map();
 
-// Mark cached tables stale immediately when any local/cross-tab/realtime mutation fires
 if (typeof window !== "undefined") {
   window.addEventListener("lmis-db-change", (event) => {
     const changedTable = event?.detail?.table;
@@ -24,7 +17,6 @@ if (typeof window !== "undefined") {
     }
   });
 
-  // Invalidate cached table data only on fresh sign-in or sign-out (avoid mass re-fetches on background TOKEN_REFRESHED)
   try {
     supabase.auth.onAuthStateChange((event) => {
       if (event === "SIGNED_IN") {
@@ -80,10 +72,6 @@ function areRowsEqual(oldRows, newRows) {
   return true;
 }
 
-/**
- * Optimistically mutate cached rows for a table across all active hooks and tabs.
- * Allows immediate UI feedback without waiting for round-trip network re-fetch.
- */
 export function mutateTableCache(table, updater) {
   if (!table || typeof updater !== "function") return;
   const currentCache = tableDataCache.get(table);
@@ -98,9 +86,6 @@ export function mutateTableCache(table, updater) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Simple debounce: collapses rapid bursts of events into a single call.
-// ---------------------------------------------------------------------------
 function debounce(fn, delay) {
   let timer = null;
   return (...args) => {
@@ -145,14 +130,12 @@ export const useSupabase = (table, deps = [], options = {}) => {
     };
   }, [table]);
 
-  // Ensure global realtime engine is running
   useEffect(() => {
     initRealtimeSync();
   }, []);
 
   const executeFetch = async (isForced = false) => {
     if (!table) return [];
-    // If a request for this table is already in-flight across any hook, share the same Promise
     if (inFlightPromises.has(table)) {
       return inFlightPromises.get(table);
     }
@@ -178,7 +161,6 @@ export const useSupabase = (table, deps = [], options = {}) => {
   const load = useCallback(async (isForced = false) => {
     if (!table) return;
 
-    // Serve from fresh cache on unforced mount/navigation to prevent redundant full-table fetches
     if (!isForced) {
       const currentCache = tableDataCache.get(table);
       if (
@@ -196,7 +178,6 @@ export const useSupabase = (table, deps = [], options = {}) => {
     }
 
     if (inFlightRef.current) {
-      // Mark that a reload request arrived during an active query
       needsReloadRef.current = true;
       return;
     }
@@ -209,7 +190,7 @@ export const useSupabase = (table, deps = [], options = {}) => {
 
       setData((prev) => {
         if (areRowsEqual(prev, dbRows)) {
-          return prev; // Maintain reference identity, prevent unneeded rerenders
+          return prev;
         }
         return dbRows;
       });
@@ -224,7 +205,6 @@ export const useSupabase = (table, deps = [], options = {}) => {
       if (isMountedRef.current) {
         setLoading(false);
       }
-      // If a new mutation occurred while the previous query was running, reload immediately
       if (needsReloadRef.current && isMountedRef.current) {
         needsReloadRef.current = false;
         load(true);
@@ -232,18 +212,15 @@ export const useSupabase = (table, deps = [], options = {}) => {
     }
   }, [table]);
 
-  // Initial load + reload when deps change
   useEffect(() => {
     load();
   }, [load, ...deps]);
 
-  // Debounced reload for broadcast events — collapses rapid event bursts into one fetch
   const debouncedLoad = useRef(debounce(() => load(true), 250));
   useEffect(() => {
     debouncedLoad.current = debounce(() => load(true), 250);
   }, [load]);
 
-  // Listen for lmis-db-change events (fired locally, cross-tab, or from Supabase Realtime)
   useEffect(() => {
     if (!table) return;
     const handler = (event) => {

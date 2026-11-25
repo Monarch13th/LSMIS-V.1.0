@@ -2,10 +2,6 @@ import { Bar, Doughnut, Line } from "react-chartjs-2";
 import { baseOptions, noLegend, cartesian, doughnutOptions, ChartEmpty, hasData } from "./chartKit";
 import { num, countDecisions, dailySeries, INSPECTION_DATE_FIELDS } from "../../utils/dashboardMetrics";
 
-/**
- * Graph 1: Clinical Inspection Decisions & Outcomes
- * Displays Ante-Mortem and Post-Mortem clearance vs condemnation outcomes.
- */
 export const InspectionDecisions = ({ counts, data }) => {
   let values;
   if (counts && typeof counts === "object") {
@@ -39,12 +35,7 @@ export const InspectionDecisions = ({ counts, data }) => {
   );
 };
 
-/**
- * Graph 2: Verified Carcass Scale Weights by Species
- * Official hot/cold carcass weights recorded by veterinary personnel on the scale floor.
- */
 export const CarcassWeightSpeciesBar = ({ carcass = [], livestock = [] }) => {
-  // Map tags to registered species
   const tagToSpecies = new Map();
   (livestock || []).forEach((l) => {
     if (l.tag_number) {

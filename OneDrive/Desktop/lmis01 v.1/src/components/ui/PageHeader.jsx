@@ -1,4 +1,3 @@
-// Reusable page header — title + subtitle + optional action buttons
 import { classNames } from "../../utils/helpers";
 
 export const PageHeader = ({ title, subtitle, icon, actions, className }) => (

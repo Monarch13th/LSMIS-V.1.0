@@ -1,8 +1,5 @@
 import { supabase } from "../services/supabaseClient";
 
-/**
- * Builds an owner scope filter containing ownerId, animal tags, and record IDs.
- */
 export const buildOwnerScope = (ownerId, animals = []) => {
   const tags = new Set();
   const ids = new Set();
@@ -26,10 +23,6 @@ export const buildOwnerScope = (ownerId, animals = []) => {
   };
 };
 
-/**
- * Subscribes to Supabase realtime events across multiple tables with debouncing,
- * scoped to changes relevant to the owner.
- */
 export const subscribeOwnerLiveRefresh = ({
   channelName = "owner-live-refresh",
   tables = [],
@@ -64,7 +57,6 @@ export const subscribeOwnerLiveRefresh = ({
       "postgres_changes",
       { event: "*", schema: "public", table },
       (payload) => {
-        // If a scope checker is provided, optionally filter events
         if (typeof getScope === "function") {
           const scope = getScope();
           if (scope) {
@@ -74,12 +66,11 @@ export const subscribeOwnerLiveRefresh = ({
             const recTag = (newRecord.tag_number || oldRecord.tag_number || "").toString().trim().toUpperCase();
             const recLivestockId = newRecord.livestock_id || oldRecord.livestock_id || newRecord.id || oldRecord.id;
 
-            // If scope has ownerId and matches, or tag matches, or id matches:
             if (
               (scope.ownerId && recOwnerId && String(recOwnerId) === String(scope.ownerId)) ||
               (recTag && scope.tags && (scope.tags.has(recTag) || scope.tags.has(newRecord.tag_number))) ||
               (recLivestockId && scope.ids && scope.ids.has(String(recLivestockId))) ||
-              (!recOwnerId && !recTag && !recLivestockId) // fallback for broad events
+              (!recOwnerId && !recTag && !recLivestockId)
             ) {
               triggerRefresh();
               return;

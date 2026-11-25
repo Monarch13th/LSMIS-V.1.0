@@ -6,10 +6,9 @@ import {
   PAYMENT_DATE_FIELDS, LIVESTOCK_DATE_FIELDS, INSPECTION_DATE_FIELDS,
 } from "../utils/dashboardMetrics";
 
-// In-memory cache for ultra-fast tab switches and page navigations
 let _cachedMetrics = null;
 let _cachedTime = 0;
-const CACHE_TTL_MS = 25000; // 25s fresh window
+const CACHE_TTL_MS = 25000;
 let _inFlightPromise = null;
 
 if (typeof window !== "undefined") {
@@ -23,12 +22,6 @@ if (typeof window !== "undefined") {
   } catch (_) {}
 }
 
-/**
- * Fetch and compute Admin Dashboard operational metrics with high performance.
- * - Queries run in parallel with strictly projected scalar columns (no full-table select *).
- * - Drastically reduces network transfer, memory pressure, and render blocking.
- * - Caches computed metrics so switching back to the dashboard is instantaneous.
- */
 export async function fetchAdminDashboardData(forceRefresh = false) {
   const nowMs = Date.now();
   if (!forceRefresh && _cachedMetrics && nowMs - _cachedTime < CACHE_TTL_MS) {
@@ -44,7 +37,6 @@ export async function fetchAdminDashboardData(forceRefresh = false) {
       const nowDt = new Date();
       const lastMonthDt = new Date(nowDt.getFullYear(), nowDt.getMonth() - 1, 1);
 
-      // Targeted parallel queries for Admin operations and throughput
       const [
         usersRes,
         livestockRes,
@@ -100,7 +92,6 @@ export async function fetchAdminDashboardData(forceRefresh = false) {
         );
       });
 
-      // Calculate key operational figures with resilient fallback
       let anteCount = typeof anteRes.count === "number" ? anteRes.count : (ante.length || 0);
       let postCount = typeof postRes.count === "number" ? postRes.count : (post.length || 0);
 
@@ -184,9 +175,6 @@ export async function fetchAdminDashboardData(forceRefresh = false) {
   return _inFlightPromise;
 }
 
-/**
- * Invalidate the dashboard cache when an authoritative mutation occurs.
- */
 export function invalidateAdminDashboardCache() {
   _cachedMetrics = null;
   _cachedTime = 0;

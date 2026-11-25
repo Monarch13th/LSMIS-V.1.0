@@ -71,7 +71,6 @@ const NavGroup = ({ group, onClose }) => {
   const location = useLocation();
   const currentPath = location.pathname + location.search;
   
-  // A group item counts as active only if its exact path matches, or path without query matches, or is nested.
   const hasActive = group.items.some((i) => currentPath === i.path || (location.pathname === i.path && !location.search && !i.path.includes("?")) || location.pathname.startsWith(i.path + "/"));
   const [open, setOpen] = useState(hasActive);
 

@@ -20,8 +20,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
   const { data: livestock = [], loading: loadingLivestock, refresh: refreshLivestock } = useSupabase(TABLES.LIVESTOCK);
   const { data: condemnedRecords = [], refresh: refreshCondemned } = useSupabase(TABLES.CONDEMNATION_RECORDS);
   const { data: evidenceRecords = [], refresh: refreshEvidence } = useSupabase(TABLES.EVIDENCE_RECORDS || "evidence_records");
-  // Needed by the shared condemnation evidence index: a live animal condemned at
-  // Ante-Mortem must never be attributed to a Post-Mortem carcass record.
   const { data: postMortemRecords = [], refresh: refreshPostMortem } = useSupabase(TABLES.POST_MORTEM);
   const { data: owners = [], refresh: refreshOwners } = useSupabase(TABLES.OWNERS);
   const [loading, setLoading] = useState(true);
@@ -30,7 +28,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
   const isQueueLoading = loadingLivestock || loadingAnte;
 
   const normalizeTab = (t) => {
-    // "All Inspection Records" tab removed: legacy links (log/inspected/records) open the default tab.
     if (t === "queue" || t === "awaiting") return "awaiting";
     if (t === "condemned" || t === "evidence") return "evidence";
     return "awaiting";
@@ -58,7 +55,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
   });
   const [search, setSearch] = useState(() => searchParams.get("tag") || searchParams.get("search") || "");
   const [filterSpecies, setFilterSpecies] = useState("all");
-  const [dateRange, setDateRange] = useState("all"); // 'all' | 'today' | 'week' | 'month'
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const urlTab = searchParams.get("tab");
@@ -81,7 +78,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { showToast } = useToast();
 
-  // Collapsible accordion state for grouped owner batches (matching Animal Marking)
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const toggleGroupExpand = (groupKey) => {
     setExpandedGroups((prev) => {
@@ -94,7 +90,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
   const expandAllGroups = (list) => setExpandedGroups(new Set((list || []).map((g) => g.key)));
   const collapseAllGroups = () => setExpandedGroups(new Set());
 
-  // Per-group and individual selection for Awaiting Inspection queue
   const [selectedQueueTags, setSelectedQueueTags] = useState(new Set());
   const toggleSelectQueueTag = (tag) => {
     if (!tag) return;
@@ -119,11 +114,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     });
   };
 
-  // Pagination states
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Dedicated view state for selected owner (matching Condemnation view)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
 
   useEffect(() => {
@@ -136,7 +129,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     setLoading(false);
   }, [data, livestock]);
 
-  // All condemned live animal tags (across inspections, livestock status, and condemnation records)
   const allCondemnedAnteTags = useMemo(() => {
     const set = new Set();
     (data || []).forEach((i) => {
@@ -145,12 +137,10 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       if (isCond && i.tag_number) set.add(String(i.tag_number).trim());
     });
     (livestock || []).forEach((l) => {
-      // Post-mortem outcomes (Partially / Post-Mortem Whole Carcass Condemned) are NOT ante-mortem condemnations
       const isCond = isAnteCondemnedStatus(l.status);
       if (isCond && l.tag_number) set.add(String(l.tag_number).trim());
     });
     (condemnedRecords || []).forEach((c) => {
-      // Stage is derived from the condemnation record itself, never from "does this tag have any inspection"
       if (matchesStage(c, "Ante-Mortem") && c.tag_number) set.add(String(c.tag_number).trim());
     });
     return set;
@@ -158,12 +148,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
 
   const totalCondemnedCount = allCondemnedAnteTags.size;
 
-  // Condemnation Evidence card count.
-  // Derived from the exact same dataset the Ante-Mortem Condemnation Evidence page
-  // renders (see condemnationEvidenceIndex), so the card always equals the number of
-  // records shown on the page: same stage filter, same deleted-status filter, and the
-  // same one-record-per-condemnation grouping that stops duplicate photos from
-  // inflating the count.
   const { evidenceCount: anteEvidenceCount } = useCondemnationEvidenceIndex(
     "Ante-Mortem",
     {
@@ -175,16 +159,11 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     }
   );
 
-  // Awaiting inspection live animals:
-  // Identified if this specific livestock entry has not yet been inspected in ante-mortem
-  // and has not been condemned/rejected/completed/released/approved.
   const anteLivestockIds = useMemo(() => new Set((data || []).map((i) => String(i.livestock_id || "").trim()).filter(Boolean)), [data]);
   const anteTags = useMemo(() => new Set((data || []).map((i) => String(i.tag_number || "").trim().toLowerCase()).filter(Boolean)), [data]);
   const awaitingLivestock = useMemo(() => {
     if (isQueueLoading && (!livestock || livestock.length === 0)) return [];
 
-    // An animal that has reached any later stage must never sit in the Ante-Mortem
-    // queue. Post-Mortem rows are used as a downstream "already moved on" signal.
     const postMortemTags = new Set(
       (postMortemRecords || []).map((p) => String(p.tag_number || "").trim().toLowerCase()).filter(Boolean)
     );
@@ -197,9 +176,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       if (!tag) return false;
       const s = String(l.status || "").toLowerCase();
 
-      // STRICT WORKFLOW REQUIREMENT:
-      // Livestock that are newly registered, awaiting marking, or returned to marking
-      // must NEVER appear in Ante-Mortem inspection until Animal Marking is completed.
       if (
         s === "pending marking" ||
         s === "for marking" ||
@@ -212,8 +188,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         return false;
       }
 
-      // Condemned/Rejected (any stage) is a final decision, and every downstream /
-      // terminal status clears the animal out of the Awaiting Inspection queue.
       if (
         s.includes("condemn") ||
         s.includes("reject") ||
@@ -241,14 +215,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         s === "permit issued"
       ) return false;
 
-      // Already inspected at Ante-Mortem (any decision) - the inspection table is the
-      // source of truth, not the livestock status field.
       if (l.id && anteLivestockIds.has(String(l.id).trim())) return false;
       if (anteTags.has(tag)) return false;
 
-      // STRICT WORKFLOW REQUIREMENT:
-      // Livestock MUST have a completed and valid Animal Marking record before entering the Ante-Mortem queue.
-      // Unmarked animals cannot enter Ante-Mortem inspection.
       const isMarked = Boolean(
         (l.marked === true || l.marked === "true" || l.marked === 1 || l.marked === "1" || l.marked === "t") &&
         l.marked !== "false" &&
@@ -257,7 +226,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       );
       if (!isMarked) return false;
 
-      // Already carried into Post-Mortem - it has moved past Ante-Mortem entirely.
       if (postMortemTags.has(tag)) return false;
       if (l.id && postMortemIds.has(String(l.id).trim())) return false;
 
@@ -265,7 +233,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     });
   }, [isQueueLoading, livestock, anteLivestockIds, anteTags, postMortemRecords]);
 
-  // Date range filter helper
   const isDateInRange = (dateStr) => {
     if (!dateStr || dateRange === "all") return true;
     const itemDate = new Date(dateStr);
@@ -284,7 +251,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     return true;
   };
 
-  // Comprehensive, multi-source owner name resolver with deep fallbacks
   const resolveOwnerName = (insp) => {
     if (!insp) return "-";
 
@@ -301,7 +267,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       );
     };
 
-    // Helper: look up owner name by owner_id in owners table
     const getOwnerNameById = (ownerId) => {
       if (!ownerId) return null;
       const cleanOId = String(ownerId).trim().toLowerCase();
@@ -316,26 +281,21 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       return null;
     };
 
-    // 0. Primary Master Directory lookup by owner ID
     const directOwnerId = insp.owner_id || insp.animal?.owner_id;
     if (directOwnerId) {
       const fromMaster = getOwnerNameById(directOwnerId);
       if (fromMaster) return fromMaster;
     }
 
-    // Normalized tags and IDs
     const rawTag = String(insp.tag_number || "").trim();
     const cleanTag = rawTag.toLowerCase();
     const livestockId = String(insp.livestock_id || insp.id || "").trim();
     const baseTag = cleanTag.replace(/[-_][0-9a-z]$/i, "");
 
-    // Tag digits (e.g. "010" from "TAG-010-HOG")
     const numMatch = cleanTag.match(/\b\d{2,4}\b/) || cleanTag.match(/tag-(\d+)/i) || cleanTag.match(/(\d{2,})/);
     const tagNum = numMatch ? numMatch[1] : null;
 
-    // 1. Search in livestock collection prioritizing master owner_id
     if (livestock && livestock.length > 0) {
-      // Exact tag or livestock_id
       const l = livestock.find((item) => {
         const iTag = String(item.tag_number || "").trim().toLowerCase();
         const iId = String(item.id || "").trim();
@@ -347,7 +307,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         if (isValid(l.owner_name)) return l.owner_name.trim();
       }
 
-      // Base tag match
       if (baseTag && baseTag !== cleanTag) {
         const lBase = livestock.find((item) => {
           const iTag = String(item.tag_number || "").trim().toLowerCase();
@@ -360,7 +319,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         }
       }
 
-      // Tag number sequence + species match
       if (tagNum) {
         const lNum = livestock.find((item) => {
           const iTag = String(item.tag_number || "").trim().toLowerCase();
@@ -376,11 +334,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       }
     }
 
-    // 2. Direct inspection fields fallback
     if (isValid(insp.owner_name)) return insp.owner_name.trim();
     if (isValid(insp.animal?.owner_name)) return insp.animal.owner_name.trim();
 
-    // 3. Search in awaiting queue
     if (typeof awaitingLivestock !== "undefined" && awaitingLivestock && awaitingLivestock.length > 0) {
       const a = awaitingLivestock.find((al) => {
         const alTag = String(al.tag_number || "").trim().toLowerCase();
@@ -389,7 +345,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       if (a && isValid(a.owner_name)) return a.owner_name.trim();
     }
 
-    // 4. Search in condemned records
     if (condemnedRecords && condemnedRecords.length > 0) {
       const c = condemnedRecords.find((cr) => {
         const crTag = String(cr.tag_number || "").trim().toLowerCase();
@@ -398,13 +353,11 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       if (c && isValid(c.owner_name)) return c.owner_name.trim();
     }
 
-    // 5. If exactly 1 approved owner exists in the system, safely infer as default owner
     const approvedOwners = (owners || []).filter((o) => (!o.status || o.status === "Approved") && isValid(o.name));
     if (approvedOwners.length === 1) {
       return approvedOwners[0].name.trim();
     }
 
-    // 6. If all other inspected records in Ante-Mortem share a single unique owner name, safely infer
     const otherResolvedOwners = new Set();
     (data || []).forEach((other) => {
       if (other.tag_number !== insp.tag_number) {
@@ -445,11 +398,9 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     return "";
   };
 
-  // Helper to resolve full animal object with normalized owner and species
   const resolveAnimal = (insp) => {
     if (!insp) return null;
     const cleanTag = String(insp.tag_number || "").trim().toLowerCase();
-    // Only the livestock foreign key is a real animal id (insp.id is the inspection id)
     const livestockId = String(insp.livestock_id || "").trim();
 
     let l = null;
@@ -461,7 +412,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       if (exact.length > 0) l = exact[0];
     }
     if (!l && cleanTag) {
-      // Suffix-tolerant match only when it resolves to exactly one animal (never guess)
       const baseTag = cleanTag.replace(/[-_][0-9a-z]$/i, "");
       if (baseTag && baseTag !== cleanTag) {
         const baseMatches = (livestock || []).filter((a) => String(a.tag_number || "").trim().toLowerCase() === baseTag);
@@ -478,7 +428,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     };
   };
 
-  // Filtered inspection log records
   const filteredLog = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (data || [])
@@ -521,7 +470,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [data, livestock, owners, condemnedRecords, search, filterSpecies, dateRange]);
 
-  // Filtered queue records
   const filteredQueue = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (awaitingLivestock || [])
@@ -553,7 +501,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [awaitingLivestock, owners, search, filterSpecies]);
 
-  // Resolve full owner record for awaiting inspection View modal
   const resolveOwnerDetails = (item) => {
     if (!item) return { name: "-", official_id: "—", contact: "—", address: "—" };
     const cleanOId = String(item.owner_id || "").trim().toLowerCase();
@@ -576,7 +523,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     };
   };
 
-  // Grouped dataset for "Awaiting Inspection" tab (grouped strictly by actual registered owner)
   const groupedQueue = useMemo(() => {
     const groups = new Map();
     (filteredQueue || []).forEach((item) => {
@@ -639,7 +585,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [filteredQueue, owners, livestock]);
 
-  // Grouped dataset for "All Inspected Livestock" tab (grouped strictly by actual registered owner)
   const groupedInspected = useMemo(() => {
     const groups = new Map();
 
@@ -716,7 +661,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
     return (currentDataset || []).find((g) => g.key === selectedOwnerKey) || null;
   }, [selectedOwnerKey, currentDataset]);
 
-  // View records pagination (10 per page default)
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
@@ -733,7 +677,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
   const currentPage = Math.min(page, totalPages);
   const paginatedData = currentDataset.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Metrics
   const approvedCount = data.filter((i) => i.decision === "Approved" || i.decision === "Passed").length;
   const condemnedCount = totalCondemnedCount;
   const passRate = data.length > 0 ? Math.round((approvedCount / data.length) * 100) : 100;
@@ -866,8 +809,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         }
       }
 
-      // RealtimeSync automatically debounces and coordinates dependent table reloads
-      // without firing duplicate un-cached network requests.
 
       if (failedTags.length > 0) {
         const err = new Error(`Partial save: ${succeededTags.length} succeeded, but ${failedTags.length} livestock failed (${failedTags.join(", ")}).`);
@@ -876,7 +817,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         throw err;
       }
 
-      // Keep the user on the currently inspected record; do NOT automatically switch to another tag.
       return { succeededTags, failedTags };
     } catch (err) {
       console.error(err);
@@ -946,9 +886,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
 
   return (
     <div className="antemortem-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* Main Container */}
       <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Unified Single-Line Toolbar */}
         <div
           className="records-fixed-header"
           style={{
@@ -964,7 +902,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             minHeight: 54,
           }}
         >
-          {/* Segmented Nav Tabs */}
           <div className="adm-seg-tabs">
             {[
               {
@@ -1002,9 +939,7 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             })}
           </div>
 
-          {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Search Input */}
             <div style={{ position: "relative", width: 220 }}>
               <input
                 type="text"
@@ -1064,7 +999,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               )}
             </div>
 
-            {/* Species Dropdown */}
             <select
               value={filterSpecies}
               onChange={(e) => {
@@ -1098,7 +1032,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
             </select>
 
 
-            {/* Conduct Inspection Button if Awaiting */}
             {activeTab === "awaiting" && (
               <Button
                 size="sm"
@@ -1123,14 +1056,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
           </div>
         </div>
 
-        {/* Evidence & Photos / Condemnation Evidence Tab */}
         {activeTab === "evidence" && (
           <div className="records-scrollable-content" style={{ padding: 0, border: "none", flex: 1, minHeight: 0, overflowY: "auto" }}>
             <EvidenceUpload type="Ante-Mortem" hideHeader hideStats search={search} filterSpecies={filterSpecies} />
           </div>
         )}
 
-        {/* Tab 1: Inspected Livestock Table (Owner-grouped with dedicated record view matching Condemnation) */}
         {activeTab === "inspected" && (
           groupedInspected.length === 0 ? (
             <EmptyState
@@ -1143,7 +1074,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               icon={<Icon.Stethoscope size={42} />}
             />
           ) : (
-            /* Owner-Grouped List View */
             <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", border: "none", boxShadow: "none", flex: 1, minHeight: 0 }}>
               <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
@@ -1169,7 +1099,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
-                      {/* Owner Name */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div
@@ -1200,7 +1129,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         </div>
                       </td>
 
-                      {/* Date Inspected */}
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#187A56" }} />
@@ -1208,14 +1136,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         </div>
                       </td>
 
-                      {/* Species */}
                       <td style={{ padding: "14px 18px" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                           {formatSpeciesList(grp.speciesList || [grp.species])}
                         </span>
                       </td>
 
-                      {/* Total Heads */}
                       <td style={{ padding: "14px 18px", textAlign: "center" }}>
                         <span
                           style={{
@@ -1228,7 +1154,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         </span>
                       </td>
 
-                      {/* Result / Decision */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                           {grp.approvedCount > 0 && (
@@ -1282,7 +1207,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         </div>
                       </td>
 
-                      {/* Action */}
                       <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                         <div className="table-action-group">
                           <button
@@ -1304,7 +1228,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
           )
         )}
 
-        {/* Tab 2: Awaiting Queue Table (Owner-Grouped with Dedicated Owner View, matching Condemnation) */}
         {activeTab === "awaiting" && (
           groupedQueue.length === 0 ? (
             <EmptyState
@@ -1313,7 +1236,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               icon={<Icon.Check size={42} />}
             />
           ) : (
-            /* Main Owner List View for Awaiting Queue */
 
             <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", border: "none", boxShadow: "none", flex: 1, minHeight: 0 }}>
               <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
@@ -1343,7 +1265,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
-                        {/* Owner Name */}
                         <td style={{ padding: "14px 18px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div
@@ -1374,7 +1295,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           </div>
                         </td>
 
-                        {/* Date Received */}
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#187A56" }} />
@@ -1382,14 +1302,12 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           </div>
                         </td>
 
-                        {/* Species */}
                         <td style={{ padding: "14px 18px" }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                             {formatSpeciesList(grp.speciesList || [grp.species])}
                           </span>
                         </td>
 
-                        {/* Total Heads */}
                         <td style={{ padding: "14px 18px", textAlign: "center" }}>
                           <span
                             style={{
@@ -1402,7 +1320,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           </span>
                         </td>
 
-                        {/* Status */}
                         <td style={{ padding: "14px 18px" }}>
                           <span
                             style={{
@@ -1418,7 +1335,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                           </span>
                         </td>
 
-                        {/* Action */}
                         <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                           <div className="table-action-group">
                             <button
@@ -1457,7 +1373,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
           )
         )}
 
-        {/* Pagination Footer */}
         {false && currentDataset.length > 0 && (
           <div
             style={{
@@ -1557,7 +1472,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         )}
       </div>
 
-      {/* New Ante-Mortem Inspection Modal */}
       <Modal
         open={modalOpen}
         onClose={() => { setModalOpen(false); setTargetTagForModal(""); }}
@@ -1579,7 +1493,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               flexShrink: 0,
             }}
           >
-            {/* 1. Fit for Slaughter (Approved) */}
             <button
               type="button"
               role="tab"
@@ -1614,7 +1527,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               <span style={{ pointerEvents: "none" }}>Fit for Slaughter</span>
             </button>
 
-            {/* 2. Condemned */}
             <button
               type="button"
               role="tab"
@@ -1684,7 +1596,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         />
       </Modal>
 
-      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -1942,7 +1853,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         )}
       </Modal>
 
-      {/* Inspection Slip / Certificate View Modal */}
       <Modal
         open={!!selectedInspection}
         onClose={() => setSelectedInspection(null)}
@@ -1951,7 +1861,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
       >
         {selectedInspection && (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Header Box */}
             <div
               style={{
                 padding: "18px 20px",
@@ -1979,7 +1888,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               <Badge status={selectedInspection.decision || "Approved"} />
             </div>
 
-            {/* Animal Details Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Animal Tag #</div>
@@ -2013,7 +1921,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               </div>
             </div>
 
-            {/* Clinical Observations */}
             <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
                 Clinical Findings & Vital Observations
@@ -2023,7 +1930,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               </div>
             </div>
 
-            {/* Remarks */}
             {selectedInspection.remarks && (
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
@@ -2035,7 +1941,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               </div>
             )}
 
-            {/* Audit Trail & Process Timeline */}
             <div style={{ marginTop: 4 }}>
               <ProcessHistoryTimeline
                 livestock={selectedInspection.animal || (livestock || []).find((l) => (l.id && l.id === selectedInspection.livestock_id) || l.tag_number === selectedInspection.tag_number) || selectedInspection}
@@ -2043,7 +1948,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
               />
             </div>
 
-            {/* Modal Actions */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
               <Button
                 variant="danger"
@@ -2064,7 +1968,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         )}
       </Modal>
 
-      {/* Awaiting Ante-Mortem Record View Modal */}
       <Modal
         open={!!viewingAwaitingItem}
         onClose={() => {
@@ -2136,7 +2039,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
           const markedAt = viewingAwaitingItem.marked_at || viewingAwaitingItem.mark_date;
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Header Summary Banner */}
               <div
                 style={{
                   padding: "14px 16px",
@@ -2178,7 +2080,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 </div>
               </div>
 
-              {/* Livestock Information */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
                   Livestock Information
@@ -2233,7 +2134,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
                 </div>
               </div>
 
-              {/* Owner Information */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
                   Owner Information
@@ -2272,7 +2172,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         })()}
       </Modal>
 
-      {/* Delete Dialog */}
       <ConfirmDialog
         open={!!confirmDel}
         onConfirm={del}
@@ -2286,7 +2185,6 @@ export const AnteMortem = ({ initialTab = "awaiting" }) => {
         loading={isDeleting}
       />
 
-      {/* Clean In-App Alert Dialog (replaces window.alert, matches Post-Mortem) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}

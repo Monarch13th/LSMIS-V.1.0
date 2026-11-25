@@ -1,10 +1,6 @@
 import { authService } from "../services/authService";
 import { formatPhDateTime } from "./helpers";
 
-/**
- * Returns the currently authenticated user's identity from session storage
- * with safe fallbacks according to active role.
- */
 export const getCurrentActor = () => {
   const session = authService.getSession();
   const role = session?.role || "staff";
@@ -19,10 +15,6 @@ export const getCurrentActor = () => {
   return { id, name, role, email };
 };
 
-/**
- * Normalizes any history representation (JSON array, stringified JSON, or null)
- * into a valid JavaScript Array.
- */
 export const parseHistory = (history) => {
   if (Array.isArray(history)) return [...history];
   if (typeof history === "string") {
@@ -34,10 +26,6 @@ export const parseHistory = (history) => {
   return [];
 };
 
-/**
- * Appends a new chronological process event to an existing process history array.
- * Preserves all earlier history immutably.
- */
 export const appendProcessEvent = (existingHistory, { stage, action, details = {}, actor = null }) => {
   const history = parseHistory(existingHistory);
   const currentActor = actor || getCurrentActor();
@@ -56,11 +44,6 @@ export const appendProcessEvent = (existingHistory, { stage, action, details = {
   return [...history, event];
 };
 
-/**
- * Returns a display-safe attribution name.
- * Falls back to "Jenel Selgas" for historical staff records that lack creator or processor information,
- * while preserving actual authenticated user names.
- */
 export const getAttributionName = (userName, fallback = "Jenel Selgas") => {
   if (!userName || userName === "Unknown" || userName === "N/A" || userName === "Not recorded" || userName === "Unassigned" || userName === "Staff") {
     return fallback;
@@ -68,19 +51,12 @@ export const getAttributionName = (userName, fallback = "Jenel Selgas") => {
   return userName;
 };
 
-/**
- * Formats a user attribution string for UI display.
- * Returns default "Jenel Selgas" for legacy/empty records where user was not recorded.
- */
 export const formatAttribution = (userName, timestamp = null, fallback = "Jenel Selgas") => {
   const resolvedName = getAttributionName(userName, fallback);
   if (!timestamp) return resolvedName;
   return `${resolvedName} (${formatPhDateTime(timestamp)})`;
 };
 
-/**
- * Stage labels and icons definition for display across portals.
- */
 export const PROCESS_STAGES = [
   { key: "registration", label: "Livestock Registration", userField: "registered_by", timeField: "registered_at" },
   { key: "receiving", label: "Receiving Records", userField: "received_by", timeField: "received_at" },

@@ -8,8 +8,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../notifications/Toast";
 import { BackLogoutConfirm } from "../auth/BackLogoutConfirm";
 
-const IDLE_THRESHOLD_MS = 2 * 60 * 1000;  // 2 minutes → becomes Idle
-const HEARTBEAT_INTERVAL_MS = 25 * 1000;  // 25s online heartbeat
+const IDLE_THRESHOLD_MS = 2 * 60 * 1000;
+const HEARTBEAT_INTERVAL_MS = 25 * 1000;
 
 const getModuleAndActivity = (pathname, role) => {
   const p = pathname.toLowerCase();
@@ -36,7 +36,6 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
   const { session, signOut } = useAuth();
   const { showToast } = useToast();
 
-  // Track whether user is currently idle
   const idleRef = useRef(false);
   const idleTimerRef = useRef(null);
   const lastActiveHandledRef = useRef(0);
@@ -47,13 +46,11 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
   }, [location.pathname]);
   useEffect(() => { document.body.setAttribute("data-role", role); }, [role]);
 
-  // Send heartbeat with current module & idle status
   const sendHeartbeat = useCallback(() => {
     const { module, activity } = getModuleAndActivity(location.pathname, role);
     updatePresence({ module, activity, isIdle: idleRef.current });
   }, [location.pathname, role]);
 
-  // Called on any user interaction — reset idle timer (throttled to avoid timer thrashing on mousemove)
   const onUserActive = useCallback(() => {
     const nowMs = Date.now();
     if (!idleRef.current && nowMs - lastActiveHandledRef.current < 2000) {
@@ -63,9 +60,8 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
 
     if (idleRef.current) {
       idleRef.current = false;
-      sendHeartbeat(); // Immediately flip to Online
+      sendHeartbeat();
     }
-    // Reset the idle countdown
     clearTimeout(idleTimerRef.current);
     idleTimerRef.current = setTimeout(() => {
       idleRef.current = true;
@@ -74,12 +70,10 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
     }, IDLE_THRESHOLD_MS);
   }, [sendHeartbeat, location.pathname, role]);
 
-  // Attach DOM idle detection listeners
   useEffect(() => {
     const events = ["mousemove", "keydown", "click", "touchstart", "scroll"];
     events.forEach((e) => window.addEventListener(e, onUserActive, { passive: true }));
 
-    // Start idle timer immediately on mount
     idleTimerRef.current = setTimeout(() => {
       idleRef.current = true;
       const { module, activity } = getModuleAndActivity(location.pathname, role);
@@ -92,14 +86,12 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
     };
   }, [onUserActive, location.pathname, role]);
 
-  // Heartbeat interval — refreshes presence every 25s
   useEffect(() => {
     sendHeartbeat();
     const interval = setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS);
     return () => clearInterval(interval);
   }, [sendHeartbeat]);
 
-  // Administrative Session Termination Listener (cross-tab via storage + BroadcastChannel)
   useEffect(() => {
     const handleTermination = (e) => {
       if (e?.type === "storage" && e?.key !== "lsmis_session_termination_signal") return;
@@ -118,11 +110,9 @@ export const RoleLayout = ({ items, role, theme, onToggleTheme }) => {
       }
     };
 
-    // Listen on both custom event (same tab) and storage (cross-tab)
     window.addEventListener("lsmis_session_terminated", handleTermination);
     window.addEventListener("storage", handleTermination);
 
-    // Also subscribe via BroadcastChannel for same-device cross-window
     let bc = null;
     try {
       bc = new BroadcastChannel("lsmis_presence_channel");

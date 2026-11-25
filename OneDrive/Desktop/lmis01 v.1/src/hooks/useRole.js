@@ -1,4 +1,3 @@
-// Role helper hook
 import { ROLES, ROLE_LABELS } from "../utils/constants";
 import { useAuth } from "./useAuth";
 

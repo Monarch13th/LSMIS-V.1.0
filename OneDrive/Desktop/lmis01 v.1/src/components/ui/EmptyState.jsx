@@ -1,4 +1,3 @@
-// Friendly empty state — shown when a list has no data
 import { Icon } from "../icons";
 
 export const EmptyState = ({ title, message, icon, action }) => (

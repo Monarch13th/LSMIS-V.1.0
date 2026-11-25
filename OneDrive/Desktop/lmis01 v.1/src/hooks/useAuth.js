@@ -1,4 +1,3 @@
-// Auth hook — single source of truth for the current session
 import { authStore, useAuthStore } from "../store/authStore";
 import { authService } from "../services/authService";
 

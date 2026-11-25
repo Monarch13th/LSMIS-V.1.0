@@ -1,7 +1,3 @@
-/**
- * passwordValidation.js
- * Comprehensive 5-rule password security validation for LSMIS.
- */
 
 export const PASSWORD_RULES = [
   {
@@ -31,11 +27,6 @@ export const PASSWORD_RULES = [
   }
 ];
 
-/**
- * Validates a password against all 5 rules.
- * @param {string} password 
- * @returns {{ isValid: boolean, rules: Array<{ id: string, label: string, satisfied: boolean }>, missingCount: number }}
- */
 export const validatePassword = (password) => {
   const pw = password || "";
   const rules = PASSWORD_RULES.map((r) => ({
@@ -54,11 +45,6 @@ export const validatePassword = (password) => {
   };
 };
 
-/**
- * Returns a user-friendly error message if the password fails any requirement.
- * @param {string} password 
- * @returns {string|null} Error string or null if valid
- */
 export const getPasswordValidationError = (password) => {
   const result = validatePassword(password);
   if (result.isValid) return null;

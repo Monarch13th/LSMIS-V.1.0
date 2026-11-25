@@ -3,9 +3,6 @@ import { STORAGE_KEYS } from "../utils/constants";
 import { getActiveSessions, terminateSession as termActSession, removeActiveSession } from "./activityService";
 import { authSecurityService } from "./authSecurityService";
 
-/**
- * Parses a browser User-Agent string into human-friendly device and browser descriptions.
- */
 export const parseUserAgent = (uaStr = null) => {
   const ua = uaStr || (typeof navigator !== "undefined" ? navigator.userAgent : "");
   if (!ua) {
@@ -17,7 +14,6 @@ export const parseUserAgent = (uaStr = null) => {
     };
   }
 
-  // Detect OS
   let os = "Unknown OS";
   let device = "Desktop Computer";
 
@@ -41,7 +37,6 @@ export const parseUserAgent = (uaStr = null) => {
     os = "Linux";
   }
 
-  // Detect Browser
   let browser = "Web Browser";
   const edgeMatch = ua.match(/Edg\/(\d+[\.\d]*)/i);
   const chromeMatch = ua.match(/Chrome\/(\d+[\.\d]*)/i);
@@ -70,9 +65,6 @@ export const parseUserAgent = (uaStr = null) => {
 };
 
 export const sessionManagementService = {
-  /**
-   * Get the current active session ID for this browser tab.
-   */
   getCurrentSessionId() {
     if (typeof window === "undefined") return null;
     try {
@@ -87,9 +79,6 @@ export const sessionManagementService = {
     }
   },
 
-  /**
-   * Load all active sessions registered for a given user email or current session.
-   */
   async getUserActiveSessions(userEmail) {
     const cleanEmail = (userEmail || "").trim().toLowerCase();
     const currentSessionId = this.getCurrentSessionId();
@@ -101,7 +90,6 @@ export const sessionManagementService = {
         (s) => (s.email || "").toLowerCase().trim() === cleanEmail && s.status !== "Terminated"
       );
 
-      // If current session isn't in the list, synthesize it
       const hasCurrent = userSessions.some((s) => s.id === currentSessionId || s.session_id === currentSessionId);
       if (!hasCurrent && currentSessionId) {
         userSessions.unshift({
@@ -118,7 +106,6 @@ export const sessionManagementService = {
         });
       }
 
-      // Mark current session flag and format device info
       return userSessions.map((s) => {
         const isCurrent = s.id === currentSessionId || s.session_id === currentSessionId;
         const devInfo = s.device ? { summary: s.device, browser: s.browser || "Browser" } : parseUserAgent();
@@ -151,30 +138,23 @@ export const sessionManagementService = {
     }
   },
 
-  /**
-   * Terminate all other sessions across other devices/browsers.
-   * Uses Supabase Auth's native signOut scope: 'others' so other refresh tokens are invalidated immediately.
-   */
   async terminateOtherSessions(userEmail) {
     const cleanEmail = (userEmail || "").trim().toLowerCase();
     const currentSessionId = this.getCurrentSessionId();
 
     try {
-      // 1. Invalidate tokens on other devices via Supabase Auth
       await supabase.auth.signOut({ scope: "others" });
     } catch (err) {
       console.warn("supabase.auth.signOut(others) warning:", err);
     }
 
     try {
-      // 2. Clean up server-side active session record if mismatched
       if (cleanEmail && currentSessionId) {
         await authSecurityService.registerActiveSession(cleanEmail, currentSessionId, currentSessionId);
       }
     } catch (_) {}
 
     try {
-      // 3. Update activity service sessions
       const all = getActiveSessions() || [];
       for (const s of all) {
         if ((s.email || "").toLowerCase().trim() === cleanEmail && s.id !== currentSessionId) {
@@ -186,14 +166,10 @@ export const sessionManagementService = {
     return { success: true };
   },
 
-  /**
-   * Terminate a specific active session.
-   */
   async terminateSpecificSession(sessionId, userEmail) {
     const currentSessionId = this.getCurrentSessionId();
 
     if (sessionId === currentSessionId) {
-      // User is terminating current session -> perform standard sign out
       try {
         await supabase.auth.signOut({ scope: "local" });
       } catch (_) {}

@@ -19,24 +19,11 @@ import { feeService } from "../../services/feeService";
 import nagaCitySealImg from "../../assets/naga_city_seal.png";
 import bagongPilipinasImg from "../../assets/bagong_pilipinas.png";
 
-/* ===== Permit issuance status (Supabase is the source of truth) =====
- * Issuing a permit persists exactly one durable fact: handleIssuePermit sets the
- * livestock row's status to "Ready for Dispatch" in Supabase. That per-animal row is
- * therefore the authoritative record of issuance, and it is what Meat Dispatch and
- * Gate Release must gate on.
- *
- * It deliberately does NOT use the `lmis_issued_permits` localStorage key: that key is
- * per-browser, is empty after a refresh or a logout, and is invisible to a different
- * Staff Personnel user, so anything derived from it lets unissued records through.
- */
 export const PERMIT_ISSUED_STATUSES = ["permit issued", "ready for dispatch", "dispatched", "released"];
 
 export const isPermitIssuedStatus = (status) =>
   PERMIT_ISSUED_STATUSES.includes(String(status || "").trim().toLowerCase());
 
-// True only when Supabase holds a livestock row for this tag whose status marks the
-// permit as issued. No row, no status, or any other value (Pending, Paid, etc.)
-// means the permit has not been issued.
 export const isTagPermitIssued = (tagNumber, livestock, dbPermits = [], dispatches = []) => {
   const cleanTag = String(tagNumber || "").trim().toLowerCase();
   if (!cleanTag) return false;
@@ -44,9 +31,6 @@ export const isTagPermitIssued = (tagNumber, livestock, dbPermits = [], dispatch
     (l) => String(l.tag_number || "").trim().toLowerCase() === cleanTag
   );
   if (animal && isPermitIssuedStatus(animal.status)) return true;
-  // A tag already present in a dispatch/release record is past the permit stage even if
-  // its livestock status was left stale (interrupted or repaired dispatch write). Without
-  // this the batch re-appears as "issue permit" and a second permit gets inserted.
   if (Array.isArray(dispatches) && dispatches.length > 0) {
     const isDispatched = dispatches.some((d) => {
       const dTags = Array.isArray(d.tags) ? d.tags : d.tag_number ? [d.tag_number] : [];
@@ -69,26 +53,9 @@ export const isTagPermitIssued = (tagNumber, livestock, dbPermits = [], dispatch
   return false;
 };
 
-// A batch counts as permitted as soon as issuance reached one of its animals, which
-// mirrors handleIssuePermit applying the status to every tag in the batch.
 export const isGroupPermitIssued = (group, livestock, dbPermits = [], dispatches = []) =>
   (group?.tags || []).some((tag) => isTagPermitIssued(tag, livestock, dbPermits, dispatches));
 
-/* ===== Pending-action counts for the Permit & Dispatch tabs =====
- * Transaction = one tag's current lifecycle row set. In this schema each animal tag is
- * unique (one livestock row, one carcass row, its payment rows), so tag_number links
- * livestock -> carcass -> payments -> dispatch.tags for the CURRENT transaction; the
- * livestock row's status is the single "stage" marker, so an old permit/dispatch can
- * never re-queue a tag whose status has moved on.
- *
- *  Permit pending   : weighed carcass (weight > 0) + paid payment + livestock status
- *                     not yet permit-issued/dispatched/released (and not condemned/rejected).
- *                     Counted once per payment batch (owner + payment date) = one table row.
- *  Dispatch pending : weighed carcass + livestock status "Ready for Dispatch" (permit
- *                     issued) + tag not in any dispatch record and not Released/Dispatched.
- *                     Counted once per owner = one Meat Dispatch batch.
- * A tag can only be in one of the two sets, so the counts never overlap.
- */
 export const getPermitDispatchCounts = ({ payments, carcass, livestock, dispatches, permits }) => {
   const norm = (t) => String(t || "").trim().toLowerCase();
 
@@ -103,10 +70,6 @@ export const getPermitDispatchCounts = ({ payments, carcass, livestock, dispatch
     if (tag && !paymentByTag.has(tag)) paymentByTag.set(tag, p);
   });
 
-  // ONE batch-key formula shared by both sets (owner + payment date + species), identical
-  // to how the Permits table groups its rows. Deriving the dispatch key from
-  // livestock.received_date instead of the payment date split a single batch into several
-  // dispatch batches, so issuing one permit moved the dispatch badge by more than 1.
   const batchKeyForTag = (tag) => {
     const p = paymentByTag.get(tag);
     const animal = animalByTag.get(tag);
@@ -137,7 +100,6 @@ export const getPermitDispatchCounts = ({ payments, carcass, livestock, dispatch
 
   const blocked = ["condemned", "rejected"];
 
-  // 1. Permit Batches awaiting permit issuance (Cleared/Paid payment batches whose permits are not yet issued)
   const permitBatches = new Set();
   const seenPaidTags = new Set();
 
@@ -176,7 +138,6 @@ export const getPermitDispatchCounts = ({ payments, carcass, livestock, dispatch
     permitBatches.add(batchKeyForTag(tag));
   });
 
-  // 2. Dispatch Batches awaiting gate release (Permit issued, not yet dispatched/released)
   const dispatchBatches = new Set();
   animalByTag.forEach((animal, tag) => {
     if (!tag || dispatchedTags.has(tag)) return;
@@ -203,10 +164,10 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
   const { data: owners = [], refresh: refreshOwners } = useSupabase(TABLES.OWNERS);
   const { data: users = [] } = useSupabase(TABLES.USERS);
 
-  const [selectedGroup, setSelectedGroup] = useState(null); // holds group for print preview
-  const [permitModalMode, setPermitModalMode] = useState("view"); // "view" | "print"
-  const [confirmingGroup, setConfirmingGroup] = useState(null); // holds group for direct issuance confirmation modal
-  const [viewingBatch, setViewingBatch] = useState(null); // holds group for View Details Modal (matching other records)
+  const [selectedGroup, setSelectedGroup] = useState(null);
+  const [permitModalMode, setPermitModalMode] = useState("view");
+  const [confirmingGroup, setConfirmingGroup] = useState(null);
+  const [viewingBatch, setViewingBatch] = useState(null);
   const [inAppAlert, setInAppAlert] = useState(null);
   const [issuingId, setIssuingId] = useState(null);
   const issuingInProgressRef = useRef(new Set());
@@ -282,7 +243,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         return;
       }
 
-      // Re-verify that every pending tag has a recorded carcass weight
       const unweighed = pendingTags.filter((tag) => {
         const normT = normTag(tag);
         const itemMatch = (grp.items || []).find((it) => normTag(it.tag_number) === normT);
@@ -309,7 +269,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       const batchPermitNo = grp.permit_no || `MIC-06-${Math.floor(100000 + Math.random() * 900000)}`;
       const actor = getCurrentActor();
 
-      // Check existing permits case-insensitively across all non-revoked statuses to prevent duplicates
       const existingPermitsMap = new Map();
       const pendingNormSet = new Set(pendingTags.map(normTag));
       try {
@@ -442,7 +401,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
       const savedCount = updateResults.filter((r) => r.status === "fulfilled").length;
 
-      // Immediate success feedback once database confirms permit write
       if (savedCount === 0 && !insertSuccess) {
         setInAppAlert({
           title: "Permit Update Failed",
@@ -465,11 +423,9 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       }
       setConfirmingGroup(null);
 
-      // Realtime DB updates
       notifyDbChange(TABLES.PERMITS, "insert");
       notifyDbChange(TABLES.LIVESTOCK, "update");
 
-      // Non-blocking background tasks: payments sync, audit logs, and refresh
       (async () => {
         try {
           const existingPaidTags = new Set((payments || []).map((p) => normTag(p.tag_number)));
@@ -550,7 +506,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     }
   };
 
-  // Print Configuration form states
   const [permitNo, setPermitNo] = useState("");
   const [origin, setOrigin] = useState(cfg.origin);
   const [destination, setDestination] = useState(cfg.destination);
@@ -587,7 +542,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
   useEffect(() => {
     if (selectedGroup) {
-      // Check if selectedGroup is an already issued permit record
       const issuedPermit =
         selectedGroup.permit ||
         (selectedGroup.items || []).find((it) => it.permit)?.permit ||
@@ -597,7 +551,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         });
 
       if (issuedPermit) {
-        // PREVIOUSLY ISSUED PERMIT: Lock strictly to the historical permit record snapshot
         const snap = issuedPermit.config_snapshot || selectedGroup.config_snapshot || {};
         setOrigin(issuedPermit.origin || snap.origin || selectedGroup.origin || cfg.origin);
         setDestination(issuedPermit.destination || snap.destination || selectedGroup.destination || cfg.destination);
@@ -607,7 +560,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         setInspector(issuedPermit.inspector || snap.inspector || selectedGroup.inspector || cfg.inspector);
         setVeterinarian(issuedPermit.city_vet || snap.cityVet || selectedGroup.city_vet || cfg.cityVet);
       } else {
-        // UNISSUED / NEW PERMIT: Apply latest active saved configuration defaults
         const activeCfg = getPermitConfig();
         setOrigin(cfg.origin || activeCfg.origin);
         setDestination(cfg.destination || activeCfg.destination);
@@ -635,7 +587,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
   
 
-  // The real moment this permit was issued, read back from Supabase for this specific tag
   const getIssuedTime = (grp) => {
     if (!grp) return "";
     if (grp.permit_issued_at) return grp.permit_issued_at;
@@ -660,16 +611,13 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     return "";
   };
 
-  // The most recent timestamp for this record across permits, payments, and livestock
   const getRecordNewestTimestamp = (grp) => {
     if (!grp) return 0;
     const candidates = [];
 
-    // 1. Direct permit issuance timestamps
     if (grp.permit_issued_at) candidates.push(grp.permit_issued_at);
     if (grp.issued_at) candidates.push(grp.issued_at);
 
-    // 2. Lookup in dbPermits for any tag in this group
     const grpTags = grp.tags && grp.tags.length ? grp.tags : (grp.tag_number ? String(grp.tag_number).split(",").map((t) => t.trim()) : []);
     for (const t of grpTags) {
       const cleanTag = String(t || "").trim().toLowerCase();
@@ -682,7 +630,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       }
     }
 
-    // 3. Lookup in livestock for permit_issued_at, paid_at, etc.
     for (const t of grpTags) {
       const cleanTag = String(t || "").trim().toLowerCase();
       if (!cleanTag) continue;
@@ -698,7 +645,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       }
     }
 
-    // 4. From payments array
     if (Array.isArray(grp.payments)) {
       for (const p of grp.payments) {
         if (p.paid_at) candidates.push(p.paid_at);
@@ -708,7 +654,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       }
     }
 
-    // 5. From group-level fields
     if (grp.rawTime) candidates.push(grp.rawTime);
     if (grp.rawDate) candidates.push(grp.rawDate);
     if (grp.created_at) candidates.push(grp.created_at);
@@ -748,10 +693,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     return "Jenel Selgas";
   };
 
-  // Normalize tag string helper
   const normTag = (t) => String(t || "").trim().toLowerCase();
 
-  // Primary dataset: Groups organized strictly by Owner & Slaughter Batch (Date & Time)
   const slaughterBatchGroups = useMemo(() => {
     const dispatchedTagSet = new Set(
       (dispatches || []).flatMap((d) =>
@@ -759,7 +702,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       ).map(normTag)
     );
 
-    // Build lookup maps for fast correlation across tables
     const animalByTag = new Map();
     const animalBaseMap = new Map();
     (livestock || []).forEach((l) => {
@@ -781,7 +723,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       const t = normTag(rawTag);
       if (t && !carcassByTag.has(t)) carcassByTag.set(t, c);
 
-      // Support multi-tag records separated by comma
       if (rawTag.includes(",")) {
         rawTag.split(",").forEach((sub) => {
           const st = normTag(sub);
@@ -789,7 +730,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         });
       }
 
-      // Match by livestock_id if provided
       if (c?.livestock_id) {
         const matched = (livestock || []).find((l) => l.id === c.livestock_id);
         if (matched?.tag_number) {
@@ -798,8 +738,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         }
       }
 
-      // Store base tag (e.g. TAG-001 from TAG-001-HOG) in separate fallback map
-      // Do NOT put baseTag into carcassByTag so candidateTags is not polluted with phantom tags
       const baseTag = rawTag.replace(/-(HOG|PIG|SWINE|CATTLE|COW|CARABAO|GOAT)$/i, "");
       if (baseTag && baseTag !== rawTag) {
         const bt = normTag(baseTag);
@@ -852,13 +790,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       });
     });
 
-    // Gather candidate tags strictly adhering to LSMIS official workflow:
-    // Stage 7 (Carcass Weighing & Branding) -> Stage 8 (Meat Permit)
-    // "After weighing and branding are complete, move records to Meat Permit.
-    // Prevent unweighed carcasses from advancing to Meat Permit."
     const candidateTags = new Set();
 
-    // 1. All records with a weighed carcass in carcass_records
     carcassByTag.forEach((c, t) => {
       const w = parseFloat(c?.total_weight || c?.cold_weight || c?.weight || 0);
       const isCarcassWeighed = w > 0 || c?.status === "Completed" || c?.status === "Weighed";
@@ -867,10 +800,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       }
     });
 
-    // 2. All records with an existing or issued permit
     permitByTag.forEach((_, t) => candidateTags.add(t));
 
-    // 3. Livestock records that have completed Carcass Weighing (Stage 7) or permit issuance
     (livestock || []).forEach((l) => {
       const st = String(l?.status || "").toLowerCase();
       const wf = String(l?.workflow_status || "").toUpperCase();
@@ -891,7 +822,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       }
     });
 
-    // 4. Payments associated with weighed carcasses or issued permits
     paymentByTag.forEach((p, t) => {
       if (carcassByTag.has(t) || permitByTag.has(t)) {
         candidateTags.add(t);
@@ -926,7 +856,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       const sRec = slaughterRecByTag.get(t);
       const sp = slaughterProcByTag.get(t);
 
-      // Exclude animals solely condemned or rejected at ante-mortem with no carcass/slaughter
       const animalStatus = String(animal?.status || "").toLowerCase();
       const animalWfStatus = String(animal?.workflow_status || "").toUpperCase();
       if (!carc && !pmt && !perm && (animalStatus === "condemned" || animalStatus === "rejected")) {
@@ -969,8 +898,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       const rawOwner = resolvedOwnerName;
       const species = (animal?.species || sRec?.species || carc?.species || pmt?.animal_type || pmt?.species || "Hog").trim();
 
-      // Authoritative historical timestamps (Asia/Manila)
-      // 1. Slaughter Date & Time (prefer timestamps with time over date-only strings)
       const hasTimePart = (v) => v && (String(v).includes("T") || String(v).includes(":"));
       let itemSlaughterTime = null;
       if (sRec?.date_time) itemSlaughterTime = sRec.date_time;
@@ -989,16 +916,13 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       else if (sp?.slaughter_date) itemSlaughterTime = sp.slaughter_date;
       else if (animal?.slaughter_date) itemSlaughterTime = animal.slaughter_date;
 
-      // 2. Permit Issuance Date & Time (for issued permits)
       let itemPermitIssuedAt = null;
       if (perm?.issued_at) itemPermitIssuedAt = perm.issued_at;
       else if (animal?.permit_issued_at) itemPermitIssuedAt = animal.permit_issued_at;
       else if (perm?.created_at) itemPermitIssuedAt = perm.created_at;
 
-      // 3. Permit Issuer
       const itemPermitIssuedBy = perm?.issued_by || animal?.permit_issued_by || null;
 
-      // 4. Fallback Processing Timestamp (for unissued sorting)
       const itemProcessTime =
         carc?.weighed_at ||
         animal?.weighed_at ||
@@ -1009,9 +933,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         animal?.created_at ||
         null;
 
-      // Slaughter batch reference resolution
-      // DO NOT use pmt?.receipt_no as a batch reference; receipt_no is an individual payment invoice
-      // which fractures a single slaughter batch into multiple 1-head rows!
       let batchRef = (
         animal?.batch_reference ||
         carc?.batch_reference ||
@@ -1032,10 +953,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         batchRef = `SB-${dateCode}-${ownerInitials}`;
       }
 
-      // Group key enforces separation of distinct slaughter batches even for the same owner
       const groupKey = `${rawOwner.toLowerCase()}|||${batchRef.toLowerCase()}|||${effectiveDateStr || "nodate"}`;
 
-      // Weight & branding details
       const carcassWeight = parseFloat(carc?.total_weight || carc?.cold_weight || carc?.weight || animal?.weight || 0);
       const hasCarcassWeight =
         carcassWeight > 0 ||
@@ -1047,21 +966,16 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         Boolean(animal?.weighed_at);
       const brandCode = carc?.brand_code || (carc ? `CAR-${displayTag}` : "—");
 
-      // Post-mortem clearance check
       const pmDecision = String(pm?.decision || animal?.post_mortem_decision || "Passed").toLowerCase();
       const isCondemned = pmDecision === "condemned" || pmDecision === "rejected" || animalStatus === "condemned";
 
-      // Dispatch & Permit flags
       const isDispatched = dispatchedTagSet.has(t);
       const isIssued = Boolean(perm) || isTagPermitIssued(displayTag, livestock, dbPermits, dispatches);
 
-      // Workflow rule: if carcass has not been weighed and has no issued permit,
-      // it should not show in Meat Permit; it should only show in Carcass Weighing
       if (!hasCarcassWeight && !isIssued && !perm) {
         return;
       }
 
-      // Assessed fee computation
       let feeAmount = parseFloat(pmt?.amount) || 0;
       if (feeAmount === 0) {
         try {
@@ -1077,8 +991,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
       const isPaid = Boolean(pmt && String(pmt.status || "").toLowerCase() === "paid") || Boolean(animal?.paid_at);
 
-      // Eligibility rules:
-      // Must have recorded carcass weight > 0, passed post-mortem inspection, not dispatched, and not yet issued
       const isEligible = hasCarcassWeight && !isCondemned && !isDispatched && !isIssued;
 
       let ineligibleReason = "Eligible";
@@ -1197,7 +1109,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         grp.process_date_time = itemProcessTime;
       }
 
-      // Newest event timestamp for chronological sorting
       const candidateTimes = [
         itemPermitIssuedAt,
         itemSlaughterTime,
@@ -1214,7 +1125,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
     return Object.values(groups)
       .filter((grp) => {
-        // If carcass has not been weighed, it should not show in meat permit; it should only show in carcass weighing
         const totalCarcasses = grp.items.filter((it) => it.hasCarcassWeight).length;
         const issuedCount = grp.items.filter((it) => it.isIssued).length;
         return grp.items.length > 0 && (totalCarcasses > 0 || issuedCount > 0);
@@ -1300,15 +1210,12 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     [selectedGroup, resolvedPermit, permitNo]
   );
 
-  // Is batch issued helper
   const isBatchIssued = (grp) => grp.status === "Permit Issued" || grp.issuedCount > 0 || grp.isIssued;
 
-  // Pending Slaughter Batches (unissued records awaiting permit)
   const pendingSlaughterBatchGroups = useMemo(() => {
     return (slaughterBatchGroups || []).filter((grp) => !isBatchIssued(grp));
   }, [slaughterBatchGroups]);
 
-  // Helper to normalize Carcass Weighing timestamp down to Asia/Manila minute key for grouping
   const getWeighingKey = (rawTime) => {
     if (!rawTime) return "no_weighing_time";
     const d = new Date(rawTime);
@@ -1324,14 +1231,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     });
   };
 
-  // Dedicated Issued Permits Dataset:
-  // - Grouped strictly by Owner
-  // - Multiple livestock records belonging to the same owner with the exact same Carcass Weighing date and time group under one entry
-  // - Displays owner's name once, followed by all applicable livestock records and their corresponding permit details
-  // - Uses the actual Carcass Weighing timestamp as the grouping reference, not the permit creation or issuance timestamp
-  // - Different Carcass Weighing timestamps for the same owner display in separate groups
-  // - Records from different owners are never combined
-  // - Each livestock record retains its individual permit information and issued status
   const issuedPermitGroups = useMemo(() => {
     const groups = {};
 
@@ -1343,7 +1242,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         const animal = it.animal;
         const perm = it.permit;
 
-        // Retrieve actual Carcass Weighing timestamp from Supabase
         const weighingTimestamp =
           carc?.weighed_at ||
           animal?.weighed_at ||
@@ -1466,10 +1364,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
       .sort((a, b) => (b.rawTimestamp || 0) - (a.rawTimestamp || 0));
   }, [slaughterBatchGroups, cfg]);
 
-  // Which dataset is active based on tab
   const activeGroups = activeTab === "issued" ? issuedPermitGroups : pendingSlaughterBatchGroups;
 
-  // Search and species filtering
   const q = search.trim().toLowerCase();
 
   const filteredSlaughterBatchGroups = useMemo(() => {
@@ -1499,7 +1395,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     });
   }, [activeGroups, q, filterSpecies]);
 
-  // Main table dataset
   const totalCount = filteredSlaughterBatchGroups.length;
   const totalPages = Math.ceil(totalCount / pageSize) || 1;
   const currentPage = Math.min(page, totalPages);
@@ -1507,7 +1402,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
   const toItem = Math.min(currentPage * pageSize, totalCount);
   const paginatedGroups = filteredSlaughterBatchGroups;
 
-  // KPI Metrics
   const totalBatches = slaughterBatchGroups.length;
   const issuedBatches = issuedPermitGroups.length;
   const pendingBatches = pendingSlaughterBatchGroups.length;
@@ -1518,7 +1412,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
     0
   );
 
-  // Identify display items for permit view / direct print
   const buildPermitDisplayItems = (grp) => {
     if (!grp) return [];
     if (Array.isArray(grp.items) && grp.items.length > 0) {
@@ -1667,7 +1560,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
 
   return (
     <div className="permits-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* In-App Alert Notification if set */}
       {inAppAlert && (
         <div
           className="records-fixed-header"
@@ -1725,9 +1617,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         </div>
       )}
 
-      {/* MAIN CONTAINER (BORDERLESS RECORD VIEW MATCHING REGISTERED OWNERS) */}
       <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Swapped Toolbar: Segmented Tabs (Left) & Search + Filters (Right) */}
         <div
           className="records-fixed-header"
           style={{
@@ -1745,10 +1635,8 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
             boxSizing: "border-box",
           }}
         >
-          {/* Left: Swapped Navigation Tabs */}
           {renderNavTabs()}
 
-          {/* Right: Search Bar beside Species Selector & Actions */}
           <div
             style={{
               display: "flex",
@@ -1759,7 +1647,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
               justifyContent: "flex-end",
             }}
           >
-            {/* Search Box */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, width: 260, minWidth: 140, maxWidth: 300, flexShrink: 1, position: "relative" }}>
               <input
                 type="text"
@@ -1823,7 +1710,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
               )}
             </div>
 
-            {/* Species Dropdown Selector */}
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
               <select
                 value={filterSpecies}
@@ -1860,7 +1746,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
           </div>
         </div>
 
-        {/* Table: Owner & Slaughter Batch Groups */}
         {totalCount === 0 ? (
           <EmptyState
             title="No permit batches found"
@@ -2015,7 +1900,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           borderBottom: "1px solid var(--color-border)",
                         }}
                       >
-                        {/* 1. Owner */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ position: "relative", width: 32, height: 32, flexShrink: 0 }}>
@@ -2083,7 +1967,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           </div>
                         </td>
 
-                        {/* 2. Livestock Count */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "center" }}>
                           <span
                             style={{
@@ -2102,7 +1985,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           )}
                         </td>
 
-                        {/* 3. Date & Time */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--color-text)", fontSize: 13 }}>
                             <Icon.Calendar size={13} style={{ color: "#187A56", flexShrink: 0, opacity: 0.8 }} />
@@ -2110,7 +1992,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           </div>
                         </td>
 
-                        {/* 4. Permit # (only shown for issued/dispatched permits, never pending) */}
                         {activeTab !== "pending" && (
                           <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                             {isIssued && basePermitNo ? (
@@ -2130,7 +2011,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           </td>
                         )}
 
-                        {/* 5. Status */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "center" }}>
                           {isIssued ? (
                             <span
@@ -2187,7 +2067,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                           )}
                         </td>
 
-                        {/* 6. Action */}
                         <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "right", whiteSpace: "nowrap" }}>
                           <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "flex-end", gap: 6, flexWrap: "nowrap" }}>
                             <Button
@@ -2310,7 +2189,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         )}
       </div>
 
-      {/* Standardized Dedicated Owner Records Modal matching Animal Marking */}
       <Modal
         open={Boolean(viewingBatch)}
         onClose={() => setViewingBatch(null)}
@@ -2488,7 +2366,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         })()}
       </Modal>
 
-      {/* Issue Permit Confirmation Dialog */}
       {confirmingGroup && (() => {
         const eligibleItems = (confirmingGroup.items || []).filter((it) => it.isEligible && !it.isIssued);
         const isSingle = eligibleItems.length === 1;
@@ -2531,9 +2408,7 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         }>
         {selectedGroup && (
           <div>
-            {/* High-Fidelity Printable Document */}
             <div id="printable-permit-doc" className="permit-doc printable-permit">
-              {/* MEAT INSPECTION CERTIFICATE HEADER */}
               <div className="permit-header-top" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "none", paddingBottom: "0px", marginBottom: "8px" }}>
                 <img 
                   src={nagaCitySealImg}
@@ -2584,7 +2459,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                 This is to certify that the Meat and / or entrails described below are from animals slaughtered in this abattoir and time to date of inspection they are fit for human consumption.
               </p>
 
-              {/* CERTIFICATE TABLE */}
               <table className="permit-table" style={{ width: "100%", borderCollapse: "collapse", marginBottom: "15px" }}>
                 <thead>
                   <tr>
@@ -2608,7 +2482,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                 </tbody>
               </table>
 
-              {/* CERTIFICATE METADATA DETAILS */}
               <div className="permit-details-grid">
                 <div className="permit-details-row-full">
                   <span className="label">Name and Address of Owner:</span>
@@ -2638,7 +2511,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                 </div>
               </div>
 
-              {/* SIGNATURES */}
               <div className="permit-signatures-naga" style={{ display: "flex", justifyContent: "space-between", marginTop: "24px", fontSize: "11px", textAlign: "center", fontFamily: "Arial, sans-serif" }}>
                 <div className="permit-sig-block" style={{ width: "42%" }}>
                   <div style={{ fontWeight: "bold", fontSize: "12px", textTransform: "uppercase", color: "#dc2626" }}>{selectedGroup.owner_name}</div>
@@ -2657,7 +2529,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                 <div style={{ fontSize: "10px", marginTop: "4px", fontWeight: "bold" }}>City Veterinarian</div>
               </div>
 
-              {/* GATE PASS SECTION */}
               <div id="printable-gate-pass-doc" className="gate-pass-section" style={{ marginTop: "20px", paddingTop: "14px", borderTop: "1.5px dashed #000" }}>
                 <h2 className="gate-pass-title" style={{ textAlign: "center", fontSize: "16px", fontWeight: "bold", letterSpacing: "4px", margin: "0 0 14px 0", color: "#000", textTransform: "uppercase", fontFamily: "Arial, sans-serif" }}>
                   G A T E &nbsp; P A S S
@@ -2701,7 +2572,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   </tbody>
                 </table>
 
-                {/* GATE PASS TABLE */}
                 <table className="gate-pass-table" style={{ width: "100%", borderCollapse: "collapse", marginBottom: "16px" }}>
                   <thead>
                     <tr>
@@ -2736,7 +2606,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
                   </tbody>
                 </table>
 
-                {/* AUTHORIZED BY SIGNATURE FOOTER */}
                 <div style={{ display: "flex", alignItems: "baseline", gap: "8px", marginTop: "16px", fontFamily: "Arial, sans-serif" }}>
                   <div style={{ fontSize: "11px", fontWeight: "bold", color: "#000", whiteSpace: "nowrap" }}>Authorized By:</div>
                   <div style={{ textAlign: "center", display: "inline-block" }}>
@@ -3011,7 +2880,6 @@ export const Permits = ({ hideHeader = false, hideStats = false }) => {
         }
       `}</style>
 
-      {/* Clean In-App Alert Dialog (matches Ante-Mortem, Post-Mortem & Fee Management) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}

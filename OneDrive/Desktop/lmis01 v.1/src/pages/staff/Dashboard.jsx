@@ -27,7 +27,6 @@ export const StaffDashboard = () => {
 
   const todayStr = new Date().toISOString().split("T")[0];
 
-  // Livestock passed in ante-mortem & marked, ready for slaughter line
   const readyList = useMemo(() => {
     const processingTags = new Set((processing || []).map((p) => p.tag_number));
     const list = [];
@@ -67,7 +66,6 @@ export const StaffDashboard = () => {
     }
   }, [readyList.length, todayStr]);
 
-  // Marked livestock records
   const markedLivestock = useMemo(() => {
     return (livestock || []).filter(
       (l) =>
@@ -80,14 +78,12 @@ export const StaffDashboard = () => {
     );
   }, [livestock]);
 
-  // Recent Intake
   const recentLivestock = useMemo(() => {
     return [...(livestock || [])]
       .sort((a, b) => recency(b, LIVESTOCK_DATE_FIELDS) - recency(a, LIVESTOCK_DATE_FIELDS))
       .slice(0, 3);
   }, [livestock]);
 
-  // Recent Meat Permits Processed
   const recentPermits = useMemo(() => {
     return [...(permits || [])]
       .sort(
@@ -181,9 +177,7 @@ export const StaffDashboard = () => {
 
   return (
     <div className="ag-dash">
-      {/* Row 1: Hero Overview (Dark) + Abattoir Operations (Glass) + Intake by Species (White) */}
       <div className="ag-row ag-row-top">
-        {/* Top-Left: Overall Information Card */}
         <section className="ag-card ag-dark ag-overview">
           <header className="ag-card-head">
             <h2>Overall information</h2>
@@ -276,7 +270,6 @@ export const StaffDashboard = () => {
           </div>
         </section>
 
-        {/* Top-Center: Abattoir Operations Card */}
         <section className="ag-card ag-glass">
           <header className="ag-card-head">
             <h2>Abattoir operations</h2>
@@ -300,7 +293,6 @@ export const StaffDashboard = () => {
           />
         </section>
 
-        {/* Top-Right: Intake by Species Card */}
         <section className="ag-card ag-white ag-progress-card">
           <div>
             <header className="ag-card-head">
@@ -359,7 +351,6 @@ export const StaffDashboard = () => {
         </section>
       </div>
 
-      {/* Row 2: Slaughter Line Queue Checklist + Recent Permits Cards + All Permits Slot */}
       <div className="ag-row ag-row-mid">
         <section className="ag-card ag-white ag-goals">
           <header className="ag-card-head">
@@ -497,7 +488,6 @@ export const StaffDashboard = () => {
         </div>
       </div>
 
-      {/* Row 3: Latest Livestock Dark Cards */}
       <div className="ag-section-head">
         <h2 className="ag-section">Latest Livestock Registrations</h2>
         <button type="button" className="ag-link" onClick={go("owners")}>

@@ -35,23 +35,19 @@ export const SpeciesManagement = () => {
   const [livestockCounts, setLivestockCounts] = useState({});
   const [loading, setLoading] = useState(true);
 
-  // Filters & Search
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
 
-  // Modals & States
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [viewingSpecies, setViewingSpecies] = useState(null);
   const [editingSpecies, setEditingSpecies] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formErrors, setFormErrors] = useState({});
 
-  // Image Upload State
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
-  // Form Fields (Clean & Simplified)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -60,7 +56,6 @@ export const SpeciesManagement = () => {
     image_path: null,
   });
 
-  // Action Dialogs
   const [confirmStatusToggle, setConfirmStatusToggle] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -71,7 +66,6 @@ export const SpeciesManagement = () => {
     variant: "info",
   });
 
-  // Load Data
   const loadData = useCallback(async () => {
     try {
       const [speciesData, countsData] = await Promise.all([
@@ -124,12 +118,10 @@ export const SpeciesManagement = () => {
     };
   }, [loadData]);
 
-  // Statistics
   const totalCount = speciesList.length;
   const activeCount = speciesList.filter((s) => s.status === "Active").length;
   const inactiveCount = totalCount - activeCount;
 
-  // Filtered List
   const filteredList = useMemo(() => {
     return speciesList.filter((s) => {
       if (filterStatus !== "all" && s.status !== filterStatus) {
@@ -146,7 +138,6 @@ export const SpeciesManagement = () => {
     });
   }, [speciesList, filterStatus, search]);
 
-  // Open Add Modal
   const handleOpenAddModal = () => {
     setEditingSpecies(null);
     setImageFile(null);
@@ -162,7 +153,6 @@ export const SpeciesManagement = () => {
     setFormModalOpen(true);
   };
 
-  // Open Edit Modal
   const handleOpenEditModal = (spec) => {
     setEditingSpecies(spec);
     setImageFile(null);
@@ -178,7 +168,6 @@ export const SpeciesManagement = () => {
     setFormModalOpen(true);
   };
 
-  // Handle File Selection with Type & Size Validation
   const processImageFile = (file) => {
     if (!file) return;
 
@@ -223,7 +212,6 @@ export const SpeciesManagement = () => {
     setIsDragging(false);
   };
 
-  // Save Species (Add or Update)
   const handleSave = async (e) => {
     e?.preventDefault();
     if (submitting || saveInFlightRef.current || confirmModalProps.open) return;
@@ -235,7 +223,6 @@ export const SpeciesManagement = () => {
       errors.name = "Species Name is required.";
     }
 
-    // Animal Picture is strictly required
     const hasImage = Boolean(imageFile || formData.image_url);
     if (!hasImage) {
       errors.image = "Animal Picture is required. Please upload an image.";
@@ -251,7 +238,6 @@ export const SpeciesManagement = () => {
       return;
     }
 
-    // Check duplicate name
     try {
       const isDuplicate = await checkSpeciesNameExists(
         cleanName,
@@ -297,7 +283,6 @@ export const SpeciesManagement = () => {
     let finalImagePath = formData.image_path;
 
     try {
-      // 1. Upload new image to Supabase Storage if selected
       if (imageFile) {
         const uploadRes = await uploadSpeciesImage(
           imageFile,
@@ -308,7 +293,6 @@ export const SpeciesManagement = () => {
         newUploadedImagePath = uploadRes.imagePath;
       }
 
-      // 2. Prepare payload
       const payload = {
         name: cleanName,
         code: cleanName.substring(0, 3).toUpperCase(),
@@ -321,7 +305,6 @@ export const SpeciesManagement = () => {
       if (editingSpecies) {
         await updateSpecies(editingSpecies.id, payload);
 
-        // 3. Remove old image from Storage ONLY after database update succeeds
         if (
           imageFile &&
           editingSpecies.image_path &&
@@ -345,7 +328,6 @@ export const SpeciesManagement = () => {
     } catch (err) {
       console.error("Save species error:", err);
 
-      // Clean up newly uploaded image if database save failed to avoid orphaned files
       if (newUploadedImagePath) {
         try {
           await deleteSpeciesImage(newUploadedImagePath);
@@ -363,7 +345,6 @@ export const SpeciesManagement = () => {
     }
   };
 
-  // Confirm Status Toggle (Activate / Deactivate)
   const handleConfirmToggleStatus = async () => {
     if (!confirmStatusToggle) return;
     const spec = confirmStatusToggle;
@@ -381,7 +362,6 @@ export const SpeciesManagement = () => {
     }
   };
 
-  // Delete Species
   const handleConfirmDelete = async () => {
     if (!confirmDelete) return;
     setDeleting(true);
@@ -425,7 +405,6 @@ export const SpeciesManagement = () => {
           minHeight: 0,
         }}
       >
-        {/* Header Toolbar */}
         <div
           className="records-fixed-header"
           style={{
@@ -441,7 +420,6 @@ export const SpeciesManagement = () => {
             minHeight: 54,
           }}
         >
-          {/* Status Filter Pills */}
           <div className="adm-seg-tabs">
             {[
               { id: "all", label: "All Species", count: totalCount, icon: <Icon.Cow size={14} /> },
@@ -466,9 +444,7 @@ export const SpeciesManagement = () => {
             })}
           </div>
 
-          {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Search Input */}
             <div style={{ position: "relative", width: 240 }}>
               <Icon.Search
                 size={13}
@@ -522,7 +498,6 @@ export const SpeciesManagement = () => {
               )}
             </div>
 
-            {/* Add Species Button */}
             <button
               type="button"
               className="adm-toolbar-primary-btn"
@@ -534,7 +509,6 @@ export const SpeciesManagement = () => {
           </div>
         </div>
 
-        {/* Scrollable Records Table */}
         <div
           className="records-scrollable-content table-wrap"
           style={{
@@ -590,7 +564,6 @@ export const SpeciesManagement = () => {
                     className="personnel-table-row"
                     title="Click to view species details"
                   >
-                    {/* Species: Picture & Name */}
                     <td style={{ padding: "12px 16px" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
                         <div
@@ -657,7 +630,6 @@ export const SpeciesManagement = () => {
                       </div>
                     </td>
 
-                    {/* Description */}
                     <td style={{ padding: "12px 16px", color: "var(--color-text-muted)", fontSize: "0.85rem", maxWidth: 320 }}>
                       {spec.description ? (
                         <span style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
@@ -668,7 +640,6 @@ export const SpeciesManagement = () => {
                       )}
                     </td>
 
-                    {/* Status Badge */}
                     <td style={{ padding: "12px 16px" }}>
                       <span
                         style={{
@@ -696,18 +667,15 @@ export const SpeciesManagement = () => {
                       </span>
                     </td>
 
-                    {/* Date Added */}
                     <td style={{ padding: "12px 16px", color: "var(--color-text)", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
                       {dateDisplay}
                     </td>
 
-                    {/* Actions: View, Edit, Activate/Deactivate */}
                     <td className="table-action-td">
                       <div
                         onClick={(e) => e.stopPropagation()}
                         className="table-action-group"
                       >
-                        {/* Edit Button */}
                         <button
                           type="button"
                           className="action-btn action-btn-outline"
@@ -718,7 +686,6 @@ export const SpeciesManagement = () => {
                           <span>Edit</span>
                         </button>
 
-                        {/* Activate / Deactivate Toggle Button */}
                         {isActive ? (
                           <button
                             type="button"
@@ -762,9 +729,6 @@ export const SpeciesManagement = () => {
         )}
       </div>
 
-      {/* ============================================================ */}
-      {/* ADD / EDIT SPECIES MODAL (LANDSCAPE & REDESIGNED)            */}
-      {/* ============================================================ */}
       <Modal
         open={formModalOpen}
         onClose={() => !submitting && setFormModalOpen(false)}
@@ -837,7 +801,6 @@ export const SpeciesManagement = () => {
           )}
 
           <div className="species-modal-grid">
-            {/* LEFT COLUMN: Animal Picture Upload & Preview */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, gap: 6 }}>
                 <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: 0, fontWeight: 700, color: "var(--color-text)" }}>
@@ -1039,9 +1002,7 @@ export const SpeciesManagement = () => {
               )}
             </div>
 
-            {/* RIGHT COLUMN: Species Details & Status */}
             <div style={{ display: "flex", flexDirection: "column", gap: 14, minWidth: 0 }}>
-              {/* 1. Species Name (Required) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label
                   htmlFor="species-name-input"
@@ -1103,7 +1064,6 @@ export const SpeciesManagement = () => {
                 )}
               </div>
 
-              {/* 2. Description (Optional) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label
                   className="form-label"
@@ -1142,7 +1102,6 @@ export const SpeciesManagement = () => {
                 />
               </div>
 
-              {/* 3. Status (Active / Inactive) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontSize: "0.8rem", marginBottom: "6px", fontWeight: 700, display: "block", color: "var(--color-text)" }}>
                   Status
@@ -1234,7 +1193,6 @@ export const SpeciesManagement = () => {
             </div>
           </div>
 
-          {/* Form Action Buttons */}
           <div
             style={{
               display: "flex",
@@ -1267,9 +1225,6 @@ export const SpeciesManagement = () => {
         </form>
       </Modal>
 
-      {/* ============================================================ */}
-      {/* VIEW SPECIES DETAILS MODAL                                   */}
-      {/* ============================================================ */}
       <Modal
         open={Boolean(viewingSpecies)}
         onClose={() => setViewingSpecies(null)}
@@ -1280,7 +1235,6 @@ export const SpeciesManagement = () => {
       >
         {viewingSpecies && (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* High-res Image Preview */}
             <div
               style={{
                 width: "100%",
@@ -1317,7 +1271,6 @@ export const SpeciesManagement = () => {
               )}
             </div>
 
-            {/* Info Grid */}
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
@@ -1356,7 +1309,6 @@ export const SpeciesManagement = () => {
                 </span>
               </div>
 
-              {/* Description */}
               <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
                 <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 4 }}>
                   Description
@@ -1366,7 +1318,6 @@ export const SpeciesManagement = () => {
                 </div>
               </div>
 
-              {/* Metadata details */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div style={{ background: "var(--color-bg)", padding: "10px 12px", borderRadius: 8, border: "1px solid var(--color-border)" }}>
                   <div style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", color: "var(--color-text-muted)", marginBottom: 2 }}>
@@ -1388,7 +1339,6 @@ export const SpeciesManagement = () => {
               </div>
             </div>
 
-            {/* Modal Actions */}
             <div
               style={{
                 display: "flex",
@@ -1424,9 +1374,6 @@ export const SpeciesManagement = () => {
         )}
       </Modal>
 
-      {/* ============================================================ */}
-      {/* CONFIRM STATUS TOGGLE DIALOG                                 */}
-      {/* ============================================================ */}
       <ConfirmDialog
         open={Boolean(confirmStatusToggle)}
         onCancel={() => setConfirmStatusToggle(null)}
@@ -1445,9 +1392,6 @@ export const SpeciesManagement = () => {
         confirmVariant={confirmStatusToggle?.status === "Active" ? "danger" : "primary"}
       />
 
-      {/* ============================================================ */}
-      {/* CONFIRM DELETE DIALOG                                        */}
-      {/* ============================================================ */}
       <ConfirmDialog
         open={Boolean(confirmDelete)}
         onCancel={() => setConfirmDelete(null)}
@@ -1459,12 +1403,8 @@ export const SpeciesManagement = () => {
         loading={deleting}
       />
 
-      {/* ADMIN PASSWORD CONFIRMATION MODAL */}
       <ConfirmAdminPasswordModal {...confirmModalProps} />
 
-      {/* ============================================================ */}
-      {/* ALERT / NOTIFICATION DIALOG                                  */}
-      {/* ============================================================ */}
       <AlertDialog
         open={alertDialog.open}
         onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}

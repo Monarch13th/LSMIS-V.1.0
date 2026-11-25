@@ -57,7 +57,6 @@ export const authService = {
 
         removeActiveSession(session.email);
 
-        // Server-side active session release on logout
         if (session.email) {
           try {
             await authSecurityService.releaseActiveSession(session.email, session.session_id);
@@ -81,7 +80,6 @@ export const authService = {
 
   async resetPassword(email) {
     const cleanEmail = (email || "").trim().toLowerCase();
-    // 1. Verify if the email is registered in users or owners table
     const { data: users, error: searchError } = await supabase
       .from(TABLES.USERS)
       .select("id")
@@ -107,7 +105,6 @@ export const authService = {
       return { error: { message: "This email address is not registered in our system." } };
     }
 
-    // 2. Trigger reset link
     const redirectTo = `${window.location.origin}/reset-password`;
     const { data, error } = await supabase.auth.resetPasswordForEmail(cleanEmail, { redirectTo });
     if (error) {

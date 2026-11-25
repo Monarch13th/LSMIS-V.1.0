@@ -13,7 +13,6 @@ import { ConfirmAdminPasswordModal } from "../../components/admin/ConfirmAdminPa
 import { useAdminConfirmPassword } from "../../hooks/useAdminConfirmPassword";
 import { initRealtimeSync } from "../../services/realtimeSync";
 
-// Official Google 4-Color "G" Brand Logo
 const GoogleLogo = ({ size = 14 }) => (
   <svg
     width={size}
@@ -60,15 +59,10 @@ export const getNormalizedStatus = (o) => {
   return "Approved";
 };
 
-/**
- * Normalizes any account ID into the standard "REG-001-2026" or "OWN-001-2026" format.
- * Correctly transforms formats like OWN-2026-0018 -> OWN-018-2026, OWN-2026-0019 -> OWN-019-2026, etc.
- */
 export const formatOwnerId = (o, fallbackIndex = 1) => {
   if (!o) return `REG-001-2026`;
   const idStr = String(o.id || o.temp_reg_id || o.owner_id || "").trim();
 
-  // Match prefixes like OWN, REG, OWNER followed by two hyphenated numeric segments
   const matchTwoParts = idStr.match(/^(OWN|REG|OWNER)-(\d+)-(\d+)$/i);
   if (matchTwoParts) {
     const rawPrefix = matchTwoParts[1].toUpperCase();
@@ -79,17 +73,14 @@ export const formatOwnerId = (o, fallbackIndex = 1) => {
     let year = 2026;
     let num = 1;
 
-    // Case 1: First part is a 4-digit year (e.g. 2026 in OWN-2026-0018, OWN-2026-0019)
     if (/^20\d{2}$/.test(p1) && !/^20\d{2}$/.test(p2)) {
       year = parseInt(p1, 10);
       num = parseInt(p2, 10);
     }
-    // Case 2: Second part is a 4-digit year (e.g. 2026 in OWN-018-2026 or OWN-18-2026)
     else if (/^20\d{2}$/.test(p2)) {
       year = parseInt(p2, 10);
       num = parseInt(p1, 10);
     }
-    // Case 3: Fallback order
     else {
       num = parseInt(p1, 10);
       year = parseInt(p2, 10);
@@ -99,14 +90,12 @@ export const formatOwnerId = (o, fallbackIndex = 1) => {
     return `${prefix}-${String(compactNum).padStart(3, "0")}-${year}`;
   }
 
-  // Format OWNER-012 -> OWN-012-2026
   const legacyOwnerMatch = idStr.match(/^OWNER-(\d+)$/i);
   if (legacyOwnerMatch) {
     const num = parseInt(legacyOwnerMatch[1], 10);
     return `OWN-${String(num).padStart(3, "0")}-2026`;
   }
 
-  // Format OWN-12 -> OWN-012-2026 or REG-12 -> REG-012-2026
   const singlePartMatch = idStr.match(/^(OWN|REG)-(\d+)$/i);
   if (singlePartMatch) {
     const prefix = singlePartMatch[1].toUpperCase();
@@ -114,8 +103,6 @@ export const formatOwnerId = (o, fallbackIndex = 1) => {
     return `${prefix}-${String(num).padStart(3, "0")}-2026`;
   }
 
-  // If raw UUID (e.g. 2c244c74-55f4-4fdc-9785-aec02f1a4c33) or test string:
-  // Convert deterministically into a clean single-line ID: OWN-018-2026 or REG-001-2026
   if (idStr.length > 15 || idStr.includes("test") || idStr.includes("-")) {
     const isApproved = String(o.status || "").toLowerCase() === "approved";
     const prefix = isApproved ? "OWN" : "REG";
@@ -131,7 +118,6 @@ export const formatOwnerId = (o, fallbackIndex = 1) => {
   return idStr || `REG-${String(fallbackIndex).padStart(3, "0")}-2026`;
 };
 
-// Preset rejection reasons for rapid administrative processing
 const PRESET_REJECTION_REASONS = [
   "Incomplete or unverifiable address",
   "Invalid or unreachable mobile contact number",
@@ -150,7 +136,6 @@ export const OwnerManagement = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Filter & Search
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get("search") || searchParams.get("id") || "");
   const [activeTab, setActiveTab] = useState(() => {
@@ -158,12 +143,11 @@ export const OwnerManagement = () => {
     if (urlTab && ["all", "pending", "approved", "rejected"].includes(urlTab)) return urlTab;
     return "all";
   });
-  const [sortBy, setSortBy] = useState("date_desc"); // "date_desc" | "date_asc" | "name_asc"
+  const [sortBy, setSortBy] = useState("date_desc");
   const [copiedId, setCopiedId] = useState(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Modals
   const [selectedOwner, setSelectedOwner] = useState(null);
 
   useEffect(() => {
@@ -203,7 +187,6 @@ export const OwnerManagement = () => {
   const [editConfirmOpen, setEditConfirmOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Fetch owners and livestock strictly from Supabase
   const loadData = async (isManualRefresh = false) => {
     if (isManualRefresh) setRefreshing(true);
     else if (owners.length === 0) setLoading(true);
@@ -233,17 +216,14 @@ export const OwnerManagement = () => {
       }
 
       const map = new Map();
-      // Primary source: public.owners
       dbOwners.forEach((o) => {
         if (o.id) map.set(o.id, { ...o });
       });
 
-      // Supplemental source: public.users with role='owner'
       dbUsers.forEach((u) => {
         if (!u) return;
         const ownerKey = u.owner_id || u.id;
 
-        // Find if this owner is already in map by ID or by email to prevent duplicate cards
         let existingKey = null;
         if (map.has(ownerKey)) {
           existingKey = ownerKey;
@@ -258,7 +238,6 @@ export const OwnerManagement = () => {
         }
 
         if (existingKey) {
-          // Merge missing fields into existing owner record without creating duplicate
           const existing = map.get(existingKey);
           if (!existing.username && u.username) existing.username = u.username;
           if (!existing.email && u.email) existing.email = u.email;
@@ -288,7 +267,6 @@ export const OwnerManagement = () => {
         }
       });
 
-      // Dynamic Classification: Exclude system personnel (admin, vet, staff) using Supabase as source of truth
       const systemStaffEmails = new Set(
         staffUsers
           .map((s) => (s.email || "").toLowerCase().trim())
@@ -304,7 +282,6 @@ export const OwnerManagement = () => {
         return true;
       });
 
-      // Normalize statuses
       mergedOwners.forEach((o) => {
         o.status = getNormalizedStatus(o);
       });
@@ -341,8 +318,6 @@ export const OwnerManagement = () => {
     window.addEventListener("storage", debouncedReload);
     window.addEventListener("lmis-db-change", onDbChange);
 
-    // Dedicated Supabase Realtime channel subscription directly in OwnerManagement
-    // guarantees instant updates even across different browser sessions / devices
     let ownerChannel = null;
     try {
       ownerChannel = supabase
@@ -381,7 +356,6 @@ export const OwnerManagement = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  // KPIs (Strictly 3 statuses: Pending Approval, Approved, Rejected)
   const totalCount = owners.length;
   const pendingCount = owners.filter((o) => getNormalizedStatus(o) === "Pending Approval").length;
   const approvedCount = owners.filter((o) => {
@@ -390,7 +364,6 @@ export const OwnerManagement = () => {
   }).length;
   const rejectedCount = owners.filter((o) => getNormalizedStatus(o) === "Rejected").length;
 
-  // Filtered & Sorted List
   const filteredOwners = useMemo(() => {
     const q = search.trim().toLowerCase();
     let result = owners.filter((o, idx) => {
@@ -430,9 +403,7 @@ export const OwnerManagement = () => {
       return true;
     });
 
-    // Sort items
     result.sort((a, b) => {
-      // Pin pending accounts to the very top in "all" view
       if (activeTab === "all") {
         const aPending = getNormalizedStatus(a) === "Pending Approval" ? 1 : 0;
         const bPending = getNormalizedStatus(b) === "Pending Approval" ? 1 : 0;
@@ -447,7 +418,6 @@ export const OwnerManagement = () => {
         const dateB = new Date(b.created_at || b.registered_date || 0).getTime();
         return dateA - dateB;
       }
-      // default: date_desc
       const dateA = new Date(a.created_at || a.registered_date || 0).getTime();
       const dateB = new Date(b.created_at || b.registered_date || 0).getTime();
       return dateB - dateA;
@@ -458,7 +428,6 @@ export const OwnerManagement = () => {
 
   const { confirmModalProps, confirmAdminAction } = useAdminConfirmPassword();
 
-  // Actions
   const handleApprove = async () => {
     if (!approveConfirmOwner) return;
     const targetOwner = approveConfirmOwner;
@@ -492,7 +461,6 @@ export const OwnerManagement = () => {
           if (selectedOwner?.id === targetOwner.id) {
             setSelectedOwner(null);
           }
-          // Optimistically update owner status to Approved at 0ms
           setOwners((prev) =>
             prev.map((o) =>
               o.id === targetOwner.id
@@ -551,7 +519,6 @@ export const OwnerManagement = () => {
           if (selectedOwner?.id === targetOwner.id) {
             setSelectedOwner(null);
           }
-          // Optimistically update owner status to Rejected at 0ms
           setOwners((prev) =>
             prev.map((o) =>
               o.id === targetOwner.id
@@ -680,7 +647,6 @@ export const OwnerManagement = () => {
             adminUser: session?.name || "System Administrator",
           });
 
-          // Immediately update local state so table updates right away
           setOwners((prev) =>
             prev.map((o) =>
               o.id === targetOwner.id
@@ -740,7 +706,6 @@ export const OwnerManagement = () => {
           if (selectedOwner?.id === targetOwner.id) {
             setSelectedOwner(null);
           }
-          // Optimistically remove deleted owner from local list
           setOwners((prev) => prev.filter((o) => o.id !== targetOwner.id));
           loadData(true);
         } catch (err) {
@@ -868,7 +833,6 @@ export const OwnerManagement = () => {
           minHeight: 0,
         }}
       >
-        {/* Single-line Header Toolbar matching Reference Standard */}
         <div
           className="records-fixed-header"
           style={{
@@ -884,7 +848,6 @@ export const OwnerManagement = () => {
             minHeight: 54,
           }}
         >
-          {/* Left: Segmented Status Tabs */}
           <div className="adm-seg-tabs">
             {[
               { key: "all", label: "All Owners", count: totalCount, icon: <Icon.Users size={14} /> },
@@ -910,9 +873,7 @@ export const OwnerManagement = () => {
             })}
           </div>
 
-          {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Search Input */}
             <div style={{ position: "relative", width: 240 }}>
               <Icon.Search
                 size={13}
@@ -966,7 +927,6 @@ export const OwnerManagement = () => {
               )}
             </div>
 
-            {/* Sort Selector */}
             <div style={{ position: "relative" }}>
               <select
                 value={sortBy}
@@ -993,7 +953,6 @@ export const OwnerManagement = () => {
           </div>
         </div>
 
-        {/* Responsive Table Container */}
         <div className="records-scrollable-content table-wrap" style={{ width: "100%", overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", flex: 1, minHeight: 0 }}>
           <table
             className="table"
@@ -1056,7 +1015,6 @@ export const OwnerManagement = () => {
                       transition: "background 0.14s ease",
                     }}
                   >
-                    {/* Column 1: Owner Details */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", overflow: "hidden" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                         {o.avatar_url ? (
@@ -1156,7 +1114,6 @@ export const OwnerManagement = () => {
                       </div>
                     </td>
 
-                    {/* Column 2: Contact & Address */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", overflow: "hidden" }}>
                       <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "#187A56", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
                         <Icon.Phone size={12} style={{ flexShrink: 0 }} />
@@ -1185,7 +1142,6 @@ export const OwnerManagement = () => {
                       </div>
                     </td>
 
-                    {/* Column 3: Date Registered */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", whiteSpace: "nowrap" }}>
                       <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                         <Icon.Calendar size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
@@ -1193,12 +1149,10 @@ export const OwnerManagement = () => {
                       </div>
                     </td>
 
-                    {/* Column 4: Approval Status */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", whiteSpace: "nowrap" }}>
                       {getStatusBadge(o)}
                     </td>
 
-                    {/* Column 5: Actions */}
                     <td className="table-action-td" style={{ padding: "12px 6px", verticalAlign: "middle", textAlign: "center", whiteSpace: "nowrap" }}>
                       <div className="table-action-group" style={{ display: "inline-flex", gap: "5px", justifyContent: "center", alignItems: "center", flexWrap: "nowrap" }}>
                         {isPending ? (
@@ -1269,7 +1223,6 @@ export const OwnerManagement = () => {
                             <span>View</span>
                           </button>
                         ) : (
-                          /* Approved / Active Owner Account: Deactivate Only */
                           isDeactivated ? (
                             <button
                               type="button"
@@ -1303,7 +1256,6 @@ export const OwnerManagement = () => {
           </table>
         </div>
 
-        {/* Empty State */}
         {filteredOwners.length === 0 && (
           <div style={{ padding: "40px 20px" }}>
             <EmptyState
@@ -1332,9 +1284,6 @@ export const OwnerManagement = () => {
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* MODAL 1: APPROVE OWNER CONFIRMATION (Standardized to Ante-Mortem ConfirmDialog) */}
-      {/* ========================================================================= */}
       <ConfirmDialog
         open={Boolean(approveConfirmOwner)}
         onCancel={() => setApproveConfirmOwner(null)}
@@ -1383,9 +1332,6 @@ export const OwnerManagement = () => {
         }
       />
 
-      {/* ========================================================================= */}
-      {/* MODAL 2: REJECT OWNER */}
-      {/* ========================================================================= */}
       <Modal
         open={!!rejectModalOwner}
         onClose={() => setRejectModalOwner(null)}
@@ -1517,9 +1463,6 @@ export const OwnerManagement = () => {
           </div>
         )}
       </Modal>
-      {/* ========================================================================= */}
-      {/* MODAL 3: OWNER REGISTRATION DETAILS (TABLE VIEW) */}
-      {/* ========================================================================= */}
       <Modal
         open={!!selectedOwner}
         onClose={() => setSelectedOwner(null)}
@@ -1624,7 +1567,6 @@ export const OwnerManagement = () => {
 
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-              {/* Record Header */}
               <div
                 style={{
                   display: "flex",
@@ -1688,7 +1630,6 @@ export const OwnerManagement = () => {
                 <div>{getStatusBadge(selectedOwner)}</div>
               </div>
 
-              {/* Structured Details Table */}
               <div style={{ overflowX: "auto", border: "1px solid var(--color-border)", borderRadius: 8, background: "var(--color-surface)" }}>
                 <table style={{ width: "100%", minWidth: 520, borderCollapse: "collapse", textAlign: "left" }}>
                   <colgroup>
@@ -1750,9 +1691,6 @@ export const OwnerManagement = () => {
         })()}
       </Modal>
 
-      {/* ========================================================================= */}
-      {/* MODAL 5: VERIFICATION HISTORY AUDIT TRAIL */}
-      {/* ========================================================================= */}
       <Modal
         open={!!historyOwner}
         onClose={() => setHistoryOwner(null)}
@@ -1828,9 +1766,6 @@ export const OwnerManagement = () => {
         )}
       </Modal>
 
-      {/* ========================================================================= */}
-      {/* MODAL 6: EDIT OWNER ACCOUNT DETAILS IN SUPABASE */}
-      {/* ========================================================================= */}
       <Modal
         open={!!editModalOwner}
         onClose={() => setEditModalOwner(null)}
@@ -1845,7 +1780,6 @@ export const OwnerManagement = () => {
             }}
             style={{ display: "flex", flexDirection: "column", gap: 14 }}
           >
-            {/* Warning / Alert Banner */}
             <div style={{
               background: "var(--color-warning-bg, rgba(245, 158, 11, 0.12))",
               border: "1px solid rgba(245, 158, 11, 0.3)",
@@ -1995,7 +1929,6 @@ export const OwnerManagement = () => {
         )}
       </Modal>
 
-      {/* CONFIRMATION WARNING ALERT DIALOG FOR EDITING DETAILS */}
       <ConfirmDialog
         open={editConfirmOpen}
         onCancel={() => setEditConfirmOpen(false)}
@@ -2007,9 +1940,6 @@ export const OwnerManagement = () => {
         loading={actionLoading}
       />
 
-      {/* ========================================================================= */}
-      {/* MODAL 7: DELETE OWNER ACCOUNT CONFIRMATION IN SUPABASE */}
-      {/* ========================================================================= */}
       <Modal
         open={!!deleteModalOwner}
         onClose={() => setDeleteModalOwner(null)}

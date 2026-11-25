@@ -65,7 +65,6 @@ export const AnimalMarking = ({ navTabs }) => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
-  // Edit livestock details states
   const [editTarget, setEditTarget] = useState(null);
   const [editForm, setEditForm] = useState({
     species: "Cattle",
@@ -76,10 +75,8 @@ export const AnimalMarking = ({ navTabs }) => {
   const [savingEdit, setSavingEdit] = useState(false);
   const [confirmEditOpen, setConfirmEditOpen] = useState(false);
 
-  // Marking completed notification dialog state
   const [markSuccessNotice, setMarkSuccessNotice] = useState(null);
 
-  // Active view & filtering states
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(() => {
     const urlTab = searchParams.get("tab");
@@ -92,7 +89,6 @@ export const AnimalMarking = ({ navTabs }) => {
   const [sortBy, setSortBy] = useState("newest");
   const { showToast } = useToast();
 
-  // Sync URL search params whenever they change
   useEffect(() => {
     const urlTab = searchParams.get("tab");
     if (urlTab === "marked" || urlTab === "for_marking") {
@@ -116,11 +112,9 @@ export const AnimalMarking = ({ navTabs }) => {
     }
   }, [searchParams, data]);
 
-  // Pagination states
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Trigger 24-hour marking fallback check on mount once to return stale marked animals
   useEffect(() => {
     staffService.processMarking24hFallback()
       .then((res) => {
@@ -135,7 +129,6 @@ export const AnimalMarking = ({ navTabs }) => {
     setPage(1);
   }, [search, activeTab, sortBy]);
 
-  // Expand/collapse group helper
   const toggleGroupExpand = (groupKey) => {
     setExpandedGroups((prev) => {
       const next = new Set(prev);
@@ -145,9 +138,6 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   };
 
-  // Map of animals with Ante-Mortem Approved status from the Veterinarian.
-  // Keys are stored normalised so lookups match regardless of casing/whitespace
-  // differences between the inspection row and the livestock row.
   const approvedAnteMortemMap = useMemo(() => {
     const map = new Map();
     (anteMortem || []).forEach((am) => {
@@ -160,7 +150,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return map;
   }, [anteMortem]);
 
-  // Set of tag numbers and IDs for downstream processes (slaughter, processing, carcass)
   const downstreamTagSet = useMemo(() => {
     const set = new Set();
     (processing || []).forEach((p) => {
@@ -178,14 +167,12 @@ export const AnimalMarking = ({ navTabs }) => {
     return set;
   }, [processing, slaughterRecords, carcass]);
 
-  // Sort animals sequentially
   const sortedData = useMemo(() => {
     return [...data].sort((a, b) =>
       (a.tag_number || "").localeCompare(b.tag_number || "", undefined, { numeric: true, sensitivity: "base" })
     );
   }, [data]);
 
-  // Helper to check if an animal is marked
   const isMarked = (l) => {
     if (!l) return false;
     return Boolean(
@@ -194,10 +181,6 @@ export const AnimalMarking = ({ navTabs }) => {
     );
   };
 
-  // Animals ready for marking.
-  // Newly registered livestock proceeds directly to Animal Marking upon intake.
-  // Eligibility: Any registered livestock with an assigned tag number that is not yet marked,
-  // not condemned/rejected, and not already downstream in slaughter operations.
   const toMark = useMemo(() => {
     if (loading) return [];
     return sortedData.filter((l) => {
@@ -230,7 +213,6 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   }, [loading, sortedData, downstreamTagSet]);
 
-  // Philippine Standard Time (UTC+8) current date helper
   const getPHToday = () => {
     try {
       return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
@@ -239,7 +221,6 @@ export const AnimalMarking = ({ navTabs }) => {
     }
   };
 
-  // Date range filter helper
   const isWithinDateRange = (itemDateStr, range) => {
     if (!itemDateStr || range === "all") return true;
     const cleanDate = String(itemDateStr).trim().split("T")[0];
@@ -263,7 +244,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return true;
   };
 
-  // Helper to resolve owner name cleanly prioritizing master owners directory
   const resolveOwnerName = (item) => {
     if (!item) return "Unknown Owner";
     const targetOwnerId = item.owner_id;
@@ -291,7 +271,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return "Unknown Owner";
   };
 
-  // Helper to resolve owner id cleanly using direct fields & owners directory lookup
   const resolveOwnerId = (item) => {
     if (!item) return null;
     if (item.owner_id) return item.owner_id;
@@ -303,7 +282,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return null;
   };
 
-  // Helper to resolve intake/marking date without falsely defaulting to current date 'today()'
   const resolveDateStr = (item, isMarkedTab = false) => {
     if (!item) return "";
     const rawDate = isMarkedTab
@@ -316,7 +294,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return str.split("T")[0];
   };
 
-  // Animals officially marked ("Marked") - historical log of all currently active marked animals
   const markedAnimals = useMemo(() => {
     if (loading) return [];
     return sortedData.filter((l) => {
@@ -325,7 +302,6 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   }, [loading, sortedData]);
 
-  // Filtered list of livestock for marking (itemized)
   const filteredToMark = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = toMark.filter((a) => {
@@ -359,7 +335,6 @@ export const AnimalMarking = ({ navTabs }) => {
       if (sortBy === "owner") {
         return (a.owner_name || "").localeCompare(b.owner_name || "");
       }
-      // default: newest
       const timeA = new Date(a.created_at || a.received_date || 0).getTime();
       const timeB = new Date(b.created_at || b.received_date || 0).getTime();
       if (timeB !== timeA) return timeB - timeA;
@@ -367,7 +342,6 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   }, [toMark, owners, search, sortBy]);
 
-  // Filtered list of marked livestock (itemized)
   const filteredMarked = useMemo(() => {
     const q = search.trim().toLowerCase();
     const list = markedAnimals.filter((a) => {
@@ -403,7 +377,6 @@ export const AnimalMarking = ({ navTabs }) => {
       if (sortBy === "owner") {
         return (a.owner_name || "").localeCompare(b.owner_name || "");
       }
-      // default: newest
       const timeA = new Date(a.marked_at || a.mark_date || a.created_at || a.received_date || 0).getTime();
       const timeB = new Date(b.marked_at || b.mark_date || b.created_at || b.received_date || 0).getTime();
       if (timeB !== timeA) return timeB - timeA;
@@ -411,16 +384,13 @@ export const AnimalMarking = ({ navTabs }) => {
     });
   }, [markedAnimals, search, sortBy]);
 
-  // Grouped dataset for "For Marking" tab (grouped strictly by actual registered owner)
   const groupedToMark = useMemo(() => {
     const groups = new Map();
     filteredToMark.forEach((item) => {
-      // Filter out corrupt/invalid records without tag numbers
       if (!item.tag_number || String(item.tag_number).trim() === "") return;
 
       const owner = resolveOwnerName(item);
       const ownerId = resolveOwnerId(item);
-      // Omit orphan/ghost records that have no valid owner info
       if (owner === "Unknown Owner" && !ownerId && !item.owner_name) return;
 
       const key = ownerId ? `owner_${String(ownerId).toLowerCase().trim()}` : `owner_${owner.toLowerCase().trim()}`;
@@ -480,7 +450,6 @@ export const AnimalMarking = ({ navTabs }) => {
         }),
       }))
       .sort((a, b) => {
-        // Priority sort: groups with fallback items appear at top of queue
         if (a.hasFallback && !b.hasFallback) return -1;
         if (!a.hasFallback && b.hasFallback) return 1;
         if (b.latestTimestamp !== a.latestTimestamp) return b.latestTimestamp - a.latestTimestamp;
@@ -488,9 +457,7 @@ export const AnimalMarking = ({ navTabs }) => {
       });
   }, [filteredToMark, owners]);
 
-  // Grouped dataset for "Marked" tab (grouped by owner based on time and date)
   const groupedMarked = useMemo(() => {
-    // 1. Group items by owner first
     const ownerBuckets = new Map();
 
     filteredMarked.forEach((item) => {
@@ -513,9 +480,7 @@ export const AnimalMarking = ({ navTabs }) => {
 
     const resultGroups = [];
 
-    // 2. For each owner, sub-group items based on time and date
     ownerBuckets.forEach((bucket, ownerKey) => {
-      // Sort this owner's marked animals newest first
       const sortedItems = [...bucket.items].sort((a, b) => {
         const timeA = new Date(a.marked_at || a.mark_date || a.created_at || a.received_date || 0).getTime();
         const timeB = new Date(b.marked_at || b.mark_date || b.created_at || b.received_date || 0).getTime();
@@ -523,7 +488,6 @@ export const AnimalMarking = ({ navTabs }) => {
         return (b.tag_number || "").localeCompare(a.tag_number || "", undefined, { numeric: true, sensitivity: "base" });
       });
 
-      // Cluster items into sessions based on time and date (within 15 minutes on the same date)
       const sessions = [];
       let currentSession = null;
 
@@ -544,10 +508,9 @@ export const AnimalMarking = ({ navTabs }) => {
           };
           sessions.push(currentSession);
         } else {
-          // Check if item belongs to currentSession (within 15 minutes of session window and same date)
           const timeDiff = Math.abs(currentSession.earliestTimestamp - itemTime);
           const isSameDate = !dateStr || !currentSession.date || dateStr === currentSession.date;
-          const isWithinWindow = timeDiff <= 15 * 60 * 1000; // 15 minutes
+          const isWithinWindow = timeDiff <= 15 * 60 * 1000;
 
           if (isSameDate && isWithinWindow) {
             currentSession.items.push(item);
@@ -558,7 +521,6 @@ export const AnimalMarking = ({ navTabs }) => {
               currentSession.date = dateStr;
             }
           } else {
-            // Start a new session
             currentSession = {
               owner_name: bucket.owner_name,
               owner_id: bucket.owner_id,
@@ -573,7 +535,6 @@ export const AnimalMarking = ({ navTabs }) => {
         }
       });
 
-      // Build group objects for each session
       sessions.forEach((sess, idx) => {
         const speciesList = [];
         sess.items.forEach((it) => {
@@ -583,7 +544,6 @@ export const AnimalMarking = ({ navTabs }) => {
           }
         });
 
-        // Unique key for modal selection: ownerKey + session timestamp + index
         const groupKey = `${ownerKey}_session_${sess.latestTimestamp || idx}_${idx}`;
 
         resultGroups.push({
@@ -601,14 +561,12 @@ export const AnimalMarking = ({ navTabs }) => {
       });
     });
 
-    // 3. Sort all groups by newest marking session timestamp first
     return resultGroups.sort((a, b) => {
       if (b.latestTimestamp !== a.latestTimestamp) return b.latestTimestamp - a.latestTimestamp;
       return a.owner_name.localeCompare(b.owner_name);
     });
   }, [filteredMarked, owners]);
 
-  // Auto-expand group containing searched tag
   useEffect(() => {
     const q = (searchParams.get("tag") || searchParams.get("search") || "").trim().toUpperCase();
     if (!q) return;
@@ -623,7 +581,6 @@ export const AnimalMarking = ({ navTabs }) => {
     }
   }, [searchParams, groupedToMark, groupedMarked]);
 
-  // Selected Owner Dedicated View State (matches Condemnation UI)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
   useEffect(() => {
     setSelectedOwnerKey(null);
@@ -635,7 +592,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return (currentDataset || []).find((g) => g.key === selectedOwnerKey) || null;
   }, [activeTab, groupedToMark, groupedMarked, selectedOwnerKey]);
 
-  // View records pagination (10 per page default)
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
@@ -648,14 +604,12 @@ export const AnimalMarking = ({ navTabs }) => {
     return selectedOwnerView.items;
   }, [selectedOwnerView]);
 
-  // Individual & batch livestock selection for marking within owner view
   const [selectedLivestockKeys, setSelectedLivestockKeys] = useState(new Set());
 
   const getLivestockKey = useCallback((item) => {
     return String(item?.id || item?.tag_number || "").trim();
   }, []);
 
-  // Reset selection when switching owner, changing search/filter, or changing tabs
   useEffect(() => {
     setSelectedLivestockKeys(new Set());
   }, [selectedOwnerKey, activeTab, search, sortBy]);
@@ -731,14 +685,11 @@ export const AnimalMarking = ({ navTabs }) => {
     if (!selectedOwnerView || activeTab !== "for_marking") return;
     if (submitting) return;
 
-    // Requirement 11: Show clear validation feedback if no livestock record is selected.
     if (!selectedItemsForOwner || selectedItemsForOwner.length === 0) {
       showToast("Please select at least one livestock record to mark.", "warning");
       return;
     }
 
-    // Requirements 9 & 10: Validate every selected record before processing.
-    // If a record is no longer eligible (already marked and not fallback), handle it safely without affecting other valid selections.
     const validItems = selectedItemsForOwner.filter((item) => {
       const isFallback = item.status === "Returned to Animal Marking" || Boolean(item.fallback_at);
       if (isFallback) return true;
@@ -759,7 +710,6 @@ export const AnimalMarking = ({ navTabs }) => {
       showToast(`${excluded} ineligible or already-marked animal record(s) were excluded from marking.`, "info");
     }
 
-    // Requirement 6: Only selected livestock records should proceed to the existing marking process.
     if (validItems.length === 1) {
       openMarkSingle(validItems[0]);
     } else {
@@ -842,7 +792,6 @@ export const AnimalMarking = ({ navTabs }) => {
     return singleCandidate ? formatPhDateTime(singleCandidate) : "—";
   };
 
-  // Active dataset (grouped by default)
   const activeDataset = useMemo(() => {
     return activeTab === "for_marking" ? groupedToMark : groupedMarked;
   }, [activeTab, groupedToMark, groupedMarked]);
@@ -850,14 +799,11 @@ export const AnimalMarking = ({ navTabs }) => {
   const totalCount = activeDataset.length;
   const paginatedDataset = activeDataset;
 
-  // Helper to accurately resolve the species list for a target batch or animal
-  // Accurately extracts distinct species from the actual livestock records in the batch / active queue
   const resolveTargetSpeciesList = (target) => {
     if (!target) return [];
 
     const speciesSet = new Set();
 
-    // 1. If target is a batch (has items array), accurately extract distinct species directly from its livestock
     if (Array.isArray(target.items) && target.items.length > 0) {
       target.items.forEach((item) => {
         if (item?.species && String(item.species).trim()) {
@@ -866,7 +812,6 @@ export const AnimalMarking = ({ navTabs }) => {
       });
     }
 
-    // 2. If target has speciesList array
     if (speciesSet.size === 0 && Array.isArray(target.speciesList) && target.speciesList.length > 0) {
       target.speciesList.forEach((sp) => {
         if (sp && String(sp).trim()) {
@@ -875,17 +820,14 @@ export const AnimalMarking = ({ navTabs }) => {
       });
     }
 
-    // 3. If target is an individual animal, return its specific species
     if (speciesSet.size === 0 && target.tag_number && target.species) {
       speciesSet.add(String(target.species).trim());
     }
 
-    // 4. Fallback if target directly specifies a species string
     if (speciesSet.size === 0 && target.species && String(target.species).trim()) {
       speciesSet.add(String(target.species).trim());
     }
 
-    // 5. Fallback to active queue (toMark) for this owner if no items directly on target
     if (speciesSet.size === 0) {
       const targetOwnerName = (target.owner_name || "").trim().toLowerCase();
       const targetOwnerId = target.owner_id;
@@ -904,7 +846,6 @@ export const AnimalMarking = ({ navTabs }) => {
 
     const list = Array.from(speciesSet);
 
-    // Standard LSMIS display ordering: Hog, Cattle, Carabao, Goat
     const PREFERRED_ORDER = ["Hog", "Cattle", "Carabao", "Goat"];
     list.sort((a, b) => {
       const idxA = PREFERRED_ORDER.indexOf(a);
@@ -1020,7 +961,6 @@ export const AnimalMarking = ({ navTabs }) => {
         const markedIds = new Set(items.map((i) => i.id).filter(Boolean));
         const markedTags = new Set(items.map((i) => i.tag_number).filter(Boolean));
 
-        // Concurrently mark animals with preloaded animal data to minimize latency
         const results = await Promise.allSettled(
           items.map((item) =>
             staffService.markAnimal(item.id, item.tag_number, targetMarkType, item, { skipNotify: true })
@@ -1043,7 +983,6 @@ export const AnimalMarking = ({ navTabs }) => {
           throw new Error(firstErr?.message || `Failed to mark any livestock in batch.`);
         }
 
-        // Immediately remove marked animals from pending list & update counts
         setData((prevData) =>
           prevData.map((animal) => {
             const isMatch =
@@ -1063,14 +1002,12 @@ export const AnimalMarking = ({ navTabs }) => {
           })
         );
 
-        // Clear selection for marked items
         setSelectedLivestockKeys((prev) => {
           const next = new Set(prev);
           items.forEach((i) => next.delete(getLivestockKey(i)));
           return next;
         });
 
-        // Notify other windows/tabs once for the entire batch
         staffService.notifyTableChange();
 
         showToast(
@@ -1087,10 +1024,8 @@ export const AnimalMarking = ({ navTabs }) => {
           showToast(`Some animals failed to mark: ${failedTags.join(", ")}`, "warning");
         }
       } else {
-        // Single animal marking
         await staffService.markAnimal(target.id, target.tag_number, targetMarkType, target);
 
-        // Immediately remove marked animal from pending list
         setData((prevData) =>
           prevData.map((animal) => {
             const isMatch =
@@ -1134,7 +1069,6 @@ export const AnimalMarking = ({ navTabs }) => {
       setReturnOwnerKey(null);
       setSelectedLivestockKeys(new Set());
 
-      // Optimistically update local dataset so UI responds at 0ms
       if (typeof setData === "function" && target?.tag_number) {
         setData((prev) =>
           prev.map((a) =>
@@ -1150,7 +1084,6 @@ export const AnimalMarking = ({ navTabs }) => {
         );
       }
 
-      // Background sync without blocking user interaction
       if (typeof refresh === "function") {
         refresh();
       }
@@ -1292,9 +1225,7 @@ export const AnimalMarking = ({ navTabs }) => {
   return (
     <div className="animal-marking-page" style={{ width: "100%", padding: 0, height: "100%", display: "flex", flexDirection: "column", minHeight: 0 }}>
 
-      {/* 3. Main Record List Table Container */}
       <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Search & Filter Toolbar */}
         <div
           className="records-fixed-header"
           style={{
@@ -1310,16 +1241,13 @@ export const AnimalMarking = ({ navTabs }) => {
             boxSizing: "border-box",
           }}
         >
-          {/* Left: Swapped Navigation Tabs */}
           {navTabs ? (
             navTabs
           ) : (
             <div />
           )}
 
-          {/* Right: Search Box transferred beside Filter & Sort Selectors */}
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap", justifyContent: "flex-end" }}>
-            {/* Search Box */}
             <div
               style={{
                 width: 250,
@@ -1397,7 +1325,6 @@ export const AnimalMarking = ({ navTabs }) => {
               )}
             </div>
 
-            {/* Status / Tab Select Dropdown */}
             <select
               value={activeTab}
               onChange={(e) => {
@@ -1422,7 +1349,6 @@ export const AnimalMarking = ({ navTabs }) => {
               <option value="marked">Marked ({markedAnimals.length})</option>
             </select>
 
-            {/* Sort Dropdown */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -1448,7 +1374,6 @@ export const AnimalMarking = ({ navTabs }) => {
           </div>
         </div>
 
-        {/* 24-Hour Timeout Warning Alert Banner */}
         {activeTab === "for_marking" && toMark.some((i) => i.status === "Returned to Animal Marking" || i.fallback_at) && (
           <div
             style={{
@@ -1501,7 +1426,6 @@ export const AnimalMarking = ({ navTabs }) => {
           </div>
         )}
 
-        {/* 5. Main Table Records List */}
         {loading ? (
           <div style={{ padding: "30px", textAlign: "center", color: "var(--color-text-muted)" }}>
             Loading animal marking records...
@@ -1525,7 +1449,6 @@ export const AnimalMarking = ({ navTabs }) => {
             icon={activeTab === "for_marking" ? <Icon.Tag size={36} /> : <Icon.CheckCircle size={36} />}
           />
         ) : (
-          /* ================= MAIN OWNER LIST TABLE (MATCHES CONDEMNATION PATTERN) ================= */
           <div
             className="records-scrollable-content table-wrap"
             style={{
@@ -1563,7 +1486,6 @@ export const AnimalMarking = ({ navTabs }) => {
                       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      {/* Owner Name */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div style={{ position: "relative", width: 34, height: 34, flexShrink: 0 }}>
@@ -1618,7 +1540,6 @@ export const AnimalMarking = ({ navTabs }) => {
                         </div>
                       </td>
 
-                      {/* Date */}
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#10b981" }} />
@@ -1626,14 +1547,12 @@ export const AnimalMarking = ({ navTabs }) => {
                         </div>
                       </td>
 
-                      {/* Species */}
                       <td style={{ padding: "14px 18px" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                           {formatSpeciesList(grp.speciesList && grp.speciesList.length > 0 ? grp.speciesList : [grp.species])}
                         </span>
                       </td>
 
-                      {/* Total Heads */}
                       <td style={{ padding: "14px 18px", textAlign: "center" }}>
                         <span
                           style={{
@@ -1646,7 +1565,6 @@ export const AnimalMarking = ({ navTabs }) => {
                         </span>
                       </td>
 
-                      {/* Status */}
                       <td style={{ padding: "14px 18px" }}>
                         {activeTab === "for_marking" ? (
                           <span
@@ -1687,7 +1605,6 @@ export const AnimalMarking = ({ navTabs }) => {
                         )}
                       </td>
 
-                      {/* Action */}
                       <td className="table-action-td">
                         <div className="table-action-group">
                           <button
@@ -1727,7 +1644,6 @@ export const AnimalMarking = ({ navTabs }) => {
         )}
       </div>
 
-            {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -2012,7 +1928,6 @@ export const AnimalMarking = ({ navTabs }) => {
                         {activeTab === "for_marking" && (
                           <td className="table-action-td">
                             <div className="table-action-group">
-                              {/* 1. Edit Details Button */}
                               <button
                                 type="button"
                                 className="action-btn action-btn-outline"
@@ -2030,7 +1945,6 @@ export const AnimalMarking = ({ navTabs }) => {
                                 <span>Edit</span>
                               </button>
 
-                              {/* 2. Delete Record Button */}
                               <button
                                 type="button"
                                 className="action-btn action-btn-danger"
@@ -2063,7 +1977,6 @@ export const AnimalMarking = ({ navTabs }) => {
         )}
       </Modal>
 
-{/* 6. Mark Livestock Action Modal */}
       <Modal
         open={modalOpen}
         onClose={handleCancelMark}
@@ -2077,7 +1990,6 @@ export const AnimalMarking = ({ navTabs }) => {
       >
         {(selected || selectedBatch) && (
           <form onSubmit={requestConfirmMark} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {/* Livestock Particulars Header Card */}
             <div
               style={{
                 display: "flex",
@@ -2180,7 +2092,6 @@ export const AnimalMarking = ({ navTabs }) => {
                 </div>
               </div>
 
-              {/* Per-Species Male & Female Breakdown */}
               <div
                 style={{
                   paddingTop: 10,
@@ -2255,7 +2166,6 @@ export const AnimalMarking = ({ navTabs }) => {
               </div>
             </div>
 
-            {/* Type of Marking Options Grid */}
             <div className="form-group" style={{ marginBottom: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <label className="form-label" style={{ fontWeight: 700, margin: 0, color: "var(--color-text)" }}>
@@ -2337,7 +2247,6 @@ export const AnimalMarking = ({ navTabs }) => {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div
               style={{
                 display: "flex",
@@ -2392,7 +2301,6 @@ export const AnimalMarking = ({ navTabs }) => {
         )}
       </Modal>
 
-      {/* Animal Marking Confirmation Dialog */}
       <ConfirmDialog
         open={Boolean(confirmingMark)}
         onCancel={() => {
@@ -2440,7 +2348,6 @@ export const AnimalMarking = ({ navTabs }) => {
         loading={submitting}
       />
 
-      {/* Delete Confirmation Dialog */}
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         onCancel={() => setDeleteTarget(null)}
@@ -2469,7 +2376,6 @@ export const AnimalMarking = ({ navTabs }) => {
         loading={deleting}
       />
 
-      {/* Edit Livestock Details Modal */}
       <Modal
         open={Boolean(editTarget)}
         onClose={() => {
@@ -2482,7 +2388,6 @@ export const AnimalMarking = ({ navTabs }) => {
       >
         {editTarget && (
           <form onSubmit={handleSaveEdit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-            {/* Quick Context Banner */}
             <div
               style={{
                 display: "flex",
@@ -2522,9 +2427,7 @@ export const AnimalMarking = ({ navTabs }) => {
               </div>
             </div>
 
-            {/* Symmetrical 2-Column Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 14px" }}>
-              {/* 1. Animal Species (Name only) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontSize: 12, fontWeight: 700, marginBottom: 5, color: "var(--color-text)", display: "block" }}>
                   Animal Species <span style={{ color: "#ef4444" }}>*</span>
@@ -2559,7 +2462,6 @@ export const AnimalMarking = ({ navTabs }) => {
                 </div>
               </div>
 
-              {/* 2. Quantity (Fixed to 1) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontSize: 12, fontWeight: 700, marginBottom: 5, color: "var(--color-text)", display: "block" }}>
                   Quantity
@@ -2598,7 +2500,6 @@ export const AnimalMarking = ({ navTabs }) => {
                 </div>
               </div>
 
-              {/* 3. Sex */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontSize: 12, fontWeight: 700, marginBottom: 5, color: "var(--color-text)", display: "block" }}>
                   Sex <span style={{ color: "#ef4444" }}>*</span>
@@ -2636,7 +2537,6 @@ export const AnimalMarking = ({ navTabs }) => {
                 </div>
               </div>
 
-              {/* 4. Age (Searchable Dropdown with Manual Text Input) */}
               <div className="form-group" style={{ marginBottom: 0 }}>
                 <label className="form-label" style={{ fontSize: 12, fontWeight: 700, marginBottom: 5, color: "var(--color-text)", display: "block" }}>
                   Age <span style={{ color: "#ef4444" }}>*</span>
@@ -2692,7 +2592,6 @@ export const AnimalMarking = ({ navTabs }) => {
           </form>
         )}
       </Modal>
-      {/* Edit Livestock Details Confirmation Dialog */}
       <ConfirmDialog
         open={confirmEditOpen}
         onCancel={() => {
@@ -2706,7 +2605,6 @@ export const AnimalMarking = ({ navTabs }) => {
         loading={savingEdit}
         message={`Are you sure you want to update the livestock details for ${editTarget?.tag_number || "this record"}?`}
       />
-      {/* Marking Completed Notification Modal */}
       <AlertDialog
         open={Boolean(markSuccessNotice)}
         onClose={() => setMarkSuccessNotice(null)}

@@ -21,7 +21,6 @@ export const OwnerProfile = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // Profile data
   const [owner, setOwner] = useState(null);
   const [authUser, setAuthUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +28,6 @@ export const OwnerProfile = () => {
   const [copied, setCopied] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
 
-  // Alert Dialog Popup state
   const [alertDialog, setAlertDialog] = useState({
     open: false,
     title: "",
@@ -37,10 +35,9 @@ export const OwnerProfile = () => {
     variant: "success",
   });
 
-  // Edit Personal Information state
   const [isEditing, setIsEditing] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
-  const [profileMsg, setProfileMsg] = useState(null); // { type: 'success'|'error', text: '' }
+  const [profileMsg, setProfileMsg] = useState(null);
   const [form, setForm] = useState({
     name: "",
     contact: "",
@@ -48,13 +45,11 @@ export const OwnerProfile = () => {
   });
   const [contactError, setContactError] = useState("");
 
-  // Photo upload and preview state
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoMsg, setPhotoMsg] = useState(null);
 
-  // Account Security / Password change state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -64,10 +59,8 @@ export const OwnerProfile = () => {
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [securityMsg, setSecurityMsg] = useState(null);
 
-  // Installed APK or installed PWA
   const isRunningInNativeApk = isInstalledApp();
 
-  // Fetch real owner profile from Supabase (authoritative data from public.owners)
   const fetchProfile = async () => {
     setLoading(true);
     try {
@@ -80,7 +73,6 @@ export const OwnerProfile = () => {
       let targetOwnerId = ownerId || session?.owner_id;
       let foundOwner = null;
 
-      // 1. Try finding owner in public.owners by auth_user_id (the authentic link to Supabase Auth user)
       if (authUid) {
         const { data: oByAuthId } = await supabase
           .from(TABLES.OWNERS)
@@ -94,7 +86,6 @@ export const OwnerProfile = () => {
         }
       }
 
-      // 2. If not found by auth_user_id, try by ownerId
       if (!foundOwner && targetOwnerId) {
         const { data: oById } = await supabase
           .from(TABLES.OWNERS)
@@ -107,7 +98,6 @@ export const OwnerProfile = () => {
         }
       }
 
-      // 3. If not found, try by email
       if (!foundOwner && email) {
         const { data: oByEmail } = await supabase
           .from(TABLES.OWNERS)
@@ -121,7 +111,6 @@ export const OwnerProfile = () => {
         }
       }
 
-      // 4. Fallback: check public.users to find linked owner_id
       if (!foundOwner && (authUid || email)) {
         let uQ = supabase.from(TABLES.USERS).select("owner_id, full_name, avatar_url");
         if (authUid && email) {
@@ -144,7 +133,6 @@ export const OwnerProfile = () => {
         }
       }
 
-      // Ensure auth_user_id is permanently linked on the owner record if it was missing
       if (foundOwner && authUid && !foundOwner.auth_user_id) {
         try {
           await supabase.from(TABLES.OWNERS).update({ auth_user_id: authUid }).eq("id", foundOwner.id);
@@ -176,7 +164,6 @@ export const OwnerProfile = () => {
     };
   }, [ownerId]);
 
-  // Handle Photo Selection & Preview
   const handlePhotoSelect = (e) => {
     setPhotoMsg(null);
     const file = e.target.files?.[0];
@@ -219,7 +206,6 @@ export const OwnerProfile = () => {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Upload and Save Profile Picture to Supabase Storage
   const handleSavePhoto = () => {
     if (!selectedFile || isUploadingPhoto) return;
     setConfirmAction({
@@ -241,13 +227,11 @@ export const OwnerProfile = () => {
       const email = owner?.email || authUser?.email || session?.email;
       const targetIdentifier = targetOwnerId || authUserId || "owner";
 
-      // 1. Upload to Supabase Storage ('avatars' bucket) and get public CDN URL
       const publicUrl = await uploadAvatarFile(selectedFile, targetIdentifier);
       if (!publicUrl) {
         throw new Error("Unable to retrieve public CDN URL for the uploaded photo.");
       }
 
-      // 2. Persist in database records via ownerAuthService with confirmation
       await ownerAuthService.updateOwnerPhoto({
         ownerId: targetOwnerId,
         authUserId,
@@ -255,7 +239,6 @@ export const OwnerProfile = () => {
         avatarUrl: publicUrl,
       });
 
-      // 3. Update session storage & authStore
       const curSess = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION) || "{}");
       const newSess = { ...curSess, avatar_url: publicUrl };
       sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(newSess));
@@ -271,7 +254,6 @@ export const OwnerProfile = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
       setPhotoMsg({ type: "success", text: "Profile picture saved successfully!" });
 
-      // Requirement 4: Display a success popup after successfully saving changes
       setAlertDialog({
         open: true,
         title: "Profile Picture Updated",
@@ -293,7 +275,6 @@ export const OwnerProfile = () => {
     }
   };
 
-  // Save Personal Information to Supabase
   const handleSaveProfile = async (e) => {
     e?.preventDefault();
     setProfileMsg(null);
@@ -314,7 +295,6 @@ export const OwnerProfile = () => {
       return;
     }
 
-    // Strict validation for Philippine mobile number (TM, TNT, Smart, Globe)
     const phoneVal = validatePhilippineMobileNumber(trimmedContact);
     if (!phoneVal.isValid) {
       setContactError(phoneVal.error);
@@ -349,7 +329,6 @@ export const OwnerProfile = () => {
       const authUserId = authUser?.id || session?.id || session?.user_id;
       const targetOwnerId = owner?.id || ownerId || session?.owner_id;
 
-      // 1. Invoke authoritative backend update with server-side validation
       await ownerAuthService.updateOwnerProfile({
         ownerId: targetOwnerId,
         authUserId,
@@ -359,7 +338,6 @@ export const OwnerProfile = () => {
         address: trimmedAddress,
       });
 
-      // 2. Update session storage and global auth store
       const curSess = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION) || "{}");
       const newSess = { ...curSess, name: trimmedName, phone: phoneVal.digits };
       sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(newSess));
@@ -382,7 +360,6 @@ export const OwnerProfile = () => {
         text: "Personal information updated successfully!",
       });
 
-      // Requirement 4: Display a success popup after successfully saving changes
       setAlertDialog({
         open: true,
         title: "Profile Updated",
@@ -404,7 +381,6 @@ export const OwnerProfile = () => {
     }
   };
 
-  // Change Password
   const handleChangePassword = async (e) => {
     e?.preventDefault();
     setSecurityMsg(null);
@@ -429,7 +405,6 @@ export const OwnerProfile = () => {
       const email = owner?.email || authUser?.email || session?.email;
       if (!email) throw new Error("Authenticated email not found.");
 
-      // Verify current password first
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password: currentPassword,
@@ -441,14 +416,12 @@ export const OwnerProfile = () => {
         return;
       }
 
-      // Update password
       const { error: updErr } = await supabase.auth.updateUser({
         password: newPassword,
       });
 
       if (updErr) throw updErr;
 
-      // Clear password inputs
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -478,7 +451,6 @@ export const OwnerProfile = () => {
     }
   };
 
-  // Resolve active avatar URL
   const resolvedAvatarUrl =
     previewUrl ||
     owner?.avatar_url ||
@@ -497,7 +469,6 @@ export const OwnerProfile = () => {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-      {/* Hidden File Input for Profile Picture Upload */}
       <input
         ref={fileInputRef}
         type="file"
@@ -506,9 +477,6 @@ export const OwnerProfile = () => {
         onChange={handlePhotoSelect}
       />
 
-      {/* ============================================================ */}
-      {/* SECTION A: PROFILE HEADER                                    */}
-      {/* ============================================================ */}
       <div className="owner-profile-card" style={{ position: "relative" }}>
         <div
           style={{
@@ -519,7 +487,6 @@ export const OwnerProfile = () => {
             flexWrap: "wrap",
           }}
         >
-          {/* Left: Circular Profile Picture */}
           <div className="owner-profile-avatar-wrap" style={{ margin: 0, flexShrink: 0 }}>
             {resolvedAvatarUrl && !avatarError ? (
               <img
@@ -533,7 +500,6 @@ export const OwnerProfile = () => {
               <Icon.User size={38} />
             )}
 
-            {/* Change Photo Camera Button */}
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -544,13 +510,11 @@ export const OwnerProfile = () => {
               <Icon.Camera size={14} />
             </button>
 
-            {/* Verified Status Badge */}
             <div className="owner-profile-check-badge" title="Verified Livestock Owner">
               <Icon.Check size={12} style={{ strokeWidth: 3 }} />
             </div>
           </div>
 
-          {/* Right: Name, Email & Status */}
           <div
             style={{
               display: "flex",
@@ -560,18 +524,15 @@ export const OwnerProfile = () => {
               textAlign: "left",
             }}
           >
-            {/* Owner Full Name */}
             <h1 className="owner-profile-name" style={{ fontSize: 18, marginBottom: 0 }}>
               {loading ? "Loading..." : displayName}
             </h1>
 
-            {/* Registered Email */}
             <div style={{ fontSize: 12, color: "#5D6660", display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 5 }}>
               <Icon.Mail size={12} />
               <span>{registeredEmail}</span>
             </div>
 
-            {/* Account Status Pill */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-start", flexWrap: "wrap", gap: 8, marginTop: 4 }}>
               <span
                 style={{
@@ -595,9 +556,6 @@ export const OwnerProfile = () => {
           </div>
         </div>
 
-        {/* ============================================================ */}
-        {/* SECTION C: PROFILE PICTURE PREVIEW BEFORE SAVING             */}
-        {/* ============================================================ */}
         {previewUrl && (
           <div className="owner-profile-preview-card" style={{ marginTop: 10 }}>
             <img src={previewUrl} alt="Preview" className="owner-profile-preview-img" />
@@ -651,9 +609,6 @@ export const OwnerProfile = () => {
         )}
       </div>
 
-      {/* ============================================================ */}
-      {/* SECTION B: PERSONAL INFORMATION                              */}
-      {/* ============================================================ */}
       <div className="owner-profile-card">
         <div className="owner-profile-section-title">
           <h2 className="owner-profile-section-heading">
@@ -692,7 +647,6 @@ export const OwnerProfile = () => {
         )}
 
         {isEditing ? (
-          /* Edit Form */
           <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div className="owner-profile-field">
               <label className="owner-profile-label" htmlFor="owner-fullname">
@@ -812,7 +766,6 @@ export const OwnerProfile = () => {
             </div>
           </form>
         ) : (
-          /* View List */
           <div className="owner-profile-info-grid">
             <div className="owner-profile-info-row">
               <span className="owner-profile-info-label">
@@ -853,12 +806,7 @@ export const OwnerProfile = () => {
         )}
       </div>
 
-      {/* ============================================================ */}
-      {/* SECTION F: TWO-FACTOR AUTHENTICATION & SECURITY              */}
 
-      {/* ============================================================ */}
-      {/* SECTION E: AUTHENTICATION & ACTIVE SESSIONS (2FA & DEVICES) */}
-      {/* ============================================================ */}
       <AuthSecuritySessions
         userEmail={registeredEmail}
         userRole="owner"
@@ -866,9 +814,6 @@ export const OwnerProfile = () => {
         onSignOut={handleLogout}
       />
 
-      {/* ============================================================ */}
-      {/* SECTION G: SIGN OUT                                          */}
-      {/* ============================================================ */}
       <button
         type="button"
         onClick={handleLogout}
@@ -879,7 +824,6 @@ export const OwnerProfile = () => {
         <span>Sign Out of Portal</span>
       </button>
 
-      {/* Confirmation Dialog for Profile & Photo Actions */}
       <ConfirmDialog
         open={Boolean(confirmAction)}
         onCancel={() => {
@@ -897,7 +841,6 @@ export const OwnerProfile = () => {
         loading={isSavingProfile || isUploadingPhoto}
       />
 
-      {/* Confirmation & Status Popup Dialog */}
       <AlertDialog
         open={alertDialog.open}
         onClose={() => setAlertDialog((prev) => ({ ...prev, open: false }))}

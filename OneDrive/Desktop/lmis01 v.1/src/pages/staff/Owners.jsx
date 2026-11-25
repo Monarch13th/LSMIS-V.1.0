@@ -111,14 +111,12 @@ export const Owners = ({ initialTab = "owners" }) => {
     setAllKnownRows([...(livestock || []), ...extraRows]);
   }, [livestock, carcassRecords, anteRecords, slaughterRecords, processingRecords]);
 
-  // Search, Filters & Sorting
   const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("all"); // "all" | "with_animals" | "no_animals"
-  const [statusFilter, setStatusFilter] = useState("all"); // "all" | "Approved" | "Pending"
-  const [sortBy, setSortBy] = useState("recent"); // "recent" | "name" | "animals"
+  const [filterType, setFilterType] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sortBy, setSortBy] = useState("recent");
   const [copiedId, setCopiedId] = useState(null);
 
-  // Modals & Banners
   const [detailModalOwner, setDetailModalOwner] = useState(null);
   const [intakeModalOwner, setIntakeModalOwner] = useState(null);
   const [registrationSuccessDialog, setRegistrationSuccessDialog] = useState(null);
@@ -172,7 +170,6 @@ export const Owners = ({ initialTab = "owners" }) => {
   const getOwnerAnimals = (o) => {
     if (!o) return [];
 
-    // Rejected owners cannot have active registered intake livestock
     const status = (o.status || "").toLowerCase().trim();
     if (status === "rejected") return [];
 
@@ -185,7 +182,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       const lOwnerId = String(l.owner_id || "").toLowerCase().trim();
       const lOwnerName = String(l.owner_name || "").toLowerCase().trim();
 
-      // If livestock has an explicit owner_id set, match strictly against owner IDs
       if (lOwnerId) {
         return (
           lOwnerId === ownerIdStr ||
@@ -194,7 +190,6 @@ export const Owners = ({ initialTab = "owners" }) => {
         );
       }
 
-      // Fallback only if livestock has NO owner_id set, match by owner_name
       return Boolean(lOwnerName && ownerNameStr && lOwnerName === ownerNameStr);
     });
   };
@@ -203,7 +198,6 @@ export const Owners = ({ initialTab = "owners" }) => {
     return getOwnerAnimals(o).reduce((sum, curr) => sum + (Number(curr.quantity) || 1), 0);
   };
 
-  // Filter & Search Logic
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const cleanQ = q.replace(/\s+/g, "");
@@ -247,7 +241,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       return true;
     });
 
-    // Helper to extract timestamp (created_at or registered_date)
     const getOwnerTimestamp = (o) => {
       if (!o) return 0;
       const regTime = o.registered_date ? new Date(o.registered_date).getTime() : NaN;
@@ -259,7 +252,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       if (hasReg && hasCreate) {
         const regDateStr = new Date(regTime).toISOString().slice(0, 10);
         const createDateStr = new Date(createTime).toISOString().slice(0, 10);
-        // If created_at is on that same registered date, use created_at for precise time-of-day
         if (regDateStr === createDateStr) {
           return createTime;
         }
@@ -270,7 +262,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       return 0;
     };
 
-    // Sort results
     return [...matches].sort((a, b) => {
       if (sortBy === "animals") {
         const diff = getOwnerAnimalsCount(b) - getOwnerAnimalsCount(a);
@@ -280,7 +271,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       if (sortBy === "name") {
         return (a.name || "").localeCompare(b.name || "");
       }
-      // Default: "recent" (Newest registered owners at the top)
       const ta = getOwnerTimestamp(a);
       const tb = getOwnerTimestamp(b);
       if (tb !== ta) return tb - ta;
@@ -291,7 +281,6 @@ export const Owners = ({ initialTab = "owners" }) => {
     });
   }, [data, livestock, search, filterType, statusFilter, sortBy]);
 
-  // Statistics
   const totalAnimals = data.reduce((s, o) => s + getOwnerAnimalsCount(o), 0);
   const ownersWithAnimalsCount = data.filter((o) => getOwnerAnimalsCount(o) > 0).length;
   const approvedOwnersCount = data.filter((o) => !o.status || o.status === "Approved").length;
@@ -302,7 +291,6 @@ export const Owners = ({ initialTab = "owners" }) => {
     ).length;
   }, [livestock]);
 
-  // Exact Animal Marking count: Only livestock ready for Animal Marking (Unmarked registered animals, not condemned, not downstream)
   const awaitingMarkingCount = useMemo(() => {
     const anteRejectedSet = new Set();
     (anteRecords || []).forEach((am) => {
@@ -345,7 +333,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       const key = tag || id;
       if (seen.has(key)) return false;
 
-      // Must NOT be already marked
       const isMarked =
         l.marked === true ||
         l.marked === "true" ||
@@ -356,13 +343,11 @@ export const Owners = ({ initialTab = "owners" }) => {
         Boolean(l.mark_date);
       if (isMarked) return false;
 
-      // Must NOT be condemned or rejected
       const s = String(l.status || "").trim().toLowerCase();
       if (s.includes("condemn") || s.includes("reject")) return false;
       if (anteRejectedSet.has(tag) || (id && anteRejectedSet.has(id))) return false;
       if (tag && condSet.has(tag)) return false;
 
-      // Must NOT be in downstream stages
       if (
         s === "released" ||
         s === "completed" ||
@@ -383,7 +368,6 @@ export const Owners = ({ initialTab = "owners" }) => {
     }).length;
   }, [livestock, anteRecords, condemnedRecords, processingRecords, slaughterRecords, carcassRecords]);
 
-  // Pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -439,7 +423,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       showToast(`Cannot register livestock: Owner account is ${owner.status}.`, "warning");
       return;
     }
-    // Retrieve the owner's latest saved profile from Supabase
     try {
       if (owner?.id) {
         const { data, error } = await supabase
@@ -479,7 +462,6 @@ export const Owners = ({ initialTab = "owners" }) => {
     const targetOwnerId = owner?.id || owner?.owner_id || null;
     let targetOwnerName = owner?.name || owner?.owner_name || "Owner";
 
-    // Re-verify against master owners record to guarantee 100% current profile name
     if (targetOwnerId) {
       try {
         const { data: freshOwner } = await supabase
@@ -593,9 +575,7 @@ export const Owners = ({ initialTab = "owners" }) => {
 
       {activeTab === "owners" && (
         <>
-          {/* MAIN DIRECTORY CONTAINER (BORDERLESS RECORD VIEW) */}
           <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-            {/* Swapped Toolbar: Segmented Tabs (Left) & Search + Sort (Right) */}
             <div
               className="records-fixed-header"
               style={{
@@ -611,10 +591,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                 boxSizing: "border-box",
               }}
             >
-              {/* Left: Swapped Navigation Tabs */}
               {renderNavTabs()}
 
-              {/* Right: Search Bar beside Sort Selector */}
               <div
                 style={{
                   display: "flex",
@@ -624,7 +602,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                   justifyContent: "flex-end",
                 }}
               >
-                {/* Search Box */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, width: 340, maxWidth: "100%", position: "relative" }}>
                   <input
                     type="text"
@@ -688,7 +665,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                   )}
                 </div>
 
-                {/* Sort Selector (Ante-Mortem Style with Custom Chevron) */}
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <select
                     value={sortBy}
@@ -723,9 +699,7 @@ export const Owners = ({ initialTab = "owners" }) => {
               </div>
             </div>
 
-        {/* Table Content */}
         {loading ? (
-          /* Smooth Skeleton Placeholder */
           <div style={{ padding: "20px 24px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
               {[1, 2, 3, 4, 5].map((idx) => (
@@ -829,7 +803,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                       }}
                       className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40"
                     >
-                      {/* 1. Owner Identity */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           {(() => {
@@ -914,7 +887,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                         </div>
                       </td>
 
-                      {/* 2. Contact & Mobile */}
                       <td style={{ padding: "14px 18px" }}>
                         <div>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6, color: "var(--color-text)", fontSize: 13, fontWeight: 600 }}>
@@ -932,7 +904,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                         </div>
                       </td>
 
-                      {/* 3. Address */}
                       <td style={{ padding: "14px 18px", maxWidth: 220 }}>
                         <div style={{ display: "flex", alignItems: "flex-start", gap: 6 }}>
                           <Icon.MapPin size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0, marginTop: 3 }} />
@@ -942,7 +913,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                         </div>
                       </td>
 
-                      {/* 4. Account Status */}
                       <td style={{ padding: "14px 18px" }}>
                         <span
                           style={{
@@ -991,7 +961,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                         </span>
                       </td>
 
-                      {/* 5. Registered Livestock Heads */}
                       <td style={{ padding: "14px 18px", textAlign: "center" }}>
                         <button
                           type="button"
@@ -1015,10 +984,8 @@ export const Owners = ({ initialTab = "owners" }) => {
                         </button>
                       </td>
 
-                      {/* 6. Intake Actions */}
                       <td className="table-action-td">
                         <div className="table-action-group">
-                          {/* Secondary Action: View Details Modal */}
                           <button
                             type="button"
                             className="action-btn action-btn-outline"
@@ -1029,7 +996,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                             <span>View</span>
                           </button>
 
-                          {/* Primary Action: Register Livestock */}
                           <button
                             type="button"
                             className="action-btn action-btn-success"
@@ -1051,7 +1017,6 @@ export const Owners = ({ initialTab = "owners" }) => {
         )}
       </div>
 
-      {/* 5. RICH OWNER PROFILE & DETAILS MODAL */}
       <Modal
         open={!!detailModalOwner}
         onClose={() => setDetailModalOwner(null)}
@@ -1088,7 +1053,6 @@ export const Owners = ({ initialTab = "owners" }) => {
       >
         {detailModalOwner && (
           <div style={{ display: "flex", flexDirection: "column", gap: 14, flex: 1, minHeight: 0 }}>
-            {/* Top Identity Header Card */}
             <div
               style={{
                 display: "flex",
@@ -1180,7 +1144,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                 </div>
               </div>
 
-              {/* Status Badge */}
               <span
                 style={{
                   display: "inline-flex",
@@ -1228,7 +1191,6 @@ export const Owners = ({ initialTab = "owners" }) => {
               </span>
             </div>
 
-            {/* 4-Stat Particulars Card */}
             <div
               style={{
                 display: "grid",
@@ -1236,7 +1198,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                 gap: 12,
               }}
             >
-              {/* Contact Number */}
               <div
                 style={{
                   padding: "12px 14px",
@@ -1283,7 +1244,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                 </div>
               </div>
 
-              {/* Account Email */}
               <div
                 style={{
                   padding: "12px 14px",
@@ -1330,7 +1290,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                 </div>
               </div>
 
-              {/* Address */}
               <div
                 style={{
                   padding: "12px 14px",
@@ -1367,7 +1326,6 @@ export const Owners = ({ initialTab = "owners" }) => {
                 </div>
               </div>
 
-              {/* Registration Date */}
               <div
                 style={{
                   padding: "12px 14px",
@@ -1405,7 +1363,6 @@ export const Owners = ({ initialTab = "owners" }) => {
               </div>
             </div>
 
-            {/* Livestock Table Section (Only scrollable region inside Owner Details) */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 2, flex: 1, minHeight: 0 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 2px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 13.5, fontWeight: 800, color: "var(--color-text)" }}>
@@ -1511,7 +1468,6 @@ export const Owners = ({ initialTab = "owners" }) => {
         )}
       </Modal>
 
-      {/* 6. MULTI-LIVESTOCK INTAKE REGISTRATION MODAL */}
       <Modal
         open={!!intakeModalOwner}
         onClose={() => setIntakeModalOwner(null)}
@@ -1546,7 +1502,6 @@ export const Owners = ({ initialTab = "owners" }) => {
         )}
       </Modal>
 
-      {/* 7. LIVESTOCK REGISTRATION CONFIRMATION POPUP */}
       <AlertDialog
         open={Boolean(registrationSuccessDialog?.open)}
         onClose={handleCloseRegistrationSuccessDialog}

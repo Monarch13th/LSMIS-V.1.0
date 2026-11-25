@@ -1,5 +1,3 @@
-// Removes the downloadable APK (public/downloads) from the Capacitor Android assets so the APK
-// does not contain a copy of itself. The website still serves /downloads/* from dist/.
 import fs from "fs";
 import path from "path";
 

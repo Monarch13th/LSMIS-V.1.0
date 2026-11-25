@@ -8,13 +8,10 @@ import { getCurrentActor, appendProcessEvent, parseHistory } from "../utils/proc
 import { staffService } from "./staffService";
 import { adminService } from "./adminService";
 
-// Fire database change notification to update all mounted hooks locally, cross-tab, and cross-browser.
 const notifyChange = (table = TABLES.ANTE_MORTEM, action = "update", record = null) => {
   notifyDbChange(table, action, record);
 };
 
-// A single stalled network call must never leave a Delete button spinning forever.
-// Every awaited Supabase/storage call in the delete paths is wrapped in this.
 const DEFAULT_TIMEOUT_MS = 15000;
 const withTimeout = (promise, ms = DEFAULT_TIMEOUT_MS, label = "request") =>
   Promise.race([
@@ -24,9 +21,6 @@ const withTimeout = (promise, ms = DEFAULT_TIMEOUT_MS, label = "request") =>
     ),
   ]);
 
-// condemnation_records has no stage column, so the stage is derived from `part` exactly
-// like the UI does: "Live Animal" is an Ante-Mortem rejection/rejection-of-intake,
-// every other part is a Post-Mortem condemnation.
 const condemnationStageOf = (row) => {
   if (!row) return null;
   const explicit = `${row.inspection_type || ""} ${row.stage || ""} ${row.type || ""}`.toLowerCase();
@@ -66,10 +60,6 @@ const CORE_LIVESTOCK_COLUMNS = ["status", "owner_name", "marked", "mark_type", "
 const isMissingColumnError = (error) =>
   /PGRST204|42703|column|schema cache/i.test(`${error?.code || ""} ${error?.message || ""}`);
 
-/**
- * Writes a livestock patch to Supabase, retrying with only the core columns that
- * always exist if the full patch is rejected for missing attribution columns.
- */
 const persistLivestockPatch = async (patch, apply) => {
   const safe = Object.fromEntries(
     Object.entries(patch || {}).filter(([k]) => LIVESTOCK_WRITABLE_COLUMNS.includes(k))
@@ -125,13 +115,11 @@ export const vetService = {
     await adminService.assertActiveSession();
     const table = type === "Ante-Mortem" ? TABLES.ANTE_MORTEM : TABLES.POST_MORTEM;
     
-    // Ensure the inspector is a Veterinarian (never staff)
     const session = authService.getSession();
     const actor = getCurrentActor();
     const inspector = (session && session.role === "vet") ? session.name : (actor.role === "vet" ? actor.name : (payload.inspector_name || actor.name || "Veterinarian"));
     const inspectorId = actor.id || session?.id || session?.user_id || null;
     
-    // Generate sequential unique ID padded to 5 digits (e.g. 00001)
     let formattedId = payload.id;
     if (!formattedId) {
       let nextNum = 1;
@@ -151,7 +139,6 @@ export const vetService = {
       formattedId = String(nextNum).padStart(5, "0");
     }
 
-    // Build findings text if parts are specified
     let effectiveFindings = payload.findings || "None";
     if (payload.condemned_parts && payload.condemned_parts.length > 0) {
       const partsSummary = payload.condemned_parts.map((p) => `${p.part} (${p.weight || p.weight_kg} kg)`).join(", ");
@@ -166,7 +153,6 @@ export const vetService = {
     const isApproval = payload.decision === "Approved" || payload.decision === "Passed";
     const isRejection = payload.decision === "Rejected" || payload.decision === "Condemned" || payload.decision === "Whole Carcass Condemned";
 
-    // Clean payload matching exact database columns
     const dbPayload = {
       id: formattedId,
       date: payload.date || today(),
@@ -180,7 +166,6 @@ export const vetService = {
       findings: effectiveFindings,
       decision: payload.decision || "Approved",
       remarks: payload.remarks || "",
-      // Post-Mortem inspections persist their raw decision + condemned parts
       ...(type === "Post-Mortem"
         ? {
             raw_decision: payload.raw_decision || payload.decision || null,
@@ -250,7 +235,6 @@ export const vetService = {
       error: null
     };
 
-    // Sync livestock status so Admin & Staff see it immediately
     let speciesName = payload.species || "Unknown";
     const isPartial =
       payload.decision === "Partial" ||
@@ -300,7 +284,6 @@ export const vetService = {
             ? "Approved"
             : animal.status;
         } else {
-          // Post-Mortem
           newStatus = isWholeCarcassCondemned
             ? "Post-Mortem Whole Carcass Condemned"
             : isPartial
@@ -377,7 +360,6 @@ export const vetService = {
       }
 
       if (isWholeCarcassCondemned && payload.tag_number) {
-        // Ensure slaughter processing and records mark the carcass as Condemned so it does not proceed downstream
         const condStatus = type === "Ante-Mortem" ? "Ante-Mortem Condemned" : "Post-Mortem Condemned";
         const cleanTag = String(payload.tag_number).trim();
         await Promise.allSettled([
@@ -386,7 +368,6 @@ export const vetService = {
         ]);
       }
 
-    // Create itemized condemnation records if specific condemned parts were logged on a Partial decision
     if (isPartial && payload.condemned_parts && payload.condemned_parts.length > 0) {
       for (const item of payload.condemned_parts) {
         try {
@@ -429,13 +410,7 @@ export const vetService = {
             notes: item.notes || payload.remarks || `Post-Mortem condemned part (${item.part}) inspection record.`
           });
 
-          // (createCondemnationRecord automatically creates the linked evidence records and uploads photos)
 
-          // Also insert into dedicated post_mortem_condemned_cuts table if available.
-          // `firstPhotoUrl` above is a browser value (base64 data URL), and
-          // createCondemnationRecord has by now uploaded the file to Storage and
-          // returned the real URL. Use that returned URL so photo_url holds a
-          // Supabase Storage reference instead of a duplicate in-row image.
           const storedPhotoUrl = condRes?.data?.photo_url || null;
           const { error: cutInsertError } = await supabase.from("post_mortem_condemned_cuts").insert({
             inspection_id: formattedId,
@@ -461,7 +436,6 @@ export const vetService = {
         }
       }
     } else if (isWholeCarcassCondemned) {
-      // Whole Carcass Condemnation (Post-Mortem) or Ante-Mortem Rejection / Condemnation
       const stageName = type === "Ante-Mortem" ? "Ante-Mortem" : "Post-Mortem";
       const partName = type === "Ante-Mortem" ? "Live Animal" : "Whole Carcass";
       const defaultQty = type === "Ante-Mortem" ? "1 Head" : "Whole Carcass";
@@ -535,7 +509,6 @@ export const vetService = {
     const inspector = (session && session.role === "vet") ? session.name : (actor.role === "vet" ? actor.name : (records[0]?.inspector_name || actor.name || "Veterinarian"));
     const inspectorId = actor.id || session?.id || session?.user_id || null;
 
-    // 1. Fetch next sequential base ID ONCE
     let baseNum = 1;
     try {
       const { data: existing } = await supabase
@@ -554,7 +527,6 @@ export const vetService = {
     const nowObj = new Date();
     const nowIso = nowObj.toISOString();
 
-    // 2. Prepare database payloads with pre-allocated continuous sequential IDs
     const preparedItems = records.map((item, idx) => {
       const formattedId = item.id || String(baseNum + idx).padStart(5, "0");
 
@@ -643,7 +615,6 @@ export const vetService = {
     let condemnedCount = 0;
     let partialCount = 0;
 
-    // 3. Update livestock statuses and process histories in parallel
     await Promise.allSettled(
       preparedItems.map(async (entry) => {
         const { item, isPartial, isWholeCarcassCondemned, isApprovedOrPartial, effectiveFindings } = entry;
@@ -709,7 +680,6 @@ export const vetService = {
             await persistLivestockPatch(statusPatch, (p) => supabase.from(TABLES.LIVESTOCK).update(p).ilike("tag_number", cleanTag));
           }
 
-          // Whole carcass downstream status sync if condemned
           if (isWholeCarcassCondemned && tag) {
             const condStatus = type === "Ante-Mortem" ? "Ante-Mortem Condemned" : "Post-Mortem Condemned";
             await Promise.allSettled([
@@ -718,7 +688,6 @@ export const vetService = {
             ]);
           }
 
-          // Condemned parts handling if partial condemnation
           if (isPartial && item.condemned_parts && item.condemned_parts.length > 0) {
             for (const cut of item.condemned_parts) {
               try {
@@ -779,7 +748,6 @@ export const vetService = {
       })
     );
 
-    // 4. Log single batch activity and fire notifyChange ONCE
     logActivity({
       action: `${type} inspection batch (${succeededTags.length} records) certified`,
       module: "Inspection",
@@ -803,7 +771,6 @@ export const vetService = {
   },
 
   deleteInspection: async (type, id, optionalTag, optionalLivestockId) => {
-    // 1. Authorization check
     const session = authService.getSession();
     const isAuthorized = session && (session.role === "vet" || session.role === "admin" || session.role === "inspector" || session.role === "staff");
     if (!isAuthorized) {
@@ -812,7 +779,6 @@ export const vetService = {
 
     const table = type === "Ante-Mortem" ? TABLES.ANTE_MORTEM : TABLES.POST_MORTEM;
 
-    // 2. Retrieve target inspection record details before deletion
     let targetRecord = null;
     if (id) {
       try {
@@ -826,7 +792,6 @@ export const vetService = {
     let livestockId = String(optionalLivestockId || targetRecord?.livestock_id || "").trim() || null;
     const previousDecision = targetRecord?.decision || targetRecord?.status || "Saved Inspection";
 
-    // Fallback: resolve livestock ID by tag if missing
     if (!livestockId && cleanTag) {
       try {
         const { data: liveData } = await supabase.from(TABLES.LIVESTOCK).select("id").ilike("tag_number", cleanTag).maybeSingle();
@@ -834,7 +799,6 @@ export const vetService = {
       } catch (_) {}
     }
 
-    // 3. Delete inspection record from Supabase
     try {
       if (id) {
         await supabase.from(table).delete().eq("id", id);
@@ -847,7 +811,6 @@ export const vetService = {
     }
 
     if (cleanTag) {
-      // 4. Delete associated condemnation records for this tag & inspection stage.
       try {
         const { data: condRows } = await supabase
           .from(TABLES.CONDEMNATION_RECORDS || "condemnation_records")
@@ -867,7 +830,6 @@ export const vetService = {
         console.warn("Error clearing condemnation records on delete:", err);
       }
 
-      // 5. Delete associated evidence records for this tag & inspection stage
       try {
         const { data: evRows } = await supabase
           .from(TABLES.EVIDENCE_RECORDS || "evidence_records")
@@ -885,21 +847,18 @@ export const vetService = {
         console.warn("Error clearing evidence records on delete:", err);
       }
 
-      // 6. Delete itemized cut records if Post-Mortem
       if (type === "Post-Mortem") {
         try {
           await supabase.from("post_mortem_condemned_cuts").delete().ilike("tag_number", cleanTag);
         } catch (_) {}
       }
 
-      // 7. Reset affected livestock status to "Pending"
       try {
         await supabase.from(TABLES.LIVESTOCK).update({ status: "Pending" }).ilike("tag_number", cleanTag);
       } catch (err) {
         console.warn("Error resetting livestock status on delete:", err);
       }
 
-      // 8. For Post-Mortem, if slaughter records had status set to Condemned, restore to Completed
       if (type === "Post-Mortem") {
         try {
           await supabase.from(TABLES.SLAUGHTER_PROCESSING).update({ status: "Completed" }).ilike("tag_number", cleanTag);
@@ -908,7 +867,6 @@ export const vetService = {
       }
     }
 
-    // 9. Record Audit Log
     const userName = session ? (session.name || session.username || "Veterinarian") : "Veterinarian";
     const userRole = session ? session.role : "vet";
     const actionName = type === "Ante-Mortem" ? "Deleted Ante-Mortem Inspection" : "Deleted Post-Mortem Inspection";
@@ -931,7 +889,6 @@ export const vetService = {
       },
     });
 
-    // 10. Notify all mounted hooks once after all local state changes are done
     notifyChange(table, "delete", { id, tag: cleanTag });
 
     return { ok: true, tag_number: cleanTag };
@@ -981,7 +938,6 @@ export const vetService = {
       }
     }
 
-    // Auto-create Ante-Mortem inspection record if approved
     if (status === "Approved" || status === "Passed") {
       try {
         let animal = null;
@@ -1020,7 +976,6 @@ export const vetService = {
       }
     }
 
-    // Auto-create condemnation record if rejected
     if (status === "Rejected") {
       try {
         let animal = null;
@@ -1119,11 +1074,7 @@ export const vetService = {
       attachedPhotos = [{ preview: payload.photo || payload.photo_url || payload.file_url, name: payload.photoName || `${payload.part || "condemned"}_evidence.png` }];
     }
 
-    // Upload files if needed
     if (attachedPhotos.length > 0) {
-      // Every photo must reach Supabase Storage before any row is written. This
-      // used to warn and continue, so a failed upload left the raw File/preview
-      // in place and `photo_url` below could receive a browser data URL.
       const uploaded = await vetService.uploadMultipleEvidenceFiles(attachedPhotos, payload.tag_number);
       attachedPhotos = uploaded.map((u, i) => ({
         id: u.file_path || u.file_url || `photo-${i + 1}`,
@@ -1160,7 +1111,6 @@ export const vetService = {
       findings: payload.findings || "",
       photo_url: firstPhotoUrl,
       photos: attachedPhotos,
-      // Stage is derived from the payload so Ante-Mortem and Post-Mortem never mix
       inspection_type: payload.inspection_type || (payload.part === "Live Animal" ? "Ante-Mortem" : "Post-Mortem"),
     };
 
@@ -1194,7 +1144,6 @@ export const vetService = {
     }
     const res = { data: { ...record, ...dbRes.data[0] }, error: null };
 
-    // Append condemnation event to livestock process history if tag is present
     if (payload.tag_number) {
       try {
         const { data: dbAnimal } = await supabase
@@ -1224,11 +1173,7 @@ export const vetService = {
       }
     }
 
-    // Link attached evidence photos to evidence_records
     if (attachedPhotos.length > 0) {
-      // The photos are in Storage by now, but the evidence row may still fail.
-      // Swallowing that left the condemnation pointing at a photo with no
-      // evidence record and still reported success, so this must propagate.
       await vetService.createMultipleEvidenceRecords(
         {
           tag_number: payload.tag_number,
@@ -1261,8 +1206,6 @@ export const vetService = {
     if (Array.isArray(attachedPhotos) && attachedPhotos.length > 0) {
       const hasUnuploadedFiles = attachedPhotos.some((p) => p.file || (p instanceof File));
       if (hasUnuploadedFiles) {
-        // Abort on failure: continuing would leave the un-uploaded File in place
-        // and `firstPhotoUrl` would pick up its browser preview.
         const uploaded = await vetService.uploadMultipleEvidenceFiles(attachedPhotos, effectiveTag);
         if (uploaded.length > 0) {
           attachedPhotos = uploaded.map((u, i) => ({
@@ -1315,10 +1258,7 @@ export const vetService = {
       }
     }
 
-    // Also update/sync linked evidence records
     if (Array.isArray(attachedPhotos) && attachedPhotos.length > 0 && effectiveTag) {
-      // Same rule as create: a failed evidence insert must not be reported as a
-      // successful update.
       await vetService.createMultipleEvidenceRecords(
         {
           tag_number: effectiveTag,
@@ -1393,11 +1333,6 @@ export const vetService = {
         : (typeof item.preview === "string" && item.preview.startsWith("http"))
         ? item.preview
         : null;
-      // A Storage path is the only proof the object was really written to the
-      // bucket. A bare http URL can be a stale, deleted or data-URI-derived link,
-      // which is how whole-carcass rows ended up pointing at nothing. Only the
-      // combination of a path AND a URL is reused as-is; everything else is
-      // uploaded now.
       const existingRemotePath = nonEmpty(item.file_path) ? String(item.file_path).trim() : null;
       const alreadyUploaded = !!(existingRemotePath && remoteUrl);
 
@@ -1437,8 +1372,6 @@ export const vetService = {
     const MAX_PHOTOS = 3;
     const cappedFiles = (files || []).slice(0, MAX_PHOTOS);
     const uploadedFiles = await vetService.uploadMultipleEvidenceFiles(cappedFiles, payload.tag_number);
-    // Returning an empty list here was indistinguishable from success at the call
-    // site, so a condemnation could report "saved" with no evidence row at all.
     if (!uploadedFiles || uploadedFiles.length === 0) {
       throw new Error(`No evidence photo could be stored for ${payload.tag_number}.`);
     }
@@ -1454,11 +1387,6 @@ export const vetService = {
     }));
 
     const primaryFile = uploadedFiles[0];
-    // The Storage key must reach the row for every stage. It used to be written
-    // only for Ante-Mortem and left `undefined` otherwise, so Post-Mortem
-    // whole-carcass evidence had `file_path = ''` and the object could not be
-    // re-verified later. Without the key a deleted photo is indistinguishable
-    // from a good one.
     const rec = await vetService.createEvidenceRecord(
       {
         tag_number: payload.tag_number,
@@ -1482,9 +1410,6 @@ export const vetService = {
   createEvidenceRecord: async (payload, file) => {
     let fileMetadata = {};
     if (file) {
-      // A Storage failure must abort the whole record. This used to warn and
-      // continue, which stored a browser preview in `file_url` with an empty
-      // `file_path` - a temporary frontend URL presented as a saved photo.
       const { file_path, file_url } = await vetService.uploadEvidenceFile(file, payload.tag_number);
       if (!file_path || !file_url) {
         throw new Error(`Evidence upload for ${payload.tag_number} returned no Storage path.`);
@@ -1521,16 +1446,10 @@ export const vetService = {
       notes: record.notes || "",
       status: record.status || "Active",
     };
-    // `photos` and `file_urls` are real columns but were written only for
-    // Ante-Mortem, so every extra photo of a Post-Mortem condemnation was
-    // dropped on insert and survived only in the browser cache.
     if (Array.isArray(record.photos)) dbRecord.photos = record.photos;
     if (Array.isArray(record.file_urls)) dbRecord.file_urls = record.file_urls;
 
     const dbRes = await supabase.from(TABLES.EVIDENCE_RECORDS).insert(dbRecord);
-    // supabase-js resolves with { error } instead of throwing, so the insert has
-    // to be inspected explicitly. Reporting success here is what let evidence
-    // look saved while the row was never written.
     if (dbRes && dbRes.error) {
       throw new Error(`Evidence record was not saved to Supabase: ${dbRes.error.message}`);
     }
@@ -1547,23 +1466,10 @@ export const vetService = {
     notifyChange(TABLES.EVIDENCE_RECORDS, "insert", record);
     return res;
   },
-  /**
-   * Deletes one Condemnation Evidence record end to end.
-   *
-   * opts.stage          "Ante-Mortem" | "Post-Mortem" - scopes every lookup so a Post
-   *                     condemnation is never touched by an Ante delete (and vice versa).
-   * opts.condemnationId real condemnation_records.id. Synthetic ids are ignored.
-   * opts.photoUrls      every photo URL the details modal was showing, so the matching
-   *                     storage objects can be removed.
-   *
-   * The condemnation_records row itself is deleted. Previously it was only updated
-   * (photo_url -> null), so the record survived and reappeared in the list.
-   */
   deleteEvidenceRecord: async (id, filePath, tagNumber, photoUrl, opts = {}) => {
     const stage = opts.stage === "Post-Mortem" ? "Post-Mortem" : "Ante-Mortem";
     const cleanTag = tagNumber ? String(tagNumber).trim().toUpperCase() : null;
     const rawId = id ? String(id).trim() : null;
-    // Synthetic ids are generated by the UI and match no database row.
     const isSyntheticId = !rawId || /^synthetic[_-]/i.test(rawId) || /^synth/i.test(rawId);
     const cleanId = isSyntheticId ? null : rawId;
     const photoUrls = [].concat(opts.photoUrls || [], nonEmpty(photoUrl) ? photoUrl : []);
@@ -1576,8 +1482,6 @@ export const vetService = {
         const r = await withTimeout(factory(), DEFAULT_TIMEOUT_MS, label);
         if (r.timedOut) { fail(label, r.error.message); return null; }
         if (r.value && r.value.error) {
-          // supabase-js resolves with { error } instead of throwing, so every call
-          // must be inspected explicitly or failures vanish silently.
           fail(label, `${r.value.error.message}${r.value.error.code ? ` (${r.value.error.code})` : ""}`);
           return null;
         }
@@ -1588,9 +1492,6 @@ export const vetService = {
       }
     };
 
-    // ---------------------------------------------------------------- storage keys
-    // Only keys that genuinely belong to this animal. Never guess a folder from a tag
-    // that could match another record.
     const storageKeys = new Set();
     if (nonEmpty(filePath)) storageKeys.add(filePath.trim());
     photoUrls.forEach((u) => {
@@ -1599,14 +1500,12 @@ export const vetService = {
       if (m) storageKeys.add(m[1]);
     });
     if (cleanTag) {
-      // Folder is per-tag, so this can only touch this animal's evidence files.
       const { data: files } = (await run("storage list", () =>
         supabase.storage.from("evidence").list(`evidence/${cleanTag}`)
       )) || {};
       (files || []).forEach((f) => f && f.name && storageKeys.add(`evidence/${cleanTag}/${f.name}`));
     }
 
-    // ---------------------------------------------------------------- record ids
     const evIds = [];
     const condIds = [];
     const cutIds = [];
@@ -1617,7 +1516,6 @@ export const vetService = {
       ))?.data || [];
       evRows.forEach((r) => {
         const t = String(r.inspection_type || "").toLowerCase();
-        // Rows with no stage are kept only when the tag is condemned in this stage.
         if (!t ? stage === "Ante-Mortem" : t.includes(stage.split("-")[0].toLowerCase())) evIds.push(r.id);
       });
 
@@ -1629,8 +1527,6 @@ export const vetService = {
       });
 
       if (stage === "Post-Mortem") {
-        // Scoped by tag_number, never by id: post_mortem_condemned_cuts.id is a uuid and
-        // filtering it with a synthetic id fails with 22P02.
         const cutRows = (await run("select post_mortem_condemned_cuts", () =>
           supabase.from("post_mortem_condemned_cuts").select("id").ilike("tag_number", cleanTag)
         ))?.data || [];
@@ -1638,7 +1534,6 @@ export const vetService = {
       }
     }
 
-    // A real id always wins, so a targeted delete is exact.
     if (cleanId) {
       if (!evIds.includes(cleanId)) evIds.push(cleanId);
       if (!condIds.includes(cleanId)) condIds.push(cleanId);
@@ -1649,9 +1544,6 @@ export const vetService = {
       });
     }
 
-    // ---------------------------------------------------------------- DB deletion
-    // Photos/files first: if these fail the condemnation row is still deleted below, so a
-    // storage problem can never block or revert the record deletion.
     if (storageKeys.size) {
       await run("storage remove", () =>
         supabase.storage.from("evidence").remove(Array.from(storageKeys))
@@ -1669,7 +1561,6 @@ export const vetService = {
       );
     }
     if (condIds.length) {
-      // run() already recorded any { error } into errors.
       await run("delete condemnation_records", () =>
         supabase.from(TABLES.CONDEMNATION_RECORDS || "condemnation_records").delete().in("id", condIds)
       );
@@ -1677,13 +1568,9 @@ export const vetService = {
 
     const deletedCondemnation = condIds.length > 0 && errors.length === 0;
     if (condIds.length && !deletedCondemnation && errors.length) {
-      // The condemnation row is what the user asked to remove - surface the real reason.
       throw new Error(`Could not delete the condemnation record. ${errors.join(" | ")}`);
     }
 
-    // ---------------------------------------------------------------- workflow state
-    // Return the animal to the correct list. This must run after the rows are gone,
-    // because it only resets the workflow when no condemnation/evidence rows remain.
     if (cleanTag) {
       try {
         await withTimeout(
@@ -1707,7 +1594,6 @@ export const vetService = {
     const cleanTag = tagNumber ? String(tagNumber).trim().toUpperCase() : null;
     const cleanId = id ? String(id).trim() : null;
 
-    // Delete from Supabase tables by specific ID first
     try {
       if (cleanId && !cleanId.startsWith("cond-") && !cleanId.startsWith("mock-")) {
         await supabase.from(TABLES.CONDEMNATION_RECORDS || "condemnation_records").delete().eq("id", cleanId);
@@ -1738,7 +1624,6 @@ export const vetService = {
     const cleanTag = String(tagNumber).trim().toUpperCase();
 
     try {
-      // 1. Check if an Ante-Mortem inspection exists for this tag
       let anteRecord = null;
       try {
         const { data: aData } = await supabase
@@ -1749,7 +1634,6 @@ export const vetService = {
         anteRecord = aData;
       } catch (_) {}
 
-      // 2. Check if a Post-Mortem inspection exists for this tag
       let postRecord = null;
       try {
         const { data: pData } = await supabase
@@ -1760,7 +1644,6 @@ export const vetService = {
         postRecord = pData;
       } catch (_) {}
 
-      // If Ante-Mortem inspection was completed, preserve the inspection and do NOT return to Awaiting / Pending
       if (anteRecord) {
         const dec = String(anteRecord.decision || "").toLowerCase();
         const isAntePassed = dec.includes("pass") || dec.includes("fit") || dec.includes("approv");
@@ -1782,7 +1665,6 @@ export const vetService = {
         }
       }
 
-      // If Post-Mortem inspection was completed, preserve inspection result and do NOT reset to Awaiting
       if (postRecord) {
         const pDec = String(postRecord.decision || "").toLowerCase();
         if (pDec.includes("pass") || pDec.includes("approv") || pDec.includes("partial")) {
@@ -1827,7 +1709,6 @@ export const vetService = {
 
   listNotifications: () => supabase.from(TABLES.NOTIFICATIONS).select().then((r) => r.data),
 
-  // Carcass Weighing & Branding
   listCarcass: () => staffService.listCarcass(),
   createCarcass: (p) => staffService.createCarcass(p),
   updateCarcass: (id, patch) => staffService.updateCarcass(id, patch),

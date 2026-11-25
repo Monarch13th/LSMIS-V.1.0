@@ -1,22 +1,10 @@
-/**
- * phoneValidation.js
- * Authoritative Philippine mobile number validation for LSMIS.
- *
- * Requirements:
- * - Networks: TM, TNT, Smart, Globe
- * - Starts with '09'
- * - Digits only (no spaces, letters, or symbols)
- * - Exactly 11 digits (e.g. 09171234567)
- */
 
-// Official Globe and Touch Mobile (TM) 4-digit prefixes
 export const GLOBE_TM_PREFIXES = new Set([
   "0905", "0906", "0915", "0916", "0917", "0926", "0927", "0935", "0936", "0937",
   "0945", "0953", "0954", "0955", "0956", "0965", "0966", "0967", "0975", "0976",
   "0977", "0978", "0979", "0995", "0996", "0997"
 ]);
 
-// Official Smart, Talk 'N Text (TNT), and Sun Cellular 4-digit prefixes
 export const SMART_TNT_PREFIXES = new Set([
   "0907", "0908", "0909", "0910", "0911", "0912", "0913", "0914", "0918", "0919",
   "0920", "0921", "0922", "0923", "0924", "0925", "0928", "0929", "0930", "0931",
@@ -25,11 +13,6 @@ export const SMART_TNT_PREFIXES = new Set([
   "0971", "0981", "0982", "0985", "0989", "0998", "0999"
 ]);
 
-/**
- * Returns the network name for a given contact prefix, or null if unrecognized
- * @param {string} contact
- * @returns {"Globe / TM" | "Smart / TNT" | null}
- */
 export const getPhilippineMobileNetwork = (contact) => {
   if (!contact || typeof contact !== "string") return null;
   const digits = contact.replace(/\D/g, "");
@@ -40,16 +23,6 @@ export const getPhilippineMobileNetwork = (contact) => {
   return null;
 };
 
-/**
- * Validates a Philippine mobile number strictly:
- * - Must contain only digits
- * - Must start with '09'
- * - Must be exactly 11 digits
- * - Must belong to TM, TNT, Smart, or Globe networks
- *
- * @param {string} contact
- * @returns {{ isValid: boolean, error: string | null, network: string | null, digits: string }}
- */
 export const validatePhilippineMobileNumber = (contact) => {
   if (!contact || typeof contact !== "string" || !contact.trim()) {
     return {
@@ -62,7 +35,6 @@ export const validatePhilippineMobileNumber = (contact) => {
 
   const trimmed = contact.trim();
 
-  // 1. Check for letters, spaces, or special characters
   if (/\D/.test(trimmed)) {
     return {
       isValid: false,
@@ -72,7 +44,6 @@ export const validatePhilippineMobileNumber = (contact) => {
     };
   }
 
-  // 2. Must start with '09'
   if (!trimmed.startsWith("09")) {
     return {
       isValid: false,
@@ -82,7 +53,6 @@ export const validatePhilippineMobileNumber = (contact) => {
     };
   }
 
-  // 3. Must be exactly 11 digits
   if (trimmed.length !== 11) {
     return {
       isValid: false,
@@ -92,7 +62,6 @@ export const validatePhilippineMobileNumber = (contact) => {
     };
   }
 
-  // 4. Must belong to Globe, TM, Smart, or TNT
   const prefix = trimmed.slice(0, 4);
   const isGlobeTM = GLOBE_TM_PREFIXES.has(prefix);
   const isSmartTNT = SMART_TNT_PREFIXES.has(prefix);
@@ -114,16 +83,9 @@ export const validatePhilippineMobileNumber = (contact) => {
   };
 };
 
-/**
- * Sanitizes input in real-time to allow ONLY digits and maximum 11 characters
- * @param {string} val
- * @returns {string}
- */
 export const sanitizePhilippineMobileInput = (val) => {
   if (!val) return "";
-  // Strip all non-digits immediately
   const digits = String(val).replace(/\D/g, "");
-  // Cap at 11 characters
   return digits.slice(0, 11);
 };
 

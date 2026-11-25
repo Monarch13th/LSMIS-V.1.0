@@ -4,8 +4,8 @@ import { useAuth } from "./useAuth";
 import { adminService } from "../services/adminService";
 import { authSecurityService } from "../services/authSecurityService";
 
-const INACTIVITY_LIMIT_MS = 15 * 60 * 1000; // 15 minutes
-const CHECK_INTERVAL_MS = 30 * 1000; // Check every 30 seconds (realtime/storage events still trigger immediately)
+const INACTIVITY_LIMIT_MS = 15 * 60 * 1000;
+const CHECK_INTERVAL_MS = 30 * 1000;
 
 export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
   const { session, isAuthenticated, signOut, isInitialized, loading } = useAuth();
@@ -20,7 +20,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
     try {
       sessionStorage.setItem("lsmis_last_active", String(Date.now()));
     } catch {
-      // ignore storage errors
     }
   }, []);
 
@@ -39,7 +38,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
     try {
       await signOut();
     } catch {
-      // ignore
     }
     navigate("/login?reason=session_timeout", { replace: true });
   }, [signOut, navigate]);
@@ -74,7 +72,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
   }, [signOut, navigate]);
 
   useEffect(() => {
-    // Wait for authentication and session validation to fully finish before making termination decisions
     if (!isInitialized || loading) return;
     if (!isAuthenticated || !session?.email || !session?.session_id) return;
     if (isPublicRoute()) return;
@@ -95,7 +92,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
       window.addEventListener(event, handleEvent, { passive: true });
     });
 
-    // Check account termination and single active session across all roles (Admin, Vet, Staff, Owner)
     const checkSecurityStatus = async (force = false) => {
       if (isPublicRoute()) return;
       if (isCheckingRef.current) return;
@@ -105,7 +101,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
       isCheckingRef.current = true;
 
       try {
-        // 1. Check account termination status
         try {
           const rawSignal = localStorage.getItem("lsmis_session_termination_signal");
           if (rawSignal) {
@@ -125,10 +120,8 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
           }
         } catch (_) {}
 
-        // 2. Check Single Active Session against Supabase as the source of truth
         if (currentSessionId) {
           let needsValidation = false;
-          // Pulse server heartbeat every ~30 seconds to maintain active session presence
           if (Date.now() - lastHeartbeatRef.current >= 30000) {
             lastHeartbeatRef.current = Date.now();
             try {
@@ -147,7 +140,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
                   handleTerminationRevocation();
                   return;
                 } else if (val.reason === "concurrent_login") {
-                  // Retry confirmation to guard against transient network glitches or in-flight updates
                   const confirmVal = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
                   if (!confirmVal.isValid && confirmVal.reason === "concurrent_login") {
                     const termCheck = await adminService.checkUserTerminationStatus(cleanEmail);
@@ -181,10 +173,8 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
         if (detail.activeSessionId && detail.activeSessionId !== currentSessionId) {
           const sigTs = detail.timestamp || 0;
           const myLoginTs = sessionLoginTime ? new Date(sessionLoginTime).getTime() : 0;
-          // Must be strictly newer than our session
           if (!sigTs || !myLoginTs || (sigTs <= myLoginTs + 3000)) return;
 
-          // Confirm with database as source of truth
           const confirmVal = await adminService.validateUserActiveSession(cleanEmail, currentSessionId, userRole, sessionLoginTime);
           if (!confirmVal.isValid && confirmVal.reason === "concurrent_login") {
             const termCheck = await adminService.checkUserTerminationStatus(cleanEmail);
@@ -205,7 +195,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
           if (sig?.email === cleanEmail && sig?.activeSessionId && sig.activeSessionId !== currentSessionId) {
             const sigTs = sig.timestamp || 0;
             const myLoginTs = sessionLoginTime ? new Date(sessionLoginTime).getTime() : 0;
-            // Only trigger check if signal was emitted after our session was created
             if (!sigTs || !myLoginTs || (sigTs <= myLoginTs + 3000)) return;
             checkSecurityStatus();
           }
@@ -247,7 +236,6 @@ export const useSessionTimeout = (timeoutMs = INACTIVITY_LIMIT_MS) => {
       }
     }, CHECK_INTERVAL_MS);
 
-    // Initial check on mount
     checkSecurityStatus(true);
 
     return () => {

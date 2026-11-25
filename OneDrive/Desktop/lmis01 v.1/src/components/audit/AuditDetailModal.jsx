@@ -10,9 +10,6 @@ import {
 } from "../../services/activityService";
 import { initials } from "../../utils/helpers";
 
-/**
- * Resolves any livestock tag numbers or record identifiers embedded in the log.
- */
 const resolveTagNumbers = (log) => {
   if (!log) return [];
   const found = new Set();
@@ -152,7 +149,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
         </div>
       }
     >
-      {/* Loading State */}
       {loading && (
         <div
           style={{
@@ -180,7 +176,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
         </div>
       )}
 
-      {/* Error / Not Found State */}
       {!loading && error && (
         <div
           style={{
@@ -221,10 +216,8 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
         </div>
       )}
 
-      {/* Strictly Read-Only Detail View */}
       {!loading && !error && record && (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Header Action Banner */}
           <div
             style={{
               padding: "16px 18px",
@@ -330,7 +323,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
             </div>
           </div>
 
-          {/* Actor & Metadata Grid */}
           <div
             style={{
               display: "grid",
@@ -338,7 +330,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
               gap: 12,
             }}
           >
-            {/* Actor Card */}
             <div
               style={{
                 padding: "14px 16px",
@@ -406,7 +397,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
               </div>
             </div>
 
-            {/* Manila Timestamp Card */}
             <div
               style={{
                 padding: "14px 16px",
@@ -433,7 +423,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
             </div>
           </div>
 
-          {/* Record Identifiers & Context Card */}
           <div
             style={{
               padding: "14px 16px",
@@ -495,7 +484,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
             </div>
           </div>
 
-          {/* Before & After Values (State Transition Diff Card) */}
           <div
             style={{
               padding: "16px",
@@ -521,7 +509,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                   alignItems: "stretch",
                 }}
               >
-                {/* Previous Value */}
                 <div
                   style={{
                     padding: "12px 14px",
@@ -554,7 +541,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                   </div>
                 </div>
 
-                {/* Transition Flow Indicator */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <div
                     style={{
@@ -574,7 +560,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
                   </div>
                 </div>
 
-                {/* New Value */}
                 <div
                   style={{
                     padding: "12px 14px",
@@ -628,7 +613,6 @@ export const AuditDetailModal = ({ logId, open, onClose }) => {
             )}
           </div>
 
-          {/* Audit Integrity Metadata Bar */}
           <div
             style={{
               padding: "10px 14px",

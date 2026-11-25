@@ -1,30 +1,19 @@
-// Service worker registration + update handling for LSMIS (PWA & Web).
-// - Development mode: explicitly unregisters any service workers and purges dev caches so HMR is instant.
-// - Capacitor Native APK: returns early since native APK assets are bundled internally.
-// - Production PWA / Web: implements dual-detection (SW byte-diff & version.json polling),
-//   safe silent activation at app launch / background, non-disruptive update banners during active work,
-//   and reliable reload guards.
 import { isCapacitorNativeApp } from "./capacitor";
 
 const RELOAD_GUARD_KEY = "lsmis_sw_reload_ts";
-const RELOAD_GUARD_MS = 6000; // never reload twice within 6s -> prevents reload loops
-const AUTO_APPLY_WINDOW_MS = 15000; // updates found within 15s of launch are applied silently
-const UPDATE_CHECK_INTERVAL_MS = 60 * 1000; // check every 60s for rapid detection
+const RELOAD_GUARD_MS = 6000;
+const AUTO_APPLY_WINDOW_MS = 15000;
+const UPDATE_CHECK_INTERVAL_MS = 60 * 1000;
 
 const startedAt = Date.now();
 let isReloading = false;
 let waitingWorkerInstance = null;
 
-// Build ID injected at compile time by Vite define; fallback to empty string
 const RUNNING_BUILD_ID =
   typeof __APP_BUILD_ID__ !== "undefined" && __APP_BUILD_ID__
     ? String(__APP_BUILD_ID__)
     : "";
 
-/**
- * Checks whether the current page context is safe to reload silently without
- * interrupting unsaved user form input.
- */
 function isSafeToAutoReload() {
   if (Date.now() - startedAt < AUTO_APPLY_WINDOW_MS) return true;
   if (typeof document !== "undefined" && document.hidden) return true;
@@ -40,7 +29,6 @@ function isSafeToAutoReload() {
       path === "/reset-password";
     if (isPublicPage) return true;
 
-    // Check if user is actively focused on an input element
     const active = document.activeElement;
     if (active) {
       const tag = (active.tagName || "").toLowerCase();
@@ -53,9 +41,6 @@ function isSafeToAutoReload() {
   return false;
 }
 
-/**
- * Performs a guarded reload to prevent infinite refresh cycles.
- */
 function safeReload() {
   if (isReloading) return;
   try {
@@ -67,9 +52,6 @@ function safeReload() {
   window.location.reload();
 }
 
-/**
- * Sends SKIP_WAITING to the waiting service worker.
- */
 function activateWorker(worker) {
   const target = worker || waitingWorkerInstance;
   if (target) {
@@ -79,9 +61,6 @@ function activateWorker(worker) {
   }
 }
 
-/**
- * Renders a clean, accessible floating update banner when an update is ready during an active session.
- */
 function showUpdateBanner(onUpdate) {
   if (document.getElementById("lsmis-update-banner")) return;
 
@@ -138,9 +117,6 @@ function showUpdateBanner(onUpdate) {
   document.body.appendChild(bar);
 }
 
-/**
- * Proactively polls /version.json to detect when a new build has deployed on the server.
- */
 async function checkForNewVersionOnline(registration) {
   if (!RUNNING_BUILD_ID) return;
   try {
@@ -153,7 +129,6 @@ async function checkForNewVersionOnline(registration) {
     if (data && data.buildId && data.buildId !== RUNNING_BUILD_ID) {
       console.log("[LSMIS PWA] Detected newer build deployed on server:", data.buildId, "vs current:", RUNNING_BUILD_ID);
 
-      // 1. If worker is already waiting in background, activate immediately
       const waiting = registration?.waiting || waitingWorkerInstance;
       if (waiting) {
         activateWorker(waiting);
@@ -163,7 +138,6 @@ async function checkForNewVersionOnline(registration) {
         return;
       }
 
-      // 2. If a new worker is currently installing, wait for it to install before activating
       if (registration?.installing) {
         const worker = registration.installing;
         worker.addEventListener("statechange", () => {
@@ -177,7 +151,6 @@ async function checkForNewVersionOnline(registration) {
         return;
       }
 
-      // 3. Trigger registration update or reload if no worker is controlling
       if (registration) {
         try {
           await registration.update();
@@ -189,9 +162,6 @@ async function checkForNewVersionOnline(registration) {
   } catch (_) {}
 }
 
-/**
- * Unregisters any active or stale service workers and deletes caches in development mode.
- */
 export function cleanupDevEnvironment() {
   if (typeof window === "undefined") return;
   try {
@@ -217,13 +187,9 @@ export function cleanupDevEnvironment() {
   } catch (_) {}
 }
 
-/**
- * Main Service Worker registration & lifecycle manager.
- */
 export function registerServiceWorker() {
   if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
 
-  // 1. DEVELOPMENT MODE: strictly bypass SW & delete old localhost caches so HMR is 100% instant
   const isDev =
     import.meta.env.DEV ||
     window.location.hostname === "localhost" ||
@@ -234,21 +200,17 @@ export function registerServiceWorker() {
     return;
   }
 
-  // 2. CAPACITOR APK: native APK loads bundled assets locally; no PWA worker needed
   if (isCapacitorNativeApp()) return;
 
-  // 3. SECURE CONTEXT CHECK
   const isSecure = window.isSecureContext || window.location.hostname === "localhost";
   if (!isSecure) return;
 
   let controlled = Boolean(navigator.serviceWorker.controller);
 
-  // 4. CONTROLLER CHANGE: Triggered when a new service worker takes over clients
   navigator.serviceWorker.addEventListener("controllerchange", () => {
     safeReload();
   });
 
-  // Listen for broadcast messages from SW
   navigator.serviceWorker.addEventListener("message", (event) => {
     if (event.data && event.data.type === "SW_ACTIVATED") {
       if (event.data.buildId !== RUNNING_BUILD_ID) {
@@ -260,7 +222,6 @@ export function registerServiceWorker() {
   const init = async () => {
     let registration;
 
-    // Clean up any foreign / rogue service workers registered on other paths
     try {
       const allRegs = await navigator.serviceWorker.getRegistrations();
       for (const reg of allRegs) {
@@ -318,13 +279,11 @@ export function registerServiceWorker() {
       });
     });
 
-    // Check for updates
     const triggerUpdateCheck = () => {
       registration.update().catch(() => {});
       checkForNewVersionOnline(registration);
     };
 
-    // 1. Check on app visibility / foregrounding
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") {
         triggerUpdateCheck();
@@ -335,16 +294,12 @@ export function registerServiceWorker() {
       }
     });
 
-    // 2. Check on window focus (e.g. mobile app switched back to)
     window.addEventListener("focus", triggerUpdateCheck);
 
-    // 3. Check when network comes back online
     window.addEventListener("online", triggerUpdateCheck);
 
-    // 4. Periodic check every 60s
     window.setInterval(triggerUpdateCheck, UPDATE_CHECK_INTERVAL_MS);
 
-    // Initial check on load
     triggerUpdateCheck();
   };
 

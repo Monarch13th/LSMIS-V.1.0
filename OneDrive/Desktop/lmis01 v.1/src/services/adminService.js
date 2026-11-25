@@ -8,7 +8,6 @@ import { activityService } from "./activityService";
 import { authSecurityService } from "./authSecurityService";
 import { isValidComEmail, EMAIL_COM_ERROR } from "../utils/emailValidation";
 
-// Helper for live Supabase data
 const fetchTable = async (table) => {
   let dbData = [];
   try {
@@ -23,12 +22,10 @@ const fetchTable = async (table) => {
   return dbData;
 };
 
-// Fire database change notification to update all mounted hooks locally, cross-tab, and cross-browser.
 const notifyChange = (table = TABLES.USERS, action = "update", record = null) => {
   notifyDbChange(table, action, record);
 };
 
-// In-flight and short-window deduplication guards for personnel welcome emails
 const _welcomeEmailInFlight = new Set();
 const _welcomeEmailSentRecently = new Map();
 
@@ -78,12 +75,10 @@ Office of the City Veterinarian`;
   return { subject, message };
 };
 
-// Check if an email is already registered across ANY account type (Staff, Vet, Admin, Owner)
 export const isEmailTakenAcrossSystem = async (email, excludeUserId = null) => {
   const cleanEmail = (email || "").trim().toLowerCase();
   if (!cleanEmail) return false;
 
-  // 1. Check Supabase USERS table
   try {
     let q = supabase.from(TABLES.USERS).select("id, email").ilike("email", cleanEmail);
     if (excludeUserId) q = q.neq("id", excludeUserId);
@@ -91,7 +86,6 @@ export const isEmailTakenAcrossSystem = async (email, excludeUserId = null) => {
     if (data?.email) return true;
   } catch (e) {}
 
-  // 2. Check Supabase OWNERS table
   try {
     let q = supabase.from(TABLES.OWNERS).select("id, email").ilike("email", cleanEmail);
     if (excludeUserId) q = q.neq("id", excludeUserId);
@@ -126,7 +120,6 @@ const sanitizeUserDbPayload = (raw = {}) => {
 const inFlightOperations = new Set();
 
 export const adminService = {
-  // Classification: Personnel Management is strictly for operational Personnel (Veterinarian & Staff) — never Admins or Owners!
   listUsers: async () => {
     const allUsers = await fetchTable(TABLES.USERS);
     return (allUsers || []).filter((u) => {
@@ -159,7 +152,6 @@ export const adminService = {
 
     let authData = null;
     try {
-      // Use a secondary client so we don't log out the admin when creating a new user
       const secondarySupabase = createClient(
         import.meta.env?.VITE_SUPABASE_URL || "https://zwuoebmkapoywkpyaahw.supabase.co",
         import.meta.env?.VITE_SUPABASE_ANON_KEY || "sb_publishable_59ktqE4W2Qfk6PuSwxLrvA_0IuyMEBR",
@@ -168,7 +160,6 @@ export const adminService = {
         }
       );
       
-      // Create the user in Supabase Auth
       const { data, error: authError } = await secondarySupabase.auth.signUp({
         email: cleanEmail,
         password: payload.password || "password123",
@@ -261,7 +252,6 @@ export const adminService = {
     let errorMsg = null;
 
     try {
-      // Follow the exact same delivery pipeline, sender identity, and formatting as Owner email notifications
       const sender = "LSMIS Operations";
       try {
         await supabase.rpc("set_owner_email_metadata", {
@@ -348,11 +338,9 @@ export const adminService = {
     const isIdUuid = isUuid(id);
     const targetEmail = cleanPatch.email ? cleanPatch.email.trim().toLowerCase() : null;
 
-    // Build sanitized database payload
     const dbUpdate = sanitizeUserDbPayload(cleanPatch);
-    if (!isIdUuid) delete dbUpdate.id; // Don't send non-UUID string as Postgres UUID
+    if (!isIdUuid) delete dbUpdate.id;
 
-    // 1. Sync changes to Supabase Auth (auth.users) if matches active session
     try {
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser && (currentUser.id === id || (targetEmail && currentUser.email?.toLowerCase() === targetEmail))) {
@@ -372,7 +360,6 @@ export const adminService = {
       console.warn("Supabase Auth updateUser note:", e);
     }
 
-    // 2. Try RPC admin_update_user if present
     let dbUpdated = false;
     try {
       const { data: rpcRes, error: rpcErr } = await supabase.rpc("admin_update_user", {
@@ -388,7 +375,6 @@ export const adminService = {
       }
     } catch (e) {}
 
-    // 3. Direct Supabase DB update on public.users
     if (!dbUpdated) {
       try {
         if (isIdUuid) {
@@ -404,7 +390,6 @@ export const adminService = {
           if (!error && data && data.length > 0) dbUpdated = true;
         }
 
-        // If user record doesn't exist yet in Supabase, insert them so they now exist
         if (!dbUpdated && targetEmail) {
           const newId = isIdUuid ? id : uuid();
           await supabase.from(TABLES.USERS).insert({
@@ -419,7 +404,6 @@ export const adminService = {
       }
     }
 
-    // 4. Update active session in sessionStorage if current user changed their own account
     try {
       const sessionRaw = sessionStorage.getItem(STORAGE_KEYS.SESSION || "lsmis_session") || localStorage.getItem(STORAGE_KEYS.SESSION || "lsmis_session");
       if (sessionRaw) {
@@ -455,7 +439,6 @@ export const adminService = {
     const targetEmail = (userMeta?.email || (typeof id === "string" && id.includes("@") ? id : null))?.trim()?.toLowerCase();
     const targetUsername = userMeta?.username?.trim();
 
-    // 1. Try RPC admin_delete_user
     try {
       await supabase.rpc("admin_delete_user", {
         p_user_id: isIdUuid ? id : null,
@@ -463,7 +446,6 @@ export const adminService = {
       });
     } catch (e) {}
 
-    // 2. Direct Supabase DB delete on public.users
     try {
       if (isIdUuid) {
         await supabase.from(TABLES.USERS).delete().eq("id", id);
@@ -474,7 +456,6 @@ export const adminService = {
       if (targetUsername) {
         await supabase.from(TABLES.USERS).delete().ilike("username", targetUsername);
       }
-      // If linked to an owner, also delete that owner record
       if (userMeta?.owner_id) {
         await supabase.from(TABLES.OWNERS).delete().eq("id", userMeta.owner_id);
       }
@@ -499,7 +480,6 @@ export const adminService = {
     notifyChange();
   },
 
-  // Reports / audit
   listAuditLogs: async (limit = 150) => {
     try {
       const { data, error } = await supabase
@@ -544,7 +524,6 @@ export const adminService = {
     notifyChange(TABLES.BACKUPS, "delete", { id });
   },
 
-  // Settings
   getSettings: async () => (await fetchTable(TABLES.SETTINGS))[0],
   updateSettings: async (patch) => {
     const data = await fetchTable(TABLES.SETTINGS);
@@ -564,7 +543,6 @@ export const adminService = {
     }
   },
 
-  // Cross-module snapshot
   listAll: async () => {
     const [users, livestock, ante, post, payments, notifications, audit, backups] = await Promise.all([
       fetchTable(TABLES.USERS),
@@ -579,7 +557,6 @@ export const adminService = {
     return { users, livestock, inspections: [...(ante || []), ...(post || [])], payments, notifications, audit, backups };
   },
 
-  // Account Termination & 4-Hour Login Restriction (Veterinarian & Staff Personnel ONLY)
   deactivateUserAccount: async ({ userId, email, role, adminUser = "System Administrator" }) => {
     const targetRole = (role || "").toLowerCase().trim();
     if (targetRole !== "vet" && targetRole !== "staff") {
@@ -673,7 +650,6 @@ export const adminService = {
     inFlightOperations.add(lockKey);
 
     try {
-      // Server-side validation of actual account status from Supabase before executing termination
       const statusCheck = await adminService.checkUserTerminationStatus(userId || cleanEmail);
       if (statusCheck.isTerminated) {
         throw new Error("This account is already terminated.");
@@ -704,7 +680,6 @@ export const adminService = {
         console.warn("Supabase DB termination note:", e);
       }
 
-      // Fallback if custom columns are missing: encode values into status field
       if (!updated) {
         const fallbackStatus = `Terminated|${nowIso}|${untilIso}|${cleanReason.replace(/\|/g, " ")}`;
         try {
@@ -716,7 +691,6 @@ export const adminService = {
         } catch (_) {}
       }
 
-      // Terminate active session in activityService & broadcast real-time session revocation
       try {
         await activityService.terminateSession(userId || cleanEmail, adminUser, {
           reason: cleanReason,
@@ -724,7 +698,6 @@ export const adminService = {
         });
       } catch (e) {}
 
-      // Audit logging
       const userLabel = cleanEmail || userId;
       await activityService.logActivity({
         action: `Account terminated by Administrator for ${userLabel} (${targetRole === 'vet' ? 'Veterinarian' : 'Staff'}). Reason: ${cleanReason || "None specified"}`,
@@ -834,7 +807,6 @@ export const adminService = {
 
       const { data: userRow } = await query.limit(1).maybeSingle();
       if (!userRow) {
-        // Fallback check against local termination signal
         const rawSignal = localStorage.getItem("lsmis_session_termination_signal");
         if (rawSignal) {
           try {
@@ -897,9 +869,7 @@ export const adminService = {
 
       const reason = userRow.termination_reason || (statusLower.includes("|") ? userRow.status.split("|")[3] : null) || null;
 
-      // Check 4-hour expiration rule
       if (nowMs >= termUntilMs) {
-        // Restriction expired! Auto-clear to Active unless kept terminated explicitly by admin
         if (statusLower !== "terminated_permanent") {
           try {
             await supabase.from(TABLES.USERS).update({
@@ -927,14 +897,12 @@ export const adminService = {
     }
   },
 
-  // Single Active Session restriction enforced across all roles (Admin, Vet, Staff, Owner)
   registerActiveSession: async ({ email, role, sessionId }) => {
     const cleanEmail = (email || "").toLowerCase().trim();
     if (!cleanEmail) {
       return { sessionId: null };
     }
 
-    // Guard: Do not register an active session if account is currently terminated in Supabase!
     try {
       const statusCheck = await adminService.checkUserTerminationStatus(cleanEmail);
       if (statusCheck.isTerminated) {
@@ -966,24 +934,20 @@ export const adminService = {
         .limit(1)
         .maybeSingle();
 
-      // Network errors, timeouts, or transient connection drops must never be treated as another login
       if (error) {
         console.warn("validateUserActiveSession connection notice (preserving session):", error);
         return { isValid: true };
       }
 
-      // Missing user row or uninitialized record is NOT proof of another login
       if (!userRow) {
         return { isValid: true };
       }
 
-      // Check termination or deactivation status first
       const statusLower = (userRow?.status || "").toLowerCase();
       if (statusLower.startsWith("terminated") || statusLower === "inactive" || statusLower === "deactivated") {
         return { isValid: false, reason: "account_terminated" };
       }
 
-      // Check active session ID mismatch across users and login_security
       let dbSessionId = userRow?.active_session_id || null;
       let dbUpdatedAt = userRow?.active_session_updated_at ? new Date(userRow.active_session_updated_at).getTime() : 0;
 
@@ -1008,12 +972,10 @@ export const adminService = {
         } catch (_) {}
       }
 
-      // If database has no active session recorded yet, do not treat as conflict
       if (!dbSessionId || typeof dbSessionId !== "string" || !dbSessionId.trim()) {
         return { isValid: true };
       }
 
-      // Matches current session exactly or client stored session — valid!
       const clientSessionId = authSecurityService.getClientSessionId();
       const tabSessionId = typeof sessionStorage !== "undefined" ? sessionStorage.getItem("lsmis_active_session_id") : null;
       if (
@@ -1024,22 +986,16 @@ export const adminService = {
         return { isValid: true };
       }
 
-      // If the session in DB has expired (inactive for > 120s), it is not an active concurrent session
       if (dbUpdatedAt > 0 && Date.now() - dbUpdatedAt > 120000) {
         return { isValid: true };
       }
 
-      // Verify timestamps: a genuine conflict ONLY exists if the database record was registered
-      // by a strictly newer session replacing this one
       const myLoginTime = sessionLoginTime ? new Date(sessionLoginTime).getTime() : 0;
 
-      // Only invalidate if the database has a valid update timestamp that is STRICTLY NEWER
-      // than our session's creation/login time (with 3-second buffer to handle clock skew / same-login writes).
       if (dbUpdatedAt > 0 && myLoginTime > 0 && (dbUpdatedAt > myLoginTime + 3000)) {
         return { isValid: false, reason: "concurrent_login", activeSessionId: dbSessionId };
       }
 
-      // If we cannot definitively confirm a newer displacement, safely preserve the session
       return { isValid: true };
     } catch (err) {
       console.warn("validateUserActiveSession unexpected error (preserving session):", err);

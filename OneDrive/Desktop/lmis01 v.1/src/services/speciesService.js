@@ -3,7 +3,6 @@ import { notifyDbChange } from "./realtimeSync";
 import { logActivity } from "./activityService";
 import { TABLES } from "../utils/constants";
 
-// Default fallback species in case database is temporarily unreachable
 export const DEFAULT_SPECIES = [
   {
     id: "spec-hog",
@@ -47,11 +46,6 @@ export const DEFAULT_SPECIES = [
   },
 ];
 
-/**
- * Fetch all species ordered by sort_order
- * @param {Object} options
- * @param {boolean} options.activeOnly
- */
 export async function listSpecies({ activeOnly = false } = {}) {
   try {
     let query = supabase
@@ -87,10 +81,6 @@ export async function listSpecies({ activeOnly = false } = {}) {
   }
 }
 
-/**
- * Fetch head count of livestock per species
- * Returns a map of { [speciesName]: count, [speciesId]: count }
- */
 export async function getSpeciesLivestockCounts() {
   try {
     const { data, error } = await supabase
@@ -121,11 +111,6 @@ export async function getSpeciesLivestockCounts() {
   }
 }
 
-/**
- * Check if a species name already exists (case-insensitive)
- * @param {string} name
- * @param {string} excludeId
- */
 export async function checkSpeciesNameExists(name, excludeId = null) {
   const cleanName = (name || "").trim().toLowerCase();
   if (!cleanName) return false;
@@ -143,31 +128,24 @@ export async function checkSpeciesNameExists(name, excludeId = null) {
   );
 }
 
-/**
- * Add a new livestock species
- */
 export async function createSpecies(payload) {
   const trimmedName = (payload.name || "").trim();
   if (!trimmedName) {
     throw new Error("Species name is required.");
   }
 
-  // Check duplicate
   const exists = await checkSpeciesNameExists(trimmedName);
   if (exists) {
     throw new Error(`Species with name "${trimmedName}" already exists.`);
   }
 
-  // Determine code
   let code = (payload.code || "").trim().toUpperCase();
   if (!code) {
     code = trimmedName.substring(0, 3).toUpperCase();
   }
 
-  // Generate ID
   const id = `spec-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
 
-  // Determine next sort_order
   let nextSort = 1;
   const { data: existing } = await supabase
     .from(TABLES.SPECIES)
@@ -204,10 +182,8 @@ export async function createSpecies(payload) {
     throw new Error(error.message || "Failed to create species.");
   }
 
-  // Notify real-time listeners across tabs/devices
   notifyDbChange(TABLES.SPECIES, "insert", data);
 
-  // Log activity
   try {
     await logActivity({
       action: `Created livestock species "${trimmedName}" (${code})`,
@@ -222,15 +198,11 @@ export async function createSpecies(payload) {
   return data;
 }
 
-/**
- * Update an existing species
- */
 export async function updateSpecies(id, patch) {
   if (!id) throw new Error("Species ID is required.");
 
   const updates = { ...patch, updated_at: new Date().toISOString() };
 
-  // If renaming, check for uniqueness and propagate to livestock records
   let oldSpeciesRecord = null;
   if (patch.name) {
     const trimmedName = patch.name.trim();
@@ -243,7 +215,6 @@ export async function updateSpecies(id, patch) {
 
     updates.name = trimmedName;
 
-    // Fetch current record to see if name changed
     const { data: current } = await supabase
       .from(TABLES.SPECIES)
       .select("*")
@@ -268,7 +239,6 @@ export async function updateSpecies(id, patch) {
     throw new Error(error.message || "Failed to update species.");
   }
 
-  // If name changed, synchronize existing livestock records
   if (oldSpeciesRecord && oldSpeciesRecord.name !== updates.name) {
     try {
       await supabase
@@ -303,28 +273,19 @@ export async function updateSpecies(id, patch) {
   return data;
 }
 
-/**
- * Toggle active/inactive status
- */
 export async function toggleSpeciesStatus(id, currentStatus) {
   const nextStatus = currentStatus === "Active" ? "Inactive" : "Active";
   return updateSpecies(id, { status: nextStatus });
 }
 
-/**
- * Upload an animal picture to Supabase Storage ('species' bucket)
- * Returns { imageUrl, imagePath }
- */
 export async function uploadSpeciesImage(file, identifier = "species") {
   if (!file) throw new Error("No image file provided.");
 
-  // Validate mime type
   const validMimes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
   if (!validMimes.includes(file.type.toLowerCase()) && !file.type.startsWith("image/")) {
     throw new Error("Invalid image format. Allowed formats: JPG, JPEG, PNG, WEBP.");
   }
 
-  // Validate size (5MB limit)
   if (file.size > 5 * 1024 * 1024) {
     throw new Error("Image size exceeds the 5MB limit.");
   }
@@ -361,9 +322,6 @@ export async function uploadSpeciesImage(file, identifier = "species") {
   };
 }
 
-/**
- * Delete an animal picture from Supabase Storage ('species' bucket)
- */
 export async function deleteSpeciesImage(imagePath) {
   if (!imagePath) return;
   try {
@@ -378,13 +336,9 @@ export async function deleteSpeciesImage(imagePath) {
   }
 }
 
-/**
- * Delete a species. Prevents deletion if any livestock are using it.
- */
 export async function deleteSpecies(id) {
   if (!id) throw new Error("Species ID is required.");
 
-  // 1. Fetch current species
   const { data: speciesRecord, error: fetchErr } = await supabase
     .from(TABLES.SPECIES)
     .select("*")
@@ -395,7 +349,6 @@ export async function deleteSpecies(id) {
     throw new Error("Species record not found.");
   }
 
-  // 2. Check if any livestock are linked
   const { data: linkedLivestock, error: countErr } = await supabase
     .from(TABLES.LIVESTOCK)
     .select("id")
@@ -417,7 +370,6 @@ export async function deleteSpecies(id) {
     throw error;
   }
 
-  // 3. Delete from Supabase
   const { error: delErr } = await supabase
     .from(TABLES.SPECIES)
     .delete()
@@ -427,7 +379,6 @@ export async function deleteSpecies(id) {
     throw new Error(delErr.message || "Failed to delete species.");
   }
 
-  // Clean up image from storage if present
   if (speciesRecord.image_path) {
     deleteSpeciesImage(speciesRecord.image_path);
   }

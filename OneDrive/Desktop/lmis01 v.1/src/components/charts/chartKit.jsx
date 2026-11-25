@@ -1,4 +1,3 @@
-// Shared Chart.js setup for the dashboard charts (Admin / Vet / Staff).
 import {
   Chart as ChartJS, CategoryScale, LinearScale, BarElement, LineElement, PointElement,
   ArcElement, Title, Tooltip, Legend, Filler,

@@ -1,4 +1,3 @@
-// Small presentational building blocks shared by the three dashboards.
 import "../../styles/dashboard.css";
 
 export const DashBanner = ({ tone = "amber", icon, title, text, action, onClick }) => (
@@ -20,7 +19,6 @@ export const DashBanner = ({ tone = "amber", icon, title, text, action, onClick 
   </div>
 );
 
-/** A workflow stage tile. `max` scales the progress bar relative to the busiest stage. */
 export const StageTile = ({ label, value, max = 0, tone = "emerald", onClick }) => (
   <button type="button" className={`dash-stage ${tone}`} onClick={onClick} aria-label={`${label}: ${value}`}>
     <span className="dash-stage-value">{value}</span>

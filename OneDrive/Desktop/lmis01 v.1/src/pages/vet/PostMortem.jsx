@@ -23,9 +23,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   const { data: processing = [], loading: loadingProcessing, refresh: refreshProcessing } = useSupabase(TABLES.SLAUGHTER_PROCESSING);
   const { data: slaughter = [], refresh: refreshSlaughter } = useSupabase(TABLES.SLAUGHTER_RECORDS);
   const { data: condemnedRecords = [], refresh: refreshCondemned } = useSupabase(TABLES.CONDEMNATION_RECORDS);
-  // Post-Mortem evidence is Supabase-only: the localStorage mock store must not
-  // add or override rows here, or a photo can appear in the UI that is not in the
-  // database (and disappear again after a refresh).
   const { data: evidenceRecords = [], refresh: refreshEvidence } = useSupabase(
     TABLES.EVIDENCE_RECORDS || "evidence_records",
     [],
@@ -37,7 +34,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   const isQueueLoading = loadingPost || loadingLivestock || loadingProcessing;
 
   const normalizeTab = (t) => {
-    // "All Inspection Records" tab removed: legacy links (log/inspected/records) open the default tab.
     if (t === "queue" || t === "awaiting") return "awaiting";
     if (t === "condemned" || t === "evidence") return "evidence";
     return "awaiting";
@@ -65,7 +61,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   });
   const [search, setSearch] = useState(() => searchParams.get("tag") || searchParams.get("search") || "");
   const [filterSpecies, setFilterSpecies] = useState("all");
-  const [dateRange, setDateRange] = useState("all"); // 'all' | 'today' | 'week' | 'month'
+  const [dateRange, setDateRange] = useState("all");
 
   useEffect(() => {
     const urlTab = searchParams.get("tab");
@@ -90,7 +86,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const { showToast } = useToast();
 
-  // Collapsible accordion state for grouped owner batches (matching Animal Marking)
   const [expandedGroups, setExpandedGroups] = useState(new Set());
   const toggleGroupExpand = (groupKey) => {
     setExpandedGroups((prev) => {
@@ -103,7 +98,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   const expandAllGroups = (list) => setExpandedGroups(new Set((list || []).map((g) => g.key)));
   const collapseAllGroups = () => setExpandedGroups(new Set());
 
-  // Per-group and individual selection for Awaiting Carcasses queue
   const [selectedQueueTags, setSelectedQueueTags] = useState(new Set());
   const toggleSelectQueueTag = (tag) => {
     if (!tag) return;
@@ -128,11 +122,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     });
   };
 
-  // Pagination states
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Dedicated view state for selected owner (matching Condemnation view)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
 
   useEffect(() => {
@@ -147,10 +139,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     refreshCondemned();
   };
 
-  // Breakdown of Post-Mortem condemnations into Partial vs Whole.
-  // COUNTING RULE: each unique condemned carcass (tag) counts ONCE per outcome -
-  // multiple condemned parts of one carcass = ONE "Partially Condemned" count,
-  // and a carcass can never be counted in both buckets. Evidence photos are never counted.
   const { postPartialCondemnedCount, postWholeCondemnedCount, postCondemnedTagCount } = useMemo(() => {
     const partialTags = new Set();
     const wholeTags = new Set();
@@ -183,7 +171,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
     });
 
-    // A whole-carcass condemnation always wins; never count the same tag twice
     partialTags.forEach((t) => { if (wholeTags.has(t)) partialTags.delete(t); });
     const allTags = new Set([...partialTags, ...wholeTags]);
 
@@ -194,18 +181,11 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     };
   }, [condemnedRecords, data]);
 
-  // Count of condemned records/cuts for Post-Mortem
   const postCondemnedRecords = useMemo(() => {
     return (condemnedRecords || []).filter((c) => matchesStage(c, "Post-Mortem"));
   }, [condemnedRecords]);
   const condemnedCount = postCondemnedTagCount || postCondemnedRecords.length || postPartialCondemnedCount;
 
-  // Condemnation Evidence card count.
-  // Derived from the exact same dataset the Post-Mortem Condemnation Evidence page
-  // renders (see condemnationEvidenceIndex), so the card always equals the number of
-  // records shown on the page. Partial and Whole Carcass condemnations both count as
-  // one record each, and a condemnation carrying both condemned-cut details and
-  // evidence photos is never counted twice.
   const { evidenceCount: postEvidenceCount } = useCondemnationEvidenceIndex(
     "Post-Mortem",
     {
@@ -217,7 +197,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     }
   );
 
-  // Slaughtered carcasses awaiting post-mortem inspection
   const inspectedPostMortemTags = useMemo(() => {
     const tags = new Set();
     (data || []).forEach((i) => {
@@ -242,14 +221,12 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     const list = [];
     const seenTags = new Set();
 
-    // Map existing livestock records by clean tag for quick lookup of metadata
     const livestockMap = new Map();
     (livestock || []).forEach((l) => {
       const tag = String(l.tag_number || "").trim();
       if (tag) livestockMap.set(tag.toLowerCase(), l);
     });
 
-    // 1. Animals from slaughter_processing (where status is Completed or all 6 steps are done)
     (processing || []).forEach((p) => {
       const tag = String(p.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -285,7 +262,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
     });
 
-    // 2. Animals from slaughter_records (where status is Completed)
     (slaughter || []).forEach((s) => {
       const tag = String(s.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -293,7 +269,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
 
       if (s.status !== "Completed") return;
 
-      // If active in-progress processing exists with < 6 steps, not completed
       const activeProc = (processing || []).find((p) => String(p.tag_number || "").trim().toLowerCase() === cleanTag);
       const activeProcSteps = typeof activeProc?.steps === "string" ? (() => { try { return JSON.parse(activeProc.steps); } catch (_) { return null; } })() : activeProc?.steps;
       const activeProcDone = activeProcSteps ? Object.values(activeProcSteps).filter((v) => v === true || v?.done === true).length : 0;
@@ -326,7 +301,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
     });
 
-    // 3. Animals from livestock (where status is Completed or marked completed in slaughter)
     (livestock || []).forEach((l) => {
       const tag = String(l.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -372,7 +346,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     });
   }, [isQueueLoading, livestock, processing, slaughter, inspectedPostMortemIds, inspectedPostMortemTags]);
 
-  // Date range filter helper
   const isDateInRange = (dateStr) => {
     if (!dateStr || dateRange === "all") return true;
     const itemDate = new Date(dateStr);
@@ -391,7 +364,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     return true;
   };
 
-  // Comprehensive, multi-source owner name resolver with deep fallbacks
   const resolveOwnerName = (insp) => {
     if (!insp) return "-";
 
@@ -408,7 +380,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       );
     };
 
-    // Helper: look up owner name by owner_id in owners table
     const getOwnerNameById = (ownerId) => {
       if (!ownerId) return null;
       const cleanOId = String(ownerId).trim().toLowerCase();
@@ -423,26 +394,21 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       return null;
     };
 
-    // 0. Primary Master Directory lookup by owner ID
     const directOwnerId = insp.owner_id || insp.animal?.owner_id;
     if (directOwnerId) {
       const fromMaster = getOwnerNameById(directOwnerId);
       if (fromMaster) return fromMaster;
     }
 
-    // Normalized tags and IDs
     const rawTag = String(insp.tag_number || "").trim();
     const cleanTag = rawTag.toLowerCase();
     const livestockId = String(insp.livestock_id || insp.id || "").trim();
     const baseTag = cleanTag.replace(/[-_][0-9a-z]$/i, "");
 
-    // Tag digits (e.g. "010" from "TAG-010-HOG")
     const numMatch = cleanTag.match(/\b\d{2,4}\b/) || cleanTag.match(/tag-(\d+)/i) || cleanTag.match(/(\d{2,})/);
     const tagNum = numMatch ? numMatch[1] : null;
 
-    // 1. Search in livestock collection prioritizing master owner_id
     if (livestock && livestock.length > 0) {
-      // Exact tag or livestock_id
       const l = livestock.find((item) => {
         const iTag = String(item.tag_number || "").trim().toLowerCase();
         const iId = String(item.id || "").trim();
@@ -454,7 +420,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         if (isValid(l.owner_name)) return l.owner_name.trim();
       }
 
-      // Base tag match (e.g. sub-tag or batch prefix)
       if (baseTag && baseTag !== cleanTag) {
         const lBase = livestock.find((item) => {
           const iTag = String(item.tag_number || "").trim().toLowerCase();
@@ -467,7 +432,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         }
       }
 
-      // Tag number sequence + species match
       if (tagNum) {
         const lNum = livestock.find((item) => {
           const iTag = String(item.tag_number || "").trim().toLowerCase();
@@ -483,11 +447,9 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
     }
 
-    // 2. Direct inspection fields fallback
     if (isValid(insp.owner_name)) return insp.owner_name.trim();
     if (isValid(insp.animal?.owner_name)) return insp.animal.owner_name.trim();
 
-    // 3. Search in slaughter_processing collection
     if (processing && processing.length > 0) {
       const p = processing.find((pr) => {
         const prTag = String(pr.tag_number || "").trim().toLowerCase();
@@ -501,7 +463,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
     }
 
-    // 4. Search in slaughter_records collection
     if (slaughter && slaughter.length > 0) {
       const s = slaughter.find((sr) => {
         const srTag = String(sr.tag_number || "").trim().toLowerCase();
@@ -515,7 +476,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
     }
 
-    // 5. Search in awaiting carcasses queue
     if (typeof awaitingCarcasses !== "undefined" && awaitingCarcasses && awaitingCarcasses.length > 0) {
       const a = awaitingCarcasses.find((ac) => {
         const acTag = String(ac.tag_number || "").trim().toLowerCase();
@@ -524,7 +484,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       if (a && isValid(a.owner_name)) return a.owner_name.trim();
     }
 
-    // 6. Search in ante-mortem inspections
     if (anteMortem && anteMortem.length > 0) {
       const am = anteMortem.find((amItem) => {
         const amTag = String(amItem.tag_number || "").trim().toLowerCase();
@@ -537,7 +496,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       }
     }
 
-    // 7. Search in condemned records
     if (condemnedRecords && condemnedRecords.length > 0) {
       const c = condemnedRecords.find((cr) => {
         const crTag = String(cr.tag_number || "").trim().toLowerCase();
@@ -546,13 +504,11 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       if (c && isValid(c.owner_name)) return c.owner_name.trim();
     }
 
-    // 8. If exactly 1 approved owner exists in the system, safely infer as default owner
     const approvedOwners = (owners || []).filter((o) => (!o.status || o.status === "Approved") && isValid(o.name));
     if (approvedOwners.length === 1) {
       return approvedOwners[0].name.trim();
     }
 
-    // 9. If all other inspected records in Post-Mortem share a single unique owner name, safely infer
     const otherResolvedOwners = new Set();
     (data || []).forEach((other) => {
       if (other.tag_number !== insp.tag_number) {
@@ -600,7 +556,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     return "";
   };
 
-  // Helper to resolve full animal object with normalized owner and species
   const resolveAnimal = (insp) => {
     if (!insp) return null;
     const cleanTag = String(insp.tag_number || "").trim().toLowerCase();
@@ -630,7 +585,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     };
   };
 
-  // Filtered log dataset
   const filteredLog = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (data || [])
@@ -673,7 +627,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [data, livestock, processing, slaughter, owners, anteMortem, condemnedRecords, search, filterSpecies, dateRange]);
 
-  // Filtered queue dataset
   const filteredQueue = useMemo(() => {
     const q = search.trim().toLowerCase();
     return (awaitingCarcasses || [])
@@ -703,7 +656,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [awaitingCarcasses, owners, search, filterSpecies]);
 
-  // Resolve full owner record for awaiting post-mortem View modal
   const resolveOwnerDetails = (item) => {
     if (!item) return { name: "-", official_id: "—", contact: "—", address: "—" };
     const animal = resolveAnimal(item);
@@ -727,7 +679,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     };
   };
 
-  // Look up corresponding Ante-Mortem inspection result for an awaiting carcass
   const resolveAnteMortemRecord = (item) => {
     if (!item || !anteMortem || anteMortem.length === 0) return null;
     const tag = String(item.tag_number || "").trim().toLowerCase();
@@ -743,7 +694,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     );
   };
 
-  // Grouped dataset for "Awaiting Inspection" carcasses (grouped strictly by actual registered owner)
   const groupedQueue = useMemo(() => {
     const groups = new Map();
     (filteredQueue || []).forEach((item) => {
@@ -822,7 +772,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       });
   }, [filteredQueue, owners, livestock]);
 
-  // Grouped dataset for "All Inspected Carcasses" tab (grouped strictly by actual registered owner)
   const groupedInspected = useMemo(() => {
     const groups = new Map();
 
@@ -927,7 +876,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
     return (currentDataset || []).find((g) => g.key === selectedOwnerKey) || null;
   }, [selectedOwnerKey, currentDataset]);
 
-  // View records pagination (10 per page default)
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
@@ -944,7 +892,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
   const currentPage = Math.min(page, totalPages);
   const paginatedData = currentDataset.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // Metrics
   const approvedCount = data.filter((i) => {
     const d = (i.decision || "").toLowerCase();
     return d.includes("approv") || d.includes("pass");
@@ -1087,8 +1034,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         }
       }
 
-      // RealtimeSync automatically debounces and coordinates dependent table reloads
-      // without firing duplicate un-cached network requests.
 
       if (failedTags.length > 0) {
         const err = new Error(`Partial save: ${succeededTags.length} carcass(es) succeeded, but ${failedTags.length} failed (${failedTags.join(", ")}).`);
@@ -1097,7 +1042,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         throw err;
       }
 
-      // Keep the user on the currently inspected record; do NOT automatically switch to another tag.
       return { succeededTags, failedTags };
     } catch (err) {
       console.error(err);
@@ -1402,9 +1346,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
 
   return (
     <div className="postmortem-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* Main Container */}
       <div style={{ background: "var(--color-surface)", borderRadius: 12, overflow: "hidden", border: "none", boxShadow: "none", flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
-        {/* Unified Single-Line Toolbar */}
         <div
           className="records-fixed-header"
           style={{
@@ -1420,7 +1362,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             minHeight: 54,
           }}
         >
-          {/* Segmented Nav Tabs */}
           <div className="adm-seg-tabs">
             {[
               {
@@ -1458,9 +1399,7 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             })}
           </div>
 
-          {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Search Input */}
             <div style={{ position: "relative", width: 220 }}>
               <input
                 type="text"
@@ -1520,7 +1459,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               )}
             </div>
 
-            {/* Species Dropdown */}
             <select
               value={filterSpecies}
               onChange={(e) => {
@@ -1554,7 +1492,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
             </select>
 
 
-            {/* Conduct Carcass Inspection Button if Awaiting */}
             {activeTab === "awaiting" && (
               <Button
                 size="sm"
@@ -1579,14 +1516,12 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           </div>
         </div>
 
-        {/* Evidence & Photos / Condemnation Evidence Tab */}
         {activeTab === "evidence" && (
           <div className="records-scrollable-content" style={{ padding: 0, border: "none", flex: 1, minHeight: 0, overflowY: "auto" }}>
             <EvidenceUpload type="Post-Mortem" hideHeader hideStats search={search} filterSpecies={filterSpecies} />
           </div>
         )}
 
-        {/* Tab 1: Inspected Carcasses Table (Owner-grouped with dedicated record view matching Condemnation) */}
         {activeTab === "inspected" && (
           groupedInspected.length === 0 ? (
             <EmptyState
@@ -1599,7 +1534,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               icon={<Icon.Activity size={42} />}
             />
           ) : (
-            /* Owner-Grouped List View */
             <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", border: "none", boxShadow: "none", flex: 1, minHeight: 0 }}>
               <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
@@ -1625,7 +1559,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                       onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                       onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
-                      {/* Owner Name */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div
@@ -1656,7 +1589,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </div>
                       </td>
 
-                      {/* Date Inspected */}
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#24966D" }} />
@@ -1664,14 +1596,12 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </div>
                       </td>
 
-                      {/* Species */}
                       <td style={{ padding: "14px 18px" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                           {formatSpeciesList(grp.speciesList || [grp.species])}
                         </span>
                       </td>
 
-                      {/* Total Carcasses */}
                       <td style={{ padding: "14px 18px", textAlign: "center" }}>
                         <span
                           style={{
@@ -1684,7 +1614,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </span>
                       </td>
 
-                      {/* Result / Decision */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center" }}>
                           {grp.approvedCount > 0 && (
@@ -1738,7 +1667,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         </div>
                       </td>
 
-                      {/* Action */}
                       <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                         <div className="table-action-group">
                           <button
@@ -1760,7 +1688,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           )
         )}
 
-        {/* Tab 2: Awaiting Queue Table (Owner-Grouped with Dedicated Owner View, matching Condemnation) */}
         {activeTab === "awaiting" && (
           groupedQueue.length === 0 ? (
             <EmptyState
@@ -1769,7 +1696,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               icon={<Icon.Check size={42} />}
             />
           ) : (
-            /* Main Owner List View for Awaiting Carcasses */
             <div className="records-scrollable-content table-wrap" style={{ overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", border: "none", boxShadow: "none", flex: 1, minHeight: 0 }}>
               <table className="table" style={{ width: "100%", borderCollapse: "separate", borderSpacing: 0 }}>
                 <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
@@ -1798,7 +1724,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--lsmis-primary-subtle)")}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                       >
-                        {/* Owner Name */}
                         <td style={{ padding: "14px 18px" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div
@@ -1829,7 +1754,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           </div>
                         </td>
 
-                        {/* Date Slaughtered */}
                         <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                           <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                             <Icon.Calendar size={13} style={{ opacity: 0.7, color: "#24966D" }} />
@@ -1837,14 +1761,12 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           </div>
                         </td>
 
-                        {/* Species */}
                         <td style={{ padding: "14px 18px" }}>
                           <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                             {formatSpeciesList(grp.speciesList || [grp.species])}
                           </span>
                         </td>
 
-                        {/* Total Carcasses */}
                         <td style={{ padding: "14px 18px", textAlign: "center" }}>
                           <span
                             style={{
@@ -1857,7 +1779,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           </span>
                         </td>
 
-                        {/* Status */}
                         <td style={{ padding: "14px 18px" }}>
                           <span
                             style={{
@@ -1873,7 +1794,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           </span>
                         </td>
 
-                        {/* Action */}
                         <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                           <div className="table-action-group">
                             <button
@@ -1912,7 +1832,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
           )
         )}
 
-        {/* Pagination Footer */}
         {false && currentDataset.length > 0 && (
           <div
             style={{
@@ -2012,7 +1931,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         )}
       </div>
 
-      {/* Standardized Dedicated Owner Records Modal */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => setSelectedOwnerKey(null)}
@@ -2297,7 +2215,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         )}
       </Modal>
 
-      {/* New Post-Mortem Inspection Modal */}
       <Modal
         open={modalOpen}
         onClose={() => { setModalOpen(false); setTargetTagForModal(""); setModalSuccessAlert(null); setPostDecision("Approved"); }}
@@ -2319,7 +2236,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               flexShrink: 0,
             }}
           >
-            {/* 1. Fit for Consumption (Approved) */}
             <button
               type="button"
               role="tab"
@@ -2354,7 +2270,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               <span style={{ pointerEvents: "none" }}>Fit for Consumption</span>
             </button>
 
-            {/* 2. Partially Condemned */}
             <button
               type="button"
               role="tab"
@@ -2389,7 +2304,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               <span style={{ pointerEvents: "none" }}>Partially Condemned</span>
             </button>
 
-            {/* 3. Condemned (Total) */}
             <button
               type="button"
               role="tab"
@@ -2460,7 +2374,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         />
       </Modal>
 
-      {/* Inspection Slip / Certificate View Modal */}
       <Modal
         open={!!selectedInspection}
         onClose={() => setSelectedInspection(null)}
@@ -2469,7 +2382,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
       >
         {selectedInspection && (
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-            {/* Header Box */}
             <div
               style={{
                 padding: "18px 20px",
@@ -2497,7 +2409,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               <Badge status={selectedInspection.decision || "Approved"} />
             </div>
 
-            {/* Animal Details Grid */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "12px 16px" }}>
                 <div style={{ fontSize: 11.5, color: "var(--color-text-muted)", textTransform: "uppercase", fontWeight: 700 }}>Animal Tag #</div>
@@ -2531,7 +2442,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               </div>
             </div>
 
-            {/* Pathological Findings */}
             <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
               <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
                 Post-Mortem Findings & Pathology Observations
@@ -2541,7 +2451,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               </div>
             </div>
 
-            {/* Remarks */}
             {selectedInspection.remarks && (
               <div style={{ background: "var(--color-surface)", border: "1px solid var(--color-border)", borderRadius: 10, padding: "16px 18px" }}>
                 <div style={{ fontSize: 12, fontWeight: 800, color: "var(--color-text)", textTransform: "uppercase", marginBottom: 6 }}>
@@ -2553,7 +2462,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               </div>
             )}
 
-            {/* Condemnation Parts Details if any */}
             {(() => {
               const selTag = String(selectedInspection.tag_number || "").trim();
               const relatedCondemns = (condemnedRecords || []).filter(
@@ -2579,7 +2487,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               );
             })()}
 
-            {/* Audit Trail & Process Timeline */}
             <div style={{ marginTop: 4 }}>
               <ProcessHistoryTimeline
                 livestock={selectedInspection.animal || (livestock || []).find((l) => (l.id && l.id === selectedInspection.livestock_id) || l.tag_number === selectedInspection.tag_number) || selectedInspection}
@@ -2587,7 +2494,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
               />
             </div>
 
-            {/* Modal Actions */}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10, borderTop: "1px solid var(--color-border)", paddingTop: 14 }}>
               <Button
                 variant="danger"
@@ -2608,7 +2514,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         )}
       </Modal>
 
-      {/* Awaiting Post-Mortem Record View Modal */}
       <Modal
         open={!!viewingAwaitingItem}
         onClose={() => {
@@ -2689,7 +2594,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
 
           return (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {/* Header Summary Banner */}
               <div
                 style={{
                   padding: "14px 16px",
@@ -2728,7 +2632,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 </span>
               </div>
 
-              {/* Livestock & Slaughter Information */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
                   Livestock &amp; Slaughter Information
@@ -2775,7 +2678,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 </div>
               </div>
 
-              {/* Owner Information */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
                   Owner Information
@@ -2810,7 +2712,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                 </div>
               </div>
 
-              {/* Corresponding Ante-Mortem Inspection Results */}
               <div>
                 <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-muted)", marginBottom: 8 }}>
                   Ante-Mortem Inspection Results
@@ -2878,7 +2779,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         })()}
       </Modal>
 
-      {/* Delete Dialog */}
       <ConfirmDialog
         open={!!confirmDel}
         onConfirm={del}
@@ -2892,7 +2792,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
         loading={isDeleting}
       />
 
-      {/* Clean In-App Alert Dialog (replaces native window.alert to provide polished in-app UX) */}
       <AlertDialog
         open={!!inAppAlert}
         onClose={() => setInAppAlert(null)}

@@ -17,39 +17,29 @@ export const DEFAULT_AGE_SUGGESTIONS = [
   "5 years",
 ];
 
-/**
- * Validates a typed or selected livestock age string.
- * Supports: "3 months", "6 months", "1 year", "2 years", "1 year and 6 months", "18 months", etc.
- * Returns null if valid, or an error message string if invalid.
- */
 export const validateAgeInput = (ageStr) => {
   if (!ageStr || typeof ageStr !== "string" || !ageStr.trim()) {
     return "Please enter animal age.";
   }
   const clean = ageStr.trim();
 
-  // Negative numbers check
   if (/-\s*\d+/.test(clean)) {
     return "Age cannot be negative.";
   }
 
-  // Bare number without unit check
   if (/^\d+$/.test(clean)) {
     const n = parseInt(clean, 10);
     return `Please specify an age unit (e.g. ${clean} ${n === 1 ? "month" : "months"} or ${clean} ${n === 1 ? "year" : "years"}).`;
   }
 
-  // Check if no numbers at all
   if (!/\d/.test(clean)) {
     return "Please enter a valid age with a number and unit (e.g. 6 months, 1 year).";
   }
 
-  // Check for zero age
   if (/^0\s*(months?|mos?|years?|yrs?|days?|weeks?)/i.test(clean) || /^0$/.test(clean)) {
     return "Age must be greater than 0.";
   }
 
-  // Check for valid unit presence
   const hasUnit = /(months?|mos?|years?|yrs?|weeks?|wks?|days?)/i.test(clean);
   if (!hasUnit) {
     return "Please include an age unit (e.g. months, years, or year and months).";
@@ -58,10 +48,6 @@ export const validateAgeInput = (ageStr) => {
   return null;
 };
 
-/**
- * Extracts structured age components for Supabase persistence
- * (age_months, age_value, age_unit) while preserving the exact original user string.
- */
 export const extractAgeComponents = (ageStr) => {
   if (!ageStr || typeof ageStr !== "string") {
     return { age_months: "", age_value: null, age_unit: null };
@@ -71,7 +57,6 @@ export const extractAgeComponents = (ageStr) => {
     return { age_months: "", age_value: null, age_unit: null };
   }
 
-  // Check for multi-part: e.g. "1 year and 6 months" or "2 years 3 mos"
   const multiPart = clean.match(/(\d+)\s*(?:years?|yrs?)\s*(?:and)?\s*(\d+)\s*(?:months?|mos?)/i);
   if (multiPart) {
     const years = parseInt(multiPart[1], 10) || 0;
@@ -84,7 +69,6 @@ export const extractAgeComponents = (ageStr) => {
     };
   }
 
-  // Check for years: e.g. "2 years", "1 year", "3 yrs"
   const yearMatch = clean.match(/(\d+)\s*(?:years?|yrs?)/i);
   if (yearMatch) {
     const val = parseInt(yearMatch[1], 10);
@@ -95,7 +79,6 @@ export const extractAgeComponents = (ageStr) => {
     };
   }
 
-  // Check for months: e.g. "6 months", "18 months", "1 month"
   const monthMatch = clean.match(/(\d+)\s*(?:months?|mos?)/i);
   if (monthMatch) {
     const val = parseInt(monthMatch[1], 10);
@@ -106,7 +89,6 @@ export const extractAgeComponents = (ageStr) => {
     };
   }
 
-  // Check for bare number fallback
   const numMatch = clean.match(/(\d+)/);
   if (numMatch) {
     const val = parseInt(numMatch[1], 10);
@@ -124,13 +106,6 @@ export const extractAgeComponents = (ageStr) => {
   };
 };
 
-/**
- * Searchable Age Dropdown Component with Manual Text Input.
- * - Allows selecting from suggested ages
- * - Allows typing any custom age manually (e.g. "1 year and 6 months", "18 months")
- * - Filters suggestions in real-time
- * - Responsive on desktop and mobile
- */
 export const SearchableAgeInput = ({
   id,
   value = "",
@@ -148,7 +123,6 @@ export const SearchableAgeInput = ({
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
-  // Close on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (containerRef.current && !containerRef.current.contains(e.target)) {
@@ -163,14 +137,12 @@ export const SearchableAgeInput = ({
     };
   }, []);
 
-  // Filter suggestions based on typed input
   const filteredSuggestions = useMemo(() => {
     const query = String(value || "").trim().toLowerCase();
     if (!query) return suggestions;
     return suggestions.filter((item) => item.toLowerCase().includes(query));
   }, [value, suggestions]);
 
-  // Check if current value exactly matches an existing suggestion
   const exactMatch = useMemo(() => {
     const query = String(value || "").trim().toLowerCase();
     if (!query) return false;
@@ -221,7 +193,6 @@ export const SearchableAgeInput = ({
     }
   };
 
-  // Scroll highlighted item into view
   useEffect(() => {
     if (isOpen && highlightedIndex >= 0 && listRef.current) {
       const items = listRef.current.querySelectorAll("[data-age-option]");
@@ -271,7 +242,6 @@ export const SearchableAgeInput = ({
           }}
         />
 
-        {/* Dropdown Chevron Toggle Button */}
         <button
           type="button"
           tabIndex={-1}
@@ -307,7 +277,6 @@ export const SearchableAgeInput = ({
         </button>
       </div>
 
-      {/* Floating Dropdown Suggestions */}
       {isOpen && !disabled && (
         <div
           ref={listRef}
@@ -327,7 +296,6 @@ export const SearchableAgeInput = ({
             padding: "4px",
           }}
         >
-          {/* Header pill */}
           <div
             style={{
               padding: "4px 10px 6px",
@@ -359,7 +327,6 @@ export const SearchableAgeInput = ({
                   role="option"
                   aria-selected={isSelected}
                   onMouseDown={(e) => {
-                    // Prevent input blur before click registers
                     e.preventDefault();
                     handleSelectOption(item);
                   }}
@@ -403,7 +370,6 @@ export const SearchableAgeInput = ({
             </div>
           )}
 
-          {/* If user typed a custom age not in the suggestions, show custom option shortcut */}
           {String(value || "").trim() && !exactMatch && (
             <div
               data-age-option

@@ -1,8 +1,4 @@
-/* ===========================================================
-   LSMIS — Complete App Shell & Dashboard Styles (consolidated)
-   =========================================================== */
 
-/* ============ Layout ============ */
 .app-layout {
   display: flex;
   min-height: 100vh;
@@ -103,12 +99,7 @@
   }
 }
 
-/* ===========================================================
-   Standardized Global Records Layout System
-   Fixed Header & Controls, Scrollable Records Content, Sticky Headers & Pagination
-   =========================================================== */
 
-/* Prevent page-level outer scroll or double scrollbars when records page or settings page is rendered */
 .app-content:has(.records-page-container) {
   overflow: hidden;
   display: flex;
@@ -141,7 +132,6 @@
   display: none !important;
 }
 
-/* Master Records Page Wrapper: fits viewport neatly between fixed app header and bottom */
 .records-page-container {
   display: flex !important;
   flex-direction: column !important;
@@ -157,7 +147,6 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-/* Fixed Header Toolbar: Always stays pinned at top, never scrolls */
 .records-fixed-header {
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
@@ -167,7 +156,6 @@
   box-sizing: border-box;
 }
 
-/* Scrollable Records Area: Expands to fill available vertical space; only this scrolls */
 .records-scrollable-content {
   flex: 1 1 auto !important;
   min-height: 0 !important;
@@ -180,7 +168,6 @@
   box-sizing: border-box;
 }
 
-/* When a table-wrap is used inside records-scrollable-content */
 .records-scrollable-content.table-wrap,
 .records-scrollable-content .table-wrap {
   flex: 1 1 auto !important;
@@ -191,7 +178,6 @@
   border-radius: 0 !important;
 }
 
-/* Fixed Table Header inside scrollable records: Pinned when scrolling table rows */
 .records-scrollable-content table thead {
   position: sticky !important;
   top: 0 !important;
@@ -208,7 +194,6 @@
   background: var(--color-bg) !important;
 }
 
-/* Fixed Footer Toolbar (Pagination): Stays pinned at bottom, never scrolls */
 .records-fixed-footer {
   flex-shrink: 0 !important;
   flex-grow: 0 !important;
@@ -218,7 +203,6 @@
   box-sizing: border-box;
 }
 
-/* Responsive adjustment for Mobile / Tablets */
 @media (max-width: 1024px) {
   .records-page-container {
     height: calc(100dvh - var(--header-height, 62px) - 32px) !important;
@@ -235,7 +219,6 @@
   }
 }
 
-/* ============ Sidebar ============ */
 .app-sidebar-brand {
   padding: 24px 20px;
   color: #fff;
@@ -358,7 +341,6 @@
   background: var(--color-bg);
 }
 
-/* Nav item */
 .nav-item {
   display: flex;
   align-items: center;
@@ -431,7 +413,6 @@
   height: 17px;
 }
 
-/* ============ Navbar ============ */
 .app-header {
   position: fixed;
   top: 0;
@@ -730,7 +711,6 @@
   height: 16px;
 }
 
-/* ============ Buttons ============ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -984,7 +964,6 @@
   flex-shrink: 0;
 }
 
-/* ============ Forms ============ */
 .form-group {
   margin-bottom: 14px;
 }
@@ -1072,7 +1051,6 @@ textarea.form-control {
   margin-top: 20px;
 }
 
-/* ============ Form Validation & Error Highlighting ============ */
 @keyframes fieldErrorPulse {
   0% {
     box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
@@ -1118,7 +1096,6 @@ textarea.has-error:focus {
   line-height: 1.35;
 }
 
-/* ============ Card ============ */
 .card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -1181,7 +1158,6 @@ textarea.has-error:focus {
   grid-column: 1 / -1;
 }
 
-/* ============ Stat card ============ */
 .stat-card {
   position: relative;
   padding: 22px;
@@ -1333,7 +1309,6 @@ textarea.has-error:focus {
   background: linear-gradient(135deg, #6366f1, #4338ca);
 }
 
-/* ============ Page head ============ */
 .page-head {
   display: flex;
   align-items: flex-start;
@@ -1388,7 +1363,6 @@ textarea.has-error:focus {
   margin-top: 4px;
 }
 
-/* Per-role page title gradient */
 [data-role="admin"] .page-title-icon {
   background: var(--lsmis-primary);
 }
@@ -1411,7 +1385,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============ Tables ============ */
 .table-wrap {
   overflow-x: auto;
   border: 1px solid var(--color-border);
@@ -1623,7 +1596,6 @@ textarea.has-error:focus {
   font-weight: 700;
 }
 
-/* ============ Badges (Plain Readable Status Text) ============ */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -1754,8 +1726,6 @@ textarea.has-error:focus {
   color: #38bdf8;
 }
 
-/* ============ Modal ============ */
-/* ============ Modal ============ */
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1800,7 +1770,6 @@ textarea.has-error:focus {
   max-width: 440px;
 }
 
-/* Personnel Registration / User Form Compact Modal Layout */
 .user-form-modal-grid {
   display: grid;
   grid-template-columns: 1.05fr 1fr;
@@ -1990,7 +1959,6 @@ textarea.has-error:focus {
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.35);
 }
 
-/* ============ Confirm Dialog / Centered Popup ============ */
 .confirm-modal-card {
   position: relative;
   text-align: center;
@@ -2091,7 +2059,6 @@ textarea.has-error:focus {
   text-align-last: center;
 }
 
-/* Ensure all message paragraphs and descriptions across confirmation dialogs are centered */
 .confirm-modal-body p,
 .confirm-message-custom p,
 .confirm-modal-children p,
@@ -2113,7 +2080,6 @@ textarea.has-error:focus {
   max-width: 680px;
 }
 
-/* Responsive adjustment for small screens */
 @media (max-width: 640px) {
   .confirm-modal-body {
     padding: 24px 18px 18px;
@@ -2245,7 +2211,6 @@ textarea.has-error:focus {
   transform: translateY(0) !important;
 }
 
-/* ============ Welcome banner ============ */
 .welcome-banner {
   display: flex;
   align-items: center;
@@ -2382,7 +2347,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============ Activity list ============ */
 .activity-list {
   display: flex;
   flex-direction: column;
@@ -2449,7 +2413,6 @@ textarea.has-error:focus {
   display: block;
 }
 
-/* ============ Schedule list ============ */
 .schedule-list {
   display: flex;
   flex-direction: column;
@@ -2508,7 +2471,6 @@ textarea.has-error:focus {
   margin-top: 3px;
 }
 
-/* ============ Marking grid (staff) ============ */
 .marking-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2564,7 +2526,6 @@ textarea.has-error:focus {
   margin-top: 2px;
 }
 
-/* ============ Approval cards (vet) ============ */
 .approval-list {
   display: flex;
   flex-direction: column;
@@ -2641,7 +2602,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============ Profile page ============ */
 .profile-grid {
   max-width: 880px;
   display: grid;
@@ -2693,7 +2653,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============ Settings toggles ============ */
 .settings-toggle {
   display: flex;
   align-items: center;
@@ -2748,7 +2707,6 @@ textarea.has-error:focus {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* ============ Notification list ============ */
 .notif-list {
   display: flex;
   flex-direction: column;
@@ -2826,7 +2784,6 @@ textarea.has-error:focus {
   border-radius: 50%;
 }
 
-/* ============ Alert tiles (dashboard) ============ */
 .alert-list {
   display: flex;
   flex-direction: column;
@@ -2868,7 +2825,6 @@ textarea.has-error:focus {
   color: var(--color-text-muted);
 }
 
-/* ============ Summary stats (dashboard) ============ */
 .summary-stat {
   text-align: center;
   padding: 12px;
@@ -2890,7 +2846,6 @@ textarea.has-error:focus {
   margin-top: 2px;
 }
 
-/* ============ Quick action tiles ============ */
 .qa-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -2997,7 +2952,6 @@ textarea.has-error:focus {
   background: linear-gradient(135deg, #f43f5e, #be123c);
 }
 
-/* ============ Fee breakdown ============ */
 .fee-list {
   display: flex;
   flex-direction: column;
@@ -3036,7 +2990,6 @@ textarea.has-error:focus {
   color: var(--color-success);
 }
 
-/* ============ Permit certificate ============ */
 .permit-doc {
   border: 2px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -3143,7 +3096,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============ Filter bar ============ */
 .filter-bar {
   display: flex;
   gap: 10px;
@@ -3212,8 +3164,6 @@ textarea.has-error:focus {
 }
 
 
-/* ============ Alert ============ */
-/* ============ Alert ============ */
 .alert {
   display: flex;
   align-items: flex-start;
@@ -3302,7 +3252,6 @@ textarea.has-error:focus {
   opacity: 0.95;
 }
 
-/* ============ Info banner (module pages) ============ */
 .info-banner {
   display: flex;
   align-items: center;
@@ -3336,12 +3285,10 @@ textarea.has-error:focus {
   color: var(--color-info);
 }
 
-/* ============ Module stat card variant (colored top border) ============ */
 .stat-card.elevated {
   background: linear-gradient(135deg, var(--color-surface), var(--color-bg));
 }
 
-/* ============ Empty state ============ */
 .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -3377,7 +3324,6 @@ textarea.has-error:focus {
   line-height: 1.5;
 }
 
-/* ============ Toast / Centered Alerts (Disabled in favor of in-app AlertDialog) ============ */
 .toast-container {
   display: none !important;
   position: fixed;
@@ -3492,7 +3438,6 @@ textarea.has-error:focus {
   transform: scale(1.1);
 }
 
-/* Success */
 .toast-success {
   border-color: rgba(16, 185, 129, 0.55);
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 0 32px -4px rgba(16, 185, 129, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3);
@@ -3503,7 +3448,6 @@ textarea.has-error:focus {
   box-shadow: 0 0 16px rgba(16, 185, 129, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-/* Error */
 .toast-error {
   border-color: rgba(239, 68, 68, 0.55);
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 0 32px -4px rgba(239, 68, 68, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3);
@@ -3514,7 +3458,6 @@ textarea.has-error:focus {
   box-shadow: 0 0 16px rgba(239, 68, 68, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-/* Warning */
 .toast-warning {
   border-color: rgba(245, 158, 11, 0.55);
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 0 32px -4px rgba(245, 158, 11, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3);
@@ -3525,7 +3468,6 @@ textarea.has-error:focus {
   box-shadow: 0 0 16px rgba(245, 158, 11, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-/* Info */
 .toast-info {
   border-color: rgba(14, 165, 233, 0.55);
   box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 0 32px -4px rgba(14, 165, 233, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.3);
@@ -3536,7 +3478,6 @@ textarea.has-error:focus {
   box-shadow: 0 0 16px rgba(14, 165, 233, 0.7), inset 0 1px 1px rgba(255, 255, 255, 0.6);
 }
 
-/* Progress countdown bar */
 .toast-progress-track {
   position: absolute;
   bottom: 0;
@@ -3575,7 +3516,6 @@ textarea.has-error:focus {
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
 }
 
-/* ============ Chart container ============ */
 .chart-container {
   position: relative;
   height: 280px;
@@ -3589,7 +3529,6 @@ textarea.has-error:focus {
   height: 340px;
 }
 
-/* ============ Grid utilities ============ */
 .grid {
   display: grid;
   gap: 18px;
@@ -3702,7 +3641,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============ Comprehensive Dark Mode Overrides ============ */
 [data-theme="dark"] select,
 [data-theme="dark"] .form-control,
 [data-theme="dark"] .form-select,
@@ -3740,7 +3678,6 @@ textarea.has-error:focus {
   border-color: var(--color-border);
 }
 
-/* Guard against legacy hardcoded near-black text colors in dark mode */
 [data-theme="dark"] [style*="color: #1A201C"],
 [data-theme="dark"] [style*="color: #2D332F"],
 [data-theme="dark"] [style*="color: #444C47"],
@@ -3757,7 +3694,6 @@ textarea.has-error:focus {
   color: var(--color-text-muted) !important;
 }
 
-/* Guard against hardcoded light backgrounds in dark mode inside cards */
 [data-theme="dark"] .card [style*="background: #F9FAF8"],
 [data-theme="dark"] .card [style*="background: #ffffff"],
 [data-theme="dark"] .card [style*="background:#F9FAF8"],
@@ -3765,10 +3701,6 @@ textarea.has-error:focus {
   background: var(--color-bg) !important;
 }
 
-/* ===========================================================
-   Standardized Action Column & Buttons
-   Single Design Reference: Admin > Owner Management
-   =========================================================== */
 .table-action-th {
   padding: 12px 14px !important;
   font-size: 0.72rem !important;
@@ -3826,7 +3758,6 @@ textarea.has-error:focus {
   opacity: 0.6 !important;
 }
 
-/* Variant: Outline / View / Details / Edit / Print */
 .action-btn-outline {
   padding: 0 9px;
   background: var(--color-surface, #ffffff);
@@ -3840,7 +3771,6 @@ textarea.has-error:focus {
   color: var(--lsmis-primary-text);
 }
 
-/* Variant: Success / Green (Approve, Mark, Fit) */
 .action-btn-success {
   background: #059669;
   color: #ffffff;
@@ -3852,7 +3782,6 @@ textarea.has-error:focus {
   background: #047857;
 }
 
-/* Variant: Danger / Red (Reject, Delete, Condemn) */
 .action-btn-danger {
   background: #dc2626;
   color: #ffffff;
@@ -3864,7 +3793,6 @@ textarea.has-error:focus {
   background: #b91c1c;
 }
 
-/* Variant: Soft Success (Activate) */
 .action-btn-soft-success {
   padding: 0 12px;
   background: #f0fdf4;
@@ -3878,7 +3806,6 @@ textarea.has-error:focus {
   background: #dcfce7;
 }
 
-/* Variant: Soft Danger (Deactivate) */
 .action-btn-soft-danger {
   padding: 0 12px;
   background: #fef2f2;
@@ -3892,7 +3819,6 @@ textarea.has-error:focus {
   background: #fee2e2;
 }
 
-/* Variant: Primary Brand Blue (Inspect, Assign, Intake) */
 .action-btn-primary {
   background: var(--lsmis-primary);
   color: #ffffff;
@@ -3903,7 +3829,6 @@ textarea.has-error:focus {
   border-color: var(--lsmis-primary-hover);
 }
 
-/* Variant: Primary Brand Green */
 .action-btn-brand-green {
   background: var(--lsmis-primary);
   color: #ffffff;
@@ -3914,7 +3839,6 @@ textarea.has-error:focus {
   border-color: var(--lsmis-primary-hover);
 }
 
-/* Variant: Amber / Warning (Reassign) */
 .action-btn-warning {
   background: #d97706;
   color: #ffffff;
@@ -3926,7 +3850,6 @@ textarea.has-error:focus {
   background: #b45309;
 }
 
-/* Variant: Purple (Post-Mortem) */
 .action-btn-purple {
   background: var(--lsmis-primary);
   color: #ffffff;
@@ -3937,11 +3860,7 @@ textarea.has-error:focus {
   border-color: var(--lsmis-primary-hover);
 }
 
-/* ============================================================
-   RESPONSIVE ENHANCEMENTS: PHONES, TABLETS & DESKTOP DEVICES
-   ============================================================ */
 @media (max-width: 768px) {
-  /* Tables gracefully scroll horizontally on mobile and tablet without breaking layout */
   .table-responsive,
   .table-container,
   .table-wrap {
@@ -3951,7 +3870,6 @@ textarea.has-error:focus {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Modals fit neatly inside the mobile viewport */
   .modal {
     width: calc(100vw - 20px) !important;
     max-width: calc(100vw - 20px) !important;
@@ -3965,14 +3883,12 @@ textarea.has-error:focus {
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Accessible touch targets for buttons on mobile */
   .btn,
   button:not(.modal-close):not(.p-0) {
     min-height: 38px;
   }
 }
 
-/* Landscape orientation adjustments for mobile */
 @media (max-height: 500px) and (orientation: landscape) {
   .modal {
     max-height: calc(100dvh - 16px) !important;
@@ -3986,10 +3902,6 @@ textarea.has-error:focus {
   }
 }
 
-/* ============================================================
-   MFA RESPONSIVE TEXT SWITCHING (COMPACT ON MOBILE & INSTALLED PWA)
-   Desktop, laptops, and tablets retain standard layout
-   ============================================================ */
 .mfa-mobile-text {
   display: none !important;
 }

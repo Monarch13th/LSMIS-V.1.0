@@ -102,13 +102,11 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
 
   const [loading, setLoading] = useState(() => !getInitialProfile().email);
 
-  // 1. Profile State
   const [profile, setProfile] = useState(getInitialProfile);
   const [initialProfile, setInitialProfile] = useState(getInitialProfile);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const fileInputRef = useRef(null);
 
-  // Edit Personal Information state (matching Owner Profile design)
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileForm, setProfileForm] = useState(() => {
     const init = getInitialProfile();
@@ -127,14 +125,12 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
   const [copiedPersonnelId, setCopiedPersonnelId] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
 
-  // Photo upload and preview state (matching Owner Profile design)
   const [selectedPhotoFile, setSelectedPhotoFile] = useState(null);
   const [previewPhotoUrl, setPreviewPhotoUrl] = useState(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [photoMsg, setPhotoMsg] = useState(null);
   const [profileMsg, setProfileMsg] = useState(null);
 
-  // Status popup alert dialog
   const [profileAlert, setProfileAlert] = useState({
     open: false,
     title: "",
@@ -142,19 +138,17 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     variant: "success",
   });
 
-  // 2. Notification Preferences State
   const [notifPrefs, setNotifPrefs] = useState(DEFAULT_NOTIFICATION_PREFERENCES);
   const [initialNotifPrefs, setInitialNotifPrefs] = useState(DEFAULT_NOTIFICATION_PREFERENCES);
   const [isSavingPrefs, setIsSavingPrefs] = useState(false);
 
-  // 3. Account Security State
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [showCurrentPw, setShowCurrentPw] = useState(false);
   const [showNextPw, setShowNextPw] = useState(false);
   const [showConfirmPw, setShowConfirmPw] = useState(false);
   const [isChangingPw, setIsChangingPw] = useState(false);
   const [twoFA, setTwoFA] = useState(false);
-  const [passwordErrorField, setPasswordErrorField] = useState(null); // 'current' | 'next' | 'confirm' | null
+  const [passwordErrorField, setPasswordErrorField] = useState(null);
   const [passwordAlert, setPasswordAlert] = useState({
     open: false,
     title: "",
@@ -163,7 +157,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     variant: "danger",
   });
 
-  // Load user data on mount
   useEffect(() => {
     let isCurrent = true;
 
@@ -175,7 +168,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         const email = user?.email || session?.email || "";
         const userId = user?.id || session?.id || "";
 
-        // Query public.users
         let dbUser = null;
         if (email) {
           const { data: uData } = await supabase
@@ -186,7 +178,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           dbUser = uData;
         }
 
-        // Query public.owners if role is owner or not in users
         let dbOwner = null;
         if (email && (role === "owner" || !dbUser)) {
           const { data: oData } = await supabase
@@ -258,7 +249,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           setTwoFA(Boolean(userMeta?.two_factor_enabled || session?.two_factor_enabled));
         }
 
-        // Load Notification Preferences
         const prefs = await getUserNotificationPreferences(email, userId);
         if (isCurrent) {
           setNotifPrefs(prefs);
@@ -278,7 +268,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     };
   }, [role, session?.id, session?.email]);
 
-  // Handle Photo Selection & Preview (Matching Owner Profile)
   const handlePhotoSelect = (e) => {
     setPhotoMsg(null);
     const file = e.target.files?.[0];
@@ -321,7 +310,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Upload and Save Profile Picture to Supabase Storage
   const handleSavePhoto = () => {
     if (!selectedPhotoFile || isUploadingPhoto) return;
     setConfirmAction({
@@ -341,13 +329,11 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       const email = profile.email || session?.email || "";
       const targetIdentifier = personnelId || email || "personnel";
 
-      // 1. Upload to Supabase Storage ('avatars' bucket) and get public CDN URL
       const uploadedUrl = await uploadAvatarFile(selectedPhotoFile, targetIdentifier);
       if (!uploadedUrl) {
         throw new Error("Unable to retrieve public CDN URL for the uploaded photo.");
       }
 
-      // 2. Persist in database
       const trimmedEmail = email.trim();
       if (profile.role === "owner") {
         await supabase
@@ -370,7 +356,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         } catch (_) { }
       }
 
-      // 3. Update Supabase Auth metadata
       await supabase.auth.updateUser({
         data: {
           avatar_url: uploadedUrl,
@@ -378,7 +363,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         },
       });
 
-      // 4. Update session storage & authStore
       const curSess = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION) || "{}");
       const newSess = { ...curSess, avatar_url: uploadedUrl };
       sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(newSess));
@@ -426,7 +410,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     }
   };
 
-  // Save Profile Changes
   const handleSaveProfile = async (e) => {
     e?.preventDefault();
     setProfileMsg(null);
@@ -489,7 +472,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     try {
       const trimmedEmail = (profile.email || session?.email || "").trim();
 
-      // 1. Update Database Table (users or owners)
       if (profile.role === "owner") {
         await supabase
           .from(TABLES.OWNERS)
@@ -528,7 +510,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         } catch (_) { }
       }
 
-      // 2. Update Supabase Auth user metadata
       const { error: authErr } = await supabase.auth.updateUser({
         data: {
           full_name: trimmedName,
@@ -546,7 +527,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         throw new Error(authErr.message || "Failed to update auth metadata.");
       }
 
-      // 3. Update session storage & authStore
       const curSess = JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION) || "{}");
       const newSess = {
         ...curSess,
@@ -610,7 +590,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     }
   };
 
-  // Notification Preference Toggle
   const handleTogglePref = (key) => {
     setNotifPrefs((prev) => ({
       ...prev,
@@ -666,12 +645,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     }
   };
 
-  // Change Password
   const handleChangePassword = async (e) => {
     e?.preventDefault();
     if (isChangingPw) return;
 
-    // Check internet connectivity
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       setPasswordErrorField(null);
       setPasswordAlert({
@@ -684,7 +661,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
-    // 1. Validate Current Password presence
     if (!pw.current || !pw.current.trim()) {
       setPasswordErrorField("current");
       setPasswordAlert({
@@ -697,7 +673,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
-    // 2. Validate New Password presence
     if (!pw.next || !pw.next.trim()) {
       setPasswordErrorField("next");
       setPasswordAlert({
@@ -710,7 +685,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
-    // 3. Validate Password Criteria
     const val = validatePassword(pw.next);
     if (!val.isValid) {
       setPasswordErrorField("next");
@@ -725,7 +699,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
-    // 4. Validate that New Password is not the same as Current Password
     if (pw.current.trim() === pw.next.trim()) {
       setPasswordErrorField("next");
       setPasswordAlert({
@@ -738,7 +711,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
-    // 5. Validate Password Confirmation presence
     if (!pw.confirm || !pw.confirm.trim()) {
       setPasswordErrorField("confirm");
       setPasswordAlert({
@@ -751,7 +723,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
       return;
     }
 
-    // 6. Validate that New Password and Confirmation match
     if (pw.next !== pw.confirm) {
       setPasswordErrorField("confirm");
       setPasswordAlert({
@@ -792,7 +763,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         return;
       }
 
-      // 7. Verify current password with Supabase Auth
       const { error: verifyErr } = await supabase.auth.signInWithPassword({
         email: activeEmail,
         password: pw.current,
@@ -803,7 +773,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         const errMsg = String(verifyErr.message || "").toLowerCase();
         const errStatus = verifyErr.status;
 
-        // Offline / Network Failure
         if (errMsg.includes("network") || errMsg.includes("fetch failed") || (typeof navigator !== "undefined" && !navigator.onLine)) {
           setPasswordAlert({
             open: true,
@@ -815,7 +784,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // Session Expiration
         if (errMsg.includes("jwt") || errMsg.includes("session") || (errStatus === 401 && errMsg.includes("token"))) {
           setPasswordAlert({
             open: true,
@@ -827,7 +795,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // Incorrect Current Password
         if (
           errMsg.includes("invalid login credentials") ||
           errMsg.includes("invalid_grant") ||
@@ -845,7 +812,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // Other Supabase verification error
         setPasswordErrorField("current");
         setPasswordAlert({
           open: true,
@@ -857,7 +823,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         return;
       }
 
-      // 8. Execute Password Update in Supabase
       const { error: updErr } = await supabase.auth.updateUser({
         password: pw.next,
       });
@@ -866,7 +831,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         setIsChangingPw(false);
         const updMsg = String(updErr.message || "").toLowerCase();
 
-        // Network error
         if (updMsg.includes("network") || updMsg.includes("fetch failed") || (typeof navigator !== "undefined" && !navigator.onLine)) {
           setPasswordAlert({
             open: true,
@@ -878,7 +842,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // Same password error from Supabase
         if (
           updMsg.includes("same_password") ||
           updMsg.includes("same as") ||
@@ -895,7 +858,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // Session expired
         if (updMsg.includes("session") || updMsg.includes("jwt") || updMsg.includes("auth session missing")) {
           setPasswordAlert({
             open: true,
@@ -907,7 +869,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // Weak password / criteria rejection
         if (updMsg.includes("weak") || updMsg.includes("criteria") || updMsg.includes("characters")) {
           setPasswordErrorField("next");
           setPasswordAlert({
@@ -920,7 +881,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           return;
         }
 
-        // General Supabase rejection
         setPasswordErrorField("next");
         setPasswordAlert({
           open: true,
@@ -932,7 +892,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         return;
       }
 
-      // Ensure active session remains persistent and valid in authStore and storage
       const currentCached = authStore.get()?.session || JSON.parse(sessionStorage.getItem(STORAGE_KEYS.SESSION) || "null");
       if (currentCached) {
         sessionStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(currentCached));
@@ -949,7 +908,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         console.warn("Audit log for password change skipped:", logErr);
       }
 
-      // Success: Clear form inputs, clear validation error highlights, and present success alert
       setPw({ current: "", next: "", confirm: "" });
       setPasswordErrorField(null);
       setShowCurrentPw(false);
@@ -988,7 +946,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     }
   };
 
-  // Toggle Two-Factor Authentication
   const handleToggle2FA = async () => {
     const nextVal = !twoFA;
     setTwoFA(nextVal);
@@ -1022,7 +979,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
     initialNotifPrefs &&
     JSON.stringify(notifPrefs) !== JSON.stringify(initialNotifPrefs);
 
-  // Role display details
   const roleLabel = ROLE_LABELS[profile.role] || ROLE_LABELS[role] || "Personnel";
   const colors = ROLE_COLORS[profile.role] || ROLE_COLORS[role] || ROLE_COLORS.admin;
   const resolvedAvatarUrl =
@@ -1068,7 +1024,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         boxSizing: "border-box",
       }}
     >
-      {/* -- SETTINGS 2-COLUMN LAYOUT WITH FIXED LEFT NAVIGATION & SCROLLABLE CONTENT -- */}
       <div
         className="settings-layout-grid"
         style={{
@@ -1083,7 +1038,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           overflow: "hidden",
         }}
       >
-        {/* Left Side Navigation • stationary, fixed in viewport, never scrolls */}
         <div
           className="settings-sidebar-nav"
           onWheel={handleNavWheel}
@@ -1200,7 +1154,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
           )}
         </div>
 
-        {/* Right Side: Tab Content (Scrolls independently) */}
         <div
           ref={contentPaneRef}
           className="settings-content-pane"
@@ -1215,10 +1168,8 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             boxSizing: "border-box",
           }}
         >
-          {/* -- TAB 1: PROFILE SETTINGS (Matching Owner Profile Design) -- */}
           {activeTab === "profile" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 14, paddingBottom: 20 }}>
-              {/* Hidden File Input for Profile Picture Upload */}
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1227,9 +1178,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 onChange={handlePhotoSelect}
               />
 
-              {/* ============================================================ */}
-              {/* SECTION A: PROFILE HEADER                                    */}
-              {/* ============================================================ */}
               <div className="owner-profile-card" style={{ position: "relative" }}>
                 <div
                   style={{
@@ -1240,7 +1188,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     flexWrap: "wrap",
                   }}
                 >
-                  {/* Left: Circular Profile Picture */}
                   <div className="owner-profile-avatar-wrap" style={{ margin: 0, flexShrink: 0 }}>
                     {resolvedAvatarUrl && !avatarError ? (
                       <img
@@ -1256,7 +1203,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       </span>
                     )}
 
-                    {/* Change Photo Camera Button */}
                     <button
                       type="button"
                       onClick={() => fileInputRef.current?.click()}
@@ -1267,7 +1213,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       <Icon.Camera size={14} />
                     </button>
 
-                    {/* Verified Status Badge */}
                     <div
                       className="owner-profile-check-badge"
                       title={`Verified ${roleLabel}`}
@@ -1276,7 +1221,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     </div>
                   </div>
 
-                  {/* Right: Name, Email & Status */}
                   <div
                     style={{
                       display: "flex",
@@ -1286,12 +1230,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       textAlign: "left",
                     }}
                   >
-                    {/* Personnel Full Name */}
                     <h1 className="owner-profile-name" style={{ fontSize: 18, marginBottom: 0 }}>
                       {loading ? "Loading..." : profile.full_name || "Account Profile"}
                     </h1>
 
-                    {/* Registered Email */}
                     <div
                       style={{
                         fontSize: 12,
@@ -1306,7 +1248,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                       <span>{profile.email}</span>
                     </div>
 
-                    {/* Account Status Pill */}
                     <div
                       style={{
                         display: "flex",
@@ -1340,7 +1281,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   </div>
                 </div>
 
-                {/* Photo Preview Card Before Saving */}
                 {previewPhotoUrl && (
                   <div className="owner-profile-preview-card" style={{ marginTop: 10 }}>
                     <img src={previewPhotoUrl} alt="Preview" className="owner-profile-preview-img" />
@@ -1400,9 +1340,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 )}
               </div>
 
-              {/* ============================================================ */}
-              {/* SECTION B: PERSONAL INFORMATION                              */}
-              {/* ============================================================ */}
               <div className="owner-profile-card">
                 <div className="owner-profile-section-title">
                   <h2 className="owner-profile-section-heading">
@@ -1456,7 +1393,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 )}
 
                 {isEditingProfile ? (
-                  /* Edit Form */
                   <form onSubmit={handleSaveProfile} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div className="owner-profile-field">
                       <label className="owner-profile-label" htmlFor="personnel-fullname">
@@ -1626,7 +1562,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     </div>
                   </form>
                 ) : (
-                  /* View List */
                   <div className="owner-profile-info-grid">
                     <div className="owner-profile-info-row">
                       <span className="owner-profile-info-label">
@@ -1698,9 +1633,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 )}
               </div>
 
-              {/* ============================================================ */}
-              {/* SECTION C: ACCOUNT INFORMATION                               */}
-              {/* ============================================================ */}
               <div className="owner-profile-card">
                 <div className="owner-profile-section-title">
                   <h2 className="owner-profile-section-heading">
@@ -1772,11 +1704,9 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             </div>
           )}
 
-          {/* -- TAB 2: NOTIFICATION PREFERENCES -- */}
           {activeTab === "notifications" && (
             <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                {/* Header with Quick Actions */}
                 <div
                   style={{
                     display: "flex",
@@ -1833,7 +1763,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   </div>
                 </div>
 
-                {/* Notification Category Rows (Spacious & Comfortable) */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                   {[
                     {
@@ -1910,7 +1839,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         }}
                       >
                         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                          {/* Category Icon Badge (42px) */}
                           <div
                             style={{
                               width: 44,
@@ -1937,7 +1865,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           </div>
                         </div>
 
-                        {/* Zoomed-in Toggle Switch (52px x 28px) */}
                         <div
                           role="switch"
                           aria-checked={isChecked}
@@ -1970,7 +1897,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                   })}
                 </div>
 
-                {/* Save Preferences Bar */}
                 <div
                   style={{
                     display: "flex",
@@ -2017,13 +1943,10 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             </Card>
           )}
 
-          {/* -- TAB 3: ACCOUNT SECURITY -- */}
           {activeTab === "security" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-              {/* Card 1: Change Password */}
               <Card style={{ padding: "30px 32px", borderRadius: 16 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-                  {/* Header */}
                   <div
                     style={{
                       display: "flex",
@@ -2080,7 +2003,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                     </div>
                   </div>
 
-                  {/* Form & Security Checklist Grid */}
                   <form onSubmit={handleChangePassword} noValidate>
                     <div
                       style={{
@@ -2090,9 +2012,7 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         alignItems: "start",
                       }}
                     >
-                      {/* Left Column: Input Fields */}
                       <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                        {/* 1. Current Password */}
                         <div>
                           <label
                             htmlFor="current-password-input"
@@ -2179,7 +2099,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           </span>
                         </div>
 
-                        {/* 2. New Password */}
                         <div>
                           <label
                             htmlFor="new-password-input"
@@ -2263,7 +2182,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           </div>
                         </div>
 
-                        {/* 3. Confirm New Password */}
                         <div>
                           <label
                             htmlFor="confirm-password-input"
@@ -2351,7 +2269,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                             </button>
                           </div>
 
-                          {/* Real-time Match Indicator */}
                           {pw.confirm && (
                             <div style={{ marginTop: 7, fontSize: 12.5, fontWeight: 700 }}>
                               {pw.next === pw.confirm ? (
@@ -2387,7 +2304,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                           )}
                         </div>
 
-                        {/* Action Buttons */}
                         <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8 }}>
                           <button
                             type="submit"
@@ -2463,7 +2379,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                         </div>
                       </div>
 
-                      {/* Right Column: Real-time Password Security Advisor */}
                       <div
                         style={{
                           background: "var(--color-bg, #F9FAF8)",
@@ -2522,7 +2437,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
                 </div>
               </Card>
 
-              {/* Card 2: Security & Session Protection (Integrated with Supabase MFA & Active Sessions) */}
               <AuthSecuritySessions
                 userEmail={profile.email || session?.email}
                 userRole={profile.role || role}
@@ -2532,14 +2446,12 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
             </div>
           )}
 
-          {/* -- TAB 4: MEAT PERMIT CONFIGURATION (ADMIN ONLY) -- */}
           {activeTab === "permit-config" && role === "admin" && (
             <PermitConfig />
           )}
         </div>
       </div>
 
-      {/* Settings Action Confirmation Dialog */}
       <ConfirmDialog
         open={Boolean(confirmAction)}
         onCancel={() => {
@@ -2561,7 +2473,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         loading={isSavingProfile || isUploadingPhoto || isSavingPrefs || isChangingPw}
       />
 
-      {/* Change Password Alert Dialog */}
       <AlertDialog
         open={passwordAlert.open}
         onClose={() => setPasswordAlert((prev) => ({ ...prev, open: false }))}
@@ -2571,7 +2482,6 @@ export const CentralSettingsPage = ({ role = "admin", initialTab = "profile" }) 
         variant={passwordAlert.variant || "danger"}
       />
 
-      {/* Profile Status & Confirmation Alert Dialog */}
       <AlertDialog
         open={profileAlert.open}
         onClose={() => setProfileAlert((prev) => ({ ...prev, open: false }))}

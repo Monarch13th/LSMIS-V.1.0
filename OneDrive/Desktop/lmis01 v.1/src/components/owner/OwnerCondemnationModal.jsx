@@ -2,9 +2,6 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "../icons";
 
-/**
- * Image Lightbox Modal for enlarged photo viewing.
- */
 export const ImageLightboxModal = ({ photo, onClose }) => {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -53,7 +50,6 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header bar */}
         <div
           style={{
             display: "flex",
@@ -95,7 +91,6 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
           </button>
         </div>
 
-        {/* Enlarged Photo */}
         <div style={{ backgroundColor: "#020617", display: "flex", justifyContent: "center", alignItems: "center", minHeight: 260, maxHeight: "65vh", padding: 12 }}>
           <img
             src={photo.url}
@@ -108,7 +103,6 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
           />
         </div>
 
-        {/* Footer info */}
         <div style={{ padding: "12px 18px", backgroundColor: "#2D332F", color: "#F9FAF8", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <strong style={{ color: "#24966D" }}>{photo.part}</strong>
           {photo.date && <span style={{ color: "#9BA49E", fontSize: 11.5 }}>{photo.date}</span>}
@@ -120,14 +114,9 @@ export const ImageLightboxModal = ({ photo, onClose }) => {
   return typeof document !== "undefined" ? createPortal(content, document.body) : content;
 };
 
-/**
- * Concise & Compact Condemnation Evidence Modal for Owners.
- * Layered with zIndex: 11000 so it ALWAYS mounts in front of View Details (zIndex: 10000).
- */
 export const OwnerCondemnationModal = ({ open, onClose, details }) => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
-  // Keyboard Escape listener: closes condemnation modal (or lightbox if photo open)
   useEffect(() => {
     if (!open) return;
     const handleKeyDown = (e) => {
@@ -144,7 +133,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
     return () => window.removeEventListener("keydown", handleKeyDown, true);
   }, [open, onClose, selectedPhoto]);
 
-  // Lock body scroll while open
   useEffect(() => {
     if (!open) return;
     const prevOverflow = document.body.style.overflow;
@@ -165,7 +153,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
   const resultColor = isPartial ? "#b45309" : "#dc2626";
   const statusLabel = isPartial ? "Partially Condemned" : "Condemned";
 
-  // Clean rejected parts array
   const rejectedPartsList = Array.isArray(details.condemnedParts) ? details.condemnedParts : [];
 
   const modalMarkup = (
@@ -207,7 +194,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
           <div
             className="owner-condemnation-modal-header"
             style={{
@@ -278,9 +264,7 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
             </button>
           </div>
 
-          {/* Modal Content */}
           <div className="owner-condemnation-modal-body" style={{ padding: "16px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
-            {/* Status Pill Card */}
             <div
               style={{
                 padding: "10px 14px",
@@ -314,7 +298,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               </span>
             </div>
 
-            {/* Condemnation Reason */}
             <div
               style={{
                 padding: "12px 14px",
@@ -331,7 +314,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               </div>
             </div>
 
-            {/* Rejected Weight (Shown for Condemned Livestock) */}
             {!isPartial && (
               <div
                 style={{
@@ -358,7 +340,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               </div>
             )}
 
-            {/* Rejected Carcass Parts (Shown for Partial Condemnation) */}
             {isPartial && (
               <div
                 style={{
@@ -404,7 +385,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               </div>
             )}
 
-            {/* Evidence Photos Gallery */}
             <div>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#5D6660", letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5 }}>
@@ -500,7 +480,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
               )}
             </div>
 
-            {/* Clear Close Button */}
             <button
               type="button"
               onClick={(e) => {
@@ -526,7 +505,6 @@ export const OwnerCondemnationModal = ({ open, onClose, details }) => {
         </div>
       </div>
 
-      {/* Full-size Image Lightbox (Mounted above OwnerCondemnationModal at zIndex: 12000) */}
       {selectedPhoto && (
         <ImageLightboxModal photo={selectedPhoto} onClose={() => setSelectedPhoto(null)} />
       )}

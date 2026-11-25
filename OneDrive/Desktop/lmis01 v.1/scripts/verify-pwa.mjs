@@ -1,4 +1,3 @@
-// Headless Edge verification via Chrome DevTools Protocol (no extra dependencies).
 import { spawn } from "child_process";
 import fs from "fs";
 import os from "os";

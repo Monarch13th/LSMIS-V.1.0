@@ -21,7 +21,6 @@ import { useAuth } from "../../hooks/useAuth";
 import { scrollToFirstError } from "../../utils/formValidation";
 import logoImg from "../../assets/logo.png";
 
-// Official Google 4-Color "G" Brand Logo
 const GoogleLogo = ({ size = 19 }) => (
   <svg
     width={size}
@@ -66,18 +65,15 @@ export const Login = ({ embedded = false, initialView }) => {
       }
     } catch (_) { }
     return "signin";
-  }); // "signin" | "forgot" | "register" | "verify-otp" | "reg-submitted"
+  });
   const [email, setEmail] = useState(() => localStorage.getItem("lsmis_saved_identifier") || "");
   const [password, setPassword] = useState("");
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  // Installed Capacitor Android app: Google sign-in is hidden (website-only)
   const isNativeAndroidApp = isCapacitorNativeApp();
-  // Installed mobile application detection (Capacitor Android APK or installed standalone PWA)
   const isInstalled = isInstalledApp();
 
-  // Lock history in installed mobile app so back action does not navigate to landing page
   useEffect(() => {
     if (isInstalled) {
       try {
@@ -90,7 +86,6 @@ export const Login = ({ embedded = false, initialView }) => {
   const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("lsmis_remember_me") === "true");
   const [isShaking, setIsShaking] = useState(false);
 
-  // Google OAuth state (Owner Login only)
   const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
   const oauthHandledRef = useRef(false);
   const signInInFlightRef = useRef(false);
@@ -98,17 +93,13 @@ export const Login = ({ embedded = false, initialView }) => {
   const popupRef = useRef(null);
   const popupPollTimerRef = useRef(null);
 
-  // Unregistered Google Account Warning Modal State
   const [unregisteredModalOpen, setUnregisteredModalOpen] = useState(false);
   const [unregisteredGoogleEmail, setUnregisteredGoogleEmail] = useState("");
 
-  // Account Termination Popup Notice State
   const [terminationNotice, setTerminationNotice] = useState({ open: false, reason: "", terminatedUntil: null });
 
-  // Single Active Session Concurrent Logout Notice State
   const [concurrentNoticeOpen, setConcurrentNoticeOpen] = useState(false);
 
-  // Owner Registration state
   const [regName, setRegName] = useState("");
   const [regContact, setRegContact] = useState("");
   const [regAddress, setRegAddress] = useState("");
@@ -127,8 +118,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
   const [registeredOwnerInfo, setRegisteredOwnerInfo] = useState(null);
 
-  // Forgot password state
-  const [fpStep, setFpStep] = useState(1); // 1: Send Code, 2: Reset Password
+  const [fpStep, setFpStep] = useState(1);
   const [fpEmail, setFpEmail] = useState("");
   const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -144,7 +134,6 @@ export const Login = ({ embedded = false, initialView }) => {
   const [fpSuccess, setFpSuccess] = useState(false);
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
-  // Two-Factor Authentication (2FA) Verification State
   const [pending2FA, setPending2FA] = useState(null);
   const [twoFaCode, setTwoFaCode] = useState("");
   const [twoFaLoading, setTwoFaLoading] = useState(false);
@@ -158,7 +147,6 @@ export const Login = ({ embedded = false, initialView }) => {
   const location = useLocation();
   const { session: currentSession, role: currentRole, loading: authLoading } = useAuth();
 
-  // Sync view when route changes between /login and /register
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     if (
@@ -180,7 +168,6 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   }, [initialView, location.pathname, location.search, location.state]);
 
-  // Support Android hardware back button and browser popstate to return to Login without getting stuck
   useEffect(() => {
     const handleBackButton = (e) => {
       if (view === "register" || view === "forgot") {
@@ -189,9 +176,7 @@ export const Login = ({ embedded = false, initialView }) => {
       }
     };
 
-    // 1. Android Capacitor / Cordova hardware back button event
     document.addEventListener("backbutton", handleBackButton);
-    // 2. Standard Web browser back button event
     window.addEventListener("popstate", handleBackButton);
 
     return () => {
@@ -200,9 +185,7 @@ export const Login = ({ embedded = false, initialView }) => {
     };
   }, [view]);
 
-  // If already authenticated with active role, redirect directly to assigned module
   useEffect(() => {
-    // Prevent premature redirection while Google OAuth handshake is running or URL contains OAuth tokens
     const hash = typeof window !== "undefined" ? window.location.hash || "" : "";
     const search = typeof window !== "undefined" ? window.location.search || "" : "";
     const isOAuthInFlight =
@@ -240,7 +223,6 @@ export const Login = ({ embedded = false, initialView }) => {
   const regConfirmPasswordRef = useRef(null);
   const regAgreementRef = useRef(null);
 
-  // Autofocus logic
   useEffect(() => {
     const timer = setTimeout(() => {
       if (view === "signin") emailRef.current?.focus();
@@ -254,7 +236,6 @@ export const Login = ({ embedded = false, initialView }) => {
     return () => clearTimeout(timer);
   }, [view, fpCodeSent]);
 
-  // 2FA OTP resend cooldown timer
   useEffect(() => {
     let interval = null;
     if (twoFaCooldown > 0) {
@@ -265,7 +246,6 @@ export const Login = ({ embedded = false, initialView }) => {
     return () => clearInterval(interval);
   }, [twoFaCooldown]);
 
-  // Forgot password OTP resend cooldown timer
   useEffect(() => {
     let interval = null;
     if (fpCooldown > 0) {
@@ -287,7 +267,6 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   }, [navigate]);
 
-  // ---- OAuth Popup Window Detection (Runs if Login page is loaded inside the popup) ----
   useEffect(() => {
     if (typeof window === "undefined" || !window.opener || window.opener === window) return;
 
@@ -345,7 +324,6 @@ export const Login = ({ embedded = false, initialView }) => {
     } catch (_) { }
   }, []);
 
-  // ---- Handle PostMessages from OAuth Popup in Main Window ----
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -363,7 +341,6 @@ export const Login = ({ embedded = false, initialView }) => {
         inFlightOAuthRef.current = false;
         ownerAuthService.cleanGoogleOAuthState();
         setGoogleLoginLoading(false);
-        // Quietly reset loading on cancellation without displaying an error alert
       } else if (msg.type === "LSMIS_GOOGLE_OAUTH_ERROR") {
         if (popupPollTimerRef.current) {
           clearInterval(popupPollTimerRef.current);
@@ -390,7 +367,6 @@ export const Login = ({ embedded = false, initialView }) => {
     return () => window.removeEventListener("message", handleOAuthMessage);
   }, []);
 
-  // ---- Detect Return from External Navigation / Browser Back Button (bfcache) ----
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -411,16 +387,13 @@ export const Login = ({ embedded = false, initialView }) => {
 
       if (hasOAuthTokens) return;
 
-      // Check whether Supabase already exchanged the URL token into an active session
       try {
         const { data } = await supabase.auth.getSession();
         if (data?.session?.user || oauthHandledRef.current) return;
       } catch (_) { }
 
-      // Ignore if OAuth was just initiated within the last 1.5s (redirect still starting)
       if (Date.now() - Number(inFlightTs) < 1500) return;
 
-      // User navigated back / cancelled without completing OAuth
       ownerAuthService.cleanGoogleOAuthState();
       inFlightOAuthRef.current = false;
       if (popupPollTimerRef.current) {
@@ -449,7 +422,6 @@ export const Login = ({ embedded = false, initialView }) => {
     };
   }, [view]);
 
-  // ---- Google OAuth Callback Handler (Owner Login & Owner Create Account) ----
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -465,7 +437,6 @@ export const Login = ({ embedded = false, initialView }) => {
       Boolean(hashParams.get("access_token")) ||
       Boolean(searchParams.get("code"));
 
-    // 1. Handle OAuth provider error / user cancellation
     if (oauthError || oauthErrorDesc) {
       const isCancellation =
         oauthError === "access_denied" ||
@@ -488,7 +459,6 @@ export const Login = ({ embedded = false, initialView }) => {
       setGoogleLoginLoading(false);
 
       if (isCancellation) {
-        // Quietly reset loading on cancellation without displaying an error alert
         return;
       }
 
@@ -501,7 +471,6 @@ export const Login = ({ embedded = false, initialView }) => {
       return;
     }
 
-    // Process Google OAuth redirect flow when URL contains tokens OR an OAuth handshake is in-flight
     const isGoogleInFlight =
       hasUrlTokens ||
       Boolean(urlIntent) ||
@@ -537,7 +506,6 @@ export const Login = ({ embedded = false, initialView }) => {
         window.history.replaceState({}, document.title, window.location.pathname);
       }
 
-      // Google Login via Google OAuth (Owner and Personnel)
       try {
         const result = await ownerAuthService.verifyAndConnectGoogleLogin(sbSession.user);
         if (isCancelled) return;
@@ -552,7 +520,6 @@ export const Login = ({ embedded = false, initialView }) => {
         const googleId = result.googleData.googleId;
         const cover_gradient = null;
 
-        // Register Single Active Session
         const clientSessionId = authSecurityService.getClientSessionId();
         let activeSessionId = clientSessionId || uuid();
         let activeSessionUpdatedAt = new Date().toISOString();
@@ -599,7 +566,6 @@ export const Login = ({ embedded = false, initialView }) => {
           cover_gradient,
         };
 
-        // Check if Two-Factor Authentication (2FA) is enabled for this account via Supabase Auth MFA
         let mfaRequired = false;
         let targetFactor = null;
         let challengeId = null;
@@ -677,7 +643,6 @@ export const Login = ({ embedded = false, initialView }) => {
         inFlightOAuthRef.current = false;
         try { await supabase.auth.signOut({ scope: "local" }); } catch (_) { }
 
-        // Make sure any temporary or mismatched session in authStore/sessionStorage is purged
         try {
           removeSessionStorageItem(STORAGE_KEYS.SESSION);
         } catch (_) { }
@@ -722,7 +687,6 @@ export const Login = ({ embedded = false, initialView }) => {
       }
     };
 
-    // Attempt immediate session resolution or listen for Supabase OAuth exchange completion
     let authSub = null;
     let cancelFallbackTimer = null;
     (async () => {
@@ -741,8 +705,6 @@ export const Login = ({ embedded = false, initialView }) => {
       });
       authSub = subData?.subscription;
 
-      // Safety fallback: if no session resolves (e.g. user clicked Back from Google screen),
-      // clean up loading state so the button never stays stuck
       cancelFallbackTimer = setTimeout(async () => {
         if (isCancelled || oauthHandledRef.current) return;
         try {
@@ -776,7 +738,6 @@ export const Login = ({ embedded = false, initialView }) => {
     const rawNotice = sessionStorage.getItem("lsmis_termination_notice");
     const hasConcurrentFlag = sessionStorage.getItem("lsmis_concurrent_logout_notice") === "true";
 
-    // Clean URL query parameters immediately so that refreshing or navigating never re-triggers the modals
     if (
       isTerminatedQuery ||
       isConcurrentQuery ||
@@ -812,7 +773,6 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   }, []);
 
-  // Handle MFA redirect from route guards (?mfa=required)
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const isMfaRequiredQuery = searchParams.get("mfa") === "required";
@@ -882,7 +842,6 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   }, []);
 
-  // ---- Reset Owner Registration Form State ----
   const resetOwnerRegistrationForm = (keepGoogleSessionCleanup = true) => {
     if (popupPollTimerRef.current) {
       clearInterval(popupPollTimerRef.current);
@@ -915,9 +874,7 @@ export const Login = ({ embedded = false, initialView }) => {
     ownerAuthService.cleanGoogleOAuthState();
   };
 
-  // ---- Initiate Google OAuth for Owner Login ----
   const handleGoogleOwnerLogin = async () => {
-    // Prevent duplicate authentication requests
     if (inFlightOAuthRef.current || googleLoginLoading || loading) return;
 
     setError("");
@@ -938,9 +895,6 @@ export const Login = ({ embedded = false, initialView }) => {
         throw new Error("Unable to obtain Google authentication URL. Please try again.");
       }
 
-      // Same-tab redirect: Supabase Auth uses tab-scoped sessionStorage, so a popup window
-      // would complete the OAuth exchange in its own storage and the session would never
-      // reach this tab. Redirecting keeps the PKCE verifier and resulting session in one tab.
       ownerAuthService.setGoogleOAuthInFlight("login");
       window.location.assign(authUrl);
       return;
@@ -984,7 +938,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
   const switchToSignin = (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    // Clear error messages but preserve user-entered registration data
     setError("");
     setRegError("");
     setFpSuccess(false);
@@ -999,7 +952,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
   const switchToRegister = (e) => {
     if (e && e.preventDefault) e.preventDefault();
-    // Preserve entered form data and switch to registration view
     setError("");
     setRegError("");
     setView("register");
@@ -1008,22 +960,17 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   };
 
-  // ---- Handle Contact Number: strict digits, 11 length max, 09/08 prefix ----
   const handleRegContactChange = (e) => {
-    // 1. Keep only numeric digits (immediately reject letters/symbols)
     let val = e.target.value.replace(/\D/g, "");
 
-    // 2. If user begins by typing 9 or 8, intelligently auto-prepend 0 so it forms 09 or 08
     if (val.length === 1 && (val === "9" || val === "8")) {
       val = "0" + val;
     }
 
-    // 3. Stop strictly at exactly 11 digits
     val = val.slice(0, 11);
 
     setRegContact(val);
 
-    // 4. Real-time validation for 09 or 08 prefix
     if (val.length >= 2) {
       if (!val.startsWith("09") && !val.startsWith("08")) {
         setRegFieldErrors((prev) => ({
@@ -1034,7 +981,6 @@ export const Login = ({ embedded = false, initialView }) => {
       }
     }
 
-    // If valid prefix or currently typing, clear previous contact error
     if (val.length === 11) {
       if (val.startsWith("09") || val.startsWith("08")) {
         setRegFieldErrors((prev) => ({ ...prev, contact: "" }));
@@ -1048,11 +994,9 @@ export const Login = ({ embedded = false, initialView }) => {
     if (regError) setRegError("");
   };
 
-  // ---- Validate Owner Registration Form ----
   const validateOwnerRegistrationForm = () => {
     const errs = {};
 
-    // 1. Full Name
     const trimmedName = regName.trim();
     if (!trimmedName) {
       errs.name = "Full Name is required.";
@@ -1060,7 +1004,6 @@ export const Login = ({ embedded = false, initialView }) => {
       errs.name = "Full Name must be at least 2 characters.";
     }
 
-    // 2. Contact Number (Must be exactly 11 digits and start with 09 or 08)
     const rawContact = regContact.trim().replace(/\D/g, "");
     if (!rawContact) {
       errs.contact = "Contact Number is required.";
@@ -1070,7 +1013,6 @@ export const Login = ({ embedded = false, initialView }) => {
       errs.contact = `Contact number must be exactly 11 digits (${rawContact.length}/11 entered).`;
     }
 
-    // 3. Username
     const trimmedUsername = regUsername.trim();
     if (!trimmedUsername) {
       errs.username = "Username is required.";
@@ -1080,7 +1022,6 @@ export const Login = ({ embedded = false, initialView }) => {
       errs.username = "Username can only contain letters, numbers, dots, and underscores.";
     }
 
-    // 4. Address
     const trimmedAddress = regAddress.trim();
     if (!trimmedAddress) {
       errs.address = "Address is required.";
@@ -1088,14 +1029,12 @@ export const Login = ({ embedded = false, initialView }) => {
       errs.address = "Please enter a complete address (Barangay, City, Province).";
     }
 
-    // 5. Email Address (must be valid format ending in .com)
     const trimmedEmail = regEmail.trim();
     const emailErr = validateComEmail(trimmedEmail);
     if (emailErr) {
       errs.email = emailErr;
     }
 
-    // 6. Password
     if (!regPassword) {
       errs.password = "Password is required.";
     } else {
@@ -1105,14 +1044,12 @@ export const Login = ({ embedded = false, initialView }) => {
       }
     }
 
-    // 7. Confirm Password
     if (!regConfirmPassword) {
       errs.confirmPassword = "Confirm Password is required.";
     } else if (regPassword !== regConfirmPassword) {
       errs.confirmPassword = "Passwords do not match. Please verify your confirm password.";
     }
 
-    // 8. Terms and Conditions (Agreement Checkbox)
     if (!regAgreement) {
       errs.agreement = "You must check and accept the User Agreement and Privacy Policy to proceed.";
     }
@@ -1120,7 +1057,6 @@ export const Login = ({ embedded = false, initialView }) => {
     return errs;
   };
 
-  // ---- Submit Owner Registration ----
   const submitOwnerRegistration = async (e) => {
     e.preventDefault();
     setRegError("");
@@ -1134,7 +1070,6 @@ export const Login = ({ embedded = false, initialView }) => {
       setRegShake(true);
       setTimeout(() => setRegShake(false), 500);
 
-      // Focus and smoothly scroll to the first invalid field
       const refMap = {
         name: regNameRef,
         contact: regContactRef,
@@ -1185,7 +1120,6 @@ export const Login = ({ embedded = false, initialView }) => {
         sessionStorage.setItem("lsmis_pending_owner", JSON.stringify(pendingInfo));
       } catch (_) { }
 
-      // Clear all registration input fields and validations immediately so that stale form data does not persist
       setRegName("");
       setRegContact("");
       setRegAddress("");
@@ -1223,7 +1157,6 @@ export const Login = ({ embedded = false, initialView }) => {
   };
 
 
-  // ---- Sign In with Animation ----
   const submitSignIn = async (e) => {
     e.preventDefault();
     setError("");
@@ -1262,22 +1195,15 @@ export const Login = ({ embedded = false, initialView }) => {
       return;
     }
 
-    // Ignore repeated clicks while a sign-in is already in flight
-    // (a ref is used because state-based `disabled` only applies after re-render).
     if (signInInFlightRef.current) return;
     signInInFlightRef.current = true;
 
-    // Show the loading state immediately, before any network round trip.
     setLoading(true);
 
     try {
       const authEmail = inputIdentifier.toLowerCase();
       const clientSessionId = authSecurityService.getClientSessionId();
 
-      // 1 & 2. Independent server-side checks run in parallel instead of one after another:
-      //  - failed login attempts lockout (5 consecutive failures = 4-hour lock)
-      //  - simultaneous login on another device/browser
-      //  - owner account status (needed later for the approval checks)
       const [lockout, activeCheck, ownerAcctInitial] = await Promise.all([
         authSecurityService.checkAccountLockout(inputIdentifier),
         authSecurityService.checkActiveSession(inputIdentifier, clientSessionId),
@@ -1301,14 +1227,11 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // Prepare planned session ID so that any auth listeners in authStore
-      // use the exact same session ID that will be registered in the database
       const plannedSessionId = clientSessionId || uuid();
       try {
         sessionStorage.setItem("lsmis_pending_session_id", plannedSessionId);
       } catch (_) { }
 
-      // 3. Check Owner Account Status if identifier is an owner (fetched in parallel above)
       let ownerAcct = ownerAcctInitial;
       if (ownerAcct) {
         const stLower = String(ownerAcct.status || "").toLowerCase().trim();
@@ -1342,11 +1265,9 @@ export const Login = ({ embedded = false, initialView }) => {
         }
       }
 
-      // Clear any stale cached session before signing in as a new user
       removeSessionStorageItem(STORAGE_KEYS.SESSION);
       authStore.set({ session: null, mfaRequired: false });
 
-      // 4. Authenticate with Supabase
       let authData = null;
       let authError = null;
       try {
@@ -1386,7 +1307,6 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // Check account termination status for Veterinarian & Staff Personnel accounts
       const termCheck = await adminService.checkUserTerminationStatus(authEmail);
       if (termCheck.isTerminated) {
         try { await supabase.auth.signOut(); } catch (e) { }
@@ -1409,10 +1329,8 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // Clear failed login attempts upon successful authentication
       ownerAuthService.clearFailedAttempts(inputIdentifier);
 
-      // Save or clear Remember Me identifier
       if (rememberMe) {
         localStorage.setItem("lsmis_remember_me", "true");
         localStorage.setItem("lsmis_saved_identifier", inputIdentifier);
@@ -1421,18 +1339,15 @@ export const Login = ({ embedded = false, initialView }) => {
         localStorage.removeItem("lsmis_saved_identifier");
       }
 
-      // Determine user role and name accurately from database
       const cleanEmail = authEmail.trim().toLowerCase();
       let role = null;
       let name = "Livestock Owner";
       let ownerId = null;
       let userId = authData?.user?.id || null;
 
-      // Declared at this scope: also used when building the session object below.
       let dbUser = null;
       let matchedOwner = null;
 
-      // 1. Query users database table strictly by Supabase UID first, then email
       try {
         let dbUserData = null;
         if (userId) {
@@ -1467,7 +1382,6 @@ export const Login = ({ embedded = false, initialView }) => {
         console.warn("DB user lookup error:", e);
       }
 
-      // 2. Check if user is an owner in Supabase OWNERS table
       if (!role || role === "owner") {
         matchedOwner = ownerAcct;
         if (!matchedOwner) {
@@ -1483,7 +1397,6 @@ export const Login = ({ embedded = false, initialView }) => {
         }
       }
 
-      // 3. Fallback strictly from Supabase Auth user_metadata.role (never guess role from email substrings)
       if (!role) {
         role = normalizeRole(authData?.user?.user_metadata?.role);
       }
@@ -1560,7 +1473,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
       const cover_gradient = null;
 
-      // Register Single Active Session across all roles (Admin, Vet, Staff, Owner)
       let activeSessionId = plannedSessionId || uuid();
       let activeSessionUpdatedAt = new Date().toISOString();
 
@@ -1609,7 +1521,6 @@ export const Login = ({ embedded = false, initialView }) => {
         cover_gradient,
       };
 
-      // Check if Two-Factor Authentication (2FA) is enabled for this account via Supabase Auth MFA
       let mfaRequired = false;
       let targetFactor = null;
       let challengeId = null;
@@ -1662,10 +1573,8 @@ export const Login = ({ embedded = false, initialView }) => {
       setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session });
 
-      // DB Activity logging & Presence Registration
       try {
         supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
-        // Immediately register a fresh active session • shows user Online right away
         registerLoginSession({ name, email: cleanEmail, role, module: "Dashboard", loginTime: loginTimeIso });
         logActivity({
           action: `User logged in (${name} - ${role})`,
@@ -1680,7 +1589,6 @@ export const Login = ({ embedded = false, initialView }) => {
         console.error("Login logging failed:", e);
       }
 
-      // Navigate directly to authenticated role dashboard
       const prevPath = location.state?.from?.pathname;
       if (prevPath && prevPath.startsWith(`/${role}`)) {
         navigate(prevPath, { replace: true });
@@ -1698,7 +1606,6 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   };
 
-  // ---- Two-Factor Authentication (2FA) Handlers ----
   const handleVerify2FA = async (e) => {
     if (e) e.preventDefault();
     if (!pending2FA) return;
@@ -1759,7 +1666,6 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // MFA successfully verified: session has satisfied AAL2!
       const { session, role, name, cleanEmail } = pending2FA;
       setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
@@ -1835,7 +1741,6 @@ export const Login = ({ embedded = false, initialView }) => {
     switchToSignin();
   };
 
-  // ---- Two-Factor Recovery Backup Code Handlers ----
   const [recoveryCodeInput, setRecoveryCodeInput] = useState("");
   const [recoveryError, setRecoveryError] = useState("");
   const [recoveryLoading, setRecoveryLoading] = useState(false);
@@ -1876,17 +1781,14 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // Valid recovery code used: remove it from stored hashes
       const updatedHashes = storedHashes.filter((_, idx) => idx !== matchIndex);
 
-      // Unenroll the lost factor to reset 2FA
       if (pending2FA.factorId) {
         try {
           await supabase.auth.mfa.unenroll({ factorId: pending2FA.factorId });
         } catch (_) { }
       }
 
-      // Update user metadata
       try {
         await supabase.auth.updateUser({
           data: {
@@ -1896,13 +1798,11 @@ export const Login = ({ embedded = false, initialView }) => {
         });
       } catch (_) { }
 
-      // Clean local storage flag
       const cleanEmail = pending2FA.cleanEmail;
       if (cleanEmail) {
         localStorage.removeItem("lmis_2fa_enabled_" + cleanEmail);
       }
 
-      // Complete login
       const { session, role, name } = pending2FA;
       setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
       authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
@@ -1942,7 +1842,6 @@ export const Login = ({ embedded = false, initialView }) => {
     }
   };
 
-  // ---- Forgot Password Handlers ----
   const handleSendCode = async () => {
     setFpError("");
     let inputVal = fpEmail.trim();
@@ -1962,7 +1861,6 @@ export const Login = ({ embedded = false, initialView }) => {
     try {
       let resolvedEmail = inputVal.toLowerCase();
 
-      // If user typed a username (no @ symbol), resolve it to their registered email
       if (!resolvedEmail.includes("@")) {
         const cleanUser = resolvedEmail;
         try {
@@ -1988,12 +1886,10 @@ export const Login = ({ embedded = false, initialView }) => {
         } catch (_) { }
       }
 
-      // Update email state if resolved from username
       if (resolvedEmail !== fpEmail) {
         setFpEmail(resolvedEmail);
       }
 
-      // Validate that the email exists in system (users or owners)
       const { data: userRow } = await supabase
         .from(TABLES.USERS)
         .select("id, email")
@@ -2020,7 +1916,6 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // Check database-enforced rate limit (max 3 OTP requests per 15 min)
       try {
         const { data: limitRes, error: rpcError } = await supabase.rpc("request_otp_rate_limit", {
           p_email: targetEmail
@@ -2036,7 +1931,6 @@ export const Login = ({ embedded = false, initialView }) => {
         console.warn("Rate limit check notice:", rpcErr);
       }
 
-      // Send official Supabase Password Recovery OTP
       const { error: resetErr } = await supabase.auth.resetPasswordForEmail(targetEmail);
       if (resetErr) {
         console.error("Supabase resetPasswordForEmail error:", resetErr);
@@ -2058,13 +1952,11 @@ export const Login = ({ embedded = false, initialView }) => {
         return;
       }
 
-      // Successful request dispatched by Supabase
       setFpCodeSent(true);
       setFpCooldown(60);
       setFpStep(2);
       showToast(`Verification code sent to ${targetEmail}! Please check your email inbox.`, "success");
 
-      // Auto-focus code input
       setTimeout(() => {
         fpCodeRef.current?.focus();
       }, 150);
@@ -2124,7 +2016,6 @@ export const Login = ({ embedded = false, initialView }) => {
 
     setLoadingReset(true);
     try {
-      // 1. Verify OTP strictly with Supabase Auth Recovery
       const { data: verifyData, error: otpError } = await supabase.auth.verifyOtp({
         email: emailToVerify,
         token: inputCode,
@@ -2146,7 +2037,6 @@ export const Login = ({ embedded = false, initialView }) => {
         await supabase.auth.setSession(verifyData.session);
       }
 
-      // 2. Update password in Supabase Auth
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -2156,17 +2046,14 @@ export const Login = ({ embedded = false, initialView }) => {
         throw new Error(updateError.message || "Failed to update password in authentication service.");
       }
 
-      // 3. Clear rate limit record on successful password reset
       try {
         await supabase.from("otp_rate_limits").delete().eq("email", emailToVerify);
       } catch (_) { }
 
-      // 4. Sign out from temporary recovery session to ensure clean login state
       try {
         await supabase.auth.signOut();
       } catch (_) { }
 
-      // Log activity
       try {
         logActivity({
           action: `Password successfully reset for ${emailToVerify}`,
@@ -2176,7 +2063,6 @@ export const Login = ({ embedded = false, initialView }) => {
         });
       } catch (_) { }
 
-      // Pre-fill email in signin and set success UI state
       setEmail(emailToVerify);
       setPassword("");
       setCode("");
@@ -2198,7 +2084,6 @@ export const Login = ({ embedded = false, initialView }) => {
   return (
     <div className={`login-page lsmis-login${embedded ? " login-page-embedded" : ""}${isInstalled ? " is-installed-app" : ""} is-view-${view}`}>
       <div className="login-container">
-        {/* Left brand panel */}
         <div className="login-brand">
           <div>
             <div className="login-brand-header">
@@ -2275,12 +2160,10 @@ export const Login = ({ embedded = false, initialView }) => {
           </div>
         </div>
 
-        {/* Right form panel */}
         <div className="login-form-wrap">
 
           <div className={`login-box login-form ${isShaking ? "shake-error" : ""}`}>
 
-            {/* Mobile / Installed App Brand Header */}
             <div className="login-mobile-brand">
               <div className="login-mobile-logo">
                 <img
@@ -2299,7 +2182,6 @@ export const Login = ({ embedded = false, initialView }) => {
               <span className="login-mobile-badge">Office of the City Veterinarian</span>
             </div>
 
-            {/* LOGIN SUCCESS ANIMATION OVERLAY */}
             {view === "verify-otp" ? (
               <>
                 <div className="login-form-head" style={{ textAlign: "center" }}>
@@ -2327,7 +2209,6 @@ export const Login = ({ embedded = false, initialView }) => {
                   </p>
                 </div>
 
-                {/* Helpful TOTP Info Card */}
                 <div style={{
                   margin: "16px 0 18px",
                   padding: "12px 16px",
@@ -2408,7 +2289,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Refresh challenge button */}
                   <div style={{ textAlign: "center", marginTop: 14 }}>
                     <button
                       type="button"
@@ -2428,7 +2308,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </button>
                   </div>
 
-                  {/* Recovery Code Option */}
                   <div style={{ textAlign: "center", marginTop: 12 }}>
                     <button
                       type="button"
@@ -2452,7 +2331,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </button>
                   </div>
 
-                  {/* Back to sign in */}
                   <button
                     type="button"
                     className="btn-back-to-landing"
@@ -2464,7 +2342,6 @@ export const Login = ({ embedded = false, initialView }) => {
                   </button>
                 </form>
 
-                {/* Emergency Recovery Modal */}
                 <Modal
                   open={showRecoveryModal}
                   onClose={() => !recoveryLoading && setShowRecoveryModal(false)}
@@ -2711,7 +2588,6 @@ export const Login = ({ embedded = false, initialView }) => {
                       </button>
                     </div>
 
-                    {/* Remember Me and Forgot Password Row */}
                     <div className="login-options-row">
                       <label className="remember-me-label" htmlFor="remember-me">
                         <input
@@ -2729,7 +2605,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* Register as owner prompt */}
                   <div className="register-owner-prompt">
                     <span>Livestock producer or farm owner?</span>{" "}
                     <button
@@ -2765,7 +2640,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Google Sign-In with OAuth */}
                   <div className="login-oauth-divider" role="separator" aria-label="Google Sign-In">
                     <span>or continue with</span>
                   </div>
@@ -2804,14 +2678,12 @@ export const Login = ({ embedded = false, initialView }) => {
               </>
             ) : view === "register" ? (
               <>
-                {/* Owner Registration View */}
                 <form onSubmit={submitOwnerRegistration} className={`login-form-body ${regShake ? "form-shake" : ""}`} noValidate autoComplete="off">
                   <div className="login-form-head">
                     <h1>Register as Owner</h1>
                     <p className="subtitle">Create an official abattoir account to track livestock, slaughter progress, and clearances</p>
                   </div>
 
-                  {/* Full Name */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-name">Full Name <span className="req">*</span></label>
                     <div className={`login-pwd-wrap ${regFieldErrors.name ? "has-error" : ""}`}>
@@ -2841,7 +2713,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </div>
 
-                  {/* Contact Number & Username Grid */}
                   <div className="reg-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="form-group">
                       <label className="form-label" htmlFor="reg-contact">Contact Number <span className="req">*</span></label>
@@ -2926,7 +2797,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* Address */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-address">Address <span className="req">*</span></label>
                     <div className={`login-pwd-wrap ${regFieldErrors.address ? "has-error" : ""}`}>
@@ -2956,7 +2826,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </div>
 
-                  {/* Email Address */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="reg-email">
                       Email Address <span className="req">*</span>
@@ -3007,7 +2876,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </div>
 
-                  {/* Password & Confirm Password */}
                   <div className="reg-grid-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                     <div className="form-group">
                       <label className="form-label" htmlFor="reg-password">Password <span className="req">*</span></label>
@@ -3084,14 +2952,12 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* Real-time Password Security Visualizer */}
                   {regPassword && (
                     <div style={{ marginTop: "-4px", marginBottom: 12 }}>
                       <PasswordRequirements password={regPassword} />
                     </div>
                   )}
 
-                  {/* User Agreement & Privacy Policy Checkbox */}
                   <div className={`reg-agreement-box ${regFieldErrors.agreement ? "has-error" : ""}`} style={{ flexDirection: "column" }}>
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 12, width: "100%" }}>
                       <input
@@ -3154,7 +3020,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Back to Login Button positioned directly below Submit */}
                   <button
                     type="button"
                     className="btn-back-to-landing login-reg-back-submit-btn"
@@ -3169,7 +3034,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </>
             ) : view === "reg-submitted" ? (
               <>
-                {/* Registration Submitted & Pending Admin Approval Confirmation */}
                 <div className="login-form-head" style={{ textAlign: "center" }}>
                   <div style={{
                     width: 68,
@@ -3265,7 +3129,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </>
             ) : fpSuccess ? (
               <>
-                {/* Password Changed Successfully Alert Screen */}
                 <div className="login-form-head">
                   <div className="form-icon-badge" style={{ background: "#E6EFEA", color: "var(--color-primary, #187A56)", width: 56, height: 56, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px auto" }}>
                     <Icon.CheckCircle size={32} />
@@ -3299,7 +3162,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </>
             ) : (
               <>
-                {/* Forgot Password Header - Unified with Sign In */}
                 <form
                   onSubmit={submitForgot}
                   className="login-form-body"
@@ -3315,7 +3177,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     <p className="subtitle">Enter your registered email and verification code to recover your account</p>
                   </div>
 
-                  {/* Registered Email + Send Code row */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="fp-email">
                       Email <span className="req">*</span>
@@ -3372,7 +3233,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* Alert Message */}
                   {fpError && (
                     <div className="alert alert-error" role="alert" style={{ marginBottom: 14 }}>
                       <span className="alert-icon"><Icon.AlertTriangle size={16} /></span>
@@ -3380,7 +3240,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   )}
 
-                  {/* Verification Code */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="fp-code">
                       6-Digit Verification Code <span className="req">*</span>
@@ -3407,7 +3266,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* New Password */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="fp-new-password">
                       New Password <span className="req">*</span>
@@ -3439,7 +3297,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* Confirm New Password */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="fp-confirm-password">
                       Confirm New Password <span className="req">*</span>
@@ -3469,14 +3326,12 @@ export const Login = ({ embedded = false, initialView }) => {
                     </div>
                   </div>
 
-                  {/* Password Requirements - only show when password field is focused or clicked */}
                   {showFpRequirements && (
                     <div style={{ marginTop: "-6px", marginBottom: "16px" }}>
                       <PasswordRequirements password={newPassword} />
                     </div>
                   )}
 
-                  {/* Explicit Submit Button - Click required */}
                   <Button
                     type="button"
                     onClick={submitForgot}
@@ -3492,7 +3347,6 @@ export const Login = ({ embedded = false, initialView }) => {
                     )}
                   </Button>
 
-                  {/* Secondary Back Button directly below Submit */}
                   <button
                     type="button"
                     className="btn-back-to-landing"
@@ -3507,7 +3361,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </>
             )}
 
-            {/* USER AGREEMENT & DATA PRIVACY MODAL */}
             <Modal
               open={agreementModalOpen}
               onClose={() => setAgreementModalOpen(false)}
@@ -3559,7 +3412,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </div>
             </Modal>
 
-            {/* PASSWORD UPDATED CONFIRMATION MODAL */}
             <AlertDialog
               open={successModalOpen}
               onClose={() => {
@@ -3572,7 +3424,6 @@ export const Login = ({ embedded = false, initialView }) => {
               variant="success"
             />
 
-            {/* ACCOUNT TERMINATED POPUP MODAL */}
             <Modal
               open={terminationNotice.open}
               onClose={() => {
@@ -3629,7 +3480,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </div>
             </Modal>
 
-            {/* CONCURRENT LOGIN / SINGLE ACTIVE SESSION POPUP MODAL */}
             <Modal
               open={concurrentNoticeOpen && !terminationNotice.open && !sessionStorage.getItem("lsmis_termination_notice")}
               onClose={() => {
@@ -3680,7 +3530,6 @@ export const Login = ({ embedded = false, initialView }) => {
               </div>
             </Modal>
 
-            {/* UNREGISTERED GOOGLE ACCOUNT WARNING MODAL */}
             <Modal
               open={unregisteredModalOpen}
               onClose={() => setUnregisteredModalOpen(false)}

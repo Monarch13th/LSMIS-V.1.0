@@ -1,9 +1,5 @@
 import { Capacitor } from "@capacitor/core";
 
-/**
- * Returns true strictly when running inside the native installed mobile application (Capacitor Android/iOS).
- * Returns false on standard web browsers (mobile Chrome, Safari, desktop browsers).
- */
 export function isCapacitorNativeApp() {
   if (typeof window === "undefined") return false;
   try {
@@ -11,7 +7,6 @@ export function isCapacitorNativeApp() {
     if (Capacitor.getPlatform() === "android" || Capacitor.getPlatform() === "ios") return true;
   } catch (_) {}
 
-  // Secondary checks for Capacitor WebView environment
   try {
     if (window.Capacitor && typeof window.Capacitor.isNativePlatform === "function" && window.Capacitor.isNativePlatform()) {
       return true;
@@ -24,15 +19,9 @@ export function isCapacitorNativeApp() {
   return false;
 }
 
-/**
- * Returns true when LSMIS is launched from the home screen as an installed PWA
- * (Android Chrome / desktop "display-mode: standalone", or iOS "Add to Home Screen").
- * A normal browser tab always returns false.
- */
 export function isStandalonePwa() {
   if (typeof window === "undefined") return false;
 
-  // Fast path: cached session detection prevents losing standalone state during in-app navigation
   try {
     if (sessionStorage.getItem("lsmis_installed_mode") === "1") return true;
   } catch (_) {}
@@ -48,7 +37,7 @@ export function isStandalonePwa() {
 
   if (!matched) {
     try {
-      if (window.navigator && window.navigator.standalone === true) matched = true; // iOS Safari
+      if (window.navigator && window.navigator.standalone === true) matched = true;
     } catch (_) {}
   }
 
@@ -79,18 +68,10 @@ export function isStandalonePwa() {
   return false;
 }
 
-/**
- * True for any installed LSMIS experience: the Capacitor Android APK or the installed PWA.
- * Browser tabs return false, so the public Landing Page stays available on the website.
- */
 export function isInstalledApp() {
   return isCapacitorNativeApp() || isStandalonePwa();
 }
 
-/**
- * Reliable device-capability detection (does NOT rely on screen width, so
- * resizing a desktop/laptop browser window never masquerades as mobile).
- */
 export function getMobileDeviceInfo() {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     return { isMobileDevice: false, isAndroid: false, isIOS: false, isDesktop: true };

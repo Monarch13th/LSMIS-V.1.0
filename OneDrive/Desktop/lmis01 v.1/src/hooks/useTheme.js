@@ -1,13 +1,8 @@
-// Theme management hook and provider with per-user, device-local isolation
 import { createContext, useContext, useEffect, useState, useMemo, useCallback, createElement } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { supabase } from "../services/supabaseClient";
 
-/**
- * Determines whether a given pathname belongs to a public (unauthenticated) route.
- * Public pages must strictly display the default light theme at all times.
- */
 export const isPublicPath = (pathname) => {
   if (!pathname || pathname === "/") return true;
   const p = pathname.toLowerCase().trim();
@@ -26,7 +21,6 @@ export const isPublicPath = (pathname) => {
   ) {
     return true;
   }
-  // Any path that doesn't start with an authenticated role prefix
   if (
     !p.startsWith("/admin") &&
     !p.startsWith("/vet") &&
@@ -39,11 +33,6 @@ export const isPublicPath = (pathname) => {
   return false;
 };
 
-/**
- * Builds an isolated list of localStorage keys for a user account on this device.
- * Guarantees that Admin, Veterinarian, Staff, and Owner accounts each
- * maintain completely independent light/dark preferences without collisions.
- */
 export const getUserThemeKeys = (user) => {
   if (!user) return [];
   const keys = [];
@@ -70,7 +59,6 @@ export const getStoredUserTheme = (user) => {
       const val = localStorage.getItem(key);
       if (val === "dark" || val === "light") return val;
     }
-    // Also check user_metadata if available
     const metaTheme = user.user_metadata?.theme;
     if (metaTheme === "dark" || metaTheme === "light") return metaTheme;
   } catch (_) {}
@@ -92,22 +80,18 @@ export const ThemeProvider = ({ children }) => {
   const pathname = location?.pathname || (typeof window !== "undefined" ? window.location.pathname : "/");
   const isPublic = isPublicPath(pathname);
 
-  // Active theme state
   const [theme, setThemeState] = useState(() => {
     if (isPublic) return "light";
     if (session) return getStoredUserTheme(session);
     return "light";
   });
 
-  // Whenever the route or session transitions:
   useEffect(() => {
     if (session && !isPublicPath(pathname)) {
-      // Authenticated system route: load and apply this user's independent preference
       const userTheme = getStoredUserTheme(session);
       setThemeState(userTheme);
       applyThemeToDom(userTheme);
     } else {
-      // Public pages (landing page, login, register, forgot-password): strictly default light
       setThemeState("light");
       applyThemeToDom("light");
     }
@@ -150,7 +134,6 @@ export const useTheme = () => {
   const ctx = useContext(ThemeContext);
   if (ctx) return ctx;
 
-  // Fallback for any invocation outside of ThemeProvider
   const currentDom =
     typeof document !== "undefined" &&
     document.documentElement.getAttribute("data-theme") === "dark"

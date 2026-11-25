@@ -26,7 +26,6 @@ export const formatAgeString = (value, unit) => {
   return num === 1 ? "1 Month" : `${num} Months`;
 };
 
-// Initial entry starts with no selected sex ("")
 const createInitialEntry = (defaultSpecies = "Hog", defaultSex = "") => ({
   id: "entry_" + Date.now() + "_" + Math.random().toString(36).slice(2, 7),
   species: defaultSpecies,
@@ -51,7 +50,6 @@ export const MultiLivestockForm = ({
   const [entryToDelete, setEntryToDelete] = useState(null);
   const [currentOwner, setCurrentOwner] = useState(owner || null);
 
-  // Synchronize owner profile if needed
   useEffect(() => {
     let isMounted = true;
     const fetchLatestOwner = async () => {
@@ -89,7 +87,6 @@ export const MultiLivestockForm = ({
     (activeOwner?.first_name ? `${activeOwner.first_name} ${activeOwner.last_name || ""}`.trim() : "") ||
     "Owner";
 
-  // Dynamic active species list from database
   const [speciesList, setSpeciesList] = useState(SPECIES_CONFIG);
 
   const loadSpecies = useCallback(async () => {
@@ -141,12 +138,10 @@ export const MultiLivestockForm = ({
     };
   }, [loadSpecies]);
 
-  // Dynamic livestock entries state - initial entry starts with no selected sex
   const [entries, setEntries] = useState([
     createInitialEntry(speciesList?.[0]?.id || "Hog", ""),
   ]);
 
-  // Reset form when owner changes
   useEffect(() => {
     const defaultSpec = speciesList?.[0]?.id || "Hog";
     setEntries([createInitialEntry(defaultSpec, "")]);
@@ -155,7 +150,6 @@ export const MultiLivestockForm = ({
     setSubmitting(false);
   }, [owner?.id, owner?.owner_id]);
 
-  // Total head count across all entries
   const totalHeadCount = useMemo(() => {
     return entries.reduce((sum, item) => {
       const rawQty = String(item.quantity || "").trim();
@@ -165,7 +159,6 @@ export const MultiLivestockForm = ({
     }, 0);
   }, [entries]);
 
-  // Aggregate identical (category + age) entries for clean confirmation modal summary matching Image 3
   const aggregatedEntries = useMemo(() => {
     const map = new Map();
     for (const item of entries) {
@@ -190,7 +183,6 @@ export const MultiLivestockForm = ({
     return Array.from(map.values());
   }, [entries]);
 
-  // Escape key handling for confirmation modal
   useEffect(() => {
     if (!showConfirm) return;
     const handleKeyDown = (e) => {
@@ -202,12 +194,10 @@ export const MultiLivestockForm = ({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [showConfirm, submitting]);
 
-  // Add another livestock entry - starts with NO selected sex ("")
   const handleAddLivestockEntry = () => {
     const lastEntry = entries[entries.length - 1];
     const nextSpecies = lastEntry?.species || speciesList?.[0]?.id || "Hog";
 
-    // Strictly start with no selected sex (""), independent of previous entries
     const newEntry = createInitialEntry(nextSpecies, "");
     const matched = speciesList.find((s) => s.id === nextSpecies || s.label === nextSpecies);
     if (matched) newEntry.species_id = matched.dbId;
@@ -215,7 +205,6 @@ export const MultiLivestockForm = ({
     setEntries((prev) => [...prev, newEntry]);
   };
 
-  // Check if entry has entered data
   const hasEnteredData = (entry) => {
     return Boolean(
       (entry.sex && entry.sex.trim()) ||
@@ -225,7 +214,6 @@ export const MultiLivestockForm = ({
     );
   };
 
-  // Request removing a livestock entry
   const handleRequestRemoveEntry = (entry) => {
     if (entries.length <= 1) {
       showToast("A registration transaction must have at least one livestock entry.", "warning");
@@ -251,7 +239,6 @@ export const MultiLivestockForm = ({
     });
   };
 
-  // Update specific field on an entry without affecting any other entry
   const handleUpdateEntry = (entryId, field, value) => {
     let currentEntry = null;
 
@@ -277,7 +264,6 @@ export const MultiLivestockForm = ({
       if (field === "species" && value) delete next[`species_${entryId}`];
       if (field === "sex" && value) delete next[`sex_${entryId}`];
 
-      // Instant validation for age while typing or selecting
       if (field === "age" || field === "age_value") {
         const strVal = String(value || "").trim();
         if (!strVal) {
@@ -292,7 +278,6 @@ export const MultiLivestockForm = ({
         }
       }
 
-      // Instant integer validation for quantity while typing
       if (field === "quantity") {
         const strVal = String(value || "").trim();
         if (strVal.includes(".") || (strVal && !/^\d+$/.test(strVal))) {
@@ -308,7 +293,6 @@ export const MultiLivestockForm = ({
     });
   };
 
-  // Validate all entries before opening confirmation dialog
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
@@ -354,7 +338,6 @@ export const MultiLivestockForm = ({
       setErrors(newErrors);
       showToast("Please complete all required fields with whole numbers before submitting.", "error");
 
-      // Automatically navigate and scroll to the first invalid field in form order
       let firstErrorId = null;
       for (const item of entries) {
         if (newErrors[`species_${item.id}`]) {
@@ -385,7 +368,6 @@ export const MultiLivestockForm = ({
     setShowConfirm(true);
   };
 
-  // Confirm and deliver formatted records to parent handler
   const handleConfirmSubmit = async () => {
     if (submitting) return;
     setSubmitting(true);
@@ -534,7 +516,6 @@ export const MultiLivestockForm = ({
         }
       `}</style>
 
-      {/* SCROLLABLE ENTRIES BODY CONTAINER (MATCHING ANTE-MORTEM INSPECTION FORM) */}
       <div
         style={{
           flex: 1,
@@ -558,7 +539,6 @@ export const MultiLivestockForm = ({
               key={entry.id}
               className="livestock-entry-row"
             >
-              {/* Card Header: Entry Badge + Head Count + Remove Button */}
               <div className="entry-header">
                 <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                   <span
@@ -587,7 +567,6 @@ export const MultiLivestockForm = ({
                   </span>
                 </div>
 
-                {/* Remove Entry Button */}
                 {entries.length > 1 && (
                   <button
                     type="button"
@@ -614,9 +593,7 @@ export const MultiLivestockForm = ({
                 )}
               </div>
 
-              {/* Form Grid: 4 Core Fields */}
               <div className="entry-form-grid">
-                {/* Field 1: Species Selection with Live Image Display */}
                 <div>
                   <label
                     htmlFor={`species_${entry.id}`}
@@ -631,7 +608,6 @@ export const MultiLivestockForm = ({
                     Species <span style={{ color: "#ef4444" }}>*</span>
                   </label>
                   <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                    {/* Live Species Image Preview */}
                     <div className="species-thumb-box" title={entry.species}>
                       {speciesObj?.image_url ? (
                         <img
@@ -667,7 +643,6 @@ export const MultiLivestockForm = ({
                       </div>
                     </div>
 
-                    {/* Species Dropdown */}
                     <select
                       id={`species_${entry.id}`}
                       className="form-control"
@@ -700,7 +675,6 @@ export const MultiLivestockForm = ({
                   )}
                 </div>
 
-                {/* Field 2: Sex Selection with Independent State */}
                 <div>
                   <label
                     style={{
@@ -745,7 +719,6 @@ export const MultiLivestockForm = ({
                   )}
                 </div>
 
-                {/* Field 3: Age (Searchable Dropdown with Manual Text Input) */}
                 <div>
                   <label
                     htmlFor={`age_${entry.id}`}
@@ -777,7 +750,6 @@ export const MultiLivestockForm = ({
                   )}
                 </div>
 
-                {/* Field 4: Quantity */}
                 <div>
                   <label
                     htmlFor={`quantity_${entry.id}`}
@@ -801,7 +773,6 @@ export const MultiLivestockForm = ({
                     className="form-control"
                     value={entry.quantity}
                     onKeyDown={(e) => {
-                      // Disallow decimal point, comma, signs, and exponent notation
                       if (e.key === "." || e.key === "," || e.key === "-" || e.key === "+" || e.key === "e" || e.key === "E") {
                         e.preventDefault();
                       }
@@ -829,7 +800,6 @@ export const MultiLivestockForm = ({
           );
         })}
 
-        {/* DYNAMIC "+ ADD ANOTHER LIVESTOCK ENTRY" BUTTON */}
         <div style={{ marginTop: 4, marginBottom: 8 }}>
           <button
             type="button"
@@ -866,7 +836,6 @@ export const MultiLivestockForm = ({
         </div>
       </div>
 
-      {/* FIXED PINNED ACTIONS FOOTER (MATCHING ANTE-MORTEM INSPECTION MODAL FOOTER) */}
       <div
         style={{
           marginTop: "auto",
@@ -945,7 +914,6 @@ export const MultiLivestockForm = ({
         </div>
       </div>
 
-      {/* Confirmation Dialog on Submit with itemized breakdown matching reference design */}
       {showConfirm && (
         <div
           className="modal-backdrop confirm-modal-backdrop"
@@ -982,7 +950,6 @@ export const MultiLivestockForm = ({
               animation: "modalFadeIn 0.18s ease-out",
             }}
           >
-            {/* Header: Left checkmark badge + title, Right close button */}
             <div
               style={{
                 display: "flex",
@@ -1042,7 +1009,6 @@ export const MultiLivestockForm = ({
               </button>
             </div>
 
-            {/* Prompt sentence */}
             <p
               style={{
                 margin: "14px 0 14px 0",
@@ -1056,7 +1022,6 @@ export const MultiLivestockForm = ({
               <strong style={{ color: "var(--color-text, #1A201C)" }}>{ownerName}</strong>?
             </p>
 
-            {/* Scrollable details table container */}
             <div
               style={{
                 border: "1px solid var(--color-border, #E2E6E3)",
@@ -1172,7 +1137,6 @@ export const MultiLivestockForm = ({
                 </table>
               </div>
 
-              {/* Total Banner at the bottom of the table */}
               <div
                 style={{
                   background: "#dcfce7",
@@ -1188,7 +1152,6 @@ export const MultiLivestockForm = ({
               </div>
             </div>
 
-            {/* Footer Buttons: Cancel on left, Confirm Registration on right */}
             <div
               style={{
                 display: "flex",
@@ -1253,7 +1216,6 @@ export const MultiLivestockForm = ({
         </div>
       )}
 
-      {/* Confirmation Dialog on Removing Entry with data */}
       <ConfirmDialog
         open={Boolean(entryToDelete)}
         title="Remove Livestock Entry?"

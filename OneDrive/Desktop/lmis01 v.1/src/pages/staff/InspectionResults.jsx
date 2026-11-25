@@ -15,27 +15,6 @@ import {
 } from "../vet/condemnationStage";
 import { getCondemnationRecordParts } from "../vet/condemnationEvidenceIndex";
 
-/**
- * Inspection Results module under Staff Personnel.
- * 
- * 4 Mutually Exclusive Inspection Result Categories:
- * 1. Ante-Mortem:
- *    - Completed ante-mortem inspection records.
- *    - Includes livestock that passed ante-mortem inspection.
- *    - Strictly excludes condemned and partially condemned livestock.
- * 2. Post-Mortem:
- *    - Completed post-mortem inspection records.
- *    - Includes livestock that passed post-mortem inspection.
- *    - Strictly excludes condemned and partially condemned livestock.
- * 3. Partially Condemned:
- *    - All livestock with partially condemned inspection results.
- *    - Shows condemned carcass parts, inspection details, and evidence photos.
- * 4. Condemned:
- *    - All livestock with fully condemned inspection results (whole live animal or entire carcass).
- *    - Shows condemnation reasons, inspection details, and evidence photos.
- * 
- * Consistent UI/UX with Animal Marking records interface.
- */
 
 const TABS = [
   {
@@ -77,7 +56,6 @@ const TABS = [
 ];
 
 export const InspectionResults = ({ initialTab = "antemortem" }) => {
-  // Query Supabase tables directly with real-time updates and zero mock data
   const { data: anteInspections = [], loading: loadingAnte, refresh: refreshAnte } = useSupabase(TABLES.ANTE_MORTEM, [], { mockStore: false });
   const { data: postInspections = [], loading: loadingPost, refresh: refreshPost } = useSupabase(TABLES.POST_MORTEM, [], { mockStore: false });
   const { data: condemnationRecords = [], loading: loadingCond, refresh: refreshCond } = useSupabase(TABLES.CONDEMNATION_RECORDS, [], { mockStore: false });
@@ -99,7 +77,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     refreshOwners?.();
   };
 
-  // URL search params sync
   const [searchParams, setSearchParams] = useSearchParams();
   const normalizeTabId = (t) => {
     const raw = String(t || "").toLowerCase().trim();
@@ -121,7 +98,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Modal states
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
   const [modalFilterSpecies, setModalFilterSpecies] = useState("all");
   const [viewingDetails, setViewingDetails] = useState(null);
@@ -154,7 +130,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [viewingDetails, isEnlarged]);
 
-  // Sync tab from props/searchParams
   useEffect(() => {
     const urlTab = searchParams.get("tab");
     if (urlTab) {
@@ -170,7 +145,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     setModalFilterSpecies("all");
   }, [activeTab, search, filterSpecies, sortBy]);
 
-  // Helper: Extract all evidence photos for an animal / inspection
   const extractPhotos = (item) => {
     const urls = [];
     const cleanTag = String(item?.tag_number || "").trim().toLowerCase();
@@ -205,7 +179,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     }
 
     if (cleanTag) {
-      // From post_mortem_condemned_cuts
       (condemnedCuts || []).forEach((c) => {
         if (String(c.tag_number || "").trim().toLowerCase() === cleanTag) {
           addUrl(c.photo_url);
@@ -213,7 +186,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         }
       });
 
-      // From condemnation_records
       (condemnationRecords || []).forEach((c) => {
         if (String(c.tag_number || "").trim().toLowerCase() === cleanTag) {
           addUrl(c.photo_url);
@@ -221,7 +193,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         }
       });
 
-      // From evidence_records
       (evidenceRecords || []).forEach((ev) => {
         if (String(ev.tag_number || "").trim().toLowerCase() === cleanTag) {
           addUrl(ev.file_url);
@@ -243,7 +214,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     return urls;
   };
 
-  // Helper: Resolve owner information
   const resolveOwner = (item, animal) => {
     const directId = item?.owner_id || animal?.owner_id;
     if (directId) {
@@ -286,13 +256,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     };
   };
 
-  // ---------------------------------------------------------------------------
-  // Ante-Mortem Final Classifications (Mutually Exclusive per tag)
-  // - Fit for Slaughter: strictly passed/approved, never condemned
-  // - Condemned: strictly condemned/rejected, never fit for slaughter
-  // ---------------------------------------------------------------------------
   const { anteMortemPassedRecords, anteCondemnedRecords } = useMemo(() => {
-    // Collect latest ante inspection per clean tag
     const latestAnteByTag = new Map();
     (anteInspections || []).forEach((i) => {
       const tag = String(i.tag_number || "").trim();
@@ -305,7 +269,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       }
     });
 
-    // Collect tags with explicit Ante-Mortem condemnation records
     const anteCondemnationTags = new Set();
     (condemnationRecords || []).forEach((c) => {
       const tag = String(c.tag_number || "").trim().toLowerCase();
@@ -315,7 +278,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       }
     });
 
-    // Also collect tags marked condemned in livestock table at intake/ante-mortem
     (livestock || []).forEach((l) => {
       const tag = String(l.tag_number || "").trim().toLowerCase();
       if (!tag) return;
@@ -327,7 +289,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     const passedList = [];
     const condemnedMap = new Map();
 
-    // Evaluate all known ante tags
     const allAnteTags = new Set([...latestAnteByTag.keys(), ...anteCondemnationTags]);
 
     allAnteTags.forEach((normTag) => {
@@ -341,7 +302,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       const isCond = anteCondemnationTags.has(normTag) || isAnteCondemnedDecision(d) || (animal && isAnteCondemnedStatus(animal.status));
 
       if (isCond) {
-        // Condemned at Ante-Mortem -> goes exclusively to Condemned
         const photos = extractPhotos({ ...i, tag_number: tag });
         condemnedMap.set(normTag, {
           id: i?.id || `ante-cond-${normTag}`,
@@ -363,7 +323,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           raw: i,
         });
       } else if (i && (d === "approved" || d === "passed" || !d)) {
-        // Passed Ante-Mortem -> goes exclusively to Fit for Slaughter
         const photos = extractPhotos({ ...i, tag_number: tag });
         passedList.push({
           id: i.id || `ante-${tag}`,
@@ -393,14 +352,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     };
   }, [anteInspections, condemnationRecords, livestock, owners, evidenceRecords]);
 
-  // ---------------------------------------------------------------------------
-  // Post-Mortem Final Classifications (Mutually Exclusive per carcass/tag)
-  // - Passed: strictly sound carcass, no partial cuts, no whole condemnation
-  // - Partially Condemned: specific cuts/organs condemned, carcass passed
-  // - Fully Condemned: whole carcass condemned
-  // ---------------------------------------------------------------------------
   const { postMortemPassedRecords, partiallyCondemnedRecords, postWholeCondemnedRecords } = useMemo(() => {
-    // 1. Collect latest post inspection per clean tag
     const latestPostByTag = new Map();
     (postInspections || []).forEach((p) => {
       const tag = String(p.tag_number || "").trim();
@@ -413,7 +365,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       }
     });
 
-    // 2. Identify whole carcass condemnations at Post-Mortem
     const postWholeTags = new Set();
     (postInspections || []).forEach((p) => {
       const normTag = String(p.tag_number || "").trim().toLowerCase();
@@ -437,7 +388,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       }
     });
 
-    // 3. Identify partial condemnation cuts/parts
     const partialCutsByTag = new Map();
     (condemnedCuts || []).forEach((c) => {
       const normTag = String(c.tag_number || "").trim().toLowerCase();
@@ -474,7 +424,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     const partialList = [];
     const wholeList = [];
 
-    // All known post-mortem tags
     const allPostTags = new Set([
       ...latestPostByTag.keys(),
       ...postWholeTags,
@@ -489,7 +438,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       const owner = resolveOwner(p || animal, animal);
       const d = String(p?.decision || "").trim().toLowerCase();
 
-      // Priority 1: Whole Carcass Condemnation
       if (postWholeTags.has(normTag) || isPostWholeDecision(d)) {
         const photos = extractPhotos({ ...p, tag_number: tag });
         wholeList.push({
@@ -514,7 +462,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         return;
       }
 
-      // Priority 2: Partial Condemnation
       const explicitCuts = partialCutsByTag.get(normTag) || [];
       const inspectionHasCuts = Array.isArray(p?.condemned_parts) && p.condemned_parts.length > 0;
       const isPartial = isPostPartialInspection(p) || explicitCuts.length > 0 || inspectionHasCuts || String(animal?.status || "").toLowerCase().includes("partially condemned");
@@ -563,7 +510,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         return;
       }
 
-      // Priority 3: Passed (Fit for Consumption)
       if (p && (d === "approved" || d === "passed" || d === "fit for consumption" || !d)) {
         const photos = extractPhotos({ ...p, tag_number: tag });
         passedList.push({
@@ -595,17 +541,10 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     };
   }, [postInspections, condemnedCuts, condemnationRecords, livestock, owners, evidenceRecords]);
 
-  // ---------------------------------------------------------------------------
-  // Category 4: Fully Condemned Records
-  // - All livestock with fully condemned inspection results (whole animal / carcass).
-  // - Shows Ante-Mortem rejected live animals + Post-Mortem whole carcass condemned.
-  // - STRICTLY EXCLUDES any Passed or Partially Condemned records!
-  // ---------------------------------------------------------------------------
   const fullyCondemnedRecords = useMemo(() => {
     return [...anteCondemnedRecords, ...postWholeCondemnedRecords];
   }, [anteCondemnedRecords, postWholeCondemnedRecords]);
 
-  // Current category records mapped to the active tab
   const currentCategoryRecords = useMemo(() => {
     switch (activeTab) {
       case "postmortem":
@@ -620,7 +559,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     }
   }, [activeTab, anteMortemPassedRecords, postMortemPassedRecords, partiallyCondemnedRecords, fullyCondemnedRecords]);
 
-  // Category counts
   const categoryCounts = useMemo(() => ({
     antemortem: anteMortemPassedRecords.length,
     postmortem: postMortemPassedRecords.length,
@@ -628,21 +566,16 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     condemned: fullyCondemnedRecords.length,
   }), [anteMortemPassedRecords, postMortemPassedRecords, partiallyCondemnedRecords, fullyCondemnedRecords]);
 
-  // ---------------------------------------------------------------------------
-  // Owner-Grouped Records (Consistent with Animal Marking Records Table)
-  // ---------------------------------------------------------------------------
   const groupedOwnerRecords = useMemo(() => {
     const q = search.trim().toLowerCase();
     const groupsMap = new Map();
 
     currentCategoryRecords.forEach((item) => {
-      // Species filter
       if (filterSpecies !== "all") {
         const sp = String(item.species || "").toLowerCase();
         if (sp !== filterSpecies.toLowerCase()) return;
       }
 
-      // Search filter on record fields
       if (q) {
         const tag = String(item.tag_number || "").toLowerCase();
         const ownerName = String(item.owner?.name || "").toLowerCase();
@@ -700,7 +633,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
       rawDate: g.latestDate,
     }));
 
-    // Sorting
     groups.sort((a, b) => {
       if (sortBy === "oldest") {
         return new Date(a.rawDate || 0) - new Date(b.rawDate || 0);
@@ -718,27 +650,23 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         const tagB = b.items[0]?.tag_number || "";
         return tagB.localeCompare(tagA);
       }
-      // default: newest
       return new Date(b.rawDate || 0) - new Date(a.rawDate || 0);
     });
 
     return groups;
   }, [currentCategoryRecords, search, filterSpecies, sortBy]);
 
-  // Paginated dataset
   const totalPages = Math.max(1, Math.ceil(groupedOwnerRecords.length / pageSize));
   const paginatedOwnerGroups = useMemo(() => {
     const start = (page - 1) * pageSize;
     return groupedOwnerRecords.slice(start, start + pageSize);
   }, [groupedOwnerRecords, page, pageSize]);
 
-  // Active viewing owner
   const selectedOwnerView = useMemo(() => {
     if (!selectedOwnerKey) return null;
     return groupedOwnerRecords.find((g) => g.key === selectedOwnerKey) || null;
   }, [groupedOwnerRecords, selectedOwnerKey]);
 
-  // Filtered items inside owner modal by species
   const ownerModalFilteredItems = useMemo(() => {
     if (!selectedOwnerView) return [];
     if (modalFilterSpecies === "all") return selectedOwnerView.items;
@@ -747,7 +675,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
     );
   }, [selectedOwnerView, modalFilterSpecies]);
 
-  // Active tab metadata
   const currentTabMeta = TABS.find((t) => t.id === activeTab) || TABS[0];
 
   return (
@@ -762,7 +689,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         minHeight: 0,
       }}
     >
-      {/* Main Record List Container (Standardized with Animal Marking) */}
       <div
         style={{
           background: "var(--color-surface)",
@@ -776,7 +702,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           minHeight: 0,
         }}
       >
-        {/* Search & Filter Toolbar */}
         <div
           className="records-fixed-header"
           style={{
@@ -794,7 +719,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
             scrollbarWidth: "none",
           }}
         >
-          {/* Left: 4 Inspection Result Category Tabs */}
           <div className="adm-seg-tabs">
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -822,9 +746,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
             })}
           </div>
 
-          {/* Right: Search Box & Species Filter */}
           <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "nowrap", flexShrink: 0, justifyContent: "flex-end" }}>
-            {/* Search Box */}
             <div
               style={{
                 width: 220,
@@ -897,7 +819,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
               )}
             </div>
 
-            {/* Species Filter */}
             <select
               value={filterSpecies}
               onChange={(e) => setFilterSpecies(e.target.value)}
@@ -925,7 +846,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           </div>
         </div>
 
-        {/* Content Table Area */}
         {loading ? (
           <div style={{ padding: "48px 16px", textAlign: "center", color: "var(--color-text-muted)", fontSize: 13 }}>
             <Icon.Loader size={24} style={{ animation: "spin 1s linear infinite", marginBottom: 10 }} />
@@ -946,7 +866,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
             icon={currentTabMeta.icon}
           />
         ) : (
-          /* ================= MAIN OWNER LIST TABLE (MATCHES ANIMAL MARKING PATTERN) ================= */
           <div
             className="records-scrollable-content table-wrap"
             style={{
@@ -982,7 +901,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                     >
-                      {/* Owner Details */}
                       <td style={{ padding: "14px 18px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div style={{ position: "relative", width: 34, height: 34, flexShrink: 0 }}>
@@ -1045,7 +963,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         </div>
                       </td>
 
-                      {/* Date */}
                       <td style={{ padding: "14px 18px", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.75, color: currentTabMeta.color }} />
@@ -1053,14 +970,12 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         </div>
                       </td>
 
-                      {/* Species */}
                       <td style={{ padding: "14px 18px" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                           {grp.speciesList.join(", ") || "Livestock"}
                         </span>
                       </td>
 
-                      {/* Total Records */}
                       <td style={{ padding: "14px 18px", textAlign: "center" }}>
                         <span
                           style={{
@@ -1073,7 +988,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         </span>
                       </td>
 
-                      {/* Status */}
                       <td style={{ padding: "14px 18px" }}>
                         <span
                           style={{
@@ -1106,7 +1020,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                         </span>
                       </td>
 
-                      {/* Action */}
                       <td style={{ padding: "14px 18px", textAlign: "right" }}>
                         <Button
                           size="sm"
@@ -1138,7 +1051,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           </div>
         )}
 
-        {/* Pagination Toolbar */}
         {!loading && groupedOwnerRecords.length > 0 && (
           <div style={{ padding: "10px 16px", borderTop: "1px solid var(--color-border)" }}>
             <Pagination
@@ -1156,9 +1068,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         )}
       </div>
 
-      {/* ========================================================================= */}
-      {/* Standardized Dedicated Owner Records Modal (Consistent with Animal Marking) */}
-      {/* ========================================================================= */}
       <Modal
         open={Boolean(selectedOwnerView)}
         onClose={() => {
@@ -1169,7 +1078,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         headerRight={
           selectedOwnerView && (
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              {/* Species filter in modal header */}
               <div style={{ position: "relative", minWidth: 140 }}>
                 <select
                   value={modalFilterSpecies}
@@ -1278,12 +1186,10 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                           onMouseEnter={(e) => { e.currentTarget.style.background = "var(--lsmis-primary-subtle)"; }}
                           onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                         >
-                          {/* Tag Number */}
                           <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                             <TagBadge tag={item.tag_number} species={item.species} />
                           </td>
 
-                          {/* Species & Sex */}
                           <td style={{ padding: "12px 14px", verticalAlign: "middle", fontSize: 12.5, fontWeight: 600 }}>
                             <div>{item.species}</div>
                             <div style={{ fontSize: 11, color: "var(--color-text-muted)" }}>
@@ -1291,7 +1197,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             </div>
                           </td>
 
-                          {/* Inspection Date */}
                           <td style={{ padding: "12px 14px", verticalAlign: "middle", fontSize: 12, color: "var(--color-text)" }}>
                             <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                               <Icon.Calendar size={12} style={{ opacity: 0.7, color: currentTabMeta.color }} />
@@ -1302,7 +1207,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             </div>
                           </td>
 
-                          {/* Specific Category Column */}
                           {activeTab === "partially_condemned" ? (
                             <td style={{ padding: "12px 14px", verticalAlign: "middle", maxWidth: 280 }}>
                               {item.condemnedParts && item.condemnedParts.length > 0 ? (
@@ -1366,7 +1270,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             </td>
                           )}
 
-                          {/* Result */}
                           <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                             <span
                               style={{
@@ -1394,7 +1297,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             </span>
                           </td>
 
-                          {/* Evidence Photos (Partially Condemned & Condemned only) */}
                           {(activeTab === "partially_condemned" || activeTab === "condemned") && (
                             <td style={{ padding: "12px 14px", verticalAlign: "middle" }}>
                               {item.photos && item.photos.length > 0 ? (
@@ -1425,7 +1327,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                             </td>
                           )}
 
-                          {/* Action - Details button (Partially Condemned & Condemned only) */}
                           {(activeTab === "partially_condemned" || activeTab === "condemned") && (
                             <td style={{ padding: "12px 14px", verticalAlign: "middle", textAlign: "right" }}>
                               <Button
@@ -1456,9 +1357,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         )}
       </Modal>
 
-      {/* ========================================================================= */}
-      {/* Condemnation Evidence Viewer Modal (Matching Vet Personnel View Details) */}
-      {/* ========================================================================= */}
       {viewingDetails && (viewingDetails.category === "partially_condemned" || viewingDetails.category === "condemned") && (() => {
         const tagPhotos = viewingDetails.photos || [];
         const currentPhotoIndex = Math.min(activePhotoIndex, Math.max(0, tagPhotos.length - 1));
@@ -1466,7 +1364,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
         const isAnte = viewingDetails.category === "condemned" && (viewingDetails.stage?.includes("Ante") || viewingDetails.stage === "Ante-Mortem");
         const ownerDisplay = viewingDetails.owner?.name && viewingDetails.owner.name !== "—" ? viewingDetails.owner.name : "Not recorded";
 
-        // Authoritative parts & scope extraction from Supabase
         const condPartsInfo = getCondemnationRecordParts({
           record: viewingDetails.raw || viewingDetails,
           stage: viewingDetails.stage || (viewingDetails.category === "condemned" ? (isAnte ? "Ante-Mortem" : "Post-Mortem") : "Post-Mortem"),
@@ -1505,9 +1402,7 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
           >
             <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               <div className="vet-evidence-viewer-grid">
-                {/* -- LEFT: PRIMARY PHOTO & FILE VIEWER -- */}
                 <div className="vet-evidence-viewer-media-col">
-                  {/* Viewer Top Bar */}
                   <div
                     style={{
                       display: "flex",
@@ -1547,7 +1442,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       )}
                     </div>
 
-                    {/* Zoom & Action Controls */}
                     {tagPhotos.length > 0 && currentPhotoUrl && (
                       <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                         <button
@@ -1653,7 +1547,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                     )}
                   </div>
 
-                  {/* Primary Media Stage - Compact */}
                   <div
                     style={{
                       position: "relative",
@@ -1718,7 +1611,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       />
                     )}
 
-                    {/* Previous / Next Controls when multiple photos exist */}
                     {tagPhotos.length > 1 && (
                       <>
                         <button
@@ -1777,7 +1669,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                     )}
                   </div>
 
-                  {/* Multi-Photo Thumbnail Strip */}
                   {tagPhotos.length > 1 && (
                     <div
                       style={{
@@ -1823,7 +1714,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                   )}
                 </div>
 
-                {/* -- RIGHT: COMPACT TWO-LINE LABELED DETAILS LIST -- */}
                 <div className="vet-evidence-viewer-details-col">
                   <div
                     className="vet-evidence-viewer-details-header"
@@ -1858,13 +1748,11 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                   </div>
 
                   <dl className="vet-evidence-viewer-dl">
-                    {/* 1. Owner */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Owner</dt>
                       <dd>{ownerDisplay}</dd>
                     </div>
 
-                    {/* 2. Tag Number */}
                     <div className="vet-evidence-viewer-row">
                       <dt>{isAnte ? "Livestock Tag #" : "Carcass Tag #"}</dt>
                       <dd>
@@ -1872,13 +1760,11 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       </dd>
                     </div>
 
-                    {/* 3. Species */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Species</dt>
                       <dd>{viewingDetails.species || "Not recorded"}</dd>
                     </div>
 
-                    {/* 4. Condemnation Classification */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Condemnation Classification</dt>
                       <dd>
@@ -1905,7 +1791,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       </dd>
                     </div>
 
-                    {/* 5. Condemned Parts & Quantities */}
                     <div className="vet-evidence-viewer-row">
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                         <dt>Condemned Parts & Quantities</dt>
@@ -1982,19 +1867,16 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                       </dd>
                     </div>
 
-                    {/* 6. Findings */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Findings</dt>
                       <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45 }}>{findingsDisplay}</dd>
                     </div>
 
-                    {/* 7. Condemnation Date & Time */}
                     <div className="vet-evidence-viewer-row">
                       <dt>Condemnation Date & Time</dt>
                       <dd>{viewingDetails.date ? formatPhDateTime(viewingDetails.date) : "—"}</dd>
                     </div>
 
-                    {/* 8. Condemned By */}
                     <div className="vet-evidence-viewer-row" style={{ borderBottom: "none" }}>
                       <dt>Condemned By</dt>
                       <dd style={{ fontWeight: 600 }}>{viewingDetails.inspector || "Dr. Dave"}</dd>
@@ -2003,7 +1885,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                 </div>
               </div>
 
-              {/* Modal Actions Footer */}
               <div
                 className="form-actions"
                 style={{
@@ -2022,7 +1903,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
                 </Button>
               </div>
 
-              {/* Fullscreen Enlarge Lightbox when user clicks image or Enlarge */}
               {isEnlarged && currentPhotoUrl && (
                 <div
                   role="dialog"
@@ -2097,7 +1977,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
 
 
 
-      {/* Embedded Evidence Viewer CSS Styles Matching Vet Personnel Reference */}
       <style>{`
         .vet-evidence-viewer-grid {
           display: grid;
@@ -2190,7 +2069,6 @@ export const InspectionResults = ({ initialTab = "antemortem" }) => {
   );
 };
 
-// Route wrapper exports preserving existing application routes
 export const AntemortemStatus = () => <InspectionResults initialTab="antemortem" />;
 export const PostmortemStatus = () => <InspectionResults initialTab="postmortem" />;
 export const PostmortemResult = () => <InspectionResults initialTab="postmortem" />;

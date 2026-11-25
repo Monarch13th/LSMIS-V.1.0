@@ -10,7 +10,6 @@ import { subscribeOwnerLiveRefresh, buildOwnerScope } from "../../utils/ownerLiv
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";
 
 
-// 7 Official Lifecycle Milestones for the Progress Tracker (Current Abattoir Workflow)
 export const TRACKER_STAGES = [
   { id: 1, key: "registered", label: "Registered" },
   { id: 2, key: "marking", label: "Marked" },
@@ -21,7 +20,6 @@ export const TRACKER_STAGES = [
   { id: 7, key: "permit", label: "Meat Permit" },
 ];
 
-// Official Slaughter Processing Activities
 const SLAUGHTER_ACTIVITIES = [
   { key: "bathing", label: "Bathing", desc: "Pre-slaughter shower & cleanliness check" },
   { key: "stunning", label: "Stunning", desc: "Humane electrical or mechanical stunning" },
@@ -74,12 +72,6 @@ const findHistoryActor = (history, keywords = []) => {
   return null;
 };
 
-/**
- * Pure function: calculates granular workflow state, 7-milestone tracker states,
- * and exact date & time for every workflow stage based strictly on database records.
- * Workflow order:
- * 1. Registered -> 2. Marked -> 3. Ante-Mortem -> 4. Slaughter -> 5. Post-Mortem -> 6. Weighing -> 7. Meat Permit
- */
 export const calculateLivestockProgress = (animal, milestones = {}) => {
   const tag = animal?.tag_number;
   const tagUpper = String(tag || "").trim().toUpperCase();
@@ -95,7 +87,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     null;
   const regTimeMs = regTimestamp ? new Date(regTimestamp).getTime() : null;
 
-  // Strict milestone resolution: prioritize matching by unique livestock_id (id) first!
   let ante = (milestones.ante && id && milestones.ante[id]) ||
     (milestones.ante && tag && (milestones.ante[tag] || milestones.ante[tagUpper])) || null;
   if (ante) {
@@ -155,14 +146,12 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
   const firstCond = condListForAnimal[0] || null;
   const condStage = String(firstCond?.stage || firstCond?.inspection_type || "").toLowerCase();
 
-  // Extract accurate timestamps & actors for all 7 workflow stages
   const regActor =
     animal?.registered_by ||
     animal?.created_by ||
     findHistoryActor(history, ["registration", "registered", "receiving"]) ||
     "Staff Personnel";
 
-  // Parse marking history safely for audit and re-marking tracking
   let rawMarkingHistory = [];
   if (Array.isArray(animal?.marking_history)) {
     rawMarkingHistory = animal.marking_history;
@@ -172,7 +161,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     } catch (_) {}
   }
 
-  // Stage signals indicating animal has progressed past marking
   const isPastMarking =
     Boolean(ante) ||
     Boolean(slaughterProc) ||
@@ -196,8 +184,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
 
   const hasFallbackHistory = Boolean(animal?.fallback_at) || rawMarkingHistory.length > 0;
 
-  // An animal is ACTIVELY in returned-to-marking ONLY if its current status is explicitly
-  // "returned to animal marking" (or contains "return") AND it has not moved to subsequent stages.
   const isReturnedToMarking =
     !isPastMarking &&
     (rawStatusLower === "returned to animal marking" ||
@@ -209,7 +195,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
   const hasReMarkHistory = rawMarkingHistory.length > 0;
   const isReMarked = hasFallbackHistory && !isReturnedToMarking;
 
-  // Extract initial / earliest mark timestamp
   let initialMarkTimestamp = null;
   if (hasReMarkHistory) {
     const firstHist = rawMarkingHistory[0];
@@ -231,7 +216,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       null;
   }
 
-  // Extract re-marking timestamp (either fallback trigger or actual re-marking)
   let reMarkTimestamp = null;
   if (isReturnedToMarking) {
     reMarkTimestamp =
@@ -365,7 +349,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     rawStatusLower === "rejected" ||
     anteDecision.includes("reject");
 
-  // Post-Mortem stage reached check (must have reached slaughter/post-mortem to receive partial condemnation)
   const isPostMortemReached =
     Boolean(carcass) ||
     Boolean(permit) ||
@@ -378,7 +361,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     slaughterRec?.status === "Completed" ||
     Boolean(post);
 
-  // Check if post-mortem inspection for THIS animal confirmed partial condemnation
   const hasValidCondemnedCutsInPost =
     Boolean(post) &&
     Array.isArray(post.condemned_parts) &&
@@ -400,8 +382,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       String(c.stage || c.inspection_type || "Post-Mortem").toLowerCase().includes("post")
   );
 
-  // Post-Mortem Partial Condemned: ONLY if Post-Mortem was reached and confirmed!
-  // Never inferred from text findings, empty arrays, null fields, or unrelated records.
   const isPartialCondemned =
     isPostMortemReached &&
     !postDecision.includes("whole") &&
@@ -413,7 +393,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       (rawStatusLower === "partially condemned" && Boolean(post) && !postDecision.includes("approv") && !postDecision.includes("pass"))
     );
 
-  // Post-Mortem Whole Condemned: ONLY if NOT partial condemnation!
   const isPostCondemned =
     !isPartialCondemned &&
     ((post &&
@@ -425,7 +404,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       condListForAnimal.some((c) => c.type === "Total" || c.part === "Whole Carcass" || c.part === "Entire Carcass") ||
       (rawStatusLower === "condemned" && (isAntePassed || Boolean(post) || Boolean(slaughterProc) || Boolean(slaughterRec) || Boolean(carcass))));
 
-  // Ante-Mortem Condemned: Only if NOT post-mortem condemned and NOT partial condemned
   const isAnteCondemned =
     !isPostCondemned &&
     !isPartialCondemned &&
@@ -541,7 +519,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     };
   }
 
-  // 2. FORWARD MILESTONE CHECKS (1. Registered -> 2. Marked -> 3. Ante-Mortem -> 4. Slaughter -> 5. Post-Mortem -> 6. Weighing -> 7. Meat Permit)
   const isReleased =
     rawStatusLower === "released" ||
     rawStatusLower === "dispatched" ||
@@ -640,7 +617,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       animal?.marked === 1 ||
       Boolean(animal?.marked_at || animal?.marking_date || animal?.mark_date || animal?.mark_type));
 
-  // 3. COMPOSE CANONICAL OWNER STATUS & TRACKER STATES
   let statusLabel = "Registered";
   let statusCategory = "inspection";
   let currentStageIndex = 1;
@@ -680,9 +656,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
     currentStageIndex = 2;
   }
 
-  // Generate the 7 tracker steps in exact workflow order with accurate timestamps
   const steps = [
-    // Step 1: Registered
     {
       id: 1,
       key: "registered",
@@ -693,9 +667,7 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       timestampFormatted: fmtTime(regTimestamp),
       actor: regActor,
     },
-    // Step 2: Marked
     buildMarkStep(),
-    // Step 3: Ante-Mortem
     {
       id: 3,
       key: "ante_mortem",
@@ -712,7 +684,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       timestampFormatted: isAnteMortemApproved || Boolean(ante) ? fmtTime(anteTimestamp) : null,
       actor: isAnteMortemApproved || Boolean(ante) ? anteActor : null,
     },
-    // Step 4: Slaughter
     {
       id: 4,
       key: "slaughter",
@@ -733,7 +704,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       timestampFormatted: isSlaughterCompleted || isSlaughterInProcess ? fmtTime(slaughterTimestamp) : null,
       actor: isSlaughterCompleted || isSlaughterInProcess ? slaughterActor : null,
     },
-    // Step 5: Post-Mortem
     {
       id: 5,
       key: "post_mortem",
@@ -754,7 +724,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       timestampFormatted: isPostMortemPassed || Boolean(post) ? fmtTime(postTimestamp) : null,
       actor: isPostMortemPassed || Boolean(post) ? postActor : null,
     },
-    // Step 6: Weighing
     {
       id: 6,
       key: "weighing",
@@ -772,7 +741,6 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
       timestampFormatted: isWeighed ? fmtTime(weighTimestamp) : null,
       actor: isWeighed ? weighActor : null,
     },
-    // Step 7: Meat Permit
     {
       id: 7,
       key: "permit",
@@ -811,19 +779,15 @@ export const calculateLivestockProgress = (animal, milestones = {}) => {
 export const OwnerAnimals = () => {
   const { ownerId } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  // Read URL params through a ref so changing them (e.g. opening View Details) does not re-create the loader
-  // and trigger a full refetch + resubscription.
   const searchParamsRef = useRef(searchParams);
   searchParamsRef.current = searchParams;
   const ownerScopeRef = useRef({ ownerId: null, tags: new Set(), ids: new Set() });
 
-  // Primary Data States
   const [animals, setAnimals] = useState([]);
   const [ownerInfo, setOwnerInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState(false);
 
-  // Search & Filter States
   const [query, setQuery] = useState(searchParams.get("tag") || "");
   const initialFilter = searchParams.get("filter");
   const [statusFilter, setStatusFilter] = useState(
@@ -831,11 +795,9 @@ export const OwnerAnimals = () => {
   );
   const [dateFilter, setDateFilter] = useState("");
 
-  // Modals
   const [selectedAnimal, setSelectedAnimal] = useState(null);
   const [condemnationModalDetails, setCondemnationModalDetails] = useState(null);
 
-  // Milestone Records Cache
   const [milestones, setMilestones] = useState({
     ante: {},
     post: {},
@@ -848,15 +810,11 @@ export const OwnerAnimals = () => {
     dispatch: {},
   });
 
-  // Core Data Fetcher with Strict Ownership Scoping
-  // silent background refreshes (real-time events) update data in place: no loading state, no reset of the
-  // current filters, open modal or scroll position.
   const fetchData = useCallback(async (opts) => {
     const silent = opts && opts.silent === true;
     if (!silent) setLoading(true);
     setDbError(false);
     try {
-      // 1. Resolve authentic owner ID from active Supabase session
       const { data: authUserRes, error: authErr } = await supabase.auth.getUser();
       if (authErr && !authUserRes?.user) {
         console.warn("Supabase auth session check failed:", authErr);
@@ -866,7 +824,6 @@ export const OwnerAnimals = () => {
       let targetOwnerId = null;
       let foundOwner = null;
 
-      // 1a. Query OWNERS table by verified user email
       if (email) {
         const { data: oData } = await supabase
           .from(TABLES.OWNERS)
@@ -877,7 +834,6 @@ export const OwnerAnimals = () => {
           foundOwner = oData;
           targetOwnerId = oData.id;
         } else {
-          // 1b. Fallback: Query USERS table for associated owner_id
           const { data: uData } = await supabase
             .from(TABLES.USERS)
             .select("owner_id, full_name")
@@ -895,7 +851,6 @@ export const OwnerAnimals = () => {
         }
       }
 
-      // 1c. Final Fallback: useAuth() ownerId
       if (!targetOwnerId && ownerId) {
         targetOwnerId = ownerId;
         const { data: oData } = await supabase
@@ -908,14 +863,12 @@ export const OwnerAnimals = () => {
 
       setOwnerInfo(foundOwner);
 
-      // If no valid owner ID exists for this user, display empty state
       if (!targetOwnerId) {
         setAnimals([]);
         setLoading(false);
         return;
       }
 
-      // 2. Fetch Livestock strictly scoped to this authenticated owner ID
       let liveList = [];
       try {
         const { data: lData, error: lError } = await supabase
@@ -931,7 +884,6 @@ export const OwnerAnimals = () => {
       setAnimals(liveList);
       ownerScopeRef.current = buildOwnerScope(targetOwnerId, liveList);
 
-      // 3. Batch-fetch all operational milestones for this owner's livestock
       const tagList = liveList.map((a) => a.tag_number).filter(Boolean);
       const idList = liveList.map((a) => a.id).filter(Boolean);
 
@@ -996,7 +948,6 @@ export const OwnerAnimals = () => {
           console.warn("Milestone query notice:", fetchErr);
         }
 
-        // Direct Supabase Storage fallback recovery ONLY for condemned/rejected/partially-condemned tags that lack DB evidence records
         const condemnedTagSet = new Set(
           [
             ...(condList || []).map((c) => String(c.tag_number || "").trim().toLowerCase()),
@@ -1023,7 +974,6 @@ export const OwnerAnimals = () => {
               const { data: stFiles } = await supabase.storage.from("evidence").list(`evidence/${cleanTag}`);
               if (stFiles && stFiles.length > 0) {
                 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://zwuoebmkapoywkpyaahw.supabase.co";
-                // Deduplicate storage files by eTag and size so identical duplicate uploads are not added repeatedly
                 const seenFileSigs = new Set();
                 const uniqueStFiles = stFiles.filter((f) => {
                   if (!f.name || f.name.startsWith(".")) return false;
@@ -1076,7 +1026,6 @@ export const OwnerAnimals = () => {
       const mergedCarcassList = carcassList;
 
 
-      // Build fast lookup maps with case-insensitive tag keys and unique livestock_id
       const anteMap = {};
       mergedAnteList.forEach((x) => {
         if (x.livestock_id) anteMap[x.livestock_id] = x;
@@ -1202,7 +1151,6 @@ export const OwnerAnimals = () => {
         permits: permitMap,
       });
 
-      // 4. Handle initial tag URL param (strictly scoped to owner's animals)
       const queryTag = searchParamsRef.current.get("tag");
       if (queryTag && !silent) {
         const found = liveList.find((a) => a.tag_number === queryTag);
@@ -1218,18 +1166,15 @@ export const OwnerAnimals = () => {
     }
   }, [ownerId]);
 
-  // Always call the latest loader from long-lived listeners without re-subscribing.
   const fetchRef = useRef(fetchData);
   useEffect(() => {
     fetchRef.current = fetchData;
   }, [fetchData]);
 
-  // Initial load (shows loading state once; re-runs only if the resolved owner changes)
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Targeted live updates: only relevant tables / this owner's records, silent background refresh.
   useEffect(() => {
     return subscribeOwnerLiveRefresh({
       channelName: "owner-animals-live",
@@ -1249,7 +1194,6 @@ export const OwnerAnimals = () => {
     });
   }, []);
 
-  // Open Condemnation & Evidence Photos Modal for an animal
   const handleOpenCondemnationDetails = (animal, e) => {
     if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     if (!animal) return;
@@ -1267,7 +1211,6 @@ export const OwnerAnimals = () => {
     setCondemnationModalDetails(details);
   };
 
-  // Compute progress & condemnation details for each animal
   const enrichedAnimals = useMemo(() => {
     return animals.map((a) => {
       const progress = calculateLivestockProgress(a, milestones);
@@ -1298,7 +1241,6 @@ export const OwnerAnimals = () => {
     });
   }, [animals, milestones]);
 
-  // Automatic Date Updates: Reload when the calendar date rolls over in Asia/Manila
   useEffect(() => {
     let lastManilaDate = getManilaTodayDateString();
 
@@ -1337,7 +1279,6 @@ export const OwnerAnimals = () => {
     };
   }, [fetchData]);
 
-  // Live sync active condemnation modal details when milestones/animals refresh
   useEffect(() => {
     if (condemnationModalDetails?.tagNumber) {
       const activeTag = String(condemnationModalDetails.tagNumber).trim().toUpperCase();
@@ -1350,7 +1291,6 @@ export const OwnerAnimals = () => {
     }
   }, [enrichedAnimals]);
 
-  // Sync selectedAnimal with latest data from animals when live updates arrive
   useEffect(() => {
     if (selectedAnimal?.tag_number) {
       const activeTag = String(selectedAnimal.tag_number).trim().toUpperCase();
@@ -1363,7 +1303,6 @@ export const OwnerAnimals = () => {
     }
   }, [animals]);
 
-  // Escape key handler for selectedAnimal (only closes if condemnation modal is not open)
   useEffect(() => {
     if (!selectedAnimal || condemnationModalDetails) return;
     const handleKeyDown = (e) => {
@@ -1376,14 +1315,11 @@ export const OwnerAnimals = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedAnimal, condemnationModalDetails]);
 
-  // Filter exclusively for today's registered and processed livestock in Asia/Manila for this authenticated owner
   const todayEnrichedAnimals = useMemo(() => {
     return enrichedAnimals.filter((a) => {
-      // 1. Strict owner ID match
       if (ownerInfo?.id && String(a.owner_id || "").trim() !== String(ownerInfo.id).trim()) {
         return false;
       }
-      // 2. Registration or processing timestamp in Asia/Manila
       const regTimestamp = a.registered_at || a.created_at || a.received_date;
       const isRegToday = isTodayInManila(regTimestamp);
       const isProcToday = isTodayInManila(a.marked_at) || isTodayInManila(a.slaughter_date);
@@ -1391,7 +1327,6 @@ export const OwnerAnimals = () => {
     });
   }, [enrichedAnimals, ownerInfo?.id]);
 
-  // Dynamic filter tab counts based on today's registered livestock
   const countAll = todayEnrichedAnimals.length > 0
     ? todayEnrichedAnimals.reduce((sum, a) => sum + (Number(a.quantity) || 1), 0)
     : 0;
@@ -1405,10 +1340,8 @@ export const OwnerAnimals = () => {
     (a) => a.progress.statusCategory === "cleared"
   ).length;
 
-  // Filtered dataset strictly scoped to today's registered livestock
   const filteredAnimals = useMemo(() => {
     return todayEnrichedAnimals.filter((a) => {
-      // 1. Keyword search (tag, species, breed, sex)
       if (query.trim()) {
         const q = query.trim().toLowerCase();
         const tagMatch = (a.tag_number || "").toLowerCase().includes(q);
@@ -1418,7 +1351,6 @@ export const OwnerAnimals = () => {
         if (!tagMatch && !speciesMatch && !breedMatch && !sexMatch) return false;
       }
 
-      // 2. Status Category filter
       if (statusFilter === "inspection") {
         if (a.progress.statusCategory !== "inspection") return false;
       } else if (statusFilter === "processing") {
@@ -1443,9 +1375,7 @@ export const OwnerAnimals = () => {
     setStatusFilter("all");
   };
 
-  // Helper to open details modal while validating ownership
   const handleOpenDetails = (animal) => {
-    // Only open if the animal belongs to the loaded authorized dataset
     if (animals.some((a) => a.id === animal.id && a.tag_number === animal.tag_number)) {
       setSelectedAnimal(animal);
       setSearchParams(
@@ -1480,7 +1410,6 @@ export const OwnerAnimals = () => {
         gap: 12,
       }}
     >
-      {/* 1. STICKY COMPACT HEADER & SEARCH (Remains visible while scrolling) */}
       <div
         className="owner-animals-sticky-header bg-white dark:bg-slate-900"
         style={{
@@ -1540,7 +1469,6 @@ export const OwnerAnimals = () => {
           </div>
         </div>
 
-        {/* Compact Search Bar */}
         <div style={{ position: "relative", width: "100%" }}>
           <span
             style={{
@@ -1602,7 +1530,6 @@ export const OwnerAnimals = () => {
         </div>
       </div>
 
-      {/* 2. LIVESTOCK RECORDS LIST (Scrolls naturally within .owner-mobile-main without nested scroll traps) */}
       <div
         className="owner-animal-list-scroll-wrapper"
         style={{
@@ -1611,7 +1538,6 @@ export const OwnerAnimals = () => {
         }}
       >
         {dbError ? (
-          /* Database Loading Error State */
           <div className="owner-error-card">
             <Icon.AlertTriangle size={36} style={{ color: "#ef4444", marginBottom: 8 }} />
             <h3 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 4px 0", color: "#dc2626" }}>
@@ -1625,7 +1551,6 @@ export const OwnerAnimals = () => {
             </button>
           </div>
         ) : loading ? (
-          /* Loading State */
           <div className="owner-section-card" style={{ textAlign: "center", padding: 36 }}>
             <Icon.RefreshCw size={28} className="animate-spin" style={{ color: "var(--color-primary)", marginBottom: 10 }} />
             <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
@@ -1636,7 +1561,6 @@ export const OwnerAnimals = () => {
             </div>
           </div>
         ) : filteredAnimals.length === 0 ? (
-          /* Empty State (Requirement 5) */
           <div className="owner-section-card" style={{ textAlign: "center", padding: "40px 16px" }}>
             <Icon.Inbox size={36} style={{ color: "var(--color-text-muted)", marginBottom: 10 }} />
             <h3 style={{ fontSize: 15, fontWeight: 800, margin: "0 0 6px 0", color: "var(--color-text, #1A201C)" }}>
@@ -1666,7 +1590,6 @@ export const OwnerAnimals = () => {
             )}
           </div>
         ) : (
-          /* 4. LIVESTOCK CARDS LIST WITH 8-STAGE PROGRESS TRACKER */
           <div className="owner-animal-list" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {filteredAnimals.map((animal) => {
               const progress = animal.progress;
@@ -1693,7 +1616,6 @@ export const OwnerAnimals = () => {
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
                   : "Pathological cuts removed";
 
-              // 2. FULLY CONDEMNED CARD (Mobile Owner UI)
               if (isCondemned) {
                 const condStageName = progress.condemnationStage || (progress.currentStageIndex === 3 ? "Ante-Mortem" : "Post-Mortem");
                 const condTimeFormatted =
@@ -1716,7 +1638,6 @@ export const OwnerAnimals = () => {
                       cursor: "pointer",
                     }}
                   >
-                    {/* Livestock ID + Species & Condemned Status Badge */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <span style={{ fontSize: 14.5, fontWeight: 900, color: "#1A201C", fontFamily: "monospace" }}>
@@ -1748,7 +1669,6 @@ export const OwnerAnimals = () => {
                       </span>
                     </div>
 
-                    {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                         <span style={{ color: "#5D6660", fontWeight: 600 }}>Stage:</span>
@@ -1771,7 +1691,6 @@ export const OwnerAnimals = () => {
                       </div>
                     </div>
 
-                    {/* View Evidence button */}
                     <button
                       type="button"
                       className="owner-condemnation-view-btn"
@@ -1811,7 +1730,6 @@ export const OwnerAnimals = () => {
                   style={{ cursor: "pointer" }}
                   title="Tap to view official livestock record"
                 >
-                  {/* Animal Card Header: Tag No. & Status Pill */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
                     <span
                       className="owner-animal-tag"
@@ -1856,7 +1774,6 @@ export const OwnerAnimals = () => {
                     </span>
                   </div>
 
-                  {/* Clean Info Row: Sex and Date */}
                   <div
                     style={{
                       display: "flex",
@@ -1885,7 +1802,6 @@ export const OwnerAnimals = () => {
                     </span>
                   </div>
 
-                  {/* Small Clear Indication for Partially Condemned Livestock with View button */}
                   {isPartial && (
                     <div
                       style={{
@@ -1935,7 +1851,6 @@ export const OwnerAnimals = () => {
                     </div>
                   )}
 
-                  {/* 7-Milestone Visual Progress Tracker */}
                 <div
                   className="owner-tracker-wrap no-scrollbar"
                   style={{
@@ -1977,7 +1892,6 @@ export const OwnerAnimals = () => {
                   })}
                 </div>
 
-                {/* Tap to View Details Cue */}
                 <div className="owner-card-footer">
                   <span>View Details</span>
                   <Icon.ChevronRight size={14} />
@@ -1989,7 +1903,6 @@ export const OwnerAnimals = () => {
       )}
       </div>
 
-      {/* 5. COMPREHENSIVE VIEW LIVESTOCK DETAILS MODAL */}
       {selectedAnimal && (
         <div
           className="owner-modal-backdrop owner-animal-detail-overlay"
@@ -2013,7 +1926,6 @@ export const OwnerAnimals = () => {
           <div className="owner-modal-sheet owner-animal-detail-modal" onClick={(e) => e.stopPropagation()}>
             <div className="owner-sheet-handle" />
 
-            {/* Modal Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div>
@@ -2047,7 +1959,6 @@ export const OwnerAnimals = () => {
               </button>
             </div>
 
-            {/* Current Stage Indicator Banner */}
             {(() => {
               const prog = calculateLivestockProgress(selectedAnimal, milestones);
               const isCondemned = prog.statusCategory === "condemned" || prog.statusCategory === "rejected";
@@ -2095,7 +2006,6 @@ export const OwnerAnimals = () => {
                     </span>
                   </div>
 
-                  {/* Progress Line */}
                   <div
                     style={{
                       height: 5,
@@ -2119,7 +2029,6 @@ export const OwnerAnimals = () => {
               );
             })()}
 
-            {/* Small Clear Indication for Partially Condemned Livestock with View button */}
             {(() => {
               const selTag = selectedAnimal.tag_number;
               const selTagUpper = String(selTag || "").trim().toUpperCase();
@@ -2191,7 +2100,6 @@ export const OwnerAnimals = () => {
               );
             })()}
 
-            {/* 7-STAGE WORKFLOW TIMELINE & DETAILED SECTIONS */}
             {(() => {
               const selTag = selectedAnimal.tag_number;
               const selTagUpper = String(selTag || "").trim().toUpperCase();
@@ -2222,7 +2130,6 @@ export const OwnerAnimals = () => {
 
               return (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {/* COMPLETE WORKFLOW TIMELINE (ACCURATE DATE & TIME PER STAGE) */}
                   <div className="owner-section-card" style={{ padding: 14 }}>
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 800, color: "var(--color-text, #1A201C)" }}>
@@ -2434,7 +2341,6 @@ export const OwnerAnimals = () => {
               );
             })()}
 
-            {/* Read-Only Close Action Button */}
             <button
               type="button"
               onClick={handleCloseDetails}
@@ -2460,7 +2366,6 @@ export const OwnerAnimals = () => {
         </div>
       )}
 
-      {/* 6. OWNER CONDEMNATION & EVIDENCE PHOTOS LIGHTBOX MODAL */}
       <OwnerCondemnationModal
         open={!!condemnationModalDetails}
         onClose={() => setCondemnationModalDetails(null)}

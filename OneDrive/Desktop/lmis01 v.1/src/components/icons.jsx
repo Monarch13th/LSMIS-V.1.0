@@ -1,6 +1,3 @@
-// Inline SVG icon set — keeps the bundle small with no external dependency.
-// Uses a Proxy to return a safe fallback for any icon name that doesn't
-// exist (e.g. Icon.Filter) so the app never crashes with React error #130.
 import { Fragment } from "react";
 
 const make = (children) => ({ size = 18, ...props }) => (
@@ -98,8 +95,6 @@ const ICONS = {
 };
 
 
-// Proxy fallback: any unknown Icon.X returns an empty fragment so the app
-// never crashes with "Element type is invalid" (React error #130).
 export const Icon = new Proxy(ICONS, {
   get(target, prop) {
     if (prop in target) return target[prop];

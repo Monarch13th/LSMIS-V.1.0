@@ -1,4 +1,3 @@
-// Application constants
 export const ROLES = {
   ADMIN: "admin",
   VET: "vet",

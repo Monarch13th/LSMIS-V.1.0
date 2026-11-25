@@ -4,10 +4,6 @@ import {
   countDecisions, monthlySeries, isPaidPayment, num, PAYMENT_DATE_FIELDS,
 } from "../../utils/dashboardMetrics";
 
-/**
- * Graph 1: System-Wide Operations Throughput
- * Displays verified record volumes across the 4 core system operational stages.
- */
 export const OperationsThroughputBar = ({ stats }) => {
   const labels = ["Livestock Intake", "Slaughter Floor", "Inspections", "Meat Permits"];
   const values = [
@@ -51,10 +47,6 @@ export const OperationsThroughputBar = ({ stats }) => {
   );
 };
 
-/**
- * Graph 2: Personnel & Registered User Distribution by Role
- * System-wide user account distribution under Administrative management.
- */
 export const UserRolesDoughnut = ({ users = [] }) => {
   const roles = [
     { key: "vet", label: "Veterinarians", color: "#0ea5e9" },
@@ -90,7 +82,6 @@ export const UserRolesDoughnut = ({ users = [] }) => {
   );
 };
 
-// Backwards compatibility aliases
 export const UserActivityBar = UserRolesDoughnut;
 
 export const InspectionDoughnut = ({ counts, data }) => {

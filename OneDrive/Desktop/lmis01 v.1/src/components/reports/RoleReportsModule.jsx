@@ -140,7 +140,7 @@ const toManilaDateStr = (val) => {
   try {
     const d = new Date(val);
     if (isNaN(d.getTime())) return "";
-    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" }); // YYYY-MM-DD
+    return d.toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
   } catch {
     return "";
   }
@@ -254,7 +254,6 @@ export const RoleReportsModule = ({
   const [activeType, setActiveType] = useState(() => resolveValidType(initialReportType));
   const isRegMarking = activeType === "livestock" || activeType === "receiving";
 
-  // Filters (matching InspectionResults / SlaughterProcessing UI/UX)
   const [searchParams] = useSearchParams();
   const [search, setSearch] = useState(() => searchParams.get("search") || searchParams.get("tag") || "");
   useEffect(() => {
@@ -268,7 +267,6 @@ export const RoleReportsModule = ({
   const [dateTo, setDateTo] = useState("");
   const [statusFilter, setStatusFilter] = useState(() => initialStatusFilter || "all");
 
-  // Auto-compressing Toolbar state & observer
   const toolbarRef = useRef(null);
   const [toolbarWidth, setToolbarWidth] = useState(() =>
     typeof window !== "undefined" ? Math.min(window.innerWidth - 280, 1200) : 1200
@@ -324,18 +322,15 @@ export const RoleReportsModule = ({
     }
   }, [initialReportType, monitoringModule, initialStatusFilter, normalizedRole]);
 
-  // Drill-down owner view (matches InspectionResults / Condemnation pattern)
   const [selectedOwnerKey, setSelectedOwnerKey] = useState(null);
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [viewingCondemnation, setViewingCondemnation] = useState(null);
 
-  // Pagination (default 10 per page)
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [ownerViewPage, setOwnerViewPage] = useState(1);
   const [ownerViewPageSize, setOwnerViewPageSize] = useState(10);
 
-  // Live Supabase Data (no payments table used)
   const { data: livestock = [], loading: loadingLivestock, refresh: refreshLivestock } = useSupabase(TABLES.LIVESTOCK);
   const { data: owners = [], loading: loadingOwners } = useSupabase(TABLES.OWNERS);
   const { data: ante = [], loading: loadingAnte, refresh: refreshAnte } = useSupabase(TABLES.ANTE_MORTEM);
@@ -392,7 +387,6 @@ export const RoleReportsModule = ({
     }
   };
 
-  // O(1) Lookup Maps
   const lookupMaps = useMemo(() => {
     const ownerById = new Map();
     const ownerByName = new Map();
@@ -476,7 +470,6 @@ export const RoleReportsModule = ({
       }
     });
 
-    // Downstream process tags and IDs (mirrors AnimalMarking.jsx eligibility)
     const downstreamTagSet = new Set();
     (slaughterProcessing || []).forEach((p) => {
       if (p?.tag_number) downstreamTagSet.add(String(p.tag_number).trim().toLowerCase());
@@ -553,7 +546,6 @@ export const RoleReportsModule = ({
     };
   }, [owners, livestock, ante, post, carcass, slaughterProcessing, slaughterRecords, permits, dispatchRecords]);
 
-  // Build normalized rows for the active report type (strictly no payment/fees)
   const rawReportRows = useMemo(() => {
     const {
       livestockByTag,
@@ -588,7 +580,6 @@ export const RoleReportsModule = ({
       );
     };
 
-    // Exactly matches AnimalMarking.jsx eligibility: returns true ONLY for intake livestock genuinely awaiting marking
     const isAwaitingMarking = (l) => {
       if (!l || !l.tag_number || String(l.tag_number).trim() === "") return false;
 
@@ -626,7 +617,6 @@ export const RoleReportsModule = ({
       return true;
     };
 
-    // 1. ADMIN • ALL SYSTEM TRANSACTIONS
     if (normalizedRole === "admin" && activeType === "transactions") {
       return (livestock || []).map((l) => {
         const tagKey = String(l.tag_number || "").trim().toLowerCase();
@@ -691,7 +681,6 @@ export const RoleReportsModule = ({
       });
     }
 
-    // 2. LIVESTOCK & MARKING (Admin 'livestock' or Staff 'receiving')
     if (activeType === "livestock" || activeType === "receiving") {
       return (livestock || []).map((l) => {
         const owner = resolveOwner(l, l);
@@ -725,7 +714,6 @@ export const RoleReportsModule = ({
       });
     }
 
-    // 3. INSPECTIONS (Admin 'inspection' or Vet 'inspection' / 'antemortem' / 'postmortem')
     if (activeType === "inspection" || activeType === "antemortem" || activeType === "postmortem") {
       const list = [];
       const seen = new Set();
@@ -760,7 +748,6 @@ export const RoleReportsModule = ({
           const dec = String(a.decision || "").trim();
           const dLower = dec.toLowerCase();
 
-          // Exclude condemned and partially condemned from Ante-Mortem (routed to Condemnations)
           if (
             dLower.includes("condemn") ||
             dLower.includes("reject") ||
@@ -793,7 +780,6 @@ export const RoleReportsModule = ({
           });
         });
 
-        // Also include marked livestock currently awaiting ante-mortem examination
         (livestock || []).forEach((l) => {
           const tag = String(l.tag_number || "").trim().toLowerCase();
           if (!tag || anteSeen.has(tag)) return;
@@ -859,7 +845,6 @@ export const RoleReportsModule = ({
           const pTag = String(p.tag_number || "").trim().toLowerCase();
           const partsCount = Array.isArray(p.condemned_parts) ? p.condemned_parts.length : 0;
 
-          // Exclude condemned and partially condemned from Post-Mortem (routed to Condemnations)
           if (
             dLower.includes("condemn") ||
             dLower.includes("reject") ||
@@ -936,7 +921,6 @@ export const RoleReportsModule = ({
       return list;
     }
 
-    // 4. VET CARCASS WEIGHING & BRANDING ('weighing')
     if (activeType === "weighing") {
       return (carcass || []).map((c) => {
         const animal = livestockByTag.get(String(c.tag_number || "").trim().toLowerCase());
@@ -963,7 +947,6 @@ export const RoleReportsModule = ({
       });
     }
 
-    // 5. CONDEMNATION RECORDS ('condemnation')
     if (activeType === "condemnation") {
       const list = [];
       const covered = new Set();
@@ -1090,7 +1073,6 @@ export const RoleReportsModule = ({
       return list;
     }
 
-    // 6. SLAUGHTER PROCESSING & TEAM ASSIGNMENTS (Admin 'slaughter' or Staff 'slaughter')
     if (activeType === "slaughter") {
       const seenTags = new Set();
       const list = [];
@@ -1143,12 +1125,10 @@ export const RoleReportsModule = ({
       return list;
     }
 
-    // 7. MEAT PERMITS & DISPATCH (Admin 'permits' or Staff 'permits')
     if (activeType === "permits") {
       const seenTags = new Set();
       const list = [];
 
-      // Check livestock that have been weighed, permitted, or released
       (livestock || []).forEach((l) => {
         const tagKey = String(l.tag_number || "").trim().toLowerCase();
         if (!tagKey || seenTags.has(tagKey)) return;
@@ -1197,7 +1177,6 @@ export const RoleReportsModule = ({
       return list;
     }
 
-    // 8. ADMIN • VET & STAFF PERSONNEL ACTIVITY SUMMARY ('personnel')
     if (normalizedRole === "admin" && activeType === "personnel") {
       return (auditLogs || [])
         .filter((log) => {
@@ -1253,7 +1232,6 @@ export const RoleReportsModule = ({
     lookupMaps,
   ]);
 
-  // Apply Search, Species Filter, Date Range Filter, and Status Filter
   const filteredRows = useMemo(() => {
     const todayManila = toManilaDateStr(new Date());
     const now = new Date();
@@ -1368,7 +1346,6 @@ export const RoleReportsModule = ({
       });
   }, [rawReportRows, filterSpecies, datePreset, dateFrom, dateTo, statusFilter, search]);
 
-  // Group filtered records by Owner (matching InspectionResults / SlaughterProcessing pattern)
   const groupedData = useMemo(() => {
     const groups = new Map();
 
@@ -1468,7 +1445,6 @@ export const RoleReportsModule = ({
     return groupedData.slice(start, start + pageSize);
   }, [groupedData, currentPage, pageSize]);
 
-  // Unfiltered module KPI counts (unaffected by active statusFilter)
   const moduleBaseStats = useMemo(() => {
     const totalRecords = rawReportRows.length;
     const ownerKeys = new Set(
@@ -1492,7 +1468,6 @@ export const RoleReportsModule = ({
     };
   }, [rawReportRows]);
 
-  // Summary KPI counts
   const summaryStats = useMemo(() => {
     const totalRecords = filteredRows.length;
     const totalOwners = groupedData.length;
@@ -1521,14 +1496,12 @@ export const RoleReportsModule = ({
   const tabCounts = useMemo(() => {
     const { carcassByTag, permitByTag } = lookupMaps;
 
-    // Slaughter records count
     const slaughterSeen = new Set();
     [...(slaughterProcessing || []), ...(slaughterRecords || [])].forEach((r) => {
       const t = String(r?.tag_number || "").trim().toLowerCase();
       if (t) slaughterSeen.add(t);
     });
 
-    // Meat permits count
     const permitsSeen = new Set();
     (livestock || []).forEach((l) => {
       const tagKey = String(l?.tag_number || "").trim().toLowerCase();
@@ -1566,7 +1539,6 @@ export const RoleReportsModule = ({
         .map((c) => String(c?.tag_number || "").trim().toLowerCase())
     );
 
-    // Ante-mortem inspected count (excluding condemned & partially condemned)
     const anteInspectedCount = (ante || []).filter((a) => {
       const d = String(a?.decision || "").trim().toLowerCase();
       if (!d || d === "pending" || d.includes("awaiting")) return false;
@@ -1576,7 +1548,6 @@ export const RoleReportsModule = ({
       return true;
     }).length;
 
-    // Post-mortem inspected count (excluding condemned & partially condemned)
     const postInspectedCount = (post || []).filter((p) => {
       const d = String(p?.decision || "").trim().toLowerCase();
       if (!d || d === "pending" || d.includes("awaiting")) return false;
@@ -1588,7 +1559,6 @@ export const RoleReportsModule = ({
       return true;
     }).length;
 
-    // Condemnations count
     const condSeen = new Set();
     (condemned || []).forEach((c) => {
       const tagKey = String(c?.tag_number || "").trim().toLowerCase();
@@ -1608,7 +1578,6 @@ export const RoleReportsModule = ({
     });
     const totalCondemned = (condemned || []).length + anteCondCount;
 
-    // Personnel activity count
     const personnelCount = (auditLogs || []).filter((log) => {
       const r = String(log?.role || "").toLowerCase();
       return r === "vet" || r === "staff" || r === "admin" || Boolean(log?.user);
@@ -1644,7 +1613,6 @@ export const RoleReportsModule = ({
   );
 
   const statusFilterOptions = useMemo(() => {
-    // 1. Condemnations module: only Condemned & Partially Condemned
     if (activeType === "condemnation") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1653,7 +1621,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 2. Ante-Mortem module: only Approved & Awaiting / Pending
     if (activeType === "antemortem") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1662,7 +1629,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 3. Post-Mortem module
     if (activeType === "postmortem") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1670,7 +1636,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 3b. Admin Inspection Records module (Ante-Mortem, Post-Mortem & Condemnations)
     if (activeType === "inspection") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1681,7 +1646,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 4. Carcass Weighing module
     if (activeType === "weighing") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1690,7 +1654,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 5. Registration & Marking (Admin 'livestock' or Staff 'receiving')
     if (isRegMarking) {
       return [
         { id: "all", label: "All Statuses" },
@@ -1699,7 +1662,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 6. Team Operator and Slaughter
     if (activeType === "slaughter") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1708,7 +1670,6 @@ export const RoleReportsModule = ({
       ];
     }
 
-    // 7. Meat Permits
     if (activeType === "permits") {
       return [
         { id: "all", label: "All Statuses" },
@@ -1740,7 +1701,6 @@ export const RoleReportsModule = ({
     return "All Time";
   };
 
-  // Export ALL matching records to Excel-compatible CSV (no payment/fees)
   const handleExportExcel = (rowsToExport = filteredRows, customTitle = null) => {
     if (!rowsToExport || rowsToExport.length === 0) {
       showToast("No matching records to export", "warning");
@@ -1795,7 +1755,6 @@ export const RoleReportsModule = ({
     showToast(`Exported ${rowsToExport.length} record(s) to Excel (CSV)`, "success");
   };
 
-  // Export real PDF file containing ALL matching records across all pages
   const handleExportPDF = (rowsToExport = filteredRows, reportTitle = activeReportMeta.title, ownerHeader = null) => {
     if (!rowsToExport || rowsToExport.length === 0) {
       showToast("No matching records to export", "warning");
@@ -1819,7 +1778,6 @@ export const RoleReportsModule = ({
       const marginX = 12;
       const contentWidth = pageWidth - marginX * 2;
 
-      // Header
       doc.setFont("helvetica", "bold");
       doc.setFontSize(15);
       doc.setTextColor(26, 32, 28);
@@ -1839,7 +1797,6 @@ export const RoleReportsModule = ({
       doc.setLineWidth(0.5);
       doc.line(marginX, 29, pageWidth - marginX, 29);
 
-      // Metadata Box
       const metaY = 32;
       const metaHeight = ownerHeader ? 15 : 10;
       doc.setFillColor(249, 250, 248);
@@ -2076,7 +2033,6 @@ export const RoleReportsModule = ({
         padding: 0,
       }}
     >
-      {/* Main Table Container (Standardized with Animal Marking) */}
       <div
         style={{
           background: "var(--color-surface)",
@@ -2090,7 +2046,6 @@ export const RoleReportsModule = ({
           minHeight: 0,
         }}
       >
-        {/* Search & Filter Toolbar • Strictly Single Line & Auto-Compressing */}
         <div
           ref={toolbarRef}
           className="records-fixed-header"
@@ -2109,12 +2064,9 @@ export const RoleReportsModule = ({
             flexShrink: 0,
           }}
         >
-          {/* Left: Swapped Navigation Tabs */}
           {renderNavTabs()}
 
-          {/* Right: Search Box, Species Filter, Export PDF & Clear */}
           <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", flexShrink: 0, justifyContent: "flex-end" }}>
-            {/* Search Box */}
             <div
               style={{
                 width: isVeryCompact ? 120 : isCompact ? 140 : 175,
@@ -2190,7 +2142,6 @@ export const RoleReportsModule = ({
               )}
             </div>
 
-            {/* Species Filter Dropdown */}
             {activeType !== "personnel" && (
               <select
                 value={filterSpecies}
@@ -2221,7 +2172,6 @@ export const RoleReportsModule = ({
               </select>
             )}
 
-            {/* Export PDF Button (Always fully viewed and never clipped) */}
             {!monitoringModule && (
               <Button
                 variant="primary"
@@ -2247,7 +2197,6 @@ export const RoleReportsModule = ({
               </Button>
             )}
 
-            {/* Clear Filters */}
             {isFilterActive && (
               <button
                 type="button"
@@ -2276,7 +2225,6 @@ export const RoleReportsModule = ({
           </div>
         </div>
 
-        {/* Table Section (Continuous Scroll with Sticky Header, No Outer Scroll) */}
         <div className="records-scrollable-content" style={{ width: "100%", flex: 1, minHeight: 0, overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin" }}>
           {isLoading ? (
             <div style={{ padding: "48px 20px", textAlign: "center", color: "var(--color-text-muted)", fontSize: 14 }}>
@@ -2293,7 +2241,6 @@ export const RoleReportsModule = ({
               icon={<Icon.PieChart size={40} />}
             />
           ) : (
-            /* MAIN OWNER-GROUPED TABLE (Matches InspectionResults UI/UX) */
             <div>
               <table
                 className="table"
@@ -2402,7 +2349,6 @@ export const RoleReportsModule = ({
                         </div>
                       </td>
 
-                      {/* Stage • Clean plain text without pill border */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle" }}>
                         <span
                           style={{
@@ -2418,7 +2364,6 @@ export const RoleReportsModule = ({
                         </span>
                       </td>
 
-                      {/* Latest Date & Time */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle", fontSize: 12.5, color: "var(--color-text)", fontWeight: 600 }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                           <Icon.Calendar size={13} style={{ opacity: 0.75, color: "#187A56", flexShrink: 0 }} />
@@ -2426,21 +2371,18 @@ export const RoleReportsModule = ({
                         </div>
                       </td>
 
-                      {/* Species • Clean inline comma-separated text without counts */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle" }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: "var(--color-text)" }}>
                           {(grp.speciesList || []).join(", ") || "Livestock"}
                         </span>
                       </td>
 
-                      {/* Total Records */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle", textAlign: "center" }}>
                         <span style={{ fontSize: 13, fontWeight: 700, color: "#187A56" }}>
                           {grp.count} {grp.count === 1 ? "record" : "records"}
                         </span>
                       </td>
 
-                      {/* Status Summary • Clean color-coded status dots without pill borders */}
                       <td style={{ padding: "14px 18px", verticalAlign: "middle" }}>
                         <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "6px 12px" }}>
                           {grp.completedCount > 0 && (
@@ -2470,7 +2412,6 @@ export const RoleReportsModule = ({
                         </div>
                       </td>
 
-                      {/* Action */}
                       <td className="table-action-td" onClick={(e) => e.stopPropagation()}>
                         <div className="table-action-group">
                           <button
@@ -2493,7 +2434,6 @@ export const RoleReportsModule = ({
         </div>
       </div>
 
-      {/* Standardized Multi-Level View Modal (Owner Group Records + Single Record Dossier) */}
       <Modal
         open={Boolean(selectedOwnerView || selectedRecord)}
         onClose={() => {
@@ -2573,7 +2513,6 @@ export const RoleReportsModule = ({
         }
       >
         {selectedRecord ? (
-          /* Level 2: Single Record Dossier • Clean Unified List View (Instead of fragmented boxes) */
           (() => {
             const recStatus = getStatusDotStyle(selectedRecord.status);
             const detailItems = [
@@ -2688,7 +2627,6 @@ export const RoleReportsModule = ({
                   overflow: "hidden",
                 }}
               >
-                {/* Header Summary Row */}
                 <div
                   style={{
                     display: "flex",
@@ -2752,7 +2690,6 @@ export const RoleReportsModule = ({
                   </span>
                 </div>
 
-                {/* Structured Record Details List */}
                 <div style={{ display: "flex", flexDirection: "column" }}>
                   {detailItems.map((item, idx) => (
                     <div
@@ -2804,7 +2741,6 @@ export const RoleReportsModule = ({
             );
           })()
         ) : selectedOwnerView ? (
-          /* Level 1: Owner Itemized Records Table inside Modal */
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
             <div
               style={{
@@ -2950,7 +2886,6 @@ export const RoleReportsModule = ({
         ) : null}
       </Modal>
 
-      {/* Condemnation Evidence Viewer Modal */}
       <CondemnationEvidenceModal
         open={Boolean(viewingCondemnation)}
         onClose={() => setViewingCondemnation(null)}

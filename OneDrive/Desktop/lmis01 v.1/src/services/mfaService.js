@@ -1,13 +1,6 @@
 import { supabase } from "./supabaseClient";
 
-/**
- * Service for Two-Factor Authentication (2FA) powered natively by Supabase Auth MFA (TOTP).
- * Enforces TOTP standard for apps such as Google Authenticator, Microsoft Authenticator, and 2FAS.
- */
 export const mfaService = {
-  /**
-   * List all MFA factors enrolled for the currently authenticated Supabase user.
-   */
   async listFactors() {
     try {
       const { data, error } = await supabase.auth.mfa.listFactors();
@@ -39,11 +32,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Get the current Authenticator Assurance Level (AAL) for the active session.
-   * - currentLevel: 'aal1' (password/oauth only) | 'aal2' (MFA verified)
-   * - nextLevel: 'aal2' indicates that the user has a verified factor and MUST satisfy MFA.
-   */
   async getAssuranceLevel() {
     try {
       const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
@@ -68,14 +56,8 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Begin TOTP factor enrollment.
-   * Automatically cleans up any previously abandoned unverified factors.
-   * Returns QR code (SVG data URL), secret key, and factor ID.
-   */
   async startEnrollment(friendlyName = "LSMIS Authenticator") {
     try {
-      // 1. Clean up stale unverified factors from both all and totp
       const { data: existingList } = await supabase.auth.mfa.listFactors();
       const allExisting = [
         ...(Array.isArray(existingList?.all) ? existingList.all : []),
@@ -92,7 +74,6 @@ export const mfaService = {
         }
       }
 
-      // 2. Enroll new TOTP factor
       const { data, error } = await supabase.auth.mfa.enroll({
         factorType: "totp",
         friendlyName,
@@ -119,10 +100,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Verify an enrolled TOTP factor with a 6-digit code to complete activation.
-   * Two-Factor Authentication is NOT active until this verification succeeds.
-   */
   async verifyEnrollment({ factorId, code }) {
     const cleanCode = String(code || "").trim();
     if (!factorId) {
@@ -149,10 +126,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Generates secure recovery backup codes and their SHA-256 hashes.
-   * Format: XXXX-XXXX-XXXX (Base32 unambiguous uppercase characters).
-   */
   async generateRecoveryCodes(count = 6) {
     const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     const plainCodes = [];
@@ -177,9 +150,6 @@ export const mfaService = {
     return { plainCodes, hashes };
   },
 
-  /**
-   * Hashes a recovery code with SHA-256 for validation against stored hashes.
-   */
   async hashRecoveryCode(code) {
     const clean = String(code || "").trim().toUpperCase();
     const msgBuffer = new TextEncoder().encode(clean);
@@ -188,13 +158,8 @@ export const mfaService = {
     return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
   },
 
-  /**
-   * Disable 2FA by unenrolling the user's verified TOTP factor.
-   * Requires re-authentication (password if available) and/or current 6-digit OTP from authenticator.
-   */
   async disable2FA({ factorId = null, password = null, email = null, otpCode = null } = {}) {
     try {
-      // 1. If password provided, verify reauthentication
       if (password && email) {
         const { error: authErr } = await supabase.auth.signInWithPassword({
           email: email.trim().toLowerCase(),
@@ -208,7 +173,6 @@ export const mfaService = {
         }
       }
 
-      // 2. Identify factor to unenroll
       let targetFactorId = factorId;
       if (!targetFactorId) {
         const { verifiedFactor } = await this.listFactors();
@@ -218,7 +182,6 @@ export const mfaService = {
         targetFactorId = verifiedFactor.id;
       }
 
-      // 3. If OTP code provided, verify challenge against factor
       if (otpCode) {
         const cleanOtp = String(otpCode || "").trim();
         if (cleanOtp.length !== 6) {
@@ -236,7 +199,6 @@ export const mfaService = {
         }
       }
 
-      // 4. Unenroll factor from Supabase Auth
       const { data, error } = await supabase.auth.mfa.unenroll({
         factorId: targetFactorId,
       });
@@ -245,7 +207,6 @@ export const mfaService = {
         return { data: null, error };
       }
 
-      // 5. Clean up user metadata
       try {
         await supabase.auth.updateUser({
           data: {
@@ -262,9 +223,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Create an MFA challenge for login verification.
-   */
   async createChallenge({ factorId }) {
     if (!factorId) {
       return { data: null, error: new Error("Missing factor ID for challenge.") };
@@ -277,10 +235,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Verify an existing MFA challenge with an OTP code during login.
-   * Upgrades the session to AAL2 on success.
-   */
   async verifyChallenge({ factorId, challengeId, code }) {
     const cleanCode = String(code || "").trim();
     if (!factorId || !challengeId) {
@@ -302,9 +256,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Create a challenge and verify in a single step during login.
-   */
   async challengeAndVerify({ factorId, code }) {
     const cleanCode = String(code || "").trim();
     if (!factorId) {
@@ -325,10 +276,6 @@ export const mfaService = {
     }
   },
 
-  /**
-   * Fast check to enforce AAL2 on protected routes.
-   * Returns { allowed: false, reason: 'MFA_REQUIRED' } if user has enabled 2FA but current session is only AAL1.
-   */
   async checkAalAccess() {
     try {
       const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();

@@ -1,6 +1,3 @@
-/* ===========================================================
-   LSMIS — Profile Page (modern, professional, balanced)
-   =========================================================== */
 
 .profile-page {
   max-width: 100%;
@@ -10,7 +7,6 @@
   gap: 16px;
 }
 
-/* ===== Hero banner ===== */
 .profile-hero {
   background: var(--color-surface);
   border-radius: 18px;
@@ -112,7 +108,6 @@
 .profile-meta-dot { width: 3px; height: 3px; border-radius: 50%; background: var(--color-text-subtle); }
 .profile-hero-actions { margin-left: auto; align-self: center; padding-top: 48px; }
 
-/* ===== Quick stats row ===== */
 .profile-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -139,7 +134,6 @@
 .profile-stat-value { font-size: 22px; font-weight: 800; color: var(--color-text); letter-spacing: -0.5px; line-height: 1.15; }
 .profile-stat-label { font-size: 11.5px; color: var(--color-text-muted); font-weight: 500; margin-top: 3px; }
 
-/* ===== Body grid with matching card sizes ===== */
 .profile-body {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -176,8 +170,6 @@
 .profile-card-title p { font-size: 12px; color: var(--color-text-muted); margin-top: 3px; line-height: 1.3; }
 .profile-card-body { padding: 22px; }
 
-/* Form grid inside profile — remove the default form-group bottom margin
-   so the grid gap controls spacing perfectly */
 .profile-card-body .form-grid-2 { gap: 16px 16px; }
 .profile-card-body .form-grid-2 .form-group { margin-bottom: 0; }
 .profile-card-body > .form-group { margin-bottom: 16px; }
@@ -189,7 +181,6 @@
   border-top: 1px solid var(--color-border);
 }
 
-/* ===== Show password checkbox ===== */
 .profile-show-pw {
   display: flex; align-items: center; gap: 8px;
   font-size: 12.5px; color: var(--color-text-muted);
@@ -198,7 +189,6 @@
 }
 .profile-show-pw input { width: 15px; height: 15px; accent-color: var(--color-primary); cursor: pointer; }
 
-/* ===== Account status ===== */
 .profile-status-title { font-size: 14.5px; font-weight: 700; margin-bottom: 16px; color: var(--color-text); }
 .profile-status-list { display: flex; flex-direction: column; gap: 10px; }
 .profile-status-item {
@@ -218,11 +208,7 @@
 .profile-2fa-toggle:hover { transform: scale(1.04); }
 .profile-2fa-toggle:active { transform: scale(0.96); }
 
-/* ===========================================================
-   Extra module components (calendar, process, evidence)
-   =========================================================== */
 
-/* ===== Schedule calendar ===== */
 .calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
 .calendar-date {
   display: flex; align-items: center; gap: 8px;
@@ -247,7 +233,6 @@
 .calendar-item-tag { font-size: 13px; font-weight: 700; font-family: ui-monospace, monospace; }
 .calendar-item-meta { font-size: 11.5px; color: var(--color-text-muted); margin-bottom: 4px; }
 
-/* ===== Process stages ===== */
 .process-stage { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
 .process-stage-icon {
   width: 46px; height: 46px; border-radius: 13px;
@@ -262,7 +247,6 @@
   padding-top: 14px; border-top: 1px solid var(--color-border);
 }
 
-/* ===== Evidence drop zone ===== */
 .evidence-drop {
   border: 2px dashed var(--color-border);
   border-radius: 14px;
@@ -278,7 +262,6 @@
 .evidence-drop p { font-size: 13px; font-weight: 600; color: var(--color-text); }
 .evidence-drop span { font-size: 11.5px; color: var(--color-text-subtle); display: block; margin-top: 4px; }
 
-/* ===== Permit flow banner ===== */
 .permit-flow-banner {
   display: flex; align-items: center; gap: 8px;
   flex-wrap: wrap;
@@ -298,14 +281,12 @@
 .permit-flow-arrow { color: var(--color-text-subtle); font-size: 12px; }
 @media (max-width: 640px) { .permit-flow-arrow { display: none; } }
 
-/* ===== Mark animal modal head ===== */
 .mark-animal-head {
   display: flex; align-items: center; gap: 14px;
   padding: 14px; margin-bottom: 16px;
   background: var(--color-bg); border-radius: 12px;
 }
 
-/* ===== Fee edit modal head ===== */
 .fee-edit-head { display: flex; align-items: center; gap: 14px; padding: 14px; margin-bottom: 16px; background: var(--color-bg); border-radius: 12px; }
 .fee-edit-icon {
   width: 44px; height: 44px; border-radius: 12px;
@@ -313,7 +294,6 @@
   color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 
-/* ===== Fee management ===== */
 .fee-status-toggle { background: transparent; border: none; padding: 0; cursor: pointer; display: flex; transition: transform 140ms; }
 .fee-status-toggle:hover { transform: scale(1.05); }
 .fee-example {
@@ -323,7 +303,6 @@
   border-radius: 10px; font-size: 12.5px; font-weight: 600;
 }
 
-/* ===== Payment processing ===== */
 .pay-info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 16px; }
 @media (max-width: 560px) { .pay-info-grid { grid-template-columns: 1fr; } }
 .pay-info { padding: 12px 14px; background: var(--color-bg); border-radius: 10px; }
@@ -342,12 +321,10 @@
 .pay-calc-total span { font-size: 14px; font-weight: 700; color: #047857; }
 .pay-calc-total b { font-size: 22px; font-weight: 800; color: #047857; }
 
-/* ===== Revenue bar ===== */
 .revenue-bar { position: relative; height: 20px; background: var(--color-bg); border-radius: 999px; overflow: hidden; min-width: 100px; }
 .revenue-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #059669); border-radius: 999px; transition: width 400ms ease; }
 .revenue-bar span { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-size: 10.5px; font-weight: 700; color: var(--color-text); }
 
-/* ===== Receipt doc ===== */
 .receipt-doc { border: 2px solid var(--color-border); border-radius: 14px; padding: 26px; background: #fff; color: #1A201C; }
 .receipt-head { display: flex; align-items: center; justify-content: center; gap: 12px; text-align: center; border-bottom: 2px dashed #C2CAC4; padding-bottom: 16px; margin-bottom: 16px; }
 .receipt-head h2 { font-size: 16px; font-weight: 800; }
@@ -362,7 +339,6 @@
 .receipt-row.total b { font-size: 18px; font-weight: 800; color: #047857; }
 .receipt-foot { text-align: center; margin-top: 18px; padding-top: 14px; border-top: 2px dashed #C2CAC4; font-size: 11px; color: #5D6660; }
 
-/* ===== Owner detail modal (admin view-only) ===== */
 .owner-detail-head { display: flex; align-items: center; gap: 16px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid var(--color-border); }
 .owner-detail-avatar {
   width: 56px; height: 56px; border-radius: 14px;
@@ -379,7 +355,6 @@
 .owner-info-item b { font-size: 13px; color: var(--color-text); }
 .owner-detail-section { font-size: 13px; font-weight: 700; margin-bottom: 10px; color: var(--color-text); }
 
-/* ===== Slaughter Processing ===== */
 .proc-list { display: flex; flex-direction: column; gap: 14px; }
 .proc-card {
   border: 1px solid var(--color-border);
@@ -445,7 +420,6 @@
 }
 .proc-check-box.done { background: var(--color-success); border-color: var(--color-success); }
 
-/* ===== Responsive ===== */
 @media (max-width: 900px) {
   .profile-body { grid-template-columns: 1fr; }
   .profile-stats { grid-template-columns: repeat(3, 1fr); }

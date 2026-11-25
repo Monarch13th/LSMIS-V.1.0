@@ -54,7 +54,6 @@ export const CondemnationEvidenceModal = ({
     );
   }, [record]);
 
-  // Reset state when target record changes
   useEffect(() => {
     setActivePhotoIndex(0);
     setZoomLevel(1);
@@ -62,7 +61,6 @@ export const CondemnationEvidenceModal = ({
     setImgLoadState("loading");
   }, [record?.id, record?.tag_number]);
 
-  // Collect all photos across database tables for this record
   const tagPhotos = useMemo(() => {
     if (!record) return [];
 
@@ -78,7 +76,6 @@ export const CondemnationEvidenceModal = ({
 
     if (collected && collected.length > 0) return collected;
 
-    // Fallback: check record and record.raw directly
     const candidates = [
       targetObj?.photo_url,
       targetObj?.file_url,
@@ -136,7 +133,6 @@ export const CondemnationEvidenceModal = ({
     });
   }, []);
 
-  // Determine file kind (image, document, or none)
   const currentFileKind = useMemo(() => {
     if (!currentPhoto?.url) return "none";
     const urlLower = String(currentPhoto.url).toLowerCase();
@@ -148,10 +144,9 @@ export const CondemnationEvidenceModal = ({
     if (/\.(pdf|doc|docx|xls|xlsx|txt)(\?|$)/i.test(urlLower) || /\.(pdf|doc|docx|xls|xlsx|txt)$/i.test(nameLower)) {
       return "document";
     }
-    return "image"; // Default to image if URL exists
+    return "image";
   }, [currentPhoto]);
 
-  // Keyboard navigation for multi-photo sets
   useEffect(() => {
     if (!open || tagPhotos.length <= 1) return;
     const handleKeyDown = (e) => {
@@ -169,7 +164,6 @@ export const CondemnationEvidenceModal = ({
 
   const displayRecord = currentPhoto?.record || record.raw || record;
 
-  // Source entity lookups
   const matchedAnimal = (livestock || []).find((l) => {
     const lId = String(l.id || "").trim();
     const lTag = String(l.tag_number || "").trim().toLowerCase();
@@ -198,7 +192,6 @@ export const CondemnationEvidenceModal = ({
     (c) => cleanTag && String(c?.tag_number || "").trim().toLowerCase() === cleanTag
   );
 
-  // 1. Owner Display - prioritizes master owners directory
   const resolvedOwnerId =
     record.owner_id ||
     displayRecord.owner_id ||
@@ -223,11 +216,9 @@ export const CondemnationEvidenceModal = ({
     displayRecord.owner ||
     "Not recorded";
 
-  // 2. Tag Value
   const tagValue =
     String(record.tag_number || displayRecord.tag_number || matchedAnimal?.tag_number || "").trim();
 
-  // 3. Species
   const isRealSpecies = (val) => {
     if (!val || typeof val !== "string") return false;
     const s = val.trim().toLowerCase();
@@ -242,7 +233,6 @@ export const CondemnationEvidenceModal = ({
   ];
   const resolvedSpecies = speciesCandidates.find(isRealSpecies)?.trim() || "Not recorded";
 
-  // 4. Condemnation Scope & Parts extraction from Supabase
   const condPartsInfo = getCondemnationRecordParts({
     record: displayRecord,
     stage,
@@ -255,7 +245,6 @@ export const CondemnationEvidenceModal = ({
   const isWhole = condPartsInfo.isWhole;
   const condemnationTypeDisplay = condPartsInfo.scopeLabel;
 
-  // 6. Findings / Pathology Notes
   const cleanEvidenceNotes = (rawNotes) => {
     if (!rawNotes) return "";
     let str = String(rawNotes).trim();
@@ -276,7 +265,6 @@ export const CondemnationEvidenceModal = ({
     .filter((s) => s && s !== "—" && s !== "-");
   const findingsDisplay = findingsCandidates[0] || "Not recorded";
 
-  // 7. Condemnation Date & Time
   const rawTimestamp =
     (stage === "Post-Mortem"
       ? (matchedCut?.created_at || matchedAnimal?.post_inspected_at || matchedCondemnedRows[0]?.created_at)
@@ -291,7 +279,6 @@ export const CondemnationEvidenceModal = ({
     null;
   const condemnationDateTimeDisplay = formatManilaDateTime(rawTimestamp);
 
-  // 8. Inspector / Condemned By
   const condemnedInspector =
     resolveCondemningPersonnel({
       record: matchedCondemnedRows[0] || displayRecord,
@@ -304,7 +291,6 @@ export const CondemnationEvidenceModal = ({
     displayRecord.inspector ||
     "Veterinary Inspector";
 
-  // Image load & failure states
   const isCurrentFailed =
     currentFileKind === "image" &&
     (imgLoadState === "error" || (currentPhoto?.url && isPhotoMissing(currentPhoto.url)));
@@ -343,9 +329,7 @@ export const CondemnationEvidenceModal = ({
       >
         <div className="vet-evidence-viewer-root" style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
           <div className="vet-evidence-viewer-grid">
-            {/* -- LEFT COLUMN: PHOTO & FILE VIEWER -- */}
             <div className="vet-evidence-viewer-media-col">
-              {/* Top Bar: Counter & Zoom Controls */}
               <div
                 style={{
                   display: "flex",
@@ -388,7 +372,6 @@ export const CondemnationEvidenceModal = ({
                   )}
                 </div>
 
-                {/* Controls (Zoom & Open) */}
                 {currentFileKind === "image" && currentPhoto?.url && !isCurrentFailed && (
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <button
@@ -496,7 +479,6 @@ export const CondemnationEvidenceModal = ({
                 )}
               </div>
 
-              {/* Primary Stage */}
               <div
                 style={{
                   position: "relative",
@@ -511,7 +493,6 @@ export const CondemnationEvidenceModal = ({
                   padding: 10,
                 }}
               >
-                {/* State 1: No evidence file */}
                 {currentFileKind === "none" ? (
                   <div
                     data-testid="evidence-empty-state"
@@ -545,7 +526,6 @@ export const CondemnationEvidenceModal = ({
                     </div>
                   </div>
                 ) : currentFileKind === "document" ? (
-                  /* State 2: Document */
                   <div
                     data-testid="evidence-document-state"
                     style={{
@@ -603,7 +583,6 @@ export const CondemnationEvidenceModal = ({
                     </div>
                   </div>
                 ) : isCurrentFailed ? (
-                  /* State 3: Load failed */
                   <div
                     data-testid="evidence-error-state"
                     style={{
@@ -655,7 +634,6 @@ export const CondemnationEvidenceModal = ({
                     </div>
                   </div>
                 ) : (
-                  /* State 4 & 5: Loading & Image Display */
                   <>
                     {isCurrentLoading && (
                       <div
@@ -705,7 +683,6 @@ export const CondemnationEvidenceModal = ({
                   </>
                 )}
 
-                {/* Left/Right Navigation Arrows */}
                 {tagPhotos.length > 1 && (
                   <>
                     <button
@@ -768,7 +745,6 @@ export const CondemnationEvidenceModal = ({
                 )}
               </div>
 
-              {/* Thumbnails strip for multi-photo */}
               {tagPhotos.length > 1 && (
                 <div
                   style={{
@@ -834,7 +810,6 @@ export const CondemnationEvidenceModal = ({
               )}
             </div>
 
-            {/* -- RIGHT COLUMN: TWO-LINE LABELED DETAILS LIST -- */}
             <div className="vet-evidence-viewer-details-col">
               <div
                 className="vet-evidence-viewer-details-header"
@@ -869,13 +844,11 @@ export const CondemnationEvidenceModal = ({
               </div>
 
               <dl className="vet-evidence-viewer-dl">
-                {/* 1. Owner */}
                 <div className="vet-evidence-viewer-row">
                   <dt>Owner</dt>
                   <dd>{ownerDisplay}</dd>
                 </div>
 
-                {/* 2. Tag Number */}
                 <div className="vet-evidence-viewer-row">
                   <dt>{stage === "Post-Mortem" ? "Carcass Tag #" : "Livestock Tag #"}</dt>
                   <dd>
@@ -883,13 +856,11 @@ export const CondemnationEvidenceModal = ({
                   </dd>
                 </div>
 
-                {/* 3. Species */}
                 <div className="vet-evidence-viewer-row">
                   <dt>Species</dt>
                   <dd>{resolvedSpecies}</dd>
                 </div>
 
-                {/* 4. Condemnation Classification */}
                 <div className="vet-evidence-viewer-row">
                   <dt>Condemnation Classification</dt>
                   <dd>
@@ -916,7 +887,6 @@ export const CondemnationEvidenceModal = ({
                   </dd>
                 </div>
 
-                {/* 5. Condemned Parts & Quantities */}
                 <div className="vet-evidence-viewer-row">
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                     <dt>Condemned Parts & Quantities</dt>
@@ -1013,19 +983,16 @@ export const CondemnationEvidenceModal = ({
                   </dd>
                 </div>
 
-                {/* 6. Findings / Reasons */}
                 <div className="vet-evidence-viewer-row">
                   <dt>Inspection Findings & Pathology Notes</dt>
                   <dd style={{ whiteSpace: "pre-wrap", lineHeight: 1.45, fontSize: 12.5 }}>{findingsDisplay}</dd>
                 </div>
 
-                {/* 7. Condemnation Date & Time */}
                 <div className="vet-evidence-viewer-row">
                   <dt>Condemnation Date & Time</dt>
                   <dd>{condemnationDateTimeDisplay}</dd>
                 </div>
 
-                {/* 8. Condemned By */}
                 <div className="vet-evidence-viewer-row" style={{ borderBottom: "none" }}>
                   <dt>Condemned By (Veterinarian / Inspector)</dt>
                   <dd style={{ fontWeight: 600 }}>{condemnedInspector}</dd>
@@ -1034,7 +1001,6 @@ export const CondemnationEvidenceModal = ({
             </div>
           </div>
 
-          {/* Modal Actions Footer */}
           <div
             className="form-actions"
             style={{
@@ -1054,7 +1020,6 @@ export const CondemnationEvidenceModal = ({
           </div>
         </div>
 
-        {/* Fullscreen Enlarge Lightbox */}
         {isEnlarged && currentPhoto?.url && !isCurrentFailed && (
           <div
             role="dialog"

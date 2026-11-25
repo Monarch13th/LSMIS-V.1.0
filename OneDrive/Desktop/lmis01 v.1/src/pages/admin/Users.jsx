@@ -48,7 +48,6 @@ export const Users = () => {
         adminService.listUsers(),
         adminService.listAuditLogs(100)
       ]);
-      // Strict classification: operational personnel ONLY (Veterinarian and Staff; never Admin or Owner accounts)
       const systemPersonnel = (users || []).filter((u) => {
         if (!u) return false;
         const r = (u.role || "").toLowerCase().trim();
@@ -82,7 +81,6 @@ export const Users = () => {
     window.addEventListener("lmis_profile_updated", handleSync);
     window.addEventListener("storage", handleSync);
 
-    // Live Supabase subscription for real-time synchronization across devices & tabs
     const channel = supabase
       .channel("users-management-realtime")
       .on(
@@ -206,7 +204,6 @@ export const Users = () => {
     return { online: isOnline, lastActive: relativeTime, minutesSinceActive };
   };
 
-  // Counts (Veterinarian and Staff only)
   const totalPersonnel = data.length;
   const vetCount = data.filter((u) => {
     const r = (u.role || "").toLowerCase().trim();
@@ -270,7 +267,6 @@ export const Users = () => {
         const dateB = new Date(b.created_at || 0).getTime();
         return dateA - dateB;
       }
-      // default: date_desc
       const dateA = new Date(a.created_at || 0).getTime();
       const dateB = new Date(b.created_at || 0).getTime();
       return dateB - dateA;
@@ -490,7 +486,6 @@ export const Users = () => {
           minHeight: 0,
         }}
       >
-        {/* Single-line Header Toolbar matching Reference Standard */}
         <div
           className="records-fixed-header"
           style={{
@@ -506,7 +501,6 @@ export const Users = () => {
             minHeight: 54,
           }}
         >
-          {/* Left: Status / Role Segmented Nav Tabs */}
           <div className="adm-seg-tabs">
             {[
               { id: "all", label: "All Personnel", count: totalPersonnel, icon: <Icon.Users size={14} /> },
@@ -531,9 +525,7 @@ export const Users = () => {
             })}
           </div>
 
-          {/* Right Toolbar Controls */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-            {/* Search Input */}
             <div style={{ position: "relative", width: 240 }}>
               <Icon.Search
                 size={13}
@@ -587,7 +579,6 @@ export const Users = () => {
               )}
             </div>
 
-            {/* Add Personnel Button */}
             <button
               type="button"
               className="adm-toolbar-primary-btn"
@@ -659,7 +650,6 @@ export const Users = () => {
           </div>
         )}
 
-        {/* Responsive Table Container */}
         <div className="records-scrollable-content table-wrap" style={{ width: "100%", overflowX: "auto", overflowY: "auto", scrollbarWidth: "thin", flex: 1, minHeight: 0 }}>
           <table
             className="table"
@@ -724,7 +714,6 @@ export const Users = () => {
                     className="personnel-table-row"
                     title="Click to view or edit personnel profile"
                   >
-                    {/* Column 1: Personnel Details */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", overflow: "hidden" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
                         {u.avatar_url ? (
@@ -802,7 +791,6 @@ export const Users = () => {
                       </div>
                     </td>
 
-                    {/* Column 2: Role & Contact */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", overflow: "hidden" }}>
                       <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
                         <div>{getRoleBadge(u.role)}</div>
@@ -815,7 +803,6 @@ export const Users = () => {
                       </div>
                     </td>
 
-                    {/* Column 3: Date Registered */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", whiteSpace: "nowrap" }}>
                       <div style={{ fontSize: "0.78rem", color: "var(--color-text-muted)", fontWeight: 600, display: "flex", alignItems: "center", gap: 6 }}>
                         <Icon.Calendar size={13} style={{ color: "var(--color-text-muted)", flexShrink: 0 }} />
@@ -823,10 +810,8 @@ export const Users = () => {
                       </div>
                     </td>
 
-                    {/* Column 4: Status & Presence */}
                     <td style={{ padding: "12px 14px", verticalAlign: "middle", whiteSpace: "nowrap" }}>
                       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                        {/* Status Checkmark */}
                         {isUserActive ? (
                           <span
                             style={{
@@ -859,7 +844,6 @@ export const Users = () => {
                           </span>
                         )}
 
-                        {/* Live Presence */}
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: "0.72rem" }}>
                           <span
                             style={{
@@ -878,7 +862,6 @@ export const Users = () => {
                       </div>
                     </td>
 
-                    {/* Column 5: Actions */}
                     <td className="table-action-td">
                       <div onClick={(e) => e.stopPropagation()} className="table-action-group">
                         <button
@@ -931,7 +914,6 @@ export const Users = () => {
         )}
       </div>
 
-      {/* Add / Edit Personnel Modal */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -969,7 +951,6 @@ export const Users = () => {
         <UserForm initial={editing} onSubmit={save} onCancel={() => setModalOpen(false)} />
       </Modal>
 
-      {/* Confirm Delete Dialog */}
       <ConfirmDialog
         open={!!confirmDel}
         onConfirm={del}

@@ -1,5 +1,3 @@
-// Verifies (1) standalone launch shows no Landing content and (2) a new deployment is detected,
-// activated, and the page reloads exactly once, with old LSMIS caches removed.
 import { spawn, execSync } from "child_process";
 import fs from "fs";
 import os from "os";
@@ -38,7 +36,6 @@ console.log("STANDALONE launch:", JSON.stringify({
   cachesBefore: await ev("caches.keys()"),
 }));
 
-// Mark the page so we can tell whether it reloaded
 await ev("window.__lsmisMarker = 'original-page'; true");
 console.log("Deploying new build...");
 execSync("npx vite build", { stdio: "ignore" });

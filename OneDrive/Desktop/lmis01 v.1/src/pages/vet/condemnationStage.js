@@ -3,8 +3,6 @@ const norm = (v) => String(v == null ? "" : v).trim().toLowerCase();
 const ANTE_PARTS = ["live animal"];
 const WHOLE_PARTS = ["whole carcass", "entire carcass"];
 
-// Derive which inspection stage a condemnation record / evidence item belongs to.
-// Priority: explicit stage fields > part name > descriptive text > default Post-Mortem.
 export const getCondemnationStage = (record) => {
   if (!record) return null;
 
@@ -27,9 +25,6 @@ export const getCondemnationStage = (record) => {
 
 export const matchesStage = (record, stage) => getCondemnationStage(record) === stage;
 
-// Livestock status that means the live animal was condemned/rejected AT INTAKE or
-// during ANTE-MORTEM inspection. Post-mortem outcomes are explicitly excluded so
-// partially / wholly condemned carcasses never surface in Ante-Mortem views.
 export const isAnteCondemnedStatus = (status) => {
   const s = norm(status);
   if (!s) return false;
@@ -51,7 +46,6 @@ export const isPostCondemnedStatus = (status) => {
   return s.includes("post-mortem") || s.includes("partially condemned") || s.includes("condemn") || s.includes("reject");
 };
 
-// Ante-Mortem inspection decision that condemns/rejects the live animal.
 export const isAnteCondemnedDecision = (decision) => {
   const d = norm(decision);
   if (!d) return false;
@@ -74,7 +68,6 @@ export const isPostPartialInspection = (inspection) => {
   return false;
 };
 
-// Single source of truth for how a Post-Mortem inspection outcome is displayed.
 export const getPostOutcome = (inspection) => {
   if (!inspection) return { label: "-", status: "Pending", scope: "partial" };
   const d = norm(inspection.decision);
@@ -90,8 +83,6 @@ export const getPostOutcome = (inspection) => {
   return { label: inspection.decision, status: inspection.decision, scope: "whole" };
 };
 
-// Evidence rows only belong to a stage when they were tagged with it. Untyped
-// (legacy) evidence is attributed through the tag's condemnation list instead.
 export const evidenceMatchesStage = (ev, stage, tagInStageList) => {
   if (!ev) return false;
   const t = norm(ev.inspection_type);

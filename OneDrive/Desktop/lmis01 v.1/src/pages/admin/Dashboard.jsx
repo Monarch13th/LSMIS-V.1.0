@@ -34,7 +34,6 @@ export const AdminDashboard = () => {
   const [metrics, setMetrics] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Authoritative data fetcher with in-memory non-blocking cache
   const loadDashboard = useCallback(async (force = false) => {
     try {
       const data = await fetchAdminDashboardData(force);
@@ -157,9 +156,7 @@ export const AdminDashboard = () => {
 
   return (
     <div className="ag-dash">
-      {/* Row 1: Hero Overview (Dark) + Operations Throughput (Glass) + Personnel Roles (White) */}
       <div className="ag-row ag-row-top">
-        {/* Top-Left: Overall Information Card */}
         <section className="ag-card ag-dark ag-overview">
           <header className="ag-card-head">
             <h2>Overall information</h2>
@@ -252,7 +249,6 @@ export const AdminDashboard = () => {
           </div>
         </section>
 
-        {/* Top-Center: Operations Process Card */}
         <section className="ag-card ag-glass">
           <header className="ag-card-head">
             <h2>Operations throughput</h2>
@@ -276,7 +272,6 @@ export const AdminDashboard = () => {
           />
         </section>
 
-        {/* Top-Right: Personnel & Role Distribution Card */}
         <section className="ag-card ag-white ag-progress-card">
           <div>
             <header className="ag-card-head">
@@ -335,7 +330,6 @@ export const AdminDashboard = () => {
         </section>
       </div>
 
-      {/* Row 2: Pending Owner Approvals Checklist + Recent Permits Cards + All Permits Slot */}
       <div className="ag-row ag-row-mid">
         <section className="ag-card ag-white ag-goals">
           <header className="ag-card-head">
@@ -467,7 +461,6 @@ export const AdminDashboard = () => {
               ))
             )}
 
-            {/* Dashed 3rd column slot matching "+ Add a task" card in reference, wired to Permit Records */}
             <button
               type="button"
               className="ag-dashed-slot"
@@ -481,7 +474,6 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* Row 3: Latest Livestock Dark Cards */}
       <div className="ag-section-head">
         <h2 className="ag-section">Latest Livestock Records</h2>
         <button type="button" className="ag-link" onClick={() => navigate("/admin/livestock")}>

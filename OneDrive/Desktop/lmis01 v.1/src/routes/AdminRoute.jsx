@@ -11,7 +11,6 @@ export const AdminRoute = ({ children }) => {
 
   const activeRole = normalizeRole(role || session?.role);
 
-  // Check fallback session in sessionStorage if auth state is briefly synchronizing
   const getFallbackRole = () => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEYS.SESSION);
@@ -43,7 +42,6 @@ export const AdminRoute = ({ children }) => {
     }
   }, [loading, isInitialized, effectiveRole, userName, location.pathname]);
 
-  // Wait until auth initialization and session resolution have fully completed
   if (mfaRequired) return <Navigate to="/login?mfa=required" state={{ from: location }} replace />;
   if (loading || !isInitialized) {
     return (

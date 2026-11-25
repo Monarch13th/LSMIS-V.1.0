@@ -42,7 +42,7 @@ export const ConfirmAdminPasswordModal = ({
     setError(null);
 
     const result = await verifyAdminPassword(password, actionContext);
-    setPassword(""); // Clear immediately after attempt
+    setPassword("");
 
     if (result.success) {
       try {
@@ -86,7 +86,6 @@ export const ConfirmAdminPasswordModal = ({
           position: "relative"
         }}
       >
-        {/* Close Icon */}
         <button
           type="button"
           onClick={onClose}
@@ -107,7 +106,6 @@ export const ConfirmAdminPasswordModal = ({
           <Icon.X size={18} />
         </button>
 
-        {/* Modal Icon & Header */}
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start", marginBottom: 20 }}>
           <div
             style={{
@@ -146,7 +144,6 @@ export const ConfirmAdminPasswordModal = ({
           </div>
         </div>
 
-        {/* Inline Error Callout */}
         {error && (
           <div
             style={{
@@ -169,7 +166,6 @@ export const ConfirmAdminPasswordModal = ({
           </div>
         )}
 
-        {/* Password Form */}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: 22 }}>
             <label style={{ display: "block", fontSize: 12, fontWeight: 700, color: "var(--color-text-muted)", marginBottom: 8, letterSpacing: "0.03em", textTransform: "uppercase" }}>
@@ -216,7 +212,6 @@ export const ConfirmAdminPasswordModal = ({
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
             <Button
               type="button"

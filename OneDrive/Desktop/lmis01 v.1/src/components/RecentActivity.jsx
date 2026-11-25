@@ -140,7 +140,6 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                     key={r.id || i}
                     style={{ borderBottom: "1px solid var(--color-border)" }}
                   >
-                    {/* 1. User */}
                     <td style={{ padding: "11px 14px", whiteSpace: "nowrap" }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <div
@@ -166,7 +165,6 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                       </div>
                     </td>
 
-                    {/* 2. Action */}
                     <td style={{ padding: "11px 14px", maxWidth: 380 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                         <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--color-text)", lineHeight: 1.35 }}>
@@ -178,7 +176,6 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                       </div>
                     </td>
 
-                    {/* 3. Role */}
                     <td style={{ padding: "11px 14px", whiteSpace: "nowrap" }}>
                       <span
                         style={{
@@ -197,7 +194,6 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                       </span>
                     </td>
 
-                    {/* 4. Module */}
                     <td style={{ padding: "11px 14px", whiteSpace: "nowrap" }}>
                       <span
                         style={{
@@ -216,7 +212,6 @@ export const RecentActivity = ({ title = "Live System Activity", limit = 6 }) =>
                       </span>
                     </td>
 
-                    {/* 5. Date & Time */}
                     <td style={{ padding: "11px 14px", whiteSpace: "nowrap" }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: "var(--color-text)" }}>
                         {(() => {

@@ -1,4 +1,3 @@
-// Reusable stat card with optional trend
 import { Icon } from "../icons";
 
 const TrendUp = () => (

@@ -1,5 +1,3 @@
-// All mock datasets permanently eliminated for Owner Portal.
-// Connected exclusively to live Supabase database tables.
 import { TABLES } from "./constants.js";
 
 export const DEFAULT_OWNER_PROFILE = null;
@@ -13,9 +11,6 @@ export const DEFAULT_OWNER_PAYMENTS = [];
 export const DEFAULT_OWNER_DISPATCH = [];
 export const DEFAULT_OWNER_NOTIFICATIONS = [];
 
-/**
- * Purges any legacy mock data from localStorage
- */
 export const ensureOwnerMockSeeded = () => {
   if (typeof window === "undefined" || !window.localStorage) return;
   try {

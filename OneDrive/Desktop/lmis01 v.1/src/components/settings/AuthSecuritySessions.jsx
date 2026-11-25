@@ -8,24 +8,21 @@ import { supabase } from "../../services/supabaseClient";
 export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut }) => {
   const { showToast } = useToast();
 
-  // 2FA State
   const [loading2FA, setLoading2FA] = useState(true);
   const [is2FAEnabled, setIs2FAEnabled] = useState(false);
   const [verifiedFactor, setVerifiedFactor] = useState(null);
   const [assuranceLevel, setAssuranceLevel] = useState(null);
   const [lastVerifiedTime, setLastVerifiedTime] = useState(null);
 
-  // Enrollment Modal State
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
-  const [enrollData, setEnrollData] = useState(null); // { factorId, qrCode, secret, uri }
+  const [enrollData, setEnrollData] = useState(null);
   const [enrollCode, setEnrollCode] = useState("");
   const [enrollError, setEnrollError] = useState("");
   const [verifyingEnroll, setVerifyingEnroll] = useState(false);
   const [copiedSecret, setCopiedSecret] = useState(false);
   const enrollInputRef = useRef(null);
 
-  // Disable 2FA Modal State
   const [disableModalOpen, setDisableModalOpen] = useState(false);
   const [disablePassword, setDisablePassword] = useState("");
   const [disableOtpCode, setDisableOtpCode] = useState("");
@@ -33,13 +30,11 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
   const [disabling, setDisabling] = useState(false);
   const [disableError, setDisableError] = useState("");
 
-  // Recovery Backup Codes Modal State
   const [recoveryCodes, setRecoveryCodes] = useState([]);
   const [recoveryModalOpen, setRecoveryModalOpen] = useState(false);
   const [savedCodesChecked, setSavedCodesChecked] = useState(false);
   const [copiedRecoveryCodes, setCopiedRecoveryCodes] = useState(false);
 
-  // Load MFA Status from Supabase Auth
   const fetchMfaStatus = useCallback(async () => {
     setLoading2FA(true);
     try {
@@ -73,7 +68,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     fetchMfaStatus();
   }, [fetchMfaStatus]);
 
-  // Handle Starting 2FA Enrollment
   const handleOpenEnrollment = async () => {
     setEnrolling(true);
     setEnrollError("");
@@ -97,7 +91,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     }
   };
 
-  // Handle Verifying Enrollment OTP Code
   const handleVerifyEnrollment = async (e) => {
     if (e) e.preventDefault();
     const cleanCode = enrollCode.trim();
@@ -123,13 +116,11 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         return;
       }
 
-      // Success: 2FA is officially verified in Supabase!
       const cleanEmail = (userEmail || "").trim().toLowerCase();
       if (cleanEmail) {
         localStorage.setItem("lmis_2fa_enabled_" + cleanEmail, "true");
       }
 
-      // Generate 6 single-use recovery backup codes
       let generatedCodes = [];
       try {
         const { plainCodes, hashes } = await mfaService.generateRecoveryCodes(6);
@@ -169,7 +160,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     }
   };
 
-  // Copy Secret Key
   const handleCopySecret = () => {
     if (!enrollData?.secret) return;
     navigator.clipboard?.writeText(enrollData.secret);
@@ -177,7 +167,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     setTimeout(() => setCopiedSecret(false), 2500);
   };
 
-  // Copy Recovery Codes
   const handleCopyRecoveryCodes = () => {
     if (!recoveryCodes.length) return;
     const text = [
@@ -201,7 +190,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     setTimeout(() => setCopiedRecoveryCodes(false), 2500);
   };
 
-  // Download Recovery Codes File
   const handleDownloadRecoveryCodes = () => {
     if (!recoveryCodes.length) return;
     const text = [
@@ -231,7 +219,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
     showToast("Recovery codes text file downloaded.", "success");
   };
 
-  // Handle Disabling 2FA
   const handleConfirmDisable = async (e) => {
     if (e) e.preventDefault();
     if (!disablePassword && !disableOtpCode) {
@@ -284,7 +271,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
   return (
     <Card className="mfa-security-card" style={{ padding: "30px 32px", borderRadius: 16 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-        {/* Section Header */}
         <div style={{ borderBottom: "1px solid var(--color-border, #E2E6E3)", paddingBottom: 16 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
             <div>
@@ -320,7 +306,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
           </div>
         </div>
 
-        {/* 1. TWO-FACTOR AUTHENTICATION ROW */}
         <div
           className="mfa-security-row"
           style={{
@@ -441,7 +426,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
           </div>
         </div>
 
-        {/* 2. SINGLE SESSION CONCURRENCY PROTECTION ROW */}
         <div
           className="mfa-security-row"
           style={{
@@ -504,9 +488,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         </div>
       </div>
 
-      {/* ============================================================ */}
-      {/* 2FA ENROLLMENT MODAL WITH QR CODE & OTP VERIFICATION          */}
-      {/* ============================================================ */}
       <Modal
         open={enrollModalOpen}
         onClose={() => !verifyingEnroll && setEnrollModalOpen(false)}
@@ -529,7 +510,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-          {/* Instructions */}
           <div
             style={{
               padding: "10px 14px",
@@ -549,7 +529,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             </div>
           </div>
 
-          {/* QR Code and Secret Key Container */}
           {enrollData?.qrCode && (
             <div
               style={{
@@ -591,7 +570,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
                 />
               </div>
 
-              {/* Secret Key Alternative */}
               {enrollData.secret && (
                 <div style={{ width: "100%", textAlign: "center" }}>
                   <div className="mfa-desktop-text" style={{ fontSize: 11.5, color: "#5D6660", fontWeight: 600, marginBottom: 4 }}>
@@ -649,7 +627,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             </div>
           )}
 
-          {/* Verification Step */}
           <form onSubmit={handleVerifyEnrollment} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div>
               <label
@@ -741,9 +718,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         </div>
       </Modal>
 
-      {/* ============================================================ */}
-      {/* DISABLE 2FA CONFIRMATION MODAL WITH RE-AUTHENTICATION         */}
-      {/* ============================================================ */}
       <Modal
         open={disableModalOpen}
         onClose={() => !disabling && setDisableModalOpen(false)}
@@ -785,7 +759,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             </div>
           </div>
 
-          {/* 6-Digit Authenticator OTP Code */}
           <div>
             <label
               htmlFor="mfa-disable-otp"
@@ -832,7 +805,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
             />
           </div>
 
-          {/* Optional Password field for additional verification */}
           <div>
             <label
               htmlFor="mfa-disable-password"
@@ -935,9 +907,6 @@ export const AuthSecuritySessions = ({ userEmail, userRole, userName, onSignOut 
         </form>
       </Modal>
 
-      {/* ============================================================ */}
-      {/* EMERGENCY RECOVERY BACKUP CODES MODAL (SHOWN ONCE)           */}
-      {/* ============================================================ */}
       <Modal
         open={recoveryModalOpen}
         onClose={() => savedCodesChecked && setRecoveryModalOpen(false)}

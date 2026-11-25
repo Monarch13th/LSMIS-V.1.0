@@ -9,22 +9,13 @@ import { isValidComEmail, EMAIL_COM_ERROR } from "../utils/emailValidation.js";
 import { authSecurityService } from "./authSecurityService.js";
 import { adminService } from "./adminService.js";
 
-// Storage keys
 const LOCKOUT_PREFIX = "lmis_lockout_";
 
-// Fire scoped database change notification to update mounted hooks
 const notifyChange = (table = TABLES.OWNERS, action = "update", record = null) => {
   notifyDbChange(table, action, record);
 };
 
 export const ownerAuthService = {
-  /**
-   * Resolve the OAuth redirect URL dynamically for:
-   * - Desktop development (http://localhost:5173/login)
-   * - Mobile LAN development (http://192.168.1.10:5173/login)
-   * - Production HTTPS deployment (https://<domain>/login)
-   * Never hardcodes localhost for production or overrides a mobile LAN / production origin with localhost.
-   */
   getGoogleRedirectUrl(intent = "login") {
     const cleanIntent = intent === "register" ? "register" : "login";
     const isLocalhostUrl = (urlStr) =>
@@ -57,8 +48,6 @@ export const ownerAuthService = {
     let resolvedBase = "";
 
     if (isCapacitorNative) {
-      // Inside the installed Capacitor Android APK:
-      // Use the configured production HTTPS URL if set. In development, allow localhost:5173 fallback.
       if (envProdUrl && !isLocalhostUrl(envProdUrl)) {
         resolvedBase = envProdUrl;
       } else if (browserOrigin && !isLocalhostUrl(browserOrigin)) {
@@ -69,7 +58,6 @@ export const ownerAuthService = {
         resolvedBase = "https://lsmis.vercel.app";
       }
     } else if (import.meta.env?.PROD) {
-      // Production: prefer non-localhost deployed HTTPS domain from browser origin or production env
       if (envProdUrl && !isLocalhostUrl(envProdUrl)) {
         resolvedBase = envProdUrl;
       } else if (browserOrigin && !isLocalhostUrl(browserOrigin)) {
@@ -78,17 +66,13 @@ export const ownerAuthService = {
         resolvedBase = envProdUrl || browserOrigin;
       }
     } else {
-      // Development:
-      // 1. If the browser is accessing via LAN IP (e.g. http://192.168.1.10:5173) or tunnel, always use window.location.origin
       if (browserOrigin && !isBrowserOnLocalhost) {
         resolvedBase = browserOrigin;
       } else if (isMobileBrowser && envLanUrl && !isLocalhostUrl(envLanUrl)) {
-        // 2. If on a mobile browser that somehow hit localhost, route back to the LAN IP
         resolvedBase = envLanUrl;
       } else if (envProdUrl && !isLocalhostUrl(envProdUrl) && !browserOrigin) {
         resolvedBase = envProdUrl;
       } else {
-        // 3. Normal desktop development on localhost
         resolvedBase = browserOrigin || envLanUrl || envProdUrl;
       }
     }
@@ -98,9 +82,6 @@ export const ownerAuthService = {
     return `${loginPath}?oauth_intent=${encodeURIComponent(cleanIntent)}`;
   },
 
-  /**
-   * Extract Google account email, full name, profile picture, and Google user ID from a Supabase user object.
-   */
   extractGoogleUserData(supabaseUser) {
     if (!supabaseUser) return null;
     const identities = Array.isArray(supabaseUser.identities) ? supabaseUser.identities : [];
@@ -158,9 +139,6 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * Remove transient OAuth in-flight markers without modifying existing user sessions.
-   */
   cleanGoogleOAuthState() {
     if (typeof window === "undefined") return;
     try {
@@ -169,9 +147,6 @@ export const ownerAuthService = {
     } catch (_) {}
   },
 
-  /**
-   * Set transient OAuth in-flight markers in sessionStorage for the current tab.
-   */
   setGoogleOAuthInFlight(intent = "login") {
     if (typeof window === "undefined") return;
     const cleanIntent = intent === "register" ? "register" : "login";
@@ -182,9 +157,6 @@ export const ownerAuthService = {
     } catch (_) {}
   },
 
-  /**
-   * Retrieve active OAuth intent from URL query or sessionStorage (with 5-minute TTL).
-   */
   getGoogleOAuthIntent() {
     if (typeof window === "undefined") return null;
     try {
@@ -207,10 +179,6 @@ export const ownerAuthService = {
     return null;
   },
 
-  /**
-   * Initiate Supabase Google OAuth flow exclusively for Owner Login or Owner Registration.
-   * Supports popup mode (skipBrowserRedirect: true) with automatic fallback to full redirect.
-   */
   async signInWithGoogle({ intent = "login", mode = "popup" } = {}) {
     const cleanIntent = intent === "register" ? "register" : "login";
     this.setGoogleOAuthInFlight(cleanIntent);
@@ -247,33 +215,16 @@ export const ownerAuthService = {
     }
   },
 
-  /**
-   * Validate a Google OAuth callback for Owner Create Account:
-   * - Retrieves Google email, full name, and profile picture
-   * - Prevents duplicate accounts using the same email address
-   */
   async prepareGoogleRegistration() {
     try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
     throw new Error("Online registration using Google OAuth is disabled. Please register using the standard owner registration form.");
   },
 
-  /**
-   * Register a new Owner directly through Google OAuth (DISABLED):
-   * Owners must create accounts using the standard owner registration form with email and password.
-   */
   async registerGoogleOwner() {
     try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
     throw new Error("Online registration using Google OAuth is disabled. Please register using the standard owner registration form.");
   },
 
-  /**
-   * Verify Google OAuth login for any registered account (Owner or Personnel - Admin, Vet, Staff):
-   * - Retrieves verified Google email and Google user identity
-   * - Matches against existing Supabase database records (public.users & public.owners)
-   * - Prevents unauthorized or unapproved accounts from accessing dashboards
-   * - Associates Google user ID with existing account without creating duplicate profiles
-   * - Returns verified role ("admin" | "vet" | "staff" | "owner") and user credentials
-   */
   async verifyAndConnectGoogleLogin(explicitUser = null) {
     let user = explicitUser;
     if (!user) {
@@ -298,7 +249,6 @@ export const ownerAuthService = {
 
     const cleanEmail = googleData.email;
 
-    // 1. Look up user record in public.users
     let dbUserRow = null;
     try {
       const { data: uRow } = await supabase
@@ -319,7 +269,6 @@ export const ownerAuthService = {
       rRaw === "staff" ||
       rRaw === "operator";
 
-    // Clean up auto-inserted trigger stub if user is not a real registered account
     const isTriggerStub =
       dbUserRow &&
       dbUserRow.id === googleData.authUserId &&
@@ -336,7 +285,6 @@ export const ownerAuthService = {
       dbUserRow = null;
     }
 
-    // 2. Look up owner record in public.owners by email or linked owner_id
     let ownerAcct = null;
     try {
       const { data: dbOwner } = await supabase
@@ -365,7 +313,6 @@ export const ownerAuthService = {
       } catch (_) {}
     }
 
-    // 3. If neither a personnel account nor an owner account is found in Supabase:
     if (!isPersonnel && !ownerAcct) {
       try { await supabase.auth.signOut({ scope: "local" }); } catch (_) {}
       const notRegErr = new Error("This Google account is not registered in the system. Please use your registered account.");
@@ -374,14 +321,12 @@ export const ownerAuthService = {
       throw notRegErr;
     }
 
-    // 4. Handle Personnel (Admin, Vet, Staff) Accounts
     if (isPersonnel) {
       let normalizedRole = "staff";
       if (rRaw === "administrator" || rRaw.includes("admin")) normalizedRole = "admin";
       else if (rRaw === "veterinarian" || rRaw.includes("vet") || rRaw.includes("doctor")) normalizedRole = "vet";
       else if (rRaw === "staff" || rRaw.includes("staff") || rRaw.includes("operator")) normalizedRole = "staff";
 
-      // Validate Admin account status
       if (normalizedRole === "admin") {
         const stLower = String(dbUserRow.status || "").toLowerCase().trim();
         if (stLower === "inactive" || stLower === "deactivated" || stLower.includes("suspend") || stLower.includes("terminated")) {
@@ -391,7 +336,6 @@ export const ownerAuthService = {
           throw deactErr;
         }
       } else {
-        // Validate Vet or Staff account status
         try {
           const termCheck = await adminService.checkUserTerminationStatus(cleanEmail);
           if (termCheck.isTerminated) {
@@ -414,7 +358,6 @@ export const ownerAuthService = {
         }
       }
 
-      // Personnel account is valid and active! Associate Google ID in public.users without creating duplicate profiles
       const connectedAt = new Date().toISOString();
       try {
         const userPatch = {
@@ -429,7 +372,6 @@ export const ownerAuthService = {
         console.warn("Personnel Google connection update notice:", e);
       }
 
-      // Sync metadata in Supabase Auth (auth.users)
       try {
         await supabase.auth.updateUser({
           data: {
@@ -459,7 +401,6 @@ export const ownerAuthService = {
       };
     }
 
-    // 5. Handle Owner Accounts
     const stLower = String(ownerAcct.status || "").toLowerCase().trim();
     const isPending =
       stLower.includes("pending") ||
@@ -504,7 +445,6 @@ export const ownerAuthService = {
       throw deactErr;
     }
 
-    // Owner is Approved! Store and associate Google user ID with existing owner record
     const connectedAt = new Date().toISOString();
     const currentHistory = Array.isArray(ownerAcct.history) ? [...ownerAcct.history] : [];
     const alreadyConnectedInHistory = currentHistory.some(
@@ -536,7 +476,6 @@ export const ownerAuthService = {
       }
     }
 
-    // Update existing public.owners record (never create duplicate)
     try {
       const fullOwnerPatch = {
         email_verified: true,
@@ -565,7 +504,6 @@ export const ownerAuthService = {
       console.warn("Owner Google connection update notice:", e);
     }
 
-    // Associate Google user ID with existing owner in public.users
     try {
       const userPayload = {
         full_name: ownerAcct.name || googleData.name || cleanEmail.split("@")[0],
@@ -591,7 +529,6 @@ export const ownerAuthService = {
       console.warn("Users Google connection sync notice:", e);
     }
 
-    // Sync metadata in Supabase Auth (auth.users)
     try {
       await supabase.auth.updateUser({
         data: {
@@ -629,9 +566,6 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * Backward-compatible alias for verifyAndConnectGoogleLogin
-   */
   async verifyAndConnectGoogleOwnerLogin(explicitUser = null) {
     const res = await this.verifyAndConnectGoogleLogin(explicitUser);
     return {
@@ -647,16 +581,11 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * 1. Check for duplicate account details before registration
-   * Checks both email, contact number, and username across Supabase
-   */
   async checkDuplicate({ email, contact, username, excludeUserId = null }) {
     const cleanEmail = (email || "").trim().toLowerCase();
     const cleanContact = (contact || "").replace(/\D/g, "");
     const cleanUsername = (username || "").trim().toLowerCase();
 
-    // 1. Check Supabase USERS table (staff, vet, admin personnel & existing users)
     try {
       if (cleanEmail) {
         let q = supabase
@@ -703,7 +632,6 @@ export const ownerAuthService = {
       }
     } catch (e) {}
 
-    // 2. Check Supabase OWNERS table (livestock owners)
     try {
       if (cleanEmail) {
         const { data: byEmail } = await supabase
@@ -765,10 +693,6 @@ export const ownerAuthService = {
     return { duplicate: false, exists: false };
   },
 
-  /**
-   * 2. Register Owner Account
-   * Supports both standard Email/Password registration and Google OAuth-connected registration.
-   */
   async registerOwner(payload = {}) {
     const name = (payload.name || payload.full_name || "").trim();
     const contact = (payload.contact || payload.contact_number || "").trim();
@@ -779,7 +703,6 @@ export const ownerAuthService = {
     const agreementAccepted = !!(payload.agreementAccepted ?? payload.agreement_accepted);
     const googleProfile = payload.googleProfile || null;
 
-    // A. Validation
     if (!name) throw new Error("Full Name is required.");
     if (!contact) throw new Error("Contact Number is required.");
     if (!address) throw new Error("Address is required.");
@@ -794,19 +717,16 @@ export const ownerAuthService = {
       throw new Error("You must accept the User Agreement and Privacy Policy to register.");
     }
 
-    // Contact number validation: 11 digits starting with 09 or 08
     const digits = contact.replace(/\D/g, "");
     if (digits.length !== 11 || (!digits.startsWith("09") && !digits.startsWith("08"))) {
       throw new Error("Please enter a valid 11-digit Philippine mobile number starting with 09 or 08.");
     }
 
-    // Strong password validation
     const pwCheck = validatePassword(password);
     if (!pwCheck.isValid) {
       throw new Error("Password must have at least 8 characters, including uppercase, lowercase, number, and special character.");
     }
 
-    // B. Check duplicates (excluding the current Google OAuth user's own authUserId in public.users if present)
     const dupCheck = await this.checkDuplicate({
       email,
       contact,
@@ -817,7 +737,6 @@ export const ownerAuthService = {
       throw new Error(dupCheck.message);
     }
 
-    // C. Generate sequential temporary registration reference ID: REG-001-2026
     const regTimestamp = new Date().toISOString();
     const currentYear = new Date().getFullYear();
     let nextRegNum = 1;
@@ -896,10 +815,8 @@ export const ownerAuthService = {
       history: historyEntries
     };
 
-    // 1. Create or update Supabase Auth account
     let authUser = null;
     if (googleProfile?.authUserId) {
-      // User already authenticated via Google OAuth; update their Supabase Auth user with password & metadata
       const { data: updData, error: updError } = await supabase.auth.updateUser({
         password: password,
         data: {
@@ -941,8 +858,6 @@ export const ownerAuthService = {
 
       if (authError) {
         if (authError.message?.toLowerCase().includes("already") || authError.status === 422) {
-          // Since checkDuplicate confirmed no record exists in public.owners or public.users,
-          // check if this is an orphaned auth.users entry from a previously deleted owner account
           try {
             const { data: recoveredAuthId, error: recErr } = await supabase.rpc(
               "recover_orphan_auth_owner",
@@ -977,7 +892,6 @@ export const ownerAuthService = {
       }
     }
 
-    // 2. Ensure owner profile exists in Supabase public.owners
     let savedOwner = null;
     try {
       const { data: triggerCreated } = await supabase
@@ -1009,7 +923,6 @@ export const ownerAuthService = {
         };
 
     if (savedOwner) {
-      // Update the trigger-created row with complete registration details and Google connection
       const { data: updatedRow, error: updErr } = await supabase
         .from(TABLES.OWNERS)
         .update(extendedOwnerRecord)
@@ -1029,7 +942,6 @@ export const ownerAuthService = {
         savedOwner = updatedRow || extendedOwnerRecord;
       }
     } else {
-      // Insert directly (try with extended Google columns first, fallback to base columns if schema cache lacks them)
       let insertRes = await supabase
         .from(TABLES.OWNERS)
         .insert(extendedOwnerRecord)
@@ -1064,7 +976,6 @@ export const ownerAuthService = {
       }
     }
 
-    // 2b. Associate user record in public.users with the owner record
     const targetAuthId = googleProfile?.authUserId || authUser?.id || null;
     if (targetAuthId) {
       try {
@@ -1086,7 +997,6 @@ export const ownerAuthService = {
       }
     }
 
-    // 3. Log activity & Notify Admin in Supabase
     try {
       notifyRole({
         role: "admin",
@@ -1106,7 +1016,6 @@ export const ownerAuthService = {
       });
     } catch (e) {}
 
-    // Always sign out any newly created or temporary OAuth session so a Pending account cannot access the portal before Admin approval
     try {
       if (typeof window !== "undefined") {
         sessionStorage.removeItem("lsmis_google_reg_pending");
@@ -1115,7 +1024,6 @@ export const ownerAuthService = {
       await supabase.auth.signOut({ scope: "local" });
     } catch (_) {}
 
-    // Notify all mounted hooks once after registration is saved
     notifyChange(TABLES.OWNERS, "insert", savedOwner || ownerRecord);
     notifyDbChange(TABLES.USERS, "insert", { email: ownerRecord.email });
 
@@ -1130,11 +1038,6 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * 3. Send 6-digit Email OTP
-   * Expiration: 10 minutes (600 seconds)
-   * Max attempts allowed: 5
-   */
   async sendOtp(email) {
     const cleanEmail = email.trim().toLowerCase();
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -1167,10 +1070,6 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * 4. Resend 6-digit Email OTP
-   * Enforces 60-second cooldown
-   */
   async resendOtp(email) {
     const cleanEmail = email.trim().toLowerCase();
     try {
@@ -1196,9 +1095,6 @@ export const ownerAuthService = {
     return await this.sendOtp(cleanEmail);
   },
 
-  /**
-   * 5. Verify 6-digit Email OTP
-   */
   async verifyOtp({ email, otp }) {
     const cleanEmail = (email || "").trim().toLowerCase();
     const inputOtp = (otp || "").trim();
@@ -1224,17 +1120,14 @@ export const ownerAuthService = {
     }
 
     if (record) {
-      // Check expiration
       if (new Date() > new Date(record.expires_at)) {
         throw new Error("Verification code has expired. Please click Resend Code to receive a new one.");
       }
 
-      // Check maximum attempts
       if (record.attempts >= record.max_attempts) {
         throw new Error("Maximum verification attempts exceeded. Please request a new code.");
       }
 
-      // Check OTP match
       if (record.otp_code !== inputOtp && inputOtp !== "123456") {
         const nextAttempts = (record.attempts || 0) + 1;
         try {
@@ -1249,17 +1142,14 @@ export const ownerAuthService = {
       }
     }
 
-    // ---- SUCCESSFUL OTP VERIFICATION ----
     const verifiedAt = new Date().toISOString();
 
-    // Mark verified in Supabase
     try {
       if (record?.id) {
         await supabase.from("owner_otps").update({ verified: true }).eq("id", record.id);
       }
     } catch (_) {}
 
-    // Update owner record in Supabase to "Pending Admin Approval"
     let updatedOwner = null;
     try {
       const { data, error } = await supabase
@@ -1278,7 +1168,6 @@ export const ownerAuthService = {
       console.warn("Supabase owner status update error:", e);
     }
 
-    // Log audit activity
     try {
       await logActivity({
         action: `Owner email verified: ${cleanEmail}. Status changed to Pending Admin Approval`,
@@ -1303,18 +1192,9 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * 6. Admin Owner Approval
-   * Generates sequential unique Owner ID: OWN-YYYY-XXXX (e.g. OWN-2026-0001)
-   */
-  /**
-   * 6. Admin Owner Approval
-   * Generates sequential unique Owner ID: OWN-YYYY-XXXX (e.g. OWN-2026-0001)
-   */
   async approveOwner({ regId, email, adminUser }) {
     const currentYear = new Date().getFullYear();
 
-    // 1. Find target owner in Supabase (check public.owners then public.users)
     let target = null;
     const cleanEmail = (email || (String(regId).includes("@") ? regId : "")).trim().toLowerCase();
 
@@ -1346,7 +1226,6 @@ export const ownerAuthService = {
     }
 
     if (!target) {
-      // Fallback check in public.users
       const userSearch = cleanEmail || regId;
       if (userSearch) {
         const { data: dbUser } = await supabase
@@ -1380,7 +1259,6 @@ export const ownerAuthService = {
       throw new Error(`Owner ${target.name} is already approved.`);
     }
 
-    // 2. Generate sequential unique Owner ID: OWN-YYYY-XXXX
     let generatedOwnerId = target.id;
     if (!String(target.id || "").startsWith("OWN") || String(target.id || "").startsWith("REG")) {
       const { data: allOwners } = await supabase.from(TABLES.OWNERS).select("id");
@@ -1413,12 +1291,10 @@ export const ownerAuthService = {
       note: `Account approved by ${approverName}. Unique Owner ID generated: ${generatedOwnerId}.`
     });
 
-    // 3. Update public.owners and public.users safely respecting foreign key constraints
     const targetEmail = target.email || cleanEmail;
     const isIdChanged = target.id !== generatedOwnerId;
 
     if (isIdChanged && targetEmail) {
-      // Temporarily nullify owner_id in public.users to prevent foreign key constraint violations
       try {
         await supabase
           .from(TABLES.USERS)
@@ -1429,7 +1305,6 @@ export const ownerAuthService = {
       }
     }
 
-    // 4. Update owner record in Supabase public.owners
     let updErr = null;
     const updatePayload = {
       id: generatedOwnerId,
@@ -1445,7 +1320,6 @@ export const ownerAuthService = {
       .eq("id", target.id);
 
     if (err1) {
-      // Fallback: update status and history without mutating Primary Key
       const { error: err2 } = await supabase
         .from(TABLES.OWNERS)
         .update({
@@ -1457,7 +1331,6 @@ export const ownerAuthService = {
         .or(`id.eq.${target.id},email.ilike.${targetEmail}`);
 
       if (err2) {
-        // Upsert full owner record
         const { error: err3 } = await supabase
           .from(TABLES.OWNERS)
           .upsert({
@@ -1476,7 +1349,6 @@ export const ownerAuthService = {
       }
     }
 
-    // 4b. Re-link public.users with the official approved Owner ID and Active status
     if (targetEmail) {
       try {
         await supabase
@@ -1491,7 +1363,6 @@ export const ownerAuthService = {
       }
     }
 
-    // 4c. Update any existing livestock or notifications linked to target.id
     if (isIdChanged && target.id) {
       try {
         await supabase.from(TABLES.LIVESTOCK).update({ owner_id: generatedOwnerId }).eq("owner_id", target.id);
@@ -1504,7 +1375,6 @@ export const ownerAuthService = {
       throw new Error(`Failed to approve owner in database: ${updErr.message}`);
     }
 
-    // 5. Send approval email asynchronously without blocking the UI transaction
     const isStatusChanged = String(previousStatus).toLowerCase().trim() !== "approved";
     let emailResult = { success: true, emailSent: true, emailError: null };
 
@@ -1586,11 +1456,6 @@ export const ownerAuthService = {
     };
   },
 
-  /**
-   * Unified Shared Email Dispatcher for Owner Account Status Updates
-   * Evaluates status conditionally to generate approval vs rejection email message
-   * Passes formatted message payload to single shared {{ .Data.message }} template
-   */
   async sendOwnerStatusEmail({ email, name, status, regId, reviewer }) {
     if (!email) {
       return { success: false, error: "No email address found for this owner in database." };
@@ -1604,7 +1469,6 @@ export const ownerAuthService = {
     let message = "";
     let accountStatusText = "";
 
-    // Conditional evaluation based strictly on Owner Account Status
     if (normalizedStatus === "approved" || normalizedStatus === "active") {
       subject = "LSMIS Owner Account Registration Approved";
       accountStatusText = "Approved";
@@ -1651,7 +1515,6 @@ Thank you.`;
     let emailSent = false;
     let emailError = null;
 
-    // 1. Primary: Invoke Supabase Edge Function 'send-owner-email'
     try {
       const { data, error } = await supabase.functions.invoke("send-owner-email", {
         body: payload,
@@ -1666,10 +1529,8 @@ Thank you.`;
       emailError = e.message || "Failed to reach email service endpoint.";
     }
 
-    // 2. Fallback: Supabase Auth Email Mailer (passes payload to single shared {{ .Data.message }} template)
     if (!emailSent) {
       try {
-        // Synchronize subject and message into auth.users raw_user_meta_data
         try {
           await supabase.rpc("set_owner_email_metadata", {
             p_email: email,
@@ -1708,9 +1569,6 @@ Thank you.`;
     };
   },
 
-  /**
-   * 7. Admin Owner Rejection
-   */
   async rejectOwner({ regId, reason, adminUser }) {
     const finalReason = (reason && reason.trim())
       ? reason.trim()
@@ -1751,7 +1609,6 @@ Thank you.`;
       note: `Registration rejected by ${reviewer}.`
     });
 
-    // 1. Update owner record in Supabase FIRST
     const updateFields = {
       status: "Rejected",
       rejection_reason: finalReason,
@@ -1776,7 +1633,6 @@ Thank you.`;
         .ilike("email", target.email);
     }
 
-    // 2. Trigger rejection email asynchronously without blocking the UI transaction
     const isStatusChanged = String(previousStatus).toLowerCase().trim() !== "rejected";
     let emailResult = { success: true, emailSent: true, emailError: null };
 
@@ -1819,7 +1675,6 @@ Thank you.`;
       })();
     }
 
-    // Send in-app notification to owner
     try {
       await notifyOwner({
         owner_id: target.id,
@@ -1857,9 +1712,6 @@ Thank you.`;
     };
   },
 
-  /**
-   * Admin Deactivate Owner Account
-   */
   async deactivateOwner({ ownerId, reason, adminUser }) {
     const { data: target } = await supabase
       .from(TABLES.OWNERS)
@@ -1928,16 +1780,10 @@ Thank you.`;
     };
   },
 
-  /**
-   * Admin Activate Owner Account
-   */
   async activateOwner({ ownerId, adminUser }) {
     return await this.reactivateOwner({ ownerId, adminUser });
   },
 
-  /**
-   * 8. Admin Suspend Account
-   */
   async suspendOwner({ ownerId, reason, adminUser }) {
     const { data: target } = await supabase
       .from(TABLES.OWNERS)
@@ -1999,9 +1845,6 @@ Thank you.`;
     };
   },
 
-  /**
-   * 9. Admin Reactivate Account
-   */
   async reactivateOwner({ ownerId, adminUser }) {
     const { data: target } = await supabase
       .from(TABLES.OWNERS)
@@ -2063,9 +1906,6 @@ Thank you.`;
     };
   },
 
-  /**
-   * 10. Failed Login Attempt Tracker & Security Lockout (Server-Side)
-   */
   async getLockoutStatus(identifier) {
     if (!identifier) return { isLocked: false, remainingMins: 0, remaining_seconds: 0 };
     return await authSecurityService.checkAccountLockout(identifier);
@@ -2077,12 +1917,8 @@ Thank you.`;
   },
 
   async clearFailedAttempts(identifier) {
-    // Handled atomically on server-side during registerActiveSession
   },
 
-  /**
-   * 11. Look up owner account status from Supabase
-   */
   async getOwnerStatus(identifier) {
     const clean = (identifier || "").trim().toLowerCase();
     if (!clean) return null;
@@ -2122,13 +1958,9 @@ Thank you.`;
     return null;
   },
 
-  /**
-   * 12. Update owner account details directly in Supabase
-   */
   async updateOwner({ ownerId, patch = {}, adminUser = "Administrator" }) {
     if (!ownerId) throw new Error("Owner ID is required for update.");
 
-    // Validate email uniqueness if email changed
     if (patch.email) {
       const cleanEmail = patch.email.trim().toLowerCase();
       const dup = await this.checkDuplicate({ email: cleanEmail });
@@ -2140,7 +1972,6 @@ Thank you.`;
       }
     }
 
-    // Record previous owner details before updating DB
     let previousStatus = null;
     let targetEmail = (patch.email || patch.oldEmail || "").trim().toLowerCase();
     let targetName = (patch.name || "").trim();
@@ -2168,7 +1999,6 @@ Thank you.`;
     }
     if (dbPatch.email) dbPatch.email = dbPatch.email.toLowerCase();
 
-    // Validate Philippine mobile number if contact is being updated
     if (dbPatch.contact) {
       const phoneVal = validatePhilippineMobileNumber(dbPatch.contact);
       if (!phoneVal.isValid) {
@@ -2186,7 +2016,6 @@ Thank you.`;
       note: patch.audit_note || "Account details modified in Admin Owner Management."
     };
 
-    // 1. Try RPC admin_update_owner
     try {
       await supabase.rpc("admin_update_owner", {
         p_id: ownerId,
@@ -2199,7 +2028,6 @@ Thank you.`;
       });
     } catch (e) {}
 
-    // 2. Direct Supabase DB update on public.owners and public.users
     try {
       let ownerQuery = supabase.from(TABLES.OWNERS).select("id, history, email").eq("id", ownerId);
       let { data: curData } = await ownerQuery.maybeSingle();
@@ -2230,7 +2058,6 @@ Thank you.`;
         await supabase.from(TABLES.OWNERS).update(dbPatch).ilike("email", targetEmail);
       }
 
-      // Synchronize owner_name across livestock records linked to this owner ID
       if (dbPatch.name) {
         const ownerTargetId = curData?.id || ownerId;
         if (ownerTargetId) {
@@ -2241,7 +2068,6 @@ Thank you.`;
         }
       }
 
-      // Also sync public.users if linked user account exists
       const userUpdate = {};
       if (dbPatch.name) {
         userUpdate.full_name = dbPatch.name;
@@ -2279,7 +2105,6 @@ Thank you.`;
       console.warn("Supabase updateOwner error:", err);
     }
 
-    // 3. Send email notification ONLY AFTER DB update succeeds and if status actually changed
     let emailResult = { success: false, emailSent: false, emailError: null };
     if (dbPatch.status && previousStatus) {
       const normOld = String(previousStatus).toLowerCase().trim();
@@ -2297,7 +2122,6 @@ Thank you.`;
       }
     }
 
-    // Notify other components
     notifyChange(TABLES.OWNERS, "update", { id: ownerId, ...dbPatch });
     notifyDbChange(TABLES.USERS, "update", { email: targetEmail });
 
@@ -2322,10 +2146,6 @@ Thank you.`;
     return { success: true, ownerId, updated: dbPatch, emailSent: emailResult.emailSent, emailError: emailResult.emailError };
   },
 
-  /**
-   * 12b. Update Owner Account Profile with strict Philippine mobile validation (TM, TNT, Smart, Globe)
-   * Permanently persists updates across public.owners, public.users, and Supabase Auth.
-   */
   async updateOwnerProfile({ ownerId, authUserId, email, name, contact, address }) {
     const trimmedName = String(name || "").trim();
     if (!trimmedName) {
@@ -2341,7 +2161,6 @@ Thank you.`;
     const trimmedAddress = String(address || "").trim();
     const cleanEmail = String(email || "").trim().toLowerCase();
 
-    // 1. Update Supabase OWNERS table (matching by id, auth_user_id, or email)
     let ownerUpdated = false;
     let updatedOwnerData = null;
 
@@ -2415,7 +2234,6 @@ Thank you.`;
       throw new Error("Owner profile record could not be found to update in database.");
     }
 
-    // 2. Synchronize Supabase USERS table (updating ONLY existing column full_name)
     try {
       if (authUserId) {
         await supabase
@@ -2432,7 +2250,6 @@ Thank you.`;
       console.warn("Notice: public.users synchronization warning:", uErr);
     }
 
-    // Synchronize owner_name across livestock records linked to this owner ID
     try {
       const targetId = updatedOwnerData?.id || ownerId;
       if (targetId) {
@@ -2447,7 +2264,6 @@ Thank you.`;
       notifyDbChange(TABLES.LIVESTOCK, "update");
     } catch (_) {}
 
-    // 3. Synchronize Supabase Auth user metadata (auth.users)
     try {
       await supabase.auth.updateUser({
         data: {
@@ -2480,9 +2296,6 @@ Thank you.`;
     };
   },
 
-  /**
-   * 12c. Update Owner Profile Picture in Supabase database & Auth metadata
-   */
   async updateOwnerPhoto({ ownerId, authUserId, email, avatarUrl }) {
     if (!avatarUrl) throw new Error("Avatar URL is required.");
     const cleanEmail = String(email || "").trim().toLowerCase();
@@ -2490,7 +2303,6 @@ Thank you.`;
     let ownerUpdated = false;
     let updatedOwnerData = null;
 
-    // 1. Update public.owners table
     if (ownerId) {
       const { data, error } = await supabase
         .from(TABLES.OWNERS)
@@ -2540,7 +2352,6 @@ Thank you.`;
       throw new Error("Owner record could not be found to update avatar in database.");
     }
 
-    // 2. Synchronize public.users table
     try {
       if (authUserId) {
         await supabase
@@ -2555,7 +2366,6 @@ Thank you.`;
       }
     } catch (_) {}
 
-    // 3. Synchronize Supabase Auth user metadata
     try {
       await supabase.auth.updateUser({
         data: {
@@ -2578,14 +2388,10 @@ Thank you.`;
     };
   },
 
-  /**
-   * 13. Delete owner account directly in Supabase (owners & users)
-   */
   async deleteOwner({ ownerId, email, adminUser = "Administrator" }) {
     if (!ownerId && !email) throw new Error("Owner ID or email required for deletion.");
     const cleanEmail = email?.trim()?.toLowerCase();
 
-    // 1. Try RPC admin_delete_owner
     try {
       await supabase.rpc("admin_delete_owner", {
         p_owner_id: ownerId || null,
@@ -2593,7 +2399,6 @@ Thank you.`;
       });
     } catch (e) {}
 
-    // 2. Direct Supabase DB delete
     try {
       if (ownerId) {
         await supabase.from(TABLES.USERS).delete().eq("owner_id", ownerId);

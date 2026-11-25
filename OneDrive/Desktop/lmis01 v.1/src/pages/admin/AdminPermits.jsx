@@ -9,13 +9,6 @@ import { TABLES } from "../../utils/constants";
 import { formatPhDateTime } from "../../utils/formatters";
 import { initials } from "../../utils/helpers";
 
-/**
- * AdminPermits
- * Unified administrative monitoring of all Meat Permit records.
- * Mixes Pending and Permit Issued into one consolidated, real-time list.
- * Organized and grouped by issuance date & time (newest first, Asia/Manila timezone).
- * Status is strictly "Issued" or "Pending".
- */
 export const AdminPermits = () => {
   const { data: dbPermits = [], refresh: refreshPermits, loading: loadingPermits } = useSupabase(TABLES.PERMITS);
   const { data: livestock = [], refresh: refreshLivestock, loading: loadingLivestock } = useSupabase(TABLES.LIVESTOCK);
@@ -23,7 +16,7 @@ export const AdminPermits = () => {
   const { data: owners = [] } = useSupabase(TABLES.OWNERS);
 
   const [searchParams] = useSearchParams();
-  const [activeTab, setActiveTab] = useState("all"); // 'all' | 'pending' | 'issued'
+  const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState(() => searchParams.get("search") || searchParams.get("tag") || "");
   useEffect(() => {
     const q = searchParams.get("search") || searchParams.get("tag");
@@ -33,7 +26,6 @@ export const AdminPermits = () => {
   const [page, setPage] = useState(1);
   const pageSize = 12;
 
-  // Realtime subscription to permits and livestock
   useEffect(() => {
     const channel = supabase
       .channel("admin-permits-realtime")
@@ -51,7 +43,6 @@ export const AdminPermits = () => {
     };
   }, [refreshPermits, refreshLivestock, refreshCarcass]);
 
-  // Lookup maps for fast resolution
   const ownersMap = useMemo(() => {
     const map = new Map();
     (owners || []).forEach((o) => {
@@ -62,19 +53,16 @@ export const AdminPermits = () => {
     return map;
   }, [owners]);
 
-  // Group records by issuance date & time (newest records first)
   const allGroups = useMemo(() => {
     const groupsMap = new Map();
     const norm = (t) => String(t || "").trim().toLowerCase();
 
-    // 1. Process all durable permit records stored in Supabase (Status: Issued)
     (dbPermits || []).forEach((p) => {
       if (String(p.status || "").toLowerCase() === "revoked") return;
 
       const rawIssuedAt = p.issued_at || p.created_at;
       const dateKey = rawIssuedAt ? String(rawIssuedAt).slice(0, 19) : "no-date";
       const ownerClean = (p.owner_name || "Unknown Owner").trim();
-      // Derive base permit number (e.g. MIC-06-978526 from MIC-06-978526-1)
       const basePermitNo = p.permit_no ? String(p.permit_no).replace(/-\d+$/, "") : "Permit";
       const groupKey = `issued|||${dateKey}|||${ownerClean.toLowerCase()}|||${basePermitNo.toLowerCase()}`;
 
@@ -113,7 +101,6 @@ export const AdminPermits = () => {
       });
     });
 
-    // 2. Identify weighed carcasses awaiting permit issuance (Status: Pending)
     const issuedTags = new Set();
     (dbPermits || []).forEach((p) => {
       if (p.tag_number && String(p.status || "").toLowerCase() !== "revoked") {
@@ -133,13 +120,11 @@ export const AdminPermits = () => {
 
       if (isIssuedInLivestock || issuedTags.has(tag)) return;
 
-      // Check if weighed
       const isWeighed =
         String(l.status || "").toLowerCase() === "weighed" ||
         Boolean(l.weighed_at) ||
         (carcass || []).some((c) => norm(c.tag_number) === tag && parseFloat(c.total_weight || c.cold_weight || c.weight || 0) > 0);
 
-      // Exclude condemned / rejected
       const isCondemned = String(l.status || "").toLowerCase().includes("condemned") || String(l.status || "").toLowerCase().includes("rejected");
 
       if (isWeighed && !isCondemned) {
@@ -184,7 +169,6 @@ export const AdminPermits = () => {
       }
     });
 
-    // Convert groups to sorted array (newest records displayed first)
     const result = Array.from(groupsMap.values()).map((grp) => ({
       ...grp,
       permit_numbers: Array.from(grp.permit_numbers),
@@ -197,7 +181,6 @@ export const AdminPermits = () => {
     return result;
   }, [dbPermits, livestock, carcass, ownersMap]);
 
-  // Counts for tabs (unified overview: All, Pending, Issued)
   const tabCounts = useMemo(() => {
     let issued = 0;
     let pending = 0;
@@ -212,14 +195,11 @@ export const AdminPermits = () => {
     };
   }, [allGroups]);
 
-  // Filtered groups based on tab, search, and species
   const filteredGroups = useMemo(() => {
     return allGroups.filter((grp) => {
-      // Tab filter: 'all' mixes both pending and issued!
       if (activeTab === "issued" && grp.status !== "Issued") return false;
       if (activeTab === "pending" && grp.status !== "Pending") return false;
 
-      // Species filter
       if (filterSpecies !== "all") {
         const matches = grp.speciesList.some(
           (sp) => String(sp).toLowerCase() === filterSpecies.toLowerCase()
@@ -227,7 +207,6 @@ export const AdminPermits = () => {
         if (!matches) return false;
       }
 
-      // Search filter (Permit #, Owner Name, or Tag #)
       if (search.trim()) {
         const q = search.trim().toLowerCase();
         const matchesOwner = grp.owner_name.toLowerCase().includes(q);
@@ -255,7 +234,6 @@ export const AdminPermits = () => {
 
   return (
     <div className="permits-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* MAIN CONTAINER */}
       <div
         style={{
           background: "var(--color-surface)",
@@ -269,7 +247,6 @@ export const AdminPermits = () => {
           minHeight: 0,
         }}
       >
-        {/* Fixed Header: Segmented Tabs (Left) & Search + Filters (Right) */}
         <div
           className="records-fixed-header"
           style={{
@@ -287,7 +264,6 @@ export const AdminPermits = () => {
             boxSizing: "border-box",
           }}
         >
-          {/* Left: Navigation Tabs with unified All Permits mixing both Pending & Issued */}
           <div className="adm-seg-tabs">
             {[
               { id: "all", label: "All Permits", count: tabCounts.all, icon: <Icon.Layers size={14} /> },
@@ -315,9 +291,7 @@ export const AdminPermits = () => {
             })}
           </div>
 
-          {/* Right: Search Bar & Species Filter */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap", flexShrink: 0 }}>
-            {/* Search Box */}
             <div style={{ display: "flex", alignItems: "center", gap: 10, width: 240, minWidth: 140, maxWidth: 300, position: "relative" }}>
               <input
                 type="text"
@@ -380,7 +354,6 @@ export const AdminPermits = () => {
               )}
             </div>
 
-            {/* Species Dropdown Selector */}
             <select
               value={filterSpecies}
               onChange={(e) => setFilterSpecies(e.target.value)}
@@ -415,7 +388,6 @@ export const AdminPermits = () => {
           </div>
         </div>
 
-        {/* Content: View-Only Consolidated Table */}
         {isLoading ? (
           <div style={{ flex: 1, minHeight: 300, display: "flex", alignItems: "center", justifyContent: "center", padding: "48px 20px", color: "var(--color-text-muted)", fontSize: 13.5 }}>
             Loading permit records...
@@ -544,7 +516,6 @@ export const AdminPermits = () => {
                       onMouseEnter={(e) => (e.currentTarget.style.background = "var(--lsmis-primary-subtle)")}
                       onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                     >
-                      {/* 1. Owner */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div style={{ position: "relative", width: 32, height: 32, flexShrink: 0 }}>
@@ -599,7 +570,6 @@ export const AdminPermits = () => {
                         </div>
                       </td>
 
-                      {/* 2. Livestock Count */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                         <div style={{ fontSize: 13, fontWeight: 700, color: "var(--color-text)" }}>
                           {grp.total_heads} {grp.total_heads === 1 ? "Head" : "Heads"}
@@ -611,7 +581,6 @@ export const AdminPermits = () => {
                         )}
                       </td>
 
-                      {/* 3. Date and Time */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                         <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontWeight: 600, color: "var(--color-text)", fontSize: 13 }}>
                           <Icon.Calendar size={13} style={{ color: "#187A56", flexShrink: 0, opacity: 0.8 }} />
@@ -619,7 +588,6 @@ export const AdminPermits = () => {
                         </div>
                       </td>
 
-                      {/* 4. Permit # (omitted for pending permits) */}
                       {activeTab !== "pending" && (
                         <td style={{ padding: "13px 16px", verticalAlign: "middle" }}>
                           {isIssued ? (
@@ -647,7 +615,6 @@ export const AdminPermits = () => {
                         </td>
                       )}
 
-                      {/* 5. Status Badge */}
                       <td style={{ padding: "13px 16px", verticalAlign: "middle", textAlign: "center" }}>
                         {isIssued ? (
                           <span
@@ -711,7 +678,6 @@ export const AdminPermits = () => {
           </div>
         )}
 
-        {/* Footer / Pagination */}
         {filteredGroups.length > pageSize && (
           <div
             className="adm-pagination-bar"

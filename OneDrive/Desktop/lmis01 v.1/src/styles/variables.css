@@ -1,16 +1,11 @@
-/* Design tokens for the LSMIS system
-   All brand & neutral values resolve to the centralized Landing Page
-   theme defined in theme.css (Dark Forest Green identity). */
 @import "./theme.css";
 
 :root {
-  /* Brand (Landing Page primary) */
   --color-primary: var(--lsmis-primary);
   --color-primary-dark: var(--lsmis-primary-hover);
   --color-primary-light: var(--lsmis-primary-soft);
   --color-primary-bg: var(--lsmis-primary-soft);
 
-  /* Neutrals (Landing Page charcoal scale) */
   --color-bg: var(--lsmis-page-bg);
   --color-surface: var(--lsmis-surface);
   --color-border: var(--lsmis-border);
@@ -18,7 +13,6 @@
   --color-text-muted: var(--lsmis-text-secondary);
   --color-text-subtle: var(--lsmis-text-subtle);
 
-  /* Status (kept distinct from brand so meaning is preserved) */
   --color-success: #10b981;
   --color-success-bg: #d1fae5;
   --color-warning: #f59e0b;
@@ -32,7 +26,6 @@
   --color-indigo: #6366f1;
   --color-indigo-bg: #e0e7ff;
 
-  /* Role palette — every role now shares the single LSMIS identity */
   --role-admin-from: var(--lsmis-primary);
   --role-admin-to: var(--lsmis-primary);
   --role-vet-from: var(--lsmis-primary);
@@ -42,7 +35,6 @@
   --role-owner-from: var(--lsmis-primary);
   --role-owner-to: var(--lsmis-primary);
 
-  /* Sizing */
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;

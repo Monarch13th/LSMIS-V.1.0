@@ -34,7 +34,6 @@ export const Pagination = ({
         ...style,
       }}
     >
-      {/* Range and page size control */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap" }}>
         <span style={{ fontSize: 12.5, color: "var(--color-text-muted)" }}>
           Showing <strong>{fromItem}</strong> to <strong>{toItem}</strong> of{" "}
@@ -72,7 +71,6 @@ export const Pagination = ({
         )}
       </div>
 
-      {/* Page Navigation */}
       {totalPages > 1 && (
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <button

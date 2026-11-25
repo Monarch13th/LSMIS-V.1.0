@@ -23,16 +23,12 @@ ChartJS.register(
   Filler
 );
 
-/**
- * FinScopeLineChart
- * High-aesthetic smooth area line chart inspired by FinScope "Portfolio" graph.
- */
 export const FinScopeLineChart = ({
   labels = ["1 Mar", "8 Mar", "15 Mar", "22 Mar", "29 Mar"],
   dataPoints = [28, 42, 36, 68, 54],
   label = "Volume",
   unit = "Head",
-  color = "#187A56", // default cyan/blue
+  color = "#187A56",
   secondaryPoints = null,
   secondaryLabel = "Target",
   height = 160,

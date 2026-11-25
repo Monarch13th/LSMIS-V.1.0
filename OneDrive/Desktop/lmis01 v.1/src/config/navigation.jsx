@@ -1,7 +1,5 @@
-// Central navigation config — grouped, single source of truth for all roles
 import { Icon } from "../components/icons";
 
-/* ============ ADMIN ============ */
 const admin = [
   { header: "MAIN" },
   { path: "/admin", label: "Dashboard", icon: <Icon.Dashboard /> },
@@ -23,7 +21,6 @@ const admin = [
   { path: "/admin/settings", label: "Settings", icon: <Icon.Settings /> },
 ];
 
-/* ============ VET ============ */
 const vet = [
   { header: "GENERAL" },
   { path: "/vet", label: "Dashboard", icon: <Icon.Dashboard /> },
@@ -42,10 +39,6 @@ const vet = [
   { path: "/vet/settings", label: "Settings", icon: <Icon.Settings /> },
 ];
 
-/* ============ STAFF — follows manual operation flow ============
-   Receiving → Scheduling → Slaughter Process → Inspection →
-   Payment → Permit → Release
- */
 const staff = [
   { header: "GENERAL" },
   { path: "/staff", label: "Dashboard", icon: <Icon.Dashboard /> },

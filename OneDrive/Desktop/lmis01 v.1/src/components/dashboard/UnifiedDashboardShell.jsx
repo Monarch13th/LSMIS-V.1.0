@@ -3,11 +3,6 @@ import { useAuth } from "../../hooks/useAuth";
 import { greeting } from "../../utils/helpers";
 import { Icon } from "../icons";
 
-/**
- * UnifiedDashboardShell
- * Provides the consistent top greeting header, role badge, quick action button,
- * and 2-column one-screen layout wrapper inspired by the FinScope reference dashboard.
- */
 export const UnifiedDashboardShell = ({
   roleLabel = "Personnel",
   roleTone = "emerald",
@@ -22,7 +17,6 @@ export const UnifiedDashboardShell = ({
 
   return (
     <div className="lsmis-unified-dashboard">
-      {/* Top Header & Greeting Bar (Matches FinScope 'Good Morning, Rachel!' + 'Customize' button) */}
       <header className="finscope-dash-header">
         <div className="finscope-dash-title-group">
           <div className="finscope-greeting-row">
@@ -55,7 +49,6 @@ export const UnifiedDashboardShell = ({
         </div>
       </header>
 
-      {/* Main 2-Column Content Grid (Fits within one screen on desktop) */}
       <div className="finscope-dash-grid">
         {children}
       </div>

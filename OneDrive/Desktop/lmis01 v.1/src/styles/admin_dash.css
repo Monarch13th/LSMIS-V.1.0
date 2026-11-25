@@ -1,13 +1,5 @@
-/* ===========================================================
-   LSMIS Admin Interface & Dashboard — Growth-Inspired Redesign
-   Retains LSMIS theme colors (--role-admin-from/to, --color-primary,
-   slate surfaces, emerald/violet/sky/amber accents) while matching
-   the floating sidebar, integrated header, and 3-row card layout
-   of the reference design.
-   =========================================================== */
 
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) {
-  /* All values resolve to the centralized Landing Page theme (theme.css) */
   --ag-primary: var(--lsmis-primary);
   --ag-primary-to: var(--lsmis-primary-hover);
   --ag-primary-text: var(--lsmis-primary-text);
@@ -47,9 +39,6 @@
   --ag-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
-/* ===========================================================
-   1. ADMIN SHELL: Floating Rounded Sidebar + Seamless Header
-   =========================================================== */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-layout {
   background: var(--ag-page) !important;
   background-attachment: fixed !important;
@@ -98,7 +87,6 @@
   }
 }
 
-/* Sidebar Brand — Clean horizontal logo + title like "Growth" in reference */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-brand {
   background: transparent !important;
   color: var(--ag-card-ink) !important;
@@ -149,7 +137,6 @@
   margin-top: 2px !important;
 }
 
-/* Sidebar Nav Sections & Pills */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-sidebar-nav {
   padding: 6px 14px 14px !important;
   gap: 3px !important;
@@ -192,7 +179,6 @@
   color: var(--ag-primary) !important;
 }
 
-/* Active Nav Pill — Solid themed pill matching the reference's "Dashboard" pill */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .nav-item.active {
   background: linear-gradient(135deg, var(--lsmis-primary) 0%, var(--lsmis-secondary) 100%) !important;
   color: #ffffff !important;
@@ -216,7 +202,6 @@
   padding: 12px 14px !important;
 }
 
-/* Top Header — Transparent seamless bar with "Hi, User!" greeting & circular buttons */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header,
 [data-theme="dark"] :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header,
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"])[data-theme="dark"] .app-header {
@@ -247,7 +232,6 @@
   gap: 10px !important;
 }
 
-/* Circular white icon buttons in header (matching reference top-right) */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-header .icon-btn-header {
   width: 42px !important;
   height: 42px !important;
@@ -287,9 +271,6 @@
   border-top: none !important;
 }
 
-/* ===========================================================
-   2. ADMIN DASHBOARD GRID (Matches Reference 3-Row Layout)
-   =========================================================== */
 .ag-dash {
   display: flex;
   flex-direction: column;
@@ -298,7 +279,6 @@
   padding-bottom: 8px;
 }
 
-/* Optional subtle sub-bar when sync or quick action is needed */
 .ag-top-bar {
   display: flex;
   align-items: center;
@@ -331,7 +311,6 @@
   gap: 10px;
 }
 
-/* Solid dark/themed pill action button (like "+ Create" in reference) */
 .ag-create-pill {
   display: inline-flex;
   align-items: center;
@@ -353,7 +332,6 @@
   box-shadow: 0 12px 24px -6px rgba(24, 122, 86, 0.5);
 }
 
-/* Grid Rows */
 .ag-row {
   display: grid;
   gap: 18px;
@@ -373,7 +351,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-/* Card Surfaces */
 .ag-card {
   border-radius: var(--ag-radius, 22px);
   padding: 22px;
@@ -382,7 +359,6 @@
   transition: transform 180ms ease, box-shadow 180ms ease;
 }
 
-/* Dark Hero Card (Reference top-left & bottom cards, themed in deep LSMIS emerald gradient) */
 .ag-dark {
   background: var(--ag-hero-bg);
   color: #ffffff;
@@ -390,7 +366,6 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* Frosted Glass Card (Reference center chart card) */
 .ag-glass {
   background: rgba(255, 255, 255, 0.62);
   border: 1.5px solid rgba(255, 255, 255, 0.88);
@@ -405,7 +380,6 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* Clean White Card (Reference right card, Month Goal's card, Task cards) */
 .ag-white {
   background: var(--ag-card);
   color: var(--ag-card-ink);
@@ -417,7 +391,6 @@
   border-color: var(--ag-line);
 }
 
-/* Card Header */
 .ag-card-head {
   display: flex;
   align-items: center;
@@ -462,9 +435,6 @@
   background: rgba(255, 255, 255, 0.22);
 }
 
-/* ===========================================================
-   2.5. INTERACTIVE HOVER TOOLTIPS ([data-ag-tip])
-   =========================================================== */
 [data-ag-tip] {
   position: relative;
 }
@@ -546,9 +516,6 @@
   transform: translate(0, 0) scale(1);
 }
 
-/* ===========================================================
-   3. TOP-LEFT CARD: "Overall Information" Hero Card
-   =========================================================== */
 .ag-overview {
   display: flex;
   flex-direction: column;
@@ -619,7 +586,6 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* Progress bar inside dark hero card */
 .ag-progress {
   height: 7px;
   background: rgba(255, 255, 255, 0.16);
@@ -647,7 +613,6 @@
   filter: brightness(1.12);
 }
 
-/* 3 Sub-Tiles at bottom of Overall Information card */
 .ag-tiles {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -727,9 +692,6 @@
   opacity: 0.85;
 }
 
-/* ===========================================================
-   4. TOP-CENTER CARD: Dual-Line Area Chart (Operations)
-   =========================================================== */
 .ag-chart-interactive-wrap {
   display: flex;
   flex-direction: column;
@@ -814,7 +776,6 @@
   overflow: visible;
 }
 
-/* Floating Chart Hover Tooltip */
 .ag-chart-floating-tooltip {
   position: absolute;
   top: -6px;
@@ -1053,9 +1014,6 @@
   background: var(--ag-primary);
 }
 
-/* ===========================================================
-   5. TOP-RIGHT CARD: "Month Progress / Users by Role" Rings
-   =========================================================== */
 .ag-progress-card {
   display: flex;
   flex-direction: column;
@@ -1223,7 +1181,6 @@
   transition: transform 150ms ease, box-shadow 150ms ease;
 }
 
-/* Bottom action row inside Month Progress card (like Share + Download Report) */
 .ag-card-foot-actions {
   display: flex;
   align-items: center;
@@ -1276,9 +1233,6 @@
   transform: translateY(-1px);
 }
 
-/* ===========================================================
-   6. MIDDLE ROW: Left Checklist Card + Right Permits Cards
-   =========================================================== */
 .ag-goals {
   display: flex;
   flex-direction: column;
@@ -1382,7 +1336,6 @@
   color: #ffffff;
 }
 
-/* Right side of Middle Row: "Recent Permits (N)" */
 .ag-process {
   display: flex;
   flex-direction: column;
@@ -1438,7 +1391,6 @@
   flex: 1;
 }
 
-/* White Permit Task Cards with corner notch badge (like reference "Meet HR" / "Boss Appointment") */
 .ag-task {
   display: flex;
   flex-direction: column;
@@ -1533,7 +1485,6 @@
   transform: translateX(2px);
 }
 
-/* Dashed Action Slot (3rd column in Middle Row, like "+ Add a task" in reference) */
 .ag-dashed-slot {
   border-radius: var(--ag-radius, 22px);
   border: 1.5px dashed rgba(100, 116, 139, 0.45);
@@ -1570,9 +1521,6 @@
   transform: translateY(-3px);
 }
 
-/* ===========================================================
-   7. BOTTOM ROW: "Latest Livestock" Dark Cards with Ring Badge
-   =========================================================== */
 .ag-section-head {
   display: flex;
   align-items: center;
@@ -1625,7 +1573,6 @@
   color: var(--lsmis-accent-soft);
 }
 
-/* Circular ring badge in top-right of dark bottom cards (like 95% / 100% in reference) */
 .ag-ring-badge {
   width: 38px;
   height: 38px;
@@ -1677,9 +1624,6 @@
   opacity: 0.85;
 }
 
-/* ===========================================================
-   8. RESPONSIVE BREAKPOINTS
-   =========================================================== */
 @media (max-width: 1280px) {
   .ag-row-top {
     grid-template-columns: 1fr 1fr;
@@ -1762,11 +1706,6 @@
   }
 }
 
-/* ===========================================================
-   9. STANDARDIZED ADMIN RECORDS & PAGE CONTAINERS
-   Applies the exact Admin Dashboard card aesthetic (22px radius,
-   crisp border, soft elevation shadow) across all Admin pages.
-   =========================================================== */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
   background: var(--ag-card) !important;
   border-radius: var(--ag-radius, 22px) !important;
@@ -1790,9 +1729,6 @@
   box-shadow: none !important;
 }
 
-/* ===========================================================
-   10. STANDARDIZED ADMIN TOOLBAR, TABS, SEARCH & FILTERS
-   =========================================================== */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header {
   padding: 14px 20px !important;
   min-height: 62px !important;
@@ -1801,7 +1737,6 @@
   gap: 12px !important;
 }
 
-/* Unified Segmented Filter Tabs Track */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-seg-tabs {
   display: inline-flex;
   align-items: center;
@@ -1870,7 +1805,6 @@
   color: #ffffff !important;
 }
 
-/* Standardized Search Inputs & Select Dropdowns in Toolbar */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="text"],
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="search"],
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-header input[type="date"],
@@ -1895,7 +1829,6 @@
   outline: none !important;
 }
 
-/* Primary Toolbar & Modal Action Buttons (Add Personnel, Add Species, Export, Save) */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-toolbar-primary-btn,
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .btn-primary {
   display: inline-flex;
@@ -1961,9 +1894,6 @@
   color: #ffffff !important;
 }
 
-/* ===========================================================
-   11. STANDARDIZED ADMIN TABLES & RECORD ROWS
-   =========================================================== */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-scrollable-content {
   background: var(--ag-card) !important;
 }
@@ -2009,7 +1939,6 @@
   border-bottom: 1px solid var(--ag-line) !important;
 }
 
-/* Standardized Table Action Buttons */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .table-action-group {
   display: inline-flex;
   align-items: center;
@@ -2043,9 +1972,6 @@
   color: var(--lsmis-primary-text) !important;
 }
 
-/* ===========================================================
-   12. STANDARDIZED ADMIN PAGINATION FOOTER
-   =========================================================== */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-fixed-footer,
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .adm-pagination-bar {
   padding: 12px 20px !important;
@@ -2065,9 +1991,6 @@
   transition: all 150ms ease !important;
 }
 
-/* ===========================================================
-   13. STANDARDIZED ADMIN MODALS, DIALOGS & FORMS
-   =========================================================== */
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .modal-backdrop,
 :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .confirm-modal-backdrop {
   background: rgba(26, 32, 28, 0.58) !important;
@@ -2143,9 +2066,6 @@
   font-weight: 700 !important;
 }
 
-/* ===========================================================
-   14. STANDARDIZED ADMIN SETTINGS & PERMIT CONFIG PAGES
-   =========================================================== */
 @media (min-width: 1025px) {
   :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .app-content:has(.central-settings-container) {
     height: calc(100dvh - 78px) !important;
@@ -2194,9 +2114,6 @@
   box-shadow: var(--ag-shadow) !important;
 }
 
-/* ===========================================================
-   15. RESPONSIVE ADJUSTMENTS FOR ADMIN PAGES
-   =========================================================== */
 @media (max-width: 1024px) {
   :is(body[data-role="admin"], body[data-role="vet"], body[data-role="staff"]) .records-page-container {
     border-radius: 18px !important;

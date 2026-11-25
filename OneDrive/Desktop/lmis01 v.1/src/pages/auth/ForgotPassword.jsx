@@ -25,7 +25,6 @@ export const ForgotPassword = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  // Support Android hardware back button and popstate navigation
   useEffect(() => {
     const handleBack = (e) => {
       if (e && e.preventDefault) e.preventDefault();
@@ -47,7 +46,6 @@ export const ForgotPassword = () => {
     const cleanEmail = email.trim().toLowerCase();
     setLoadingSend(true);
     try {
-      // 1. Check database-enforced rate limit
       try {
         const { data: limitRes, error: rpcError } = await supabase.rpc("request_otp_rate_limit", {
           p_email: cleanEmail
@@ -62,7 +60,6 @@ export const ForgotPassword = () => {
         console.warn("Rate limit check:", rpcErr);
       }
 
-      // 2. Validate registered user or owner
       const { data: userRow } = await supabase
         .from(TABLES.USERS)
         .select("id, email")
@@ -87,7 +84,6 @@ export const ForgotPassword = () => {
         return;
       }
 
-      // 3. Send Supabase Password Recovery OTP
       const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail);
       if (error) {
         console.error("Supabase resetPasswordForEmail error:", error);
@@ -165,12 +161,10 @@ export const ForgotPassword = () => {
 
       if (updateError) throw updateError;
 
-      // Clear rate limit record on successful password reset
       try {
         await supabase.from("otp_rate_limits").delete().eq("email", cleanEmail);
       } catch (e) {}
 
-      // Sign out recovery session to ensure fresh sign in
       try {
         await supabase.auth.signOut();
       } catch (e) {}
@@ -190,7 +184,6 @@ export const ForgotPassword = () => {
   return (
     <div className={`login-page lsmis-login is-view-forgot${isInstalled ? " is-installed-app" : ""}`}>
       <div className="login-container">
-        {/* Left brand panel */}
         <div className="login-brand">
           <div>
             <div className="login-brand-header">
@@ -252,11 +245,9 @@ export const ForgotPassword = () => {
           </div>
         </div>
 
-        {/* Right form panel */}
         <div className="login-form-wrap">
           <div className="login-box login-form">
 
-            {/* Mobile / Installed App Brand Header */}
             <div className="login-mobile-brand">
               <div className="login-mobile-logo">
                 <img src={logoImg} alt="LSMIS Official Logo" width="62" height="62" />
@@ -267,7 +258,6 @@ export const ForgotPassword = () => {
             </div>
             
             <form onSubmit={handleResetPassword} className="login-form-body" noValidate>
-              {/* Top-Left Visible Back Navigation to Sign In */}
               <div className="login-reg-top-nav">
                 <button
                   type="button"
@@ -284,13 +274,11 @@ export const ForgotPassword = () => {
                 </span>
               </div>
 
-              {/* Header - Unified with Sign In */}
               <div className="login-form-head">
                 <h1>Reset Password</h1>
                 <p className="subtitle">Enter your registered email and verification code to recover your account</p>
               </div>
 
-              {/* Account Email + Send Code */}
               <div className="form-group">
                 <label className="form-label" htmlFor="fp-page-email">
                   Email <span className="req">*</span>
@@ -325,7 +313,6 @@ export const ForgotPassword = () => {
                 </div>
               </div>
 
-              {/* Verification Code */}
               <div className="form-group">
                 <label className="form-label" htmlFor="fp-page-code">
                   6-Digit Verification Code <span className="req">*</span>
@@ -345,7 +332,6 @@ export const ForgotPassword = () => {
                 </div>
               </div>
 
-              {/* New Password */}
               <div className="form-group">
                 <label className="form-label" htmlFor="fp-page-pwd">
                   New Password <span className="req">*</span>
@@ -375,7 +361,6 @@ export const ForgotPassword = () => {
                 </div>
               </div>
 
-              {/* Confirm Password */}
               <div className="form-group">
                 <label className="form-label" htmlFor="fp-page-cpwd">
                   Confirm Password <span className="req">*</span>
@@ -409,7 +394,6 @@ export const ForgotPassword = () => {
                 <PasswordRequirements password={password} />
               </div>
 
-              {/* Submit button */}
               <Button type="button" onClick={handleResetPassword} disabled={loadingReset || !validatePassword(password).isValid} block size="lg" className="login-submit">
                 {loadingReset ? (
                   <><span className="spinner" /><span>Resetting Password...</span></>
@@ -418,7 +402,6 @@ export const ForgotPassword = () => {
                 )}
               </Button>
 
-              {/* Secondary Back Button directly below Submit */}
               <Link to="/login" className="btn-back-to-landing">
                 <Icon.ArrowLeft size={16} />
                 <span>Back to Sign In</span>

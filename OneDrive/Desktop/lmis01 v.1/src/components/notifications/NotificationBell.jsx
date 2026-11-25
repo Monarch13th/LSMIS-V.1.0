@@ -7,7 +7,6 @@ import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
 import { formatDate } from "../../utils/formatters";
 
-// Category styling and iconography
 const BELL_TYPE_META = {
   marking:     { icon: <Icon.Tag size={15} />, color: "#f59e0b", label: "Marking" },
   vetapproval: { icon: <Icon.Check size={15} />, color: "#10b981", label: "Vet OK" },
@@ -23,9 +22,6 @@ const BELL_TYPE_META = {
   system:      { icon: <Icon.Bell size={15} />, color: "#5D6660", label: "System" },
 };
 
-/**
- * Format timestamp into friendly relative or calendar string
- */
 function timeAgo(dateVal) {
   if (!dateVal) return "";
   try {
@@ -47,10 +43,6 @@ function timeAgo(dateVal) {
   }
 }
 
-/**
- * Robust role-based destination resolver that links directly to the specific
- * module and record based on notification type and extracted entity IDs.
- */
 export function resolveNotificationDestination(item, userRole) {
   const role = String(userRole || "").toLowerCase().trim();
   const title = String(item?.title || "").toLowerCase();
@@ -59,13 +51,11 @@ export function resolveNotificationDestination(item, userRole) {
   const type = String(item?.type || "").toLowerCase();
   const fullText = `${title} ${message} ${category} ${type}`;
 
-  // 1. Extract Tag Number if present (e.g. TAG-001-HOG, TAG-123, or stored item tag)
   const tagMatch =
     (item?.tag_number ? [item.tag_number, item.tag_number] : null) ||
     fullText.match(/\b(TAG-[A-Z0-9]+(?:-[A-Z0-9]+)?)\b/i);
   const tag = tagMatch ? tagMatch[1].toUpperCase() : (item?.tag_number || "");
 
-  // 2. Extract Owner ID or Owner Name
   const ownerIdMatch = fullText.match(/\b(OWN-[A-Z0-9]+(?:-[A-Z0-9]+)?)\b/i);
   const ownerId = item?.owner_id || (ownerIdMatch ? ownerIdMatch[1].toUpperCase() : "");
 
@@ -79,7 +69,6 @@ export function resolveNotificationDestination(item, userRole) {
   const isStaff = role === "staff";
   const isOwner = role === "owner";
 
-  // Scenario 1: Animal Marking timeout / returned to marking
   if (
     category === "marking" ||
     type === "marking_timeout" ||
@@ -95,7 +84,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/owners?tab=marking${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 2: Slaughter assignment / Team Operator reassignment
   if (
     fullText.includes("operator reassignment") ||
     fullText.includes("assign team operator") ||
@@ -108,7 +96,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/slaughter-processing?tab=awaiting${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 3: Ready for Slaughter / Slaughter Line Alert
   if (
     fullText.includes("ready for slaughter") ||
     fullText.includes("slaughter line alert")
@@ -119,7 +106,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/slaughter-processing?tab=active${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 4: Ante-Mortem approval / inspection
   if (
     fullText.includes("ante-mortem") ||
     fullText.includes("antemortem") ||
@@ -131,7 +117,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/slaughter-processing?tab=awaiting${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 5: Meat Condemned (Ante or Post)
   if (
     fullText.includes("condemned") ||
     fullText.includes("meat condemned") ||
@@ -143,7 +128,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/owner/animals${tag ? `?tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 6: Post-Mortem approval / inspection
   if (
     fullText.includes("post-mortem") ||
     fullText.includes("postmortem") ||
@@ -155,7 +139,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/permits?tab=pending${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 7: Carcass Weighing & Branding
   if (
     fullText.includes("carcass weighed") ||
     fullText.includes("weighed & branded") ||
@@ -168,7 +151,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/permits?tab=pending${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 8: Meat Permit issuance / payment received / dispatch
   if (
     fullText.includes("meat permit") ||
     fullText.includes("permit issued") ||
@@ -185,7 +167,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/permits?tab=issued${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 9: Slaughter schedule or slaughter processing completed
   if (
     category === "schedule" ||
     fullText.includes("slaughter group completed") ||
@@ -198,7 +179,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/staff/slaughter-processing?tab=completed${tag ? `&search=${encodeURIComponent(tag)}&tag=${encodeURIComponent(tag)}` : ""}`;
   }
 
-  // Scenario 10: Owner registration or Account approval / rejection
   if (
     type === "account_approval" ||
     fullText.includes("account approved") ||
@@ -213,7 +193,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/vet/dashboard`;
   }
 
-  // Scenario 11: System announcements or Security warning
   if (
     category === "system" ||
     type === "danger" ||
@@ -228,7 +207,6 @@ export function resolveNotificationDestination(item, userRole) {
     return `/owner/profile`;
   }
 
-  // Fallback safe routes per role:
   if (isAdmin) return `/admin/dashboard`;
   if (isVet) return `/vet/ante-mortem`;
   if (isStaff) return `/staff/slaughter-processing`;
@@ -236,9 +214,6 @@ export function resolveNotificationDestination(item, userRole) {
   return `/`;
 }
 
-/**
- * Determine category key for meta lookups
- */
 function resolveCategory(n) {
   if (!n) return "system";
   const title = String(n.title || "").toLowerCase();
@@ -258,10 +233,6 @@ function resolveCategory(n) {
   return n.category || "system";
 }
 
-/**
- * Build combined list of bell items from live data and stored Supabase notifications
- * STRICTLY scoped to the authenticated user's role.
- */
 function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ownerId) {
   const items = [];
   const cleanRole = String(role || "").toLowerCase().trim();
@@ -270,7 +241,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
   const isStaff = cleanRole === "staff" || cleanRole === "operator";
   const isOwner = cleanRole === "owner";
 
-  // 1. Process Supabase stored notifications first (Strictly role-scoped)
   (storedNotifs || []).forEach((n) => {
     const notifRole = String(n.role || "").toLowerCase().trim();
 
@@ -308,10 +278,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
     });
   });
 
-  // 2. Role-specific live operational activities:
   if (isStaff) {
-    // STAFF ONLY:
-    // a) Livestock received awaiting animal marking
     (livestock || [])
       .filter((l) => {
         const s = String(l.status || "").toLowerCase();
@@ -331,7 +298,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         });
       });
 
-    // b) 24h Marking Fallback Timeouts
     (livestock || [])
       .filter((l) => {
         const s = String(l.status || "").toLowerCase();
@@ -357,7 +323,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         }
       });
 
-    // c) Live slaughter schedules for today / upcoming
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const in3 = new Date(today); in3.setDate(today.getDate() + 3);
     (schedules || [])
@@ -392,8 +357,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
   }
 
   if (isVet) {
-    // VETERINARIAN ONLY:
-    // a) Marked animals awaiting ante-mortem inspection
     (livestock || [])
       .filter((l) => {
         const s = String(l.status || "").toLowerCase();
@@ -414,7 +377,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         });
       });
 
-    // b) Ante-mortem approvals
     (ante || [])
       .filter((a) => a.decision === "Approved" || a.result === "Passed" || a.status === "Approved")
       .slice(0, 3)
@@ -433,7 +395,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
         }
       });
 
-    // c) Post-mortem approvals & condemnations
     (post || [])
       .filter((p) => p.decision === "Approved")
       .slice(0, 3)
@@ -472,7 +433,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
       });
   }
 
-  // Deduplicate items by ID
   const seen = new Set();
   const deduped = [];
   for (const it of items) {
@@ -482,7 +442,6 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
     }
   }
 
-  // Sort: newest first
   return deduped.sort((a, b) => {
     const da = a.date ? new Date(a.date).getTime() : 0;
     const db = b.date ? new Date(b.date).getTime() : 0;
@@ -492,7 +451,7 @@ function buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ow
 
 export const NotificationBell = () => {
   const [open, setOpen] = useState(false);
-  const [filter, setFilter] = useState("all"); // "all" | "unread"
+  const [filter, setFilter] = useState("all");
   const ref = useRef(null);
   const navigate = useNavigate();
   const { role, ownerId } = useAuth();
@@ -506,7 +465,6 @@ export const NotificationBell = () => {
   const cleanRole = useMemo(() => String(role || "").toLowerCase().trim(), [role]);
   const storageKey = useMemo(() => `lmis_read_notifs_${cleanRole || "guest"}`, [cleanRole]);
 
-  // Read state stored locally per role
   const [readIds, setReadIds] = useState(() => {
     try {
       const saved = localStorage.getItem(`lmis_read_notifs_${cleanRole || "guest"}`) || localStorage.getItem("lmis_read_notifs");
@@ -516,7 +474,6 @@ export const NotificationBell = () => {
     }
   });
 
-  // Re-read when role changes or window event fires
   useEffect(() => {
     try {
       const saved = localStorage.getItem(storageKey);
@@ -524,7 +481,6 @@ export const NotificationBell = () => {
     } catch {}
   }, [storageKey]);
 
-  // Sync with window events
   useEffect(() => {
     const handleUpdate = () => {
       try {
@@ -536,7 +492,6 @@ export const NotificationBell = () => {
     return () => window.removeEventListener("lmis-notif-read", handleUpdate);
   }, [storageKey]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const onClickOutside = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
@@ -547,13 +502,11 @@ export const NotificationBell = () => {
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  // Build bell items list
   const bellItems = useMemo(
     () => buildBellItems(ante, post, schedules, storedNotifs, livestock, role, ownerId),
     [ante, post, schedules, storedNotifs, livestock, role, ownerId]
   );
 
-  // Check if an item is read
   const isItemRead = useCallback(
     (item) => {
       if (item.read) return true;
@@ -564,7 +517,6 @@ export const NotificationBell = () => {
     [readIds]
   );
 
-  // Filtered lists
   const unreadCount = useMemo(() => {
     return bellItems.filter((it) => !isItemRead(it)).length;
   }, [bellItems, isItemRead]);
@@ -576,9 +528,7 @@ export const NotificationBell = () => {
     return bellItems;
   }, [bellItems, filter, isItemRead]);
 
-  // Click Handler: Mark clicked notification as read and navigate directly to its specific record
   const handleItemClick = async (item) => {
-    // 1. Mark as read immediately in local state
     const next = new Set([...readIds, item.id]);
     if (item.dbId) next.add(`stored-${item.dbId}`);
     setReadIds(next);
@@ -588,7 +538,6 @@ export const NotificationBell = () => {
       window.dispatchEvent(new Event("lmis-notif-read"));
     } catch (_) {}
 
-    // 2. Persist read status in Supabase if stored notification
     if (item.dbId) {
       try {
         await supabase.from(TABLES.NOTIFICATIONS).update({ read: true }).eq("id", item.dbId);
@@ -598,17 +547,14 @@ export const NotificationBell = () => {
       }
     }
 
-    // 3. Close dropdown
     setOpen(false);
 
-    // 4. Resolve exact module and record destination
     const destination = resolveNotificationDestination(item, role);
     if (destination) {
       navigate(destination);
     }
   };
 
-  // Mark all notifications as read
   const markAllAsReadDropdown = async (e) => {
     e.stopPropagation();
     const allIds = bellItems.map((it) => it.id);
@@ -623,7 +569,6 @@ export const NotificationBell = () => {
       window.dispatchEvent(new Event("lmis-notif-read"));
     } catch (_) {}
 
-    // Persist to Supabase
     const unreadDbIds = bellItems.filter((it) => it.dbId && !it.read).map((it) => it.dbId);
     if (unreadDbIds.length > 0) {
       try {
@@ -635,7 +580,6 @@ export const NotificationBell = () => {
     }
   };
 
-  // Resolve settings path based on role
   const settingsPath = useMemo(() => {
     const r = String(role || "").toLowerCase();
     if (r === "admin") return "/admin/settings";
@@ -647,7 +591,6 @@ export const NotificationBell = () => {
 
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      {/* Bell Button */}
       <button
         type="button"
         className="icon-btn-header"
@@ -685,7 +628,6 @@ export const NotificationBell = () => {
         )}
       </button>
 
-      {/* Notifications Dropdown Panel */}
       {open && (
         <div
           className="dropdown notification-dropdown-menu"
@@ -704,7 +646,6 @@ export const NotificationBell = () => {
             animation: "fadeIn 140ms ease-out",
           }}
         >
-          {/* Header */}
           <div
             style={{
               padding: "14px 18px",
@@ -773,7 +714,6 @@ export const NotificationBell = () => {
               )}
             </div>
 
-            {/* Filter Pills */}
             <div style={{ display: "flex", gap: 6 }}>
               <button
                 type="button"
@@ -812,7 +752,6 @@ export const NotificationBell = () => {
             </div>
           </div>
 
-          {/* Scrollable Notification List */}
           <div style={{ maxHeight: 380, overflowY: "auto", background: "var(--color-surface, #ffffff)" }}>
             {displayedItems.length === 0 ? (
               <div style={{ padding: "40px 20px", textAlign: "center", color: "var(--color-text-muted, #5D6660)" }}>
@@ -872,7 +811,6 @@ export const NotificationBell = () => {
                       e.currentTarget.style.background = !read ? `${meta.color}08` : "transparent";
                     }}
                   >
-                    {/* Icon Pill */}
                     <div
                       style={{
                         width: 34,
@@ -890,7 +828,6 @@ export const NotificationBell = () => {
                       {meta.icon}
                     </div>
 
-                    {/* Notification Content */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, marginBottom: 2 }}>
                         <span
@@ -922,7 +859,6 @@ export const NotificationBell = () => {
                         </span>
                       </div>
 
-                      {/* Message preview (2-line clamp) */}
                       <p
                         style={{
                           fontSize: 12,
@@ -938,7 +874,6 @@ export const NotificationBell = () => {
                         {n.message}
                       </p>
 
-                      {/* Footer Row: Tag Badge + Timestamp */}
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
                         {n.tag_number && (
                           <span
@@ -965,7 +900,6 @@ export const NotificationBell = () => {
                       </div>
                     </div>
 
-                    {/* Unread Indicator Dot */}
                     {!read && (
                       <div
                         style={{
@@ -986,7 +920,6 @@ export const NotificationBell = () => {
             )}
           </div>
 
-          {/* Footer */}
           <div
             style={{
               padding: "10px 18px",

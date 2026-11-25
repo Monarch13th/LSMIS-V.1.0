@@ -17,11 +17,6 @@ export const SUPABASE_ANON_KEY =
 const supabaseUrl = SUPABASE_URL;
 const supabaseKey = SUPABASE_ANON_KEY;
 
-/**
- * Returns a stable, tab-scoped identifier for the current browsing context.
- * Persists across page reloads (F5 / Ctrl+R / mobile pull-to-refresh) and same-tab OAuth redirects,
- * while remaining completely isolated when a user opens a new tab or window.
- */
 export function getTabId() {
   if (typeof window === "undefined") return "server";
   try {
@@ -45,14 +40,8 @@ export function getTabId() {
 
 const currentTabId = getTabId();
 const isNativeApp = typeof window !== "undefined" && isCapacitorNativeApp();
-// Installed APK or installed PWA: persist the session in localStorage so it survives closing the app.
 const isInstalled = typeof window !== "undefined" && isInstalledApp();
 
-/**
- * Capture initial OAuth callback URL state before createClient() runs,
- * because detectSessionInUrl: true may consume and strip #access_token=... from window.location.hash
- * before React components mount.
- */
 export const initialOAuthCallback =
   typeof window !== "undefined"
     ? {
@@ -67,9 +56,6 @@ export const initialOAuthCallback =
       }
     : { pathname: "/", search: "", hash: "", hasOAuthTokens: false };
 
-// Single unified source of truth for the Supabase database client
-// Inside installed Capacitor Android app: use localStorage so session persists across app close/reopen
-// In regular web browsers: use tab-isolated sessionStorage so tabs don't collide
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
     storage:

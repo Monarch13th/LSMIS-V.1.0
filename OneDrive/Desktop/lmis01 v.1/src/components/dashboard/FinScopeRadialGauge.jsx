@@ -1,11 +1,5 @@
 import React from "react";
 
-/**
- * FinScopeRadialGauge
- * Semicircular radial arc gauge inspired by FinScope "Analytic view".
- * Displays a segmented semicircle (Passed/High, Partial/Medium, Condemned/Low)
- * with a center metric, subtitle, trend indicator, and legend.
- */
 export const FinScopeRadialGauge = ({
   value = 98.4,
   unit = "%",
@@ -18,18 +12,12 @@ export const FinScopeRadialGauge = ({
     { label: "Condemned", color: "#f43f5e", percent: 3 },
   ],
 }) => {
-  // Semicircle dimensions:
-  // Center (cx, cy) = (100, 95), Radius = 76
-  // Angle spans from 180° to 0° (PI radians)
-  // Arc length = PI * 76 ≈ 238.76
   const cx = 100;
   const cy = 95;
   const r = 76;
   const arcLength = Math.PI * r;
 
-  // Clamped value 0 to 100
   const clampedVal = Math.max(0, Math.min(100, Number(value) || 0));
-  // Progress strokeDashoffset: starts full (arcLength) and decreases as clampedVal increases
   const strokeOffset = arcLength - (clampedVal / 100) * arcLength;
 
   return (
@@ -44,7 +32,6 @@ export const FinScopeRadialGauge = ({
       <div className="finscope-gauge-svg-wrap">
         <svg viewBox="0 0 200 120" className="finscope-gauge-svg">
           <defs>
-            {/* Linear gradient matching FinScope vibrant blue/emerald */}
             <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor="#187A56" />
               <stop offset="50%" stopColor="#10b981" />
@@ -52,13 +39,11 @@ export const FinScopeRadialGauge = ({
               <stop offset="100%" stopColor="#f43f5e" />
             </linearGradient>
 
-            {/* Subtle drop shadow */}
             <filter id="gaugeShadow" x="-10%" y="-10%" width="120%" height="120%">
               <feDropShadow dx="0" dy="2" stdDeviation="3" floodColor="#1A201C" floodOpacity="0.08" />
             </filter>
           </defs>
 
-          {/* Background Dotted / Tick Arc */}
           <path
             d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
@@ -67,7 +52,6 @@ export const FinScopeRadialGauge = ({
             strokeLinecap="round"
           />
 
-          {/* Segmented Guide Dots/Ticks */}
           <path
             d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
@@ -77,7 +61,6 @@ export const FinScopeRadialGauge = ({
             strokeLinecap="round"
           />
 
-          {/* Active Gradient Arc */}
           <path
             d={`M ${cx - r} ${cy} A ${r} ${r} 0 0 1 ${cx + r} ${cy}`}
             fill="none"
@@ -89,7 +72,6 @@ export const FinScopeRadialGauge = ({
             style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)" }}
           />
 
-          {/* Needle / Value dot indicator */}
           {(() => {
             const angleRad = Math.PI - (clampedVal / 100) * Math.PI;
             const px = cx + r * Math.cos(angleRad);
@@ -107,12 +89,10 @@ export const FinScopeRadialGauge = ({
             );
           })()}
 
-          {/* Semicircle Labels: High / Medium / Low or Safe / Condemned */}
           <text x="18" y="108" fill="#9BA49E" fontSize="8" fontWeight="700">Safe</text>
           <text x="175" y="108" fill="#9BA49E" fontSize="8" fontWeight="700" textAnchor="end">Barred</text>
         </svg>
 
-        {/* Center Overlay Metric */}
         <div className="finscope-gauge-center">
           <div className="finscope-gauge-val">
             {clampedVal.toFixed(1)}
@@ -127,7 +107,6 @@ export const FinScopeRadialGauge = ({
         </div>
       </div>
 
-      {/* Footer Segment Pills */}
       <div className="finscope-gauge-legend">
         {segments.map((s, idx) => (
           <div key={idx} className="finscope-legend-pill">

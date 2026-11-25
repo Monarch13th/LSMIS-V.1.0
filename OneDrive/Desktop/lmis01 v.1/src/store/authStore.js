@@ -1,4 +1,3 @@
-// Single global auth store with clean React state subscription
 import { useState, useEffect } from "react";
 import { supabase } from "../services/supabaseClient";
 import { TABLES, STORAGE_KEYS } from "../utils/constants";
@@ -68,8 +67,6 @@ export const removeSessionStorageItem = (key) => {
 
 const getInitialSession = () => {
   try {
-    // In Capacitor native app, support localStorage so session persists on close & reopen
-    // In standard web browsers, strictly use tab-isolated sessionStorage
     const stored = getSessionStorageItem(STORAGE_KEYS.SESSION);
     if (stored) return JSON.parse(stored);
     return null;
@@ -97,7 +94,6 @@ const isGoogleOAuthHandshakeInProgress = () => {
     const hash = window.location.hash || "";
     if (sessionStorage.getItem("lsmis_google_reg_pending")) return true;
 
-    // If already on an authenticated route, the OAuth handshake is done; never block session resolution
     if (
       pathname.startsWith("/owner") ||
       pathname.startsWith("/admin") ||
@@ -121,7 +117,6 @@ const isGoogleOAuthHandshakeInProgress = () => {
       hash.includes("error=") ||
       search.includes("error=");
 
-    // Only considered in progress if currently on /login or URL has OAuth parameters or in-flight markers
     if (hasOAuthTokens || ((pathname === "/login" || pathname === "/") && Boolean(inFlightTs))) {
       return true;
     }
@@ -129,9 +124,6 @@ const isGoogleOAuthHandshakeInProgress = () => {
   return false;
 };
 
-/**
- * Resolves full user profile & role from Supabase to construct standard application session
- */
 async function resolveUserSession(supabaseUser, existingCached = null) {
   if (!supabaseUser) return null;
   if (isGoogleOAuthHandshakeInProgress()) return null;
@@ -161,7 +153,6 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     existingCached?.google_id ||
     null;
 
-  // Only preserve cached session if BOTH user_id AND email match the authenticated Supabase user
   const currentInitial = getInitialSession();
   const cachedToUse = existingCached || currentInitial;
   if (
@@ -231,13 +222,10 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     console.warn("Could not query public.users during auth restoration:", e);
   }
 
-  // Check if role is definitively confirmed as personnel (Admin, Vet, Staff)
   const isPersonnel = role === "admin" || role === "vet" || role === "staff";
 
-  // Google OAuth is supported for both Personnel (Admin, Vet, Staff) and approved Owners
   if (isGoogleUser) {
     if (isPersonnel) {
-      // Validate personnel account status (must not be deactivated, inactive, or terminated)
       const stLower = String(userStatus || "").toLowerCase().trim();
       if (
         stLower === "inactive" ||
@@ -248,7 +236,6 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
         return null;
       }
     } else {
-      // Must be a verified approved owner in public.owners
       try {
         let ownerQ = supabase
           .from(TABLES.OWNERS)
@@ -290,7 +277,6 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
       }
     }
   } else {
-    // Non-Google user (standard Email & Password authentication for Admin, Vet, Staff, and manual Owners)
     if (!isPersonnel && (!role || role === "owner")) {
       try {
         let ownerQ = supabase
@@ -329,7 +315,6 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
     return null;
   }
 
-  // Retain existing session_id if already cached in this tab or initiated by client login; otherwise generate a fresh unique session UUID.
   let clientStoredSessionId = null;
   try {
     clientStoredSessionId =
@@ -367,16 +352,11 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
 
 let isAuthInitialized = false;
 
-/**
- * Initializes authentication state from Supabase Auth as the single source of truth.
- * Restores session on application startup and listens to auth state changes.
- */
 export const initializeAuth = async () => {
   if (isAuthInitialized || typeof window === "undefined") return;
   isAuthInitialized = true;
 
   try {
-    // 5000ms safety timeout race so slow mobile networks never block app startup
     const sessionPromise = supabase.auth.getSession();
     const timeoutPromise = new Promise((resolve) =>
       setTimeout(() => resolve({ data: null, error: new Error("Auth timeout") }), 5000)
@@ -393,7 +373,6 @@ export const initializeAuth = async () => {
 
     const sbSession = data?.session;
     if (sbSession?.user) {
-      // Only check MFA assurance level if user has verified MFA factors
       const hasVerifiedFactors =
         Array.isArray(sbSession.user.factors) &&
         sbSession.user.factors.some((f) => f?.status === "verified");
@@ -411,7 +390,6 @@ export const initializeAuth = async () => {
       }
 
       const cached = getInitialSession();
-      // If cached session exists and is valid, use it immediately to avoid unnecessary reinitialization
       if (
         cached &&
         cached.role &&
@@ -433,7 +411,6 @@ export const initializeAuth = async () => {
         }
       }
     } else {
-      // No active session in Supabase Auth
       const cached = getInitialSession();
       if (cached && cached.role) {
         authStore.set({ session: cached, loading: false, isInitialized: true });
@@ -450,10 +427,8 @@ export const initializeAuth = async () => {
     authStore.set({ session: cached || null, loading: false, isInitialized: true });
   }
 
-  // Subscribe to Supabase auth state transitions
   try {
     supabase.auth.onAuthStateChange(async (event, sbSession) => {
-      // INITIAL_SESSION is already handled by initializeAuth() above; skip duplicate queries
       if (event === "INITIAL_SESSION") return;
 
       if (event === "SIGNED_OUT") {
@@ -468,7 +443,6 @@ export const initializeAuth = async () => {
         return;
       }
 
-      // During background token refresh or user updates, preserve and refresh the active session
       if (event === "TOKEN_REFRESHED" || event === "USER_UPDATED") {
         const current = authStore.get()?.session || getInitialSession();
         if (current && current.role && current.session_id) {
@@ -498,7 +472,6 @@ export const initializeAuth = async () => {
           } catch (_) {}
         }
 
-        // If an active session is already loaded in authStore with a session_id and matches the exact user_id, don't overwrite it
         const currentStoreSession = authStore.get()?.session;
         const userEmail = (sbSession.user.email || "").toLowerCase().trim();
         if (
@@ -531,14 +504,10 @@ export const initializeAuth = async () => {
   }
 };
 
-// Auto-run once safely on client side
 if (typeof window !== "undefined") {
   initializeAuth();
 }
 
-/**
- * Subscribe to a single key of the auth store.
- */
 export const useAuthStore = (selector) => {
   const [slice, setSlice] = useState(() => (selector ? selector(authStore.get()) : authStore.get()));
 

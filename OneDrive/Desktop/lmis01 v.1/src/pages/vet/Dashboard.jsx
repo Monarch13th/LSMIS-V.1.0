@@ -41,7 +41,6 @@ export const VetDashboard = () => {
     });
   }, [post, carcass]);
 
-  // Live animals awaiting ante-mortem inspection:
   const anteLivestockIds = useMemo(() => new Set((ante || []).map((i) => String(i.livestock_id || "").trim()).filter(Boolean)), [ante]);
   const anteTags = useMemo(() => new Set((ante || []).map((i) => String(i.tag_number || "").trim().toLowerCase()).filter(Boolean)), [ante]);
   const postMortemTags = useMemo(() => new Set((post || []).map((p) => String(p.tag_number || "").trim().toLowerCase()).filter(Boolean)), [post]);
@@ -112,7 +111,6 @@ export const VetDashboard = () => {
     });
   }, [livestock, anteLivestockIds, anteTags, postMortemTags, postMortemIds]);
 
-  // Carcasses awaiting post-mortem inspection
   const inspectedPostMortemTags = useMemo(() => {
     const tags = new Set();
     (post || []).forEach((i) => {
@@ -288,9 +286,7 @@ export const VetDashboard = () => {
 
   return (
     <div className="ag-dash">
-      {/* Row 1: Hero Overview (Dark) + Clinical Throughput (Glass) + Inspection Outcomes (White) */}
       <div className="ag-row ag-row-top">
-        {/* Top-Left: Overall Information Card */}
         <section className="ag-card ag-dark ag-overview">
           <header className="ag-card-head">
             <h2>Overall information</h2>
@@ -383,7 +379,6 @@ export const VetDashboard = () => {
           </div>
         </section>
 
-        {/* Top-Center: Clinical Inspection Flow Card */}
         <section className="ag-card ag-glass">
           <header className="ag-card-head">
             <h2>Clinical inspection flow</h2>
@@ -407,7 +402,6 @@ export const VetDashboard = () => {
           />
         </section>
 
-        {/* Top-Right: Inspection Outcomes Card */}
         <section className="ag-card ag-white ag-progress-card">
           <div>
             <header className="ag-card-head">
@@ -466,7 +460,6 @@ export const VetDashboard = () => {
         </section>
       </div>
 
-      {/* Row 2: Clinical Queue Checklist + Recent Post-Mortem Cards + Conduct Inspection Slot */}
       <div className="ag-row ag-row-mid">
         <section className="ag-card ag-white ag-goals">
           <header className="ag-card-head">
@@ -603,7 +596,6 @@ export const VetDashboard = () => {
         </div>
       </div>
 
-      {/* Row 3: Recent Ante-Mortem Dark Cards */}
       <div className="ag-section-head">
         <h2 className="ag-section">Latest Ante-Mortem Inspections</h2>
         <button type="button" className="ag-link" onClick={go("ante-mortem")}>

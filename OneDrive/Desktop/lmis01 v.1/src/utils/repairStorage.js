@@ -1,7 +1,6 @@
 export const repairCorruptedMockData = () => {
   if (typeof window === "undefined" || !window.localStorage) return;
   try {
-    // Purge legacy mock database keys and audit mirrors so Supabase PostgreSQL remains the single source of truth
     const keysToRemove = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -21,6 +20,5 @@ export const repairCorruptedMockData = () => {
       } catch (_) { }
     });
   } catch (e) {
-    // Non-blocking cleanup
   }
 };

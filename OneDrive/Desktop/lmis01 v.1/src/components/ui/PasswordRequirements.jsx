@@ -2,11 +2,6 @@ import { useMemo } from "react";
 import { Icon } from "../icons";
 import { validatePassword } from "../../utils/passwordValidation";
 
-/**
- * PasswordRequirements
- * Clean, government-compliant checklist displaying the 5 security rules
- * with real-time feedback as the user types.
- */
 export const PasswordRequirements = ({
   password = "",
   showOnlyWhenDirty = false,
@@ -78,7 +73,6 @@ export const PasswordRequirements = ({
         </div>
       )}
 
-      {/* Progress Bar */}
       <div
         style={{
           height: compact ? 4 : 5,
@@ -99,7 +93,6 @@ export const PasswordRequirements = ({
         />
       </div>
 
-      {/* Checklist items */}
       <ul
         style={{
           listStyle: "none",

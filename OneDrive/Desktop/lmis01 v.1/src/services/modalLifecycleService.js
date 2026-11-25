@@ -13,11 +13,6 @@ const safeParseSteps = (steps) => {
   return steps;
 };
 
-/**
- * Re-queries Supabase directly to get remaining live animals for a specific owner
- * that still require Ante-Mortem Inspection.
- * Returns Array of remaining records on confirmed success, or null if query errored.
- */
 export const getRemainingAnteMortemForOwner = async (ownerName) => {
   if (!ownerName || typeof ownerName !== "string") return [];
   const cleanOwner = ownerName.trim();
@@ -58,7 +53,6 @@ export const getRemainingAnteMortemForOwner = async (ownerName) => {
       if (!tag) return false;
       const s = String(l.status || "").trim().toLowerCase();
 
-      // Animals awaiting marking or returned to marking must not qualify for Ante-Mortem
       if (
         s === "pending marking" ||
         s === "for marking" ||
@@ -73,7 +67,6 @@ export const getRemainingAnteMortemForOwner = async (ownerName) => {
       if (l.id && (anteIds.has(String(l.id).trim()) || postIds.has(String(l.id).trim()))) return false;
       if (anteTags.has(tag) || postTags.has(tag)) return false;
 
-      // Animal MUST be marked to await Ante-Mortem inspection
       const isMarked = Boolean(
         (l.marked === true || l.marked === "true" || l.marked === 1 || l.marked === "1" || l.marked === "t") &&
         l.marked !== "false" &&
@@ -93,11 +86,6 @@ export const getRemainingAnteMortemForOwner = async (ownerName) => {
   }
 };
 
-/**
- * Re-queries Supabase directly to get remaining carcasses for a specific owner
- * that still require Post-Mortem Inspection.
- * Returns Array of remaining records on confirmed success, or null if query errored.
- */
 export const getRemainingPostMortemForOwner = async (ownerName) => {
   if (!ownerName || typeof ownerName !== "string") return [];
   const cleanOwner = ownerName.trim();
@@ -130,7 +118,6 @@ export const getRemainingPostMortemForOwner = async (ownerName) => {
 
     const candidateMap = new Map();
 
-    // 1. From slaughter_processing
     (procRes.data || []).forEach((p) => {
       const tag = String(p.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -154,7 +141,6 @@ export const getRemainingPostMortemForOwner = async (ownerName) => {
       }
     });
 
-    // 2. From slaughter_records
     (slRes.data || []).forEach((s) => {
       const tag = String(s.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -174,7 +160,6 @@ export const getRemainingPostMortemForOwner = async (ownerName) => {
       });
     });
 
-    // 3. From livestock
     (liveRes.data || []).forEach((l) => {
       const tag = String(l.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -197,11 +182,6 @@ export const getRemainingPostMortemForOwner = async (ownerName) => {
   }
 };
 
-/**
- * Re-queries Supabase directly to get all remaining live animals across ALL owners
- * that still require Ante-Mortem Inspection.
- * Returns Array of remaining records on confirmed success, or null if query errored.
- */
 export const getAllRemainingAnteMortem = async () => {
   try {
     const [liveRes, anteRes, postRes] = await Promise.all([
@@ -238,7 +218,6 @@ export const getAllRemainingAnteMortem = async () => {
       if (!tag) return false;
       const s = String(l.status || "").trim().toLowerCase();
 
-      // Animals awaiting marking or returned to marking must not qualify for Ante-Mortem
       if (
         s === "pending marking" ||
         s === "for marking" ||
@@ -253,7 +232,6 @@ export const getAllRemainingAnteMortem = async () => {
       if (l.id && (anteIds.has(String(l.id).trim()) || postIds.has(String(l.id).trim()))) return false;
       if (anteTags.has(tag) || postTags.has(tag)) return false;
 
-      // Animal MUST be marked to await Ante-Mortem inspection
       const isMarked = Boolean(
         (l.marked === true || l.marked === "true" || l.marked === 1 || l.marked === "1" || l.marked === "t") &&
         l.marked !== "false" &&
@@ -273,11 +251,6 @@ export const getAllRemainingAnteMortem = async () => {
   }
 };
 
-/**
- * Re-queries Supabase directly to get all remaining carcasses across ALL owners
- * that still require Post-Mortem Inspection.
- * Returns Array of remaining records on confirmed success, or null if query errored.
- */
 export const getAllRemainingPostMortem = async () => {
   try {
     const [procRes, slRes, liveRes, postRes] = await Promise.all([
@@ -306,7 +279,6 @@ export const getAllRemainingPostMortem = async () => {
       if (tag) livestockMap.set(tag, l);
     });
 
-    // 1. From slaughter_processing
     (procRes.data || []).forEach((p) => {
       const tag = String(p.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -330,7 +302,6 @@ export const getAllRemainingPostMortem = async () => {
       }
     });
 
-    // 2. From slaughter_records
     (slRes.data || []).forEach((s) => {
       const tag = String(s.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -350,7 +321,6 @@ export const getAllRemainingPostMortem = async () => {
       });
     });
 
-    // 3. From livestock
     (liveRes.data || []).forEach((l) => {
       const tag = String(l.tag_number || "").trim();
       const cleanTag = tag.toLowerCase();
@@ -378,11 +348,6 @@ export const getAllRemainingPostMortem = async () => {
   }
 };
 
-/**
- * Re-queries Supabase directly to get remaining carcasses for a specific owner
- * that have passed Post-Mortem Inspection and are ready for Carcass Weighing.
- * Returns Array of remaining records on confirmed success, or null if query errored.
- */
 export const getRemainingWeighingForOwner = async (ownerName) => {
   if (!ownerName || typeof ownerName !== "string") return [];
   const cleanOwner = ownerName.trim();

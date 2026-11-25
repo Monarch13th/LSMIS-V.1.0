@@ -37,7 +37,6 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
   return (
     <div className="owner-desktop-gate">
       <div className="owner-gate-card">
-        {/* Abattoir Crest / Badge */}
         <div className="owner-gate-badge">
           <img
             src={logoImg}
@@ -47,7 +46,6 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
           <span>City Veterinary Abattoir • Mobile Portal</span>
         </div>
 
-        {/* Device Restriction Icon */}
         <div className="owner-gate-icon-wrapper">
           <Icon.Smartphone size={36} />
           <div className="owner-gate-icon-badge" title="Smartphone Only">
@@ -60,7 +58,6 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
           The <strong>Livestock Owner Portal</strong> is strictly designed for handheld mobile phones (Android &amp; iOS). Desktop browser access is disabled to ensure the intended mobile workflow for livestock raisers in the field.
         </p>
 
-        {/* QR Code Section */}
         <div className="owner-gate-qr-box">
           <div className="owner-gate-qr-label">
             <Icon.Camera size={14} />
@@ -75,13 +72,11 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
               alt="Scan to open on smartphone"
               style={{ width: 148, height: 148, borderRadius: 8, objectFit: "contain" }}
               onError={(e) => {
-                // Fallback if offline
                 e.target.style.display = "none";
                 const fallback = e.target.nextSibling;
                 if (fallback) fallback.style.display = "flex";
               }}
             />
-            {/* Fallback container if offline */}
             <div
               style={{
                 display: "none",
@@ -104,7 +99,6 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
             </div>
           </div>
 
-          {/* Copyable Link Chip */}
           <div className="owner-gate-url-chip">
             <Icon.Globe size={13} style={{ color: "#24966D", flexShrink: 0 }} />
             <span className="owner-gate-url-text" title={mobileUrl}>
@@ -127,7 +121,6 @@ export const OwnerDesktopGate = ({ onSimulateMobile }) => {
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="owner-gate-actions">
           <button
             type="button"

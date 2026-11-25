@@ -18,7 +18,6 @@ export const OwnerDashboard = () => {
   const { session, userName, ownerId: authOwnerId } = useAuth();
   const navigate = useNavigate();
 
-  // Core Data States
   const [loading, setLoading] = useState(true);
   const [ownerInfo, setOwnerInfo] = useState(null);
   const [resolvedOwnerId, setResolvedOwnerId] = useState(authOwnerId || null);
@@ -32,7 +31,6 @@ export const OwnerDashboard = () => {
   const [permits, setPermits] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
-  // Milestone lookup maps for calculating accurate progress
   const [milestones, setMilestones] = useState({
     ante: {},
     post: {},
@@ -45,23 +43,19 @@ export const OwnerDashboard = () => {
     permits: {},
   });
 
-  // Modal States
   const [selectedAnimal, setSelectedAnimal] = useState(null);
   const [selectedPermit, setSelectedPermit] = useState(null);
   const [condemnationDetails, setCondemnationDetails] = useState(null);
 
-  // Search, Filter & Pagination states for Today's Livestock
   const [todaySearchQuery, setTodaySearchQuery] = useState("");
   const [todayStatusFilter, setTodayStatusFilter] = useState("all");
   const [todayPage, setTodayPage] = useState(1);
   const todayPageSize = 5;
 
-  // Stability & Concurrency guards
   const inFlightRef = useRef(false);
   const fetchRef = useRef(null);
   const ownerScopeRef = useRef(null);
 
-  // Authoritative Supabase Data Fetcher
   const loadDashboardData = useCallback(async (opts = {}) => {
     const isSilent = Boolean(opts?.silent);
     if (inFlightRef.current) return;
@@ -70,10 +64,8 @@ export const OwnerDashboard = () => {
       setLoading(true);
     }
     try {
-      // 0. Ensure legacy mock keys are purged
       ensureOwnerMockSeeded();
 
-      // 1. Resolve authentic owner from active session
       const { data: authUserRes } = await supabase.auth.getUser();
       const authEmail = (authUserRes?.user?.email || session?.email || "").trim().toLowerCase();
 
@@ -125,7 +117,6 @@ export const OwnerDashboard = () => {
       setResolvedOwnerId(currentOwnerId);
       setOwnerInfo(foundOwner);
 
-      // 2. Fetch Owner's Livestock strictly from Supabase filtered by authenticated owner ID
       let liveList = [];
       if (currentOwnerId) {
         const { data: lData } = await supabase
@@ -139,7 +130,6 @@ export const OwnerDashboard = () => {
 
       const tagList = liveList.map((a) => a.tag_number).filter(Boolean);
 
-      // 3. Parallel fetching of Inspection, Payment, and Permit records
       let anteList = [];
       let postList = [];
       let condList = [];
@@ -181,7 +171,6 @@ export const OwnerDashboard = () => {
         permList = permRes.data || [];
       }
 
-      // Merge payments linked directly by owner_id or owner_name
       if (currentOwnerId || foundOwner?.name) {
         try {
           let payQuery = supabase.from(TABLES.PAYMENTS).select("*");
@@ -201,7 +190,6 @@ export const OwnerDashboard = () => {
           }
         } catch (_) {}
 
-        // Fetch permits linked by owner_name
         if (foundOwner?.name && permList.length === 0) {
           try {
             const { data: ownerPerms } = await supabase
@@ -215,7 +203,6 @@ export const OwnerDashboard = () => {
           } catch (_) {}
         }
 
-        // Fetch owner notifications strictly belonging to this owner
         try {
           const { data: nData } = await supabase
             .from(TABLES.NOTIFICATIONS)
@@ -227,7 +214,6 @@ export const OwnerDashboard = () => {
         } catch (_) {}
       }
 
-      // Build milestone lookup maps
       const anteMap = {};
       anteList.forEach((x) => {
         if (x.livestock_id) anteMap[x.livestock_id] = x;
@@ -311,22 +297,18 @@ export const OwnerDashboard = () => {
     }
   }, [authOwnerId, session?.id, session?.email]);
 
-  // Keep fetchRef in sync
   useEffect(() => {
     fetchRef.current = loadDashboardData;
   }, [loadDashboardData]);
 
-  // Synchronize owner scope for Realtime filtering
   useEffect(() => {
     ownerScopeRef.current = buildOwnerScope(resolvedOwnerId || ownerInfo?.id || authOwnerId, animals);
   }, [resolvedOwnerId, ownerInfo?.id, authOwnerId, animals]);
 
-  // Initial dashboard load (once, with loading spinner)
   useEffect(() => {
     loadDashboardData({ silent: false });
   }, [loadDashboardData]);
 
-  // Debounced, owner-scoped Supabase Realtime synchronization
   useEffect(() => {
     return subscribeOwnerLiveRefresh({
       channelName: "owner-dash-live-" + (authOwnerId || session?.owner_id || "client"),
@@ -346,7 +328,6 @@ export const OwnerDashboard = () => {
     });
   }, [authOwnerId, session?.owner_id]);
 
-  // Selective lmis-db-change listener (strictly ignores unrelated tables like audit_logs, users, etc.)
   useEffect(() => {
     const handleDbChange = (e) => {
       const changedTable = e?.detail?.table;
@@ -380,7 +361,6 @@ export const OwnerDashboard = () => {
     };
   }, []);
 
-  // Automatic Date Updates: Silently refresh when the calendar date rolls over in Asia/Manila
   useEffect(() => {
     let lastManilaDate = getManilaTodayDateString();
 
@@ -396,7 +376,6 @@ export const OwnerDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Sync avatar when owner updates profile picture in Profile section
   useEffect(() => {
     const handleProfileUpdate = (e) => {
       if (e.detail?.avatar_url) {
@@ -414,7 +393,6 @@ export const OwnerDashboard = () => {
     session?.avatar_url ||
     "";
 
-  // Enrich animals with friendly progress & categories
   const enrichedAnimals = useMemo(() => {
     return animals.map((a) => {
       const progress = calculateLivestockProgress(a, milestones);
@@ -425,15 +403,12 @@ export const OwnerDashboard = () => {
     });
   }, [animals, milestones]);
 
-  // Strictly filter for today's registered livestock in Asia/Manila for the authenticated owner ID
   const todayEnrichedAnimals = useMemo(() => {
     if (!resolvedOwnerId) return [];
     return enrichedAnimals.filter((a) => {
-      // 1. Strict owner ID match
       if (String(a.owner_id || "").trim() !== String(resolvedOwnerId).trim()) {
         return false;
       }
-      // 2. Check registration or processing timestamp in Asia/Manila timezone
       const regTimestamp = a.registered_at || a.created_at || a.received_date;
       const isRegToday = isTodayInManila(regTimestamp);
       const isProcToday = isTodayInManila(a.marked_at) || isTodayInManila(a.slaughter_date);
@@ -441,7 +416,6 @@ export const OwnerDashboard = () => {
     });
   }, [enrichedAnimals, resolvedOwnerId]);
 
-  // Sync selectedAnimal with latest data from animals on live update
   useEffect(() => {
     if (selectedAnimal?.tag_number) {
       const activeTag = String(selectedAnimal.tag_number).trim().toUpperCase();
@@ -454,7 +428,6 @@ export const OwnerDashboard = () => {
     }
   }, [animals]);
 
-  // Escape key handler for selectedAnimal (only closes if condemnation modal is not open)
   useEffect(() => {
     if (!selectedAnimal || condemnationDetails) return;
     const handleKeyDown = (e) => {
@@ -467,12 +440,10 @@ export const OwnerDashboard = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedAnimal, condemnationDetails]);
 
-  // Reset today's pagination when search or status filter changes
   useEffect(() => {
     setTodayPage(1);
   }, [todaySearchQuery, todayStatusFilter]);
 
-  // Today's category count badges
   const countTodayAll = todayEnrichedAnimals.length;
   const countTodayInspection = todayEnrichedAnimals.filter((a) => a.progress?.statusCategory === "inspection").length;
   const countTodayProcessing = todayEnrichedAnimals.filter((a) => a.progress?.statusCategory === "processing").length;
@@ -481,7 +452,6 @@ export const OwnerDashboard = () => {
     (a) => a.progress?.statusCategory === "condemned" || a.progress?.statusCategory === "rejected"
   ).length;
 
-  // Filtered today's dataset based on active search & category tab
   const filteredTodayAnimals = useMemo(() => {
     const q = todaySearchQuery.trim().toLowerCase();
     return todayEnrichedAnimals.filter((a) => {
@@ -508,14 +478,12 @@ export const OwnerDashboard = () => {
     });
   }, [todayEnrichedAnimals, todaySearchQuery, todayStatusFilter]);
 
-  // Pagination for Today's Livestock
   const totalTodayPages = Math.max(1, Math.ceil(filteredTodayAnimals.length / todayPageSize));
   const paginatedTodayAnimals = useMemo(() => {
     const start = (todayPage - 1) * todayPageSize;
     return filteredTodayAnimals.slice(start, start + todayPageSize);
   }, [filteredTodayAnimals, todayPage, todayPageSize]);
 
-  // Simple, owner-friendly 4-stat metrics (Requirement 3.B)
   const totalCount = enrichedAnimals.length > 0
     ? enrichedAnimals.reduce((sum, a) => sum + (Number(a.quantity) || 1), 0)
     : (Number(ownerInfo?.total_animals) || 0);
@@ -537,7 +505,6 @@ export const OwnerDashboard = () => {
       ["condemned", "rejected"].includes(String(a.status || "").toLowerCase().trim())
   ).length;
 
-  // Handler for opening Condemnation Details with Pathology Photos
   const handleOpenCondemnation = (tagNumber, e) => {
     if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     const tagUpper = String(tagNumber || "").trim().toUpperCase();
@@ -583,9 +550,6 @@ export const OwnerDashboard = () => {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 4px 28px 4px", maxWidth: "100%", overflowX: "hidden" }}>
       
-      {/* ------------------------------------------------------------------------- */}
-      {/* SECTION A: COMPACT HEADER (Requirement 3.A)                              */}
-      {/* ------------------------------------------------------------------------- */}
       <Link
         to="/owner/profile"
         title="View your profile"
@@ -603,7 +567,6 @@ export const OwnerDashboard = () => {
           color: "inherit",
         }}
       >
-        {/* Avatar with verified dot */}
         <div style={{ position: "relative", flexShrink: 0 }}>
           <div
             style={{
@@ -653,7 +616,6 @@ export const OwnerDashboard = () => {
           </span>
         </div>
 
-        {/* Greeting, name, status */}
         <div style={{ minWidth: 0, flex: 1 }}>
           <span style={{ fontSize: 12, color: "var(--color-text-muted, #5D6660)", display: "block", fontWeight: 500 }}>
             {(() => {
@@ -704,11 +666,7 @@ export const OwnerDashboard = () => {
         <Icon.ChevronRight size={18} style={{ color: "#9BA49E", flexShrink: 0 }} />
       </Link>
 
-      {/* ------------------------------------------------------------------------- */}
-      {/* SECTION B: LIVESTOCK OVERVIEW (Requirement 3.B)                           */}
-      {/* ------------------------------------------------------------------------- */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {/* 1. Total Registered */}
         <div
           onClick={() => setTodayStatusFilter("all")}
           data-ag-tip={`${totalCount} total registered livestock (${todayEnrichedAnimals.length} today) • click to show all`}
@@ -737,7 +695,6 @@ export const OwnerDashboard = () => {
           </span>
         </div>
 
-        {/* 2. For Inspection */}
         <div
           onClick={() => setTodayStatusFilter("inspection")}
           data-ag-tip={`${forInspectionCount} livestock awaiting veterinary inspection • click to filter`}
@@ -766,7 +723,6 @@ export const OwnerDashboard = () => {
           </span>
         </div>
 
-        {/* 3. Approved Livestock */}
         <div
           onClick={() => setTodayStatusFilter("cleared")}
           data-ag-tip={`${approvedCount} livestock passed inspection • click to filter cleared`}
@@ -795,7 +751,6 @@ export const OwnerDashboard = () => {
           </span>
         </div>
 
-        {/* 4. Condemned Livestock */}
         <div
           onClick={() => setTodayStatusFilter("condemned")}
           data-ag-tip={`${condemnedCount} condemned / rejected livestock • click to filter`}
@@ -825,9 +780,6 @@ export const OwnerDashboard = () => {
         </div>
       </div>
 
-      {/* ------------------------------------------------------------------------- */}
-      {/* SECTION C: TODAY'S LIVESTOCK RECORDS                                      */}
-      {/* ------------------------------------------------------------------------- */}
       <div
         style={{
           background: "var(--color-surface, #ffffff)",
@@ -837,7 +789,6 @@ export const OwnerDashboard = () => {
           boxShadow: "0 2px 8px rgba(0, 0, 0, 0.03)",
         }}
       >
-        {/* Section Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Icon.Cow size={18} style={{ color: "#187A56" }} />
@@ -866,7 +817,6 @@ export const OwnerDashboard = () => {
           </Link>
         </div>
 
-        {/* Compact Search Bar */}
         <div style={{ position: "relative", width: "100%", marginBottom: 10 }}>
           <span
             style={{
@@ -927,7 +877,6 @@ export const OwnerDashboard = () => {
           )}
         </div>
 
-        {/* Filter Pills Tabs (All, Inspection, Processing, Cleared, Condemned) */}
         <div
           style={{
             display: "flex",
@@ -984,7 +933,6 @@ export const OwnerDashboard = () => {
           })}
         </div>
 
-        {/* Content Body */}
         {loading && animals.length === 0 ? (
           <div style={{ textAlign: "center", padding: "30px 0", color: "#5D6660", fontSize: 12.5 }}>
             <Icon.RefreshCw size={18} className="animate-spin" style={{ margin: "0 auto 8px auto", color: "#187A56", display: "block" }} />
@@ -1048,7 +996,6 @@ export const OwnerDashboard = () => {
                   ? `${condRec.part}${condRec.weight || condRec.weight_kg ? ` (${condRec.weight || condRec.weight_kg} kg)` : ""}`
                   : "Pathological cuts removed";
 
-              // 2. FULLY CONDEMNED CARD (Mobile Dashboard)
               if (isActuallyCondemned) {
                 const condStageName = prog.condemnationStage || (prog.currentStageIndex === 3 ? "Ante-Mortem" : "Post-Mortem");
                 const condTimeFormatted =
@@ -1102,7 +1049,6 @@ export const OwnerDashboard = () => {
                       </span>
                     </div>
 
-                    {/* Exact Processing Stage: Ante-Mortem vs Post-Mortem & Date/Time */}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, flexWrap: "wrap", fontSize: 12 }}>
                       <div style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
                         <span style={{ color: "#5D6660", fontWeight: 600 }}>Stage:</span>
@@ -1177,7 +1123,6 @@ export const OwnerDashboard = () => {
                   }}
                   title="Click to view details"
                 >
-                  {/* Tag Number & Status Pill Header */}
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
                     <span
                       style={{
@@ -1221,7 +1166,6 @@ export const OwnerDashboard = () => {
                     </span>
                   </div>
 
-                  {/* Clean Info Row: Species, Breed, Sex */}
                   <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--color-text-muted, #5D6660)", flexWrap: "wrap" }}>
                     <span style={{ fontWeight: 700, color: "var(--color-text, #1A201C)" }}>
                       {a.species}
@@ -1240,7 +1184,6 @@ export const OwnerDashboard = () => {
                     )}
                   </div>
 
-                  {/* Small Clear Indication for Partially Condemned Livestock with View button */}
                   {isPartial && (
                     <div
                       style={{
@@ -1290,7 +1233,6 @@ export const OwnerDashboard = () => {
                     </div>
                   )}
 
-                  {/* Mini Progress Bar (Stage X of 7) */}
                   <div style={{ marginTop: 2 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "var(--color-text-muted, #5D6660)", marginBottom: 4 }}>
                       <span>Stage {prog.currentStageIndex || 1} of 7</span>
@@ -1309,7 +1251,6 @@ export const OwnerDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Footer Row: Timestamp & View Details Action */}
                   <div
                     style={{
                       display: "flex",
@@ -1345,7 +1286,6 @@ export const OwnerDashboard = () => {
               );
             })}
 
-            {/* Pagination Controls */}
             {totalTodayPages > 1 && (
               <div
                 style={{
@@ -1409,9 +1349,6 @@ export const OwnerDashboard = () => {
         )}
       </div>
 
-      {/* ------------------------------------------------------------------------- */}
-      {/* MODAL 1: VIEW LIVESTOCK HISTORY DETAILS MODAL (Records/Animals Parity)    */}
-      {/* ------------------------------------------------------------------------- */}
       {selectedAnimal && (() => {
         const selTag = selectedAnimal.tag_number;
         const selTagUpper = String(selTag || "").trim().toUpperCase();
@@ -1471,7 +1408,6 @@ export const OwnerDashboard = () => {
                 gap: 14,
               }}
             >
-              {/* Header */}
               <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12 }}>
                 <div>
                   <span
@@ -1525,7 +1461,6 @@ export const OwnerDashboard = () => {
                 </button>
               </div>
 
-              {/* Status Hero Banner */}
               <div
                 style={{
                   padding: "12px 14px",
@@ -1594,7 +1529,6 @@ export const OwnerDashboard = () => {
                   </span>
                 </div>
 
-                {/* Progress Bar */}
                 <div
                   style={{
                     height: 6,
@@ -1616,7 +1550,6 @@ export const OwnerDashboard = () => {
                 </div>
               </div>
 
-              {/* Small Clear Indication for Partially Condemned Livestock with View button */}
               {prog.isPartialCondemned && (
                 <div
                   style={{
@@ -1665,7 +1598,6 @@ export const OwnerDashboard = () => {
                 </div>
               )}
 
-              {/* Core Particulars Grid (Species, Sex, Carcass Weight) */}
               <div
                 className="owner-animal-modal-stats-grid"
                 style={{
@@ -1726,7 +1658,6 @@ export const OwnerDashboard = () => {
                 </div>
               </div>
 
-              {/* 7 Official Processing Milestones */}
               <div>
                 <div
                   style={{
@@ -1919,7 +1850,6 @@ export const OwnerDashboard = () => {
                 </div>
               </div>
 
-              {/* Close Button Footer */}
               <button
                 type="button"
                 onClick={() => setSelectedAnimal(null)}
@@ -1942,9 +1872,6 @@ export const OwnerDashboard = () => {
         );
       })()}
 
-      {/* ------------------------------------------------------------------------- */}
-      {/* MODAL 2: OFFICIAL MEAT PERMIT PREVIEW MODAL                               */}
-      {/* ------------------------------------------------------------------------- */}
       {selectedPermit && (
         <div
           style={{
@@ -1974,7 +1901,6 @@ export const OwnerDashboard = () => {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Government Header */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #C2CAC4", paddingBottom: 10, marginBottom: 12 }}>
               <img src={nagaCitySealImg} alt="City Seal" style={{ width: 44, height: 44, objectFit: "contain" }} />
               <div style={{ textAlign: "center", flex: 1, padding: "0 6px" }}>
@@ -1985,7 +1911,6 @@ export const OwnerDashboard = () => {
               <img src={bagongPilipinasImg} alt="Bagong Pilipinas" style={{ width: 44, height: 44, objectFit: "contain", borderRadius: 0, border: "none", outline: "none", boxShadow: "none", background: "transparent" }} />
             </div>
 
-            {/* Certificate Details */}
             <div style={{ fontSize: 11.5, color: "#1A201C", lineHeight: 1.6, marginBottom: 14 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
                 <span style={{ color: "#5D6660" }}>Permit No:</span>
@@ -2058,9 +1983,6 @@ export const OwnerDashboard = () => {
         </div>
       )}
 
-      {/* ------------------------------------------------------------------------- */}
-      {/* MODAL 3: CONDEMNATION & PATHOLOGY PHOTO VIEWER                            */}
-      {/* ------------------------------------------------------------------------- */}
       {condemnationDetails && (
         <OwnerCondemnationModal
           open={!!condemnationDetails}

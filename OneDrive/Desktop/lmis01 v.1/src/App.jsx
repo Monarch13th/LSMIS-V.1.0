@@ -8,13 +8,11 @@ import { useAuth } from "./hooks/useAuth";
 import { useSessionTimeout } from "./hooks/useSessionTimeout";
 import { useAutoScrollAlerts } from "./hooks/useAutoScrollAlerts";
 
-// Routes
 import { AdminRoute } from "./routes/AdminRoute";
 import { VetRoute } from "./routes/VetRoute";
 import { StaffRoute } from "./routes/StaffRoute";
 import { OwnerRoute } from "./routes/OwnerRoute";
 
-// Public entry points (kept eager for instant mobile/desktop first paint)
 import { LandingPage } from "./pages/LandingPage";
 import { Login } from "./pages/auth/Login";
 import logoImg from "./assets/logo.png";
@@ -22,17 +20,14 @@ import logoImg from "./assets/logo.png";
 const lazyNamed = (loader, exportName) =>
   lazy(() => loader().then((mod) => ({ default: mod[exportName] })));
 
-// Layouts (lazy-loaded per authenticated role)
 const AdminLayout = lazyNamed(() => import("./layouts/AdminLayout"), "AdminLayout");
 const VetLayout = lazyNamed(() => import("./layouts/VetLayout"), "VetLayout");
 const StaffLayout = lazyNamed(() => import("./layouts/StaffLayout"), "StaffLayout");
 const OwnerLayout = lazyNamed(() => import("./layouts/OwnerLayout"), "OwnerLayout");
 
-// Secondary Auth
 const ForgotPassword = lazyNamed(() => import("./pages/auth/ForgotPassword"), "ForgotPassword");
 const ResetPassword = lazyNamed(() => import("./pages/auth/ResetPassword"), "ResetPassword");
 
-// Admin core
 const AdminDashboard = lazyNamed(() => import("./pages/admin/Dashboard"), "AdminDashboard");
 const Users = lazyNamed(() => import("./pages/admin/Users"), "Users");
 const AuditLogs = lazyNamed(() => import("./pages/admin/AuditLogs"), "AuditLogs");
@@ -43,14 +38,12 @@ const AdminPermits = lazyNamed(() => import("./pages/admin/AdminPermits"), "Admi
 const RoleReportsModule = lazyNamed(() => import("./components/reports/RoleReportsModule"), "RoleReportsModule");
 const AdminSettings = lazyNamed(() => import("./pages/admin/AdminSettings"), "AdminSettings");
 
-// Vet core
 const VetDashboard = lazyNamed(() => import("./pages/vet/Dashboard"), "VetDashboard");
 const AnteMortem = lazyNamed(() => import("./pages/vet/AnteMortem"), "AnteMortem");
 const PostMortem = lazyNamed(() => import("./pages/vet/PostMortem"), "PostMortem");
 const InspectionHistory = lazyNamed(() => import("./pages/vet/InspectionHistory"), "InspectionHistory");
 const VetSettings = lazyNamed(() => import("./pages/vet/VetSettings"), "VetSettings");
 const VetAuditLogs = lazyNamed(() => import("./pages/vet/VetAuditLogs"), "VetAuditLogs");
-// Vet extra
 const OrganInspection = lazyNamed(() => import("./pages/vet/VetExtra"), "OrganInspection");
 const CondemnedMeatRecords = lazyNamed(() => import("./pages/vet/VetExtra"), "CondemnedMeatRecords");
 const EvidenceUpload = lazyNamed(() => import("./pages/vet/VetExtra"), "EvidenceUpload");
@@ -59,22 +52,18 @@ const VetSlaughterHistory = lazyNamed(() => import("./pages/vet/VetExtra"), "Vet
 const VetInspectionReport = lazyNamed(() => import("./pages/vet/VetExtra"), "VetInspectionReport");
 const VetCondemnationReport = lazyNamed(() => import("./pages/vet/VetExtra"), "VetCondemnationReport");
 
-// Staff core
 const StaffDashboard = lazyNamed(() => import("./pages/staff/Dashboard"), "StaffDashboard");
 const Owners = lazyNamed(() => import("./pages/staff/Owners"), "Owners");
 const CarcassWeighing = lazyNamed(() => import("./pages/vet/CarcassWeighing"), "CarcassWeighing");
 const StaffSettings = lazyNamed(() => import("./pages/staff/StaffSettings"), "StaffSettings");
 const StaffAuditLogs = lazyNamed(() => import("./pages/staff/StaffAuditLogs"), "StaffAuditLogs");
 const Permits = lazyNamed(() => import("./pages/staff/Permits"), "Permits");
-// Staff inspection views (read-only)
 const AntemortemStatus = lazyNamed(() => import("./pages/staff/InspectionResults"), "AntemortemStatus");
 const PostmortemStatus = lazyNamed(() => import("./pages/staff/InspectionResults"), "PostmortemStatus");
 const PostmortemResult = lazyNamed(() => import("./pages/staff/InspectionResults"), "PostmortemResult");
 const InspectionResults = lazyNamed(() => import("./pages/staff/InspectionResults"), "InspectionResults");
-// Staff unified slaughter processing
 const SlaughterProcessing = lazyNamed(() => import("./pages/staff/SlaughterProcessing"), "SlaughterProcessing");
 
-// Owner core (mobile-first livestock owner portal)
 const OwnerDashboard = lazyNamed(() => import("./pages/owner/Dashboard"), "OwnerDashboard");
 const OwnerAnimals = lazyNamed(() => import("./pages/owner/Animals"), "OwnerAnimals");
 const OwnerRecords = lazyNamed(() => import("./pages/owner/Records"), "OwnerRecords");
@@ -106,13 +95,6 @@ import { STORAGE_KEYS } from "./utils/constants";
 import { initialOAuthCallback } from "./services/supabaseClient";
 import { isInstalledApp } from "./utils/capacitor";
 
-/**
- * Single Official LSMIS Startup Splash Screen (Installed App Only):
- * STEP 1: User opens the installed LSMIS application.
- * STEP 2: Display the single official animated LSMIS splash screen on a clean white background for 3 seconds.
- * STEP 3: Initialize Supabase authentication and retrieve the existing session in parallel.
- * STEP 4: Fade out completely and reveal Login or the appropriate role dashboard (never re-runs on navigation).
- */
 const STARTUP_LOGO_SRC = "/logo.png?v=lsmis20261116e";
 const SPLASH_DURATION_MS = 3000;
 let hasShownLaunchSplashInMemory = false;
@@ -209,11 +191,6 @@ const StartupSplash = () => {
   );
 };
 
-/**
- * "/" entry point. Browser tabs get the public Landing Page. The installed APK / installed PWA
- * routes directly to the user's role dashboard (if authenticated) or Login (if unauthenticated)
- * while the single StartupSplash overlay is active above.
- */
 const LandingGate = () => {
   const { role, isAuthenticated, loading, isInitialized } = useAuth();
   const [gateTimeout, setGateTimeout] = useState(false);
@@ -291,10 +268,7 @@ const Shell = () => {
         }
       }
 
-      // In the installed Capacitor Android application:
-      // Direct startup: If user launches the app, go directly to their module if authenticated, otherwise to Login.
-      // The public Landing Page remains accessible on the web, but is bypassed on mobile app launch.
-      const isNativeApp = isInstalledApp(); // installed APK or installed PWA (never a plain browser tab)
+      const isNativeApp = isInstalledApp();
       if (isNativeApp && pathname === "/" && !hasOAuthCallbackParams) {
         if (!authInitialized || authLoading) {
           return;
@@ -320,27 +294,19 @@ const Shell = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* ============ ADMIN ============ */}
       <Route path="/admin" element={<AdminRoute><AdminLayout {...themeProps} /></AdminRoute>}>
         <Route index element={<AdminDashboard />} />
         <Route path="inspection-dashboard" element={<LivestockInspectionDashboard />} />
-        {/* Personnel Management (single page) */}
         <Route path="users" element={<Users />} />
         <Route path="audit-logs" element={<AuditLogs />} />
-        {/* Owner Account Management & Verification */}
         <Route path="owners" element={<OwnerManagement />} />
-        {/* Livestock Species Catalog Management */}
         <Route path="species" element={<SpeciesManagement />} />
-        {/* Livestock */}
         <Route path="livestock" element={<RoleReportsModule key="mon-livestock" role="admin" monitoringModule="livestock" />} />
         <Route path="livestock/tracking" element={<Navigate to="/admin/livestock" replace />} />
         <Route path="livestock/history" element={<Navigate to="/admin/livestock" replace />} />
-        {/* Permits */}
         <Route path="permits" element={<AdminPermits />} />
-        {/* Slaughter monitoring */}
         <Route path="slaughter/records" element={<RoleReportsModule key="mon-slaughter" role="admin" monitoringModule="slaughter" />} />
         <Route path="slaughter/monitoring" element={<RoleReportsModule key="mon-slaughter-m" role="admin" monitoringModule="slaughter" />} />
-        {/* Inspection monitoring */}
         <Route path="inspection/records" element={<RoleReportsModule key="mon-inspection" role="admin" monitoringModule="inspection" initialReportType="antemortem" />} />
         <Route path="inspection-records" element={<RoleReportsModule key="mon-inspection-rec-alt" role="admin" monitoringModule="inspection" initialReportType="antemortem" />} />
         <Route path="inspection/history" element={<RoleReportsModule key="mon-inspection-hist" role="admin" monitoringModule="inspection" initialReportType="antemortem" />} />
@@ -349,10 +315,8 @@ const Shell = () => {
         <Route path="inspection/postmortem" element={<RoleReportsModule key="mon-post" role="admin" monitoringModule="inspection" initialReportType="postmortem" />} />
         <Route path="inspection/partial" element={<RoleReportsModule key="mon-partial" role="admin" monitoringModule="inspection" initialReportType="condemnation" initialStatusFilter="partially_condemned" />} />
         <Route path="inspection/condemnation" element={<RoleReportsModule key="mon-condemn" role="admin" monitoringModule="inspection" initialReportType="condemnation" />} />
-        {/* Financial (Redirected since Fee Management was removed from Admin) */}
         <Route path="finance/records" element={<Navigate to="/admin/reports" replace />} />
         <Route path="finance/fees" element={<Navigate to="/admin/reports" replace />} />
-        {/* Reports */}
         <Route path="reports" element={<RoleReportsModule key="admin-reports" role="admin" />} />
         <Route path="reports/collection" element={<Navigate to="/admin/reports" replace />} />
         <Route path="reports/animal-revenue" element={<Navigate to="/admin/reports" replace />} />
@@ -361,75 +325,59 @@ const Shell = () => {
         <Route path="reports/inspection" element={<Navigate to="/admin/reports" replace />} />
         <Route path="reports/livestock" element={<Navigate to="/admin/reports" replace />} />
 
-        {/* Settings (Integrated Profile, Notifications, Security & Permit Configuration) */}
         <Route path="settings" element={<AdminSettings initialTab="profile" />} />
         <Route path="profile" element={<AdminSettings initialTab="profile" />} />
         <Route path="notifications" element={<AdminSettings initialTab="notifications" />} />
         <Route path="security" element={<AdminSettings initialTab="security" />} />
         <Route path="permit-config" element={<AdminSettings initialTab="permit-config" />} />
-        {/* Unknown admin paths fall back to the dashboard instead of the public landing page */}
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Route>
 
-      {/* ============ VET ============ */}
       <Route path="/vet" element={<VetRoute><VetLayout {...themeProps} /></VetRoute>}>
         <Route index element={<VetDashboard />} />
         <Route path="inspection-dashboard" element={<LivestockInspectionDashboard />} />
-        {/* Antemortem */}
         <Route path="ante-mortem" element={<AnteMortem initialTab="queue" />} />
         <Route path="ante-mortem/records" element={<AnteMortem initialTab="log" />} />
         <Route path="ante-mortem/inspection-history" element={<InspectionHistory />} />
         <Route path="ante-mortem/health-history" element={<Navigate to="/vet/inspection-history" replace />} />
-        {/* Postmortem */}
         <Route path="post-mortem" element={<PostMortem initialTab="queue" />} />
         <Route path="post-mortem/carcass" element={<PostMortem initialTab="queue" />} />
         <Route path="post-mortem/organ" element={<OrganInspection />} />
         <Route path="post-mortem/records" element={<PostMortem initialTab="log" />} />
-        {/* Carcass Weighing & Branding (Transferred to Veterinary Personnel) */}
         <Route path="carcass-weighing" element={<CarcassWeighing />} />
-        {/* Antemortem Condemnation */}
         <Route path="ante-mortem/condemned" element={<CondemnedMeatRecords type="Ante-Mortem" />} />
         <Route path="ante-mortem/evidence" element={<EvidenceUpload type="Ante-Mortem" />} />
-        {/* Postmortem Condemnation */}
         <Route path="post-mortem/condemned" element={<CondemnedMeatRecords type="Post-Mortem" />} />
         <Route path="post-mortem/evidence" element={<EvidenceUpload type="Post-Mortem" />} />
         <Route path="certification/certificate" element={<Navigate to="/vet/ante-mortem" replace />} />
         <Route path="livestock/history" element={<VetSlaughterHistory />} />
-        {/* Reports */}
         <Route path="reports" element={<RoleReportsModule role="vet" />} />
         <Route path="reports/inspection" element={<VetInspectionReport />} />
         <Route path="reports/condemnation" element={<VetCondemnationReport />} />
-        {/* Inspection History & Approvals */}
         <Route path="history" element={<InspectionHistory />} />
         <Route path="inspection-history" element={<InspectionHistory />} />
         <Route path="inspection/history" element={<InspectionHistory />} />
         <Route path="inspection/records" element={<InspectionHistory />} />
         <Route path="inspection-records" element={<InspectionHistory />} />
         <Route path="approval" element={<MeatApprovalRecords />} />
-        {/* Audit Logs (Role-scoped for Veterinarians) */}
         <Route path="audit-logs" element={<VetAuditLogs />} />
-        {/* Settings (Integrated Profile, Notifications & Security) */}
         <Route path="settings" element={<VetSettings initialTab="profile" />} />
         <Route path="profile" element={<VetSettings initialTab="profile" />} />
         <Route path="notifications" element={<VetSettings initialTab="notifications" />} />
         <Route path="security" element={<VetSettings initialTab="security" />} />
       </Route>
 
-      {/* ============ STAFF — manual operation flow ============ */}
       <Route path="/staff" element={<StaffRoute><StaffLayout {...themeProps} /></StaffRoute>}>
         <Route index element={<StaffDashboard />} />
         <Route path="inspection-dashboard" element={<LivestockInspectionDashboard />} />
-        {/* 1. Receiving */}
         <Route path="owners" element={<Owners initialTab="owners" />} />
         <Route path="livestock-registration" element={<Navigate to="/staff/owners" replace />} />
         <Route path="animal-marking" element={<Owners initialTab="marking" />} />
         <Route path="receiving-records" element={<Navigate to="/staff/animal-marking" replace />} />
         <Route path="animal-receiving" element={<Navigate to="/staff/animal-marking" replace />} />
-        {/* 2. Slaughter Processing */}
         <Route path="slaughter-scheduling" element={<Navigate to="/staff/slaughter-processing" replace />} />
         <Route path="schedule-calendar" element={<Navigate to="/staff/slaughter-processing" replace />} />
         <Route path="slaughter-processing" element={<SlaughterProcessing />} />
-        {/* 4. Inspection Results (read-only for staff) */}
         <Route path="inspection/antemortem" element={<AntemortemStatus />} />
         <Route path="inspection/postmortem" element={<PostmortemStatus />} />
         <Route path="inspection/result" element={<PostmortemResult />} />
@@ -439,55 +387,44 @@ const Shell = () => {
         <Route path="inspection-records" element={<InspectionResults />} />
         <Route path="inspection/history" element={<InspectionResults />} />
         <Route path="inspection-history" element={<InspectionResults />} />
-        {/* 5. Weighing (Transferred to Veterinary Personnel - redirect staff) */}
         <Route path="carcass-weighing" element={<Navigate to="/staff/slaughter-processing" replace />} />
         <Route path="weight-slip" element={<Navigate to="/staff/permits" replace />} />
         <Route path="fee-slip" element={<Navigate to="/staff/permits" replace />} />
-        {/* 6. Payment & Permits */}
         <Route path="payments" element={<Navigate to="/staff/permits" replace />} />
         <Route path="payment" element={<Navigate to="/staff/permits" replace />} />
         <Route path="payment-processing" element={<Navigate to="/staff/permits" replace />} />
         <Route path="payment-records" element={<Navigate to="/staff/permits" replace />} />
-        {/* 7. Meat Permit */}
         <Route path="permit-dispatch" element={<Navigate to="/staff/permits" replace />} />
         <Route path="permits" element={<Permits />} />
         <Route path="permit-config" element={<Navigate to="/staff/permits" replace />} />
         <Route path="dispatch" element={<Navigate to="/staff/permits" replace />} />
         <Route path="release-records" element={<Navigate to="/staff/permits" replace />} />
-        {/* Livestock records */}
         <Route path="livestock" element={<Navigate to="/staff/owners" replace />} />
         <Route path="livestock-records" element={<Navigate to="/staff/owners" replace />} />
         <Route path="processing-history" element={<Navigate to="/staff/slaughter-processing" replace />} />
-        {/* Reports */}
         <Route path="reports" element={<RoleReportsModule role="staff" />} />
         <Route path="reports/receiving" element={<Navigate to="/staff/reports" replace />} />
         <Route path="reports/slaughter" element={<Navigate to="/staff/reports" replace />} />
         <Route path="reports/payment" element={<Navigate to="/staff/reports" replace />} />
-        {/* Audit Logs (Role-scoped for Slaughterhouse Staff) */}
         <Route path="audit-logs" element={<StaffAuditLogs />} />
-        {/* Settings (Integrated Profile, Notifications & Security) */}
         <Route path="settings" element={<StaffSettings initialTab="profile" />} />
         <Route path="profile" element={<StaffSettings initialTab="profile" />} />
         <Route path="notifications" element={<StaffSettings initialTab="notifications" />} />
         <Route path="security" element={<StaffSettings initialTab="security" />} />
       </Route>
 
-      {/* ============ OWNER — mobile-first livestock owner portal ============ */}
       <Route path="/owner" element={<OwnerRoute><OwnerLayout {...themeProps} /></OwnerRoute>}>
         <Route index element={<OwnerDashboard />} />
         <Route path="animals" element={<OwnerAnimals />} />
         <Route path="records" element={<OwnerRecords />} />
         <Route path="payments" element={<Navigate to="/owner/records" replace />} />
         <Route path="permits" element={<Navigate to="/owner/records" replace />} />
-        {/* Five Navigation Sections: Dashboard, Animals, Records, Notifications, Profile */}
         <Route path="notifications" element={<OwnerNotifications />} />
         <Route path="profile" element={<OwnerProfile />} />
         <Route path="settings" element={<Navigate to="/owner/profile" replace />} />
-        {/* Strictly View-Only: redirect any legacy register URLs */}
         <Route path="register" element={<Navigate to="/owner/animals" replace />} />
       </Route>
 
-      {/* Dedicated Owner Waiting for Approval View */}
       <Route path="/owner/waiting-approval" element={<WaitingApproval />} />
       <Route path="/waiting-approval" element={<Navigate to="/owner/waiting-approval" replace />} />
 

@@ -4,10 +4,6 @@ import { monthlySeries, isPaidPayment, num, PAYMENT_DATE_FIELDS } from "../../ut
 
 const SPECIES_COLORS = ["#10b981", "#24966D", "#f59e0b", "#24966D", "#ef4444", "#14b8a6"];
 
-/**
- * Graph 1: Livestock Intake & Registration by Species
- * Reflects incoming livestock intake managed by staff personnel.
- */
 export const SpeciesBar = ({ livestock }) => {
   const tally = new Map();
   (livestock || []).forEach((l) => {
@@ -49,10 +45,6 @@ export const SpeciesBar = ({ livestock }) => {
 
 export const SpeciesDoughnut = SpeciesBar;
 
-/**
- * Graph 2: Slaughter Floor Team Operator Assignments
- * Distribution of livestock assigned across operator teams on the slaughter floor.
- */
 export const TeamAssignmentBar = ({ processing = [] }) => {
   const tally = new Map();
   (processing || []).forEach((p) => {

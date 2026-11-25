@@ -1,30 +1,5 @@
-/* =====================================================================
-   LSMIS CENTRALIZED THEME SYSTEM — LIVELY VETERINARY & CLINICAL EDITION
-   ---------------------------------------------------------------------
-   Single source of truth for the LSMIS visual identity.
-   Refined to deliver a bright, lively, clean, and professional veterinary
-   and public health management system while preserving the authoritative
-   City Government of Naga & NMIS green brand identity.
-
-   Core Brand Palette:
-     Primary ............. #187A56  (Vibrant botanical/veterinary emerald)
-     Primary Hover ....... #1D8E64  (Energetic interactive hover state)
-     Primary Active ...... #136647  (Grounded clinical active depth)
-     Secondary ........... #24966D  (Fresh mid-tone veterinary green)
-     Accent .............. #10B981  (Lively modern emerald highlight)
-     Focus ring .......... #187A56  (Crisp medical focus indicator)
-     Light accent ........ #34D399  (Luminous mint highlight)
-     Soft accent ......... #6EE7B7  (Airy mint text / badge tone)
-     Page background ..... #F7FAF9  (Daylight-bright, pristine clinic canvas)
-     Surface ............. #FFFFFF  (Pure clinical white card & panel surface)
-     Surface subtle ...... #F9FBFA  (Subtle clean surface accent)
-     Text primary ........ #192420  (Sharp, high-contrast deep slate-forest)
-     Text secondary ...... #475B51  (Clean, legible medium slate-forest)
-     Border .............. #E4EDE8  (Delicate, crisp slate-mint divider)
-   ===================================================================== */
 
 :root {
-  /* ---- Botanical & Veterinary Emerald Scale ---- */
   --lsmis-green-950: #0C3627;
   --lsmis-green-900: #12543C;
   --lsmis-green-800: #146B4D;
@@ -55,15 +30,14 @@
   --lsmis-charcoal-200: #E4EDE8;
   --lsmis-charcoal-100: #EFF5F2;
 
-  /* ---- Semantic Theme Tokens ---- */
   --lsmis-primary: #187A56;
   --lsmis-primary-hover: #1D8E64;
   --lsmis-primary-active: #136647;
   --lsmis-primary-contrast: #FFFFFF;
-  --lsmis-primary-text: #14684A;          /* brand-colored text & icons */
-  --lsmis-primary-soft: #E6F7F0;          /* soft luminous clinical mint fill */
-  --lsmis-primary-subtle: #F2FAF6;        /* hover rows, active soft pills */
-  --lsmis-primary-muted: #C5E8D8;         /* clean delicate borders */
+  --lsmis-primary-text: #14684A;
+  --lsmis-primary-soft: #E6F7F0;
+  --lsmis-primary-subtle: #F2FAF6;
+  --lsmis-primary-muted: #C5E8D8;
   --lsmis-secondary: #24966D;
   --lsmis-accent-color: #10B981;
   --lsmis-accent-light: #34D399;
@@ -83,7 +57,6 @@
   --lsmis-border-strong: #CADCD4;
   --lsmis-overlay: rgba(18, 43, 33, 0.40);
 
-  /* Status colors — intentionally distinct and lively */
   --lsmis-success: #10b981;
   --lsmis-success-strong: #047857;
   --lsmis-warning: #f59e0b;
@@ -93,7 +66,6 @@
   --lsmis-info: #0ea5e9;
   --lsmis-info-strong: #0369a1;
 
-  /* ---- Standardized Control Metrics ---- */
   --lsmis-btn-height: 38px;
   --lsmis-btn-height-sm: 32px;
   --lsmis-btn-height-lg: 44px;
@@ -103,14 +75,12 @@
   --lsmis-btn-font-weight: 600;
   --lsmis-input-radius: 10px;
 
-  /* Airier, softer, modern clinical elevation */
   --lsmis-shadow-sm: 0 1px 2px rgba(18, 43, 33, 0.04);
   --lsmis-shadow-md: 0 4px 16px -2px rgba(18, 43, 33, 0.06);
   --lsmis-shadow-lg: 0 12px 32px -4px rgba(18, 43, 33, 0.08);
   --lsmis-shadow-card: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 18px -2px rgba(24, 122, 86, 0.04);
 }
 
-/* ---- Modern Sleek Dark Mode ---- */
 [data-theme="dark"] {
   --lsmis-primary: #1EA072;
   --lsmis-primary-hover: #26B682;
@@ -142,12 +112,7 @@
   --lsmis-shadow-card: 0 2px 14px rgba(0, 0, 0, 0.40);
 }
 
-/* =====================================================================
-   GLOBAL LSMIS HOVER, FOCUS, BUTTON, NAVIGATION & INPUT STANDARDIZATION
-   Lively, bright, clean, and professional veterinary aesthetics
-   ===================================================================== */
 
-/* 1. Standardized Primary Buttons across Login, Admin, Vet, Staff, Owner */
 .login-brand {
   background: 
     radial-gradient(circle at 12% 14%, rgba(52, 211, 153, 0.22) 0%, transparent 45%),
@@ -206,7 +171,6 @@
   transform: translateY(0);
 }
 
-/* 2. Standardized Secondary, Outline, Ghost, Cancel & Pagination Buttons */
 .btn-secondary,
 .btn-outline,
 .action-btn-outline,
@@ -247,7 +211,6 @@
   color: var(--lsmis-accent-soft) !important;
 }
 
-/* 3. Standardized Navigation & Dropdown Hover States */
 .nav-item:not(.active):hover,
 .nav-group-head:hover,
 .nav-sub-item:not(.active):hover,
@@ -282,7 +245,6 @@
   color: var(--lsmis-accent-soft) !important;
 }
 
-/* Active Sidebar Navigation Pill */
 .nav-item.active,
 .settings-nav-btn.active {
   background: linear-gradient(135deg, var(--lsmis-primary) 0%, var(--lsmis-secondary) 100%) !important;
@@ -301,7 +263,6 @@
   color: #FFFFFF !important;
 }
 
-/* 4. Standardized Table Row & Interactive List Hover States */
 .table tbody tr:hover,
 .table tbody tr:hover td,
 .personnel-table-row:hover,
@@ -311,7 +272,6 @@
   background-color: var(--lsmis-primary-subtle) !important;
 }
 
-/* 5. Standardized Input, Select & Textarea Hover, Click & Focus States (Zero Shadows & Glows) */
 .form-control:hover:not(:focus):not(:disabled),
 input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover:not(:focus):not(:disabled),
 select:hover:not(:focus):not(:disabled),
@@ -319,7 +279,6 @@ textarea:hover:not(:focus):not(:disabled) {
   border-color: var(--lsmis-primary-muted);
 }
 
-/* Eliminate all click, focus, active, and focus-visible shadows, glows, and dark outlines across every text box and input */
 .form-control:focus,
 .form-control:active,
 .form-control:focus-visible,
@@ -366,7 +325,6 @@ textarea:focus-visible,
   outline: none !important;
 }
 
-/* 6. Standardized Card & Interactive Tile Hover States */
 .owner-animal-card:not(.owner-condemned-card):hover,
 .stat-card:hover,
 .qa-tile:hover,

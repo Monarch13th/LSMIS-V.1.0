@@ -1,21 +1,17 @@
-// All date/number formatting helpers in one place
 export const formatCurrency = (n) => `₱${Number(n || 0).toLocaleString()}`;
 export const formatNumber = (n) => Number(n || 0).toLocaleString();
 export const truncate = (s, n = 50) => (s && s.length > n ? s.slice(0, n) + "..." : s);
 
-/** Locale-aware short date (e.g. "Jan 20, 2024") */
 export const formatDate = (d) => {
   if (!d) return "";
   return new Date(d).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 };
 
-/** Locale-aware date + time (e.g. "1/20/2024, 9:15 AM") */
 export const formatDateTime = (d) => {
   if (!d) return "";
   return new Date(d).toLocaleString();
 };
 
-/** Formats ISO timestamp in Philippine Local Time (Asia/Manila, e.g. "September 27, 2026, 5:23 PM") */
 export const formatPhDateTime = (isoStr) => {
   if (!isoStr || isoStr === "—") return "—";
   try {
@@ -49,7 +45,6 @@ export const formatPhDateTime = (isoStr) => {
   }
 };
 
-/** Formats ISO timestamp for Certification (Asia/Manila, e.g. "October 10, 2026 · 8:15 PM") */
 export const formatCertDateTime = (isoStr) => {
   if (!isoStr || isoStr === "—") return "—";
   try {
@@ -76,7 +71,6 @@ export const formatCertDateTime = (isoStr) => {
   }
 };
 
-/** Formats ISO timestamp in Philippine Local Date (Asia/Manila, e.g. "October 6, 2026") */
 export const formatPhDate = (isoStr) => {
   if (!isoStr || isoStr === "—") return "—";
   try {
@@ -93,7 +87,6 @@ export const formatPhDate = (isoStr) => {
   }
 };
 
-/** Returns today's calendar date string in Philippine Standard Time (Asia/Manila, e.g. "YYYY-MM-DD") */
 export const getManilaTodayDateString = (now = new Date()) => {
   try {
     return new Intl.DateTimeFormat("en-CA", {
@@ -107,7 +100,6 @@ export const getManilaTodayDateString = (now = new Date()) => {
   }
 };
 
-/** Checks whether a timestamp or date corresponds to today in Philippine Standard Time (Asia/Manila) */
 export const isTodayInManila = (timestamp, referenceDate = new Date()) => {
   if (!timestamp) return false;
   const todayManila = getManilaTodayDateString(referenceDate);
@@ -130,7 +122,6 @@ export const isTodayInManila = (timestamp, referenceDate = new Date()) => {
 };
 
 
-/** Time only, in Philippine Local Time (Asia/Manila, 12-hour, e.g. "10:43 PM") */
 export const formatPhTime = (isoStr) => {
   if (!isoStr) return "";
   try {
@@ -143,8 +134,6 @@ export const formatPhTime = (isoStr) => {
         minute: "2-digit",
         hour12: true,
       })
-// Some browsers/ICU versions separate the meridiem with U+202F or U+00A0
-      // instead of a plain space; normalise so the output is always "10:43 PM".
       .replace(/[\u202f\u00a0]/g, " ")
       .toUpperCase();
   } catch (e) {
@@ -152,12 +141,10 @@ export const formatPhTime = (isoStr) => {
   }
 };
 
-/** "Friday, January 20, 2024" for welcome banners */
 export const formatLongDate = (d) => {
   return new Date(d || Date.now()).toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 };
 
-/** "September 24, 2026" full month day year format */
 export const formatFullDate = (d) => {
   if (!d) return "—";
   try {
@@ -170,7 +157,6 @@ export const formatFullDate = (d) => {
   }
 };
 
-/** Locale-aware short time (e.g. "03:25 PM") */
 export const formatTime = (t) => {
   if (!t || t === "—") return "—";
   if (typeof t === "string" && (t.includes("AM") || t.includes("PM"))) return t;
@@ -192,13 +178,8 @@ export const formatTime = (t) => {
   return String(t);
 };
 
-/** Current ISO date string YYYY-MM-DD */
 export const today = () => new Date().toISOString().split("T")[0];
 
-/**
- * Normalizes any account ID into standard "REG-001-2026" or "OWN-001-2026" format.
- * Correctly transforms formats like OWN-2026-0018 -> OWN-018-2026, OWN-2026-0019 -> OWN-019-2026, etc.
- */
 export const formatOwnerId = (o, fallbackIndex = 1) => {
   if (!o) return `REG-001-2026`;
   const idStr = String(o.id || o.temp_reg_id || o.owner_id || "").trim();
@@ -256,9 +237,6 @@ export const formatOwnerId = (o, fallbackIndex = 1) => {
   return idStr || `REG-${String(fallbackIndex).padStart(3, "0")}-2026`;
 };
 
-/**
- * Formats livestock sex to standard "Male", "Female", or "Not specified"
- */
 export const formatSex = (val) => {
   if (!val) return "Not specified";
   const s = String(val).trim().toLowerCase();
@@ -267,9 +245,6 @@ export const formatSex = (val) => {
   return String(val).trim() || "Not specified";
 };
 
-/**
- * Generate the next sequential tag number independently for each animal species
- */
 export const generateNextTag = (rows, species) => {
   if (!species) return "";
   const targetSpecies = String(species).trim();
@@ -294,14 +269,9 @@ export const generateNextTag = (rows, species) => {
   return `TAG-${String(next).padStart(3, "0")}-${speciesUpper}`;
 };
 
-/**
- * Formats livestock age string/object into clean representation (e.g. "1 Month", "3 Months", "1 Year", "2 Years").
- * Preserves the exact user entered unit and number without automatic conversions between months and years.
- */
 export const formatLivestockAge = (itemOrVal, unitFallback) => {
   if (itemOrVal === null || itemOrVal === undefined || itemOrVal === "") return "—";
 
-  // If passed object with age_months / age / age_value & age_unit
   if (typeof itemOrVal === "object" && itemOrVal !== null) {
     const raw = itemOrVal.age_months ?? itemOrVal.age;
     if (raw && typeof raw === "string" && /months?|mos|years?|yrs|days?/i.test(raw)) {
@@ -322,7 +292,6 @@ export const formatLivestockAge = (itemOrVal, unitFallback) => {
   const str = String(itemOrVal).trim();
   if (!str || str === "—" || str === "-") return "—";
 
-  // If already contains unit text
   if (/months?|mos|years?|yrs|days?/i.test(str)) {
     const singularMonth = str.match(/^1\s*months?$/i);
     if (singularMonth) return "1 Month";
@@ -331,7 +300,6 @@ export const formatLivestockAge = (itemOrVal, unitFallback) => {
     return str;
   }
 
-  // Bare integer
   const num = parseInt(str, 10);
   if (isNaN(num)) return str;
 

@@ -1,14 +1,8 @@
 import { supabase } from "./supabaseClient";
 
-/**
- * Uploads an avatar image to Supabase Storage ('avatars' bucket)
- * and returns the public CDN URL.
- * Throws a descriptive error if storage upload fails so errors are not silently ignored.
- */
 export const uploadAvatarFile = async (file, userIdOrEmail) => {
   if (!file) throw new Error("No file provided for upload");
 
-  // Basic validation: max 5MB, must be image
   if (!file.type.startsWith("image/")) {
     throw new Error("File must be an image (PNG, JPG, JPEG, WEBP)");
   }

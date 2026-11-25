@@ -1,13 +1,6 @@
-/* ===========================================================
-   LSMIS — UI Polish Layer
-   Loaded AFTER app.css to refine the look of admin/vet/staff
-   modules without changing any functionality.
-   =========================================================== */
 
-/* ===== Smoother page background ===== */
 .app-content { background: var(--color-bg); }
 
-/* ===== Sidebar — Modern Minimalist SaaS Theme (like user reference) ===== */
 .app-sidebar {
   background: #ffffff;
   border-right: 1px solid #EFF2F0;
@@ -15,10 +8,9 @@
 }
 
 .app-sidebar-section {
-  display: none !important; /* Replaced by individual clean section titles */
+  display: none !important;
 }
 
-/* Section Header (e.g. GENERAL, TOOLS, SUPPORT, OPERATIONS) */
 .nav-section-title {
   font-size: 11px;
   font-weight: 700;
@@ -34,7 +26,6 @@
   padding-top: 10px;
 }
 
-/* Sidebar nav container */
 .app-sidebar-nav {
   padding: 8px 12px 16px 12px;
   display: flex;
@@ -43,7 +34,6 @@
   overflow-y: auto;
 }
 
-/* Nav Item (Individual Link) */
 .nav-item {
   display: flex;
   align-items: center;
@@ -89,7 +79,6 @@
   text-overflow: ellipsis;
 }
 
-/* Active State — Exact soft pill styling from user reference image */
 .nav-item.active {
   background: var(--lsmis-primary-subtle) !important;
   color: var(--lsmis-primary-text) !important;
@@ -107,7 +96,6 @@
   color: var(--lsmis-primary-text) !important;
 }
 
-/* Badges (like BETA pill in reference image) */
 .nav-badge {
   display: inline-flex;
   align-items: center;
@@ -134,7 +122,6 @@
   border-radius: 9999px;
 }
 
-/* Collapsible Nav Groups */
 .nav-group {
   margin-bottom: 2px;
 }
@@ -238,12 +225,10 @@
   background: var(--lsmis-primary-hover) !important;
 }
 
-/* Sidebar brand gradient per role */
 [data-role="admin"] .app-sidebar-brand { background: var(--lsmis-primary-hover); }
 [data-role="vet"] .app-sidebar-brand { background: linear-gradient(135deg, var(--lsmis-primary-hover) 0%, var(--lsmis-primary-hover) 100%); }
 [data-role="staff"] .app-sidebar-brand { background: linear-gradient(135deg, #047857 0%, #0d9488 100%); }
 
-/* Sidebar footer */
 .app-sidebar-foot {
   background: transparent !important;
   border-top: 1px solid #EFF2F0 !important;
@@ -278,7 +263,6 @@
   color: #dc2626;
 }
 
-/* ===== Sidebar Navigation — Dark Mode ===== */
 [data-theme="dark"] .app-sidebar,
 .dark .app-sidebar {
   background: #2D332F !important;
@@ -445,7 +429,6 @@
   background: #444C47;
 }
 
-/* ===== Navbar — sharper header ===== */
 .app-header {
   background: #ffffff !important;
   border-bottom: 1px solid var(--color-border);
@@ -457,14 +440,12 @@
   border-bottom-color: var(--color-border);
 }
 
-/* ===== Page title ===== */
 .page-head { padding-bottom: 18px; margin-bottom: 22px; }
 .page-title { font-size: 24px; letter-spacing: -0.4px; }
 .page-title-icon { width: 36px; height: 36px; border-radius: 10px; }
 .page-title-icon svg { width: 17px; height: 17px; }
 .page-subtitle { font-size: 13px; margin-top: 3px; }
 
-/* ===== Stat cards — clean government system style ===== */
 .stat-card {
   border-radius: 12px;
   padding: 18px 20px;
@@ -522,7 +503,6 @@
 .stat-icon-rose { background: rgba(244, 63, 94, 0.12) !important; color: #be123c !important; border: 1px solid rgba(244, 63, 94, 0.25); }
 .stat-icon-indigo { background: rgba(24, 122, 86, 0.12) !important; color: var(--lsmis-primary-hover) !important; border: 1px solid rgba(24, 122, 86, 0.25); }
 
-/* Dark mode stat card icon contrast */
 [data-theme="dark"] .stat-icon-emerald, .dark .stat-icon-emerald { background: rgba(16, 185, 129, 0.22) !important; color: #34d399 !important; border-color: rgba(52, 211, 153, 0.3); }
 [data-theme="dark"] .stat-icon-sky, .dark .stat-icon-sky, [data-theme="dark"] .stat-icon-blue, .dark .stat-icon-blue { background: rgba(66, 149, 126, 0.22) !important; color: var(--lsmis-accent-light) !important; border-color: rgba(66, 149, 126, 0.3); }
 [data-theme="dark"] .stat-icon-violet, .dark .stat-icon-violet { background: rgba(167, 139, 250, 0.22) !important; color: #c084fc !important; border-color: rgba(192, 132, 252, 0.3); }
@@ -542,7 +522,6 @@
   gap: 4px;
 }
 
-/* ===== Cards — clean government container ===== */
 .card {
   border-radius: 12px;
   border: 1px solid var(--color-border);
@@ -556,13 +535,11 @@
 .card-title { font-size: 14.5px; font-weight: 600; color: var(--color-text); }
 .card-title-icon { width: 32px; height: 32px; border-radius: 8px; background: var(--color-bg); color: var(--color-primary); border: 1px solid var(--color-border); }
 
-/* ===== Welcome banner ===== */
 .welcome-banner { border-radius: 20px; padding: 28px 30px; }
 .welcome-icon { width: 56px; height: 56px; border-radius: 14px; }
 .welcome-text h2 { font-size: 19px; }
 .welcome-text p { font-size: 13px; }
 
-/* ===== Tables — cleaner rows ===== */
 .table-wrap {
   border-radius: 14px;
   border: none;
@@ -582,7 +559,6 @@
 .table .icon-btn { width: 32px; height: 32px; min-height: 32px; border-radius: 7px; box-sizing: border-box; }
 .table .icon-btn svg { width: 14px; height: 14px; }
 
-/* ===== Badges — clean text ===== */
 .badge {
   font-size: 12.5px;
   padding: 0;
@@ -596,13 +572,11 @@
   display: none;
 }
 
-/* ===== Buttons — crisp ===== */
 .btn { border-radius: 9px; font-size: 12.5px; padding: 8px 14px; }
 .btn-sm { height: 32px; min-height: 32px; padding: 5px 12px; font-size: 11.5px; border-radius: 7px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; }
 .btn-lg { padding: 10px 18px; font-size: 13.5px; }
 .btn svg { width: 14px; height: 14px; }
 
-/* ===== Form controls — refined ===== */
 .form-control {
   border-radius: 9px;
   font-size: 13px;
@@ -613,7 +587,6 @@
 .form-label { font-size: 12px; margin-bottom: 5px; letter-spacing: 0.03em; }
 .form-group { margin-bottom: 12px; }
 
-/* ===== Filter bar & Search Inputs ===== */
 .filter-bar .form-control { height: 38px; font-size: 12.5px; }
 
 .search-input {
@@ -721,7 +694,6 @@
   color: var(--lsmis-primary-text);
 }
 
-/* ===== Modals — polished ===== */
 .modal {
   border-radius: 20px;
   border: 1px solid var(--color-border);
@@ -732,20 +704,17 @@
 .modal-body { padding: 24px; }
 .modal-footer { padding: 16px 24px; position: sticky; bottom: 0; z-index: 50; background: var(--color-surface); }
 
-/* ===== Activity list — polished ===== */
 .activity-item { padding: 10px 6px; border-radius: 8px; }
 .activity-item + .activity-item { margin-top: 0; }
 .activity-item .act-icon { width: 38px; height: 38px; border-radius: 10px; }
 .activity-item .act-body p { font-size: 12.5px; }
 .activity-item .act-body time { font-size: 10.5px; }
 
-/* ===== Schedule items ===== */
 .schedule-item { border-radius: 10px; padding: 12px; }
 .schedule-item .si-icon { width: 40px; height: 40px; border-radius: 10px; }
 .schedule-item .si-body .title { font-size: 13px; }
 .schedule-item .si-body .sub { font-size: 11px; }
 
-/* ===== Quick action tiles — Government Action Buttons ===== */
 .qa-tile {
   border-radius: 12px;
   padding: 16px 18px;
@@ -775,7 +744,6 @@
 .qa-tile h4 { font-size: 13.5px; font-weight: 600; color: var(--color-text); margin-top: 10px; margin-bottom: 3px; }
 .qa-tile p { font-size: 11.5px; font-weight: 400; color: var(--color-text-muted); line-height: 1.4; }
 
-/* ===== Alert tiles (dashboard) ===== */
 .alert-tile {
   border-radius: 10px;
   padding: 12px 16px;
@@ -794,7 +762,6 @@
 .alert-tile-title { font-size: 13px; font-weight: 600; color: var(--color-text); }
 .alert-tile-desc { font-size: 11.5px; font-weight: 400; color: var(--color-text-muted); }
 
-/* ===== Summary stats ===== */
 .summary-stat {
   border-radius: 12px;
   padding: 14px 16px;
@@ -804,13 +771,11 @@
 .summary-stat-value { font-size: 22px; font-weight: 700; color: var(--color-text); }
 .summary-stat-label { font-size: 11px; letter-spacing: 0.04em; font-weight: 500; color: var(--color-text-muted); text-transform: uppercase; }
 
-/* ===== Notification items ===== */
 .notif-item { border-radius: 12px; padding: 14px; gap: 12px; }
 .notif-item-icon { width: 38px; height: 38px; border-radius: 10px; }
 .notif-item-body h4 { font-size: 13px; font-weight: 700; }
 .notif-item-body p { font-size: 12px; }
 
-/* ===== Approval cards (vet) ===== */
 .approval-card {
   border-radius: 12px;
   padding: 16px 18px;
@@ -830,56 +795,44 @@
 .approval-title .font-bold { font-size: 14px; font-weight: 700; color: var(--color-text); }
 .approval-meta { font-size: 12px; color: var(--color-text-muted); }
 
-/* ===== Marking grid (staff) ===== */
 .marking-card { border-radius: 12px; padding: 14px; }
 .marking-icon { width: 46px; height: 46px; border-radius: 12px; }
 
-/* ===== Fee breakdown ===== */
 .fee-row { border-radius: 10px; padding: 12px 14px; }
 .fee-total { border-radius: 12px; padding: 16px 18px; }
 .fee-total-value { font-size: 22px; }
 
-/* ===== Profile page ===== */
 .profile-header { padding-bottom: 20px; margin-bottom: 20px; gap: 18px; }
 .profile-info h2 { font-size: 18px; }
 .profile-badges .badge { font-size: 10px; }
 
-/* ===== Settings toggles ===== */
 .settings-toggle { border-radius: 10px; padding: 12px; }
 .settings-toggle-icon { width: 34px; height: 34px; border-radius: 8px; }
 .settings-toggle-title { font-size: 12.5px; }
 .settings-toggle-desc { font-size: 11px; }
 
 
-/* ===== Empty state ===== */
 .empty-state { padding: 52px 20px; }
 .empty-state .empty-icon { padding: 16px; border-radius: 16px; }
 .empty-state .empty-icon svg { width: 26px; height: 26px; }
 .empty-state h3 { font-size: 15px; }
 .empty-state p { font-size: 12.5px; }
 
-/* ===== Permit doc ===== */
 .permit-doc { border-radius: 14px; padding: 28px; }
 .permit-header h2 { font-size: 15px; }
 
-/* ===== Dropdown ===== */
 .dropdown { border-radius: 14px; }
 .dropdown-item { font-size: 12.5px; padding: 9px 16px; }
 
-/* ===== Role chip ===== */
 .role-chip { font-size: 11px; padding: 3px 8px; border-radius: 6px; }
 
-/* ===== Grid gaps ===== */
 .grid { gap: 16px; }
 
-/* ===== Footer ===== */
 .app-footer { font-size: 11px; padding: 14px 20px; }
 
-/* ===== Scrollbar in sidebar ===== */
 .app-sidebar-nav::-webkit-scrollbar { width: 3px; }
 .app-sidebar-nav::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 3px; }
 
-/* ===== Mobile responsive ===== */
 @media (max-width: 1200px) {
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
   .grid-3 { grid-template-columns: repeat(2, 1fr); }
@@ -949,11 +902,9 @@
   }
 }
 
-/* ===== Sidebar mobile trigger ===== */
 .sidebar-trigger { display: none; }
 @media (max-width: 1024px) { .sidebar-trigger { display: inline-flex; } }
 
-/* ===== Comprehensive Dark Mode UI Polishing ===== */
 [data-theme="dark"] .table-wrap,
 .dark .table-wrap {
   background: var(--color-surface);
@@ -978,7 +929,6 @@
   background: var(--lsmis-primary-subtle) !important;
 }
 
-/* Form controls & search inputs */
 [data-theme="dark"] .form-control,
 .dark .form-control,
 [data-theme="dark"] input.form-control,
@@ -1004,7 +954,6 @@
   border-color: var(--color-border) !important;
 }
 
-/* Cards, headers, and bodies */
 [data-theme="dark"] .card,
 .dark .card {
   background: var(--color-surface);
@@ -1017,7 +966,6 @@
   border-bottom-color: var(--color-border);
 }
 
-/* Modals */
 [data-theme="dark"] .modal,
 .dark .modal {
   background: var(--color-surface);
@@ -1037,7 +985,6 @@
   border-top-color: var(--color-border);
 }
 
-/* Dropdowns & Popovers */
 [data-theme="dark"] .dropdown,
 .dark .dropdown {
   background: var(--color-surface);
@@ -1063,7 +1010,6 @@
   color: var(--lsmis-accent-soft);
 }
 
-/* User pill in header */
 [data-theme="dark"] .user-pill,
 .dark .user-pill {
   background: transparent;
@@ -1076,7 +1022,6 @@
   border-color: transparent;
 }
 
-/* Global Override for Inline Styled White Backgrounds (Excluding Printable Certificates) */
 [data-theme="dark"] div:not(.cert-page):not(.print-container):not(.receipt-print)[style*="background: #ffffff"],
 [data-theme="dark"] div:not(.cert-page):not(.print-container):not(.receipt-print)[style*="background:#ffffff"],
 [data-theme="dark"] div:not(.cert-page):not(.print-container):not(.receipt-print)[style*="background: white"],
@@ -1088,7 +1033,6 @@
   background: var(--color-surface) !important;
 }
 
-/* Global Override for Inline Styled Light Grey Backgrounds */
 [data-theme="dark"] div:not(.cert-page):not(.print-container):not(.receipt-print)[style*="background: #F9FAF8"],
 [data-theme="dark"] div:not(.cert-page):not(.print-container):not(.receipt-print)[style*="background:#F9FAF8"],
 [data-theme="dark"] div:not(.cert-page):not(.print-container):not(.receipt-print)[style*="background: #EFF2F0"],
@@ -1108,7 +1052,6 @@
   background: var(--color-bg) !important;
 }
 
-/* Global Override for Inline Light Borders */
 [data-theme="dark"] div:not(.cert-page)[style*="border: 1px solid #E2E6E3"],
 [data-theme="dark"] div:not(.cert-page)[style*="border:1px solid #E2E6E3"],
 [data-theme="dark"] div:not(.cert-page)[style*="border: 1px solid #C2CAC4"],
@@ -1128,7 +1071,6 @@
   border-color: var(--color-border) !important;
 }
 
-/* Global Override for Inline Buttons with White Backgrounds */
 [data-theme="dark"] button:not(.btn-primary):not(.btn-danger)[style*="background: #ffffff"],
 [data-theme="dark"] button:not(.btn-primary):not(.btn-danger)[style*="background:#ffffff"],
 [data-theme="dark"] button:not(.btn-primary):not(.btn-danger)[style*="background: white"],
@@ -1140,7 +1082,6 @@
   border-color: var(--color-border) !important;
 }
 
-/* Global Override for Inline Text with Dark Hex Colors */
 [data-theme="dark"] div:not(.cert-page)[style*="color: #1A201C"],
 [data-theme="dark"] div:not(.cert-page)[style*="color:#1A201C"],
 [data-theme="dark"] span:not(.cert-page)[style*="color: #1A201C"],
@@ -1171,7 +1112,6 @@
   color: var(--color-text-muted) !important;
 }
 
-/* Dark mode tag pills, count badges, and quantity badges */
 [data-theme="dark"] span:not(.cert-page)[style*="background: #EFF2F0"],
 [data-theme="dark"] span:not(.cert-page)[style*="background:#EFF2F0"],
 [data-theme="dark"] span:not(.cert-page)[style*="background: #F9FAF8"],
@@ -1185,7 +1125,6 @@
   border-color: var(--color-border) !important;
 }
 
-/* Dark mode light-blue action buttons (like "View Only" or info buttons) */
 [data-theme="dark"] button[style*="background: #f0f9ff"],
 [data-theme="dark"] button[style*="background:#f0f9ff"],
 .dark button[style*="background: #f0f9ff"],
@@ -1195,7 +1134,6 @@
   border-color: var(--color-info) !important;
 }
 
-/* Dark mode light-red action buttons (like delete buttons) */
 [data-theme="dark"] button[style*="background: #fef2f2"],
 [data-theme="dark"] button[style*="background:#fef2f2"],
 .dark button[style*="background: #fef2f2"],
@@ -1205,7 +1143,6 @@
   border-color: var(--color-danger) !important;
 }
 
-/* Dark mode select dropdowns & options */
 [data-theme="dark"] select,
 .dark select {
   background-color: var(--color-surface) !important;
@@ -1218,7 +1155,6 @@
   color: var(--color-text) !important;
 }
 
-/* Dark mode Registration Agreement & Privacy Policy box */
 [data-theme="dark"] .reg-agreement-box,
 .dark .reg-agreement-box {
   background: #111c33 !important;
@@ -1245,7 +1181,6 @@
   color: var(--lsmis-accent-soft) !important;
 }
 
-/* Dark mode User Agreement & Privacy Policy Modal */
 [data-theme="dark"] .agreement-modal-content,
 .dark .agreement-modal-content {
   color: #C2CAC4 !important;
@@ -1286,7 +1221,6 @@
   border-top-color: #444C47 !important;
 }
 
-/* ===== Universal Search Bar Icon Visibility & Stacking ===== */
 .search-input > svg,
 .search-input > span:first-child,
 .search-input > div:first-child,
@@ -1309,7 +1243,6 @@
   color: #9BA49E !important;
 }
 
-/* ===== Print ===== */
 @media print {
   @page {
     size: Letter portrait;
@@ -1401,7 +1334,6 @@
   }
 }
 
-/* Settings 2-Column Responsive Layout: Fixed Navigation & Scrollable Content */
 .central-settings-container {
   width: 100%;
   max-width: 1240px;

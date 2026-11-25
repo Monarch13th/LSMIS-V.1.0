@@ -1,10 +1,7 @@
-/* Dashboard-only styles (Admin / Vet / Staff dashboards).
-   Every selector is prefixed with .dash- so no other page is affected. */
 
 .dash { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
 .dash > * { min-width: 0; }
 
-/* Layout grids — collapse gracefully, unlike fixed inline column templates */
 .dash-grid-main { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px; }
 .dash-grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 .dash-grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
@@ -27,7 +24,6 @@
   .dash-grid-4 { grid-template-columns: minmax(0, 1fr); }
 }
 
-/* Notice / attention banner */
 .dash-banner {
   display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
   padding: 14px 18px; border-radius: 14px; border: 1px solid transparent; cursor: pointer;
@@ -47,7 +43,6 @@
 .dash-banner.violet { background: linear-gradient(90deg, rgba(139, 92, 246, 0.12), rgba(139, 92, 246, 0.04)); border-color: rgba(139, 92, 246, 0.35); }
 .dash-banner.violet .dash-banner-icon { background: rgba(139, 92, 246, 0.2); color: #6d28d9; }
 
-/* Workflow pipeline — one tile per stage, links to the owning module */
 .dash-pipeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
 .dash-stage {
   display: flex; flex-direction: column; gap: 4px; text-align: left; width: 100%;
@@ -68,7 +63,6 @@
 .dash-stage.rose .dash-stage-bar > span { background: #f43f5e; }
 .dash-stage.slate .dash-stage-bar > span { background: #5D6660; }
 
-/* Lists */
 .dash-list { display: flex; flex-direction: column; gap: 2px; }
 .dash-list-item {
   display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; min-width: 0;
@@ -96,21 +90,17 @@
   .dash-list-icon { width: 34px; height: 34px; }
 }
 
-/* Summary chips under charts */
 .dash-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; margin-top: 14px; }
 
-/* Empty chart / empty list placeholder */
 .dash-chart-empty {
   height: 180px; display: flex; align-items: center; justify-content: center; text-align: center;
   border: 1px dashed var(--color-border); border-radius: 12px; padding: 16px;
   color: var(--color-text-muted); font-size: 13px;
 }
 
-/* Tables — scroll inside the card instead of breaking the page width */
 .dash .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 .dash .table-wrap table { min-width: 560px; }
 
-/* Loading skeleton */
 .dash-skeleton { border-radius: 14px; background: linear-gradient(90deg, var(--color-bg) 25%, var(--color-border) 37%, var(--color-bg) 63%); background-size: 400% 100%; animation: dash-shimmer 1.4s ease infinite; }
 @keyframes dash-shimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
 
@@ -122,13 +112,10 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* Section heading used above grouped cards */
 .dash-section-title { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--color-text-muted); margin: 4px 2px -8px; }
 
-/* Card action buttons should never wrap awkwardly on narrow cards */
 .dash .card-header { flex-wrap: wrap; gap: 8px; }
 
-/* Admin dashboard • single-frame, no page scroll (desktop) */
 .adm-dash { display: flex; flex-direction: column; gap: 14px; min-width: 0; height: calc(100vh - var(--header-height, 68px) - 48px); min-height: 460px; }
 .adm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-shrink: 0; }
 .adm-title { margin: 0; font-size: 20px; font-weight: 800; color: var(--color-text); }

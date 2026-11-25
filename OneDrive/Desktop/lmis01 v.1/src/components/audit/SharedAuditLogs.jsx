@@ -93,27 +93,20 @@ export const SharedAuditLogs = ({ roleScope }) => {
   const isOwner = normAuth === "owner";
   const isAdminScope = effectiveRoleScope === "admin";
 
-  // Enforce role isolation:
-  // - Admin can view centralized personnel audit logs (Admin, Veterinarian, and Staff)
-  // - Veterinarian and Staff can only access their own role's audit logs
   const isAuthorized = !isOwner && normAuth === effectiveRoleScope && ["admin", "vet", "staff"].includes(effectiveRoleScope);
 
-  // Server-side State
   const [logs, setLogs] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [roleStats, setRoleStats] = useState({ total: 0, adminCount: 0, vetCount: 0, staffCount: 0 });
   const [loading, setLoading] = useState(true);
   const [queryError, setQueryError] = useState(null);
 
-  // Search input & Role Filter
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState(isAdminScope ? "all" : effectiveRoleScope);
 
-  // Selected Record ID for Detail View
   const [selectedLogId, setSelectedLogId] = useState(null);
 
-  // Debounce search input
   const searchTimeoutRef = useRef(null);
   const handleSearchChange = (e) => {
     const val = e.target.value;
@@ -133,7 +126,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
     setRoleFilter(nextRole);
   };
 
-  // Authoritative query execution
   const fetchAuditLogs = useCallback(async () => {
     if (!isAuthorized) {
       setLoading(false);
@@ -171,7 +163,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
     fetchAuditLogs();
   }, [fetchAuditLogs]);
 
-  // Real-time subscription to auto-refresh table on database inserts/updates
   useEffect(() => {
     if (!isAuthorized) return;
     const unsub = subscribeToAuditLogs(() => {
@@ -248,7 +239,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
 
   return (
     <div className="audit-logs-page records-page-container" style={{ width: "100%", padding: 0 }}>
-      {/* Top Header & Filter Bar — Fixed, does NOT scroll */}
       <div
         className="records-fixed-header"
         style={{
@@ -262,7 +252,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
           zIndex: 20,
         }}
       >
-        {/* Main Toolbar Row: Identity on Left, Search + Actions on Right */}
         <div
           style={{
             display: "flex",
@@ -273,7 +262,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
             minHeight: 40,
           }}
         >
-          {/* Left: Icon + Title + Count Badge + Subtitle */}
           <div style={{ display: "inline-flex", alignItems: "center", gap: 10, minWidth: 260 }}>
             <span
               style={{
@@ -315,7 +303,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
             </div>
           </div>
 
-          {/* Right: Search Input & Refresh Button (Aligned inline on the same row!) */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, marginLeft: "auto" }}>
             <div style={{ position: "relative", width: 280, maxWidth: "100%" }}>
               <span
@@ -399,7 +386,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
           </div>
         </div>
 
-        {/* Row 2: Role Segmented Filter Tabs (Admin view only) */}
         {isAdminScope && (
           <div style={{ display: "flex", alignItems: "center", gap: 4, paddingTop: 2 }}>
             <div
@@ -466,7 +452,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
         )}
       </div>
 
-      {/* Query Error Feedback */}
         {queryError && (
           <div
             style={{
@@ -491,7 +476,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
           </div>
         )}
 
-        {/* Audit Logs Table • Records scroll internally, headers remain fixed */}
         <div
           style={{
             flex: 1,
@@ -593,7 +577,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
                         }}
                         
                       >
-                        {/* 1. User: Full name of the person who performed the action */}
                         <td style={{ padding: "13px 16px", whiteSpace: "nowrap", borderBottom: "1px solid var(--color-border)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div
@@ -619,7 +602,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
                           </div>
                         </td>
 
-                        {/* 2. Action: Activity performed */}
                         <td style={{ padding: "13px 16px", maxWidth: 460, borderBottom: "1px solid var(--color-border)" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                             <span
@@ -638,7 +620,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
                           </div>
                         </td>
 
-                        {/* 3. Role: Actual role (Admin, Veterinarian, or Staff) */}
                         <td style={{ padding: "13px 16px", whiteSpace: "nowrap", borderBottom: "1px solid var(--color-border)" }}>
                           <span
                             style={{
@@ -657,7 +638,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
                           </span>
                         </td>
 
-                        {/* 4. Module: Module where the activity occurred */}
                         <td style={{ padding: "13px 16px", whiteSpace: "nowrap", borderBottom: "1px solid var(--color-border)" }}>
                           <span
                             style={{
@@ -676,7 +656,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
                           </span>
                         </td>
 
-                        {/* 5. Date & Time: Exact date and time in Philippine time (Asia/Manila) */}
                         <td style={{ padding: "13px 16px", whiteSpace: "nowrap", borderBottom: "1px solid var(--color-border)" }}>
                           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                             <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--color-text)" }}>
@@ -707,7 +686,6 @@ export const SharedAuditLogs = ({ roleScope }) => {
           )}
         </div>
 
-      {/* Authoritative Detail Modal */}
       <AuditDetailModal
         logId={selectedLogId}
         open={Boolean(selectedLogId)}

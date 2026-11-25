@@ -9,7 +9,6 @@ import { formatDate } from "../../utils/formatters";
 import { ROLE_LABELS, ROLE_COLORS, TABLES } from "../../utils/constants";
 import { supabase } from "../../services/supabaseClient";
 
-// Friendly page titles for the breadcrumb / header
 const PAGE_TITLES = {
   dashboard: "Dashboard",
   users: "User Management",
@@ -56,13 +55,11 @@ export const Navbar = ({ onMenuClick, theme: propTheme, onToggleTheme: propToggl
     return () => clearInterval(timer);
   }, []);
 
-  // Sync avatar and name from session
   useEffect(() => {
     if (session?.avatar_url) setProfileAvatar(session.avatar_url);
     if (session?.name) setProfileName(session.name);
   }, [session?.avatar_url, session?.name]);
 
-  // Reactive listener for profile updates & direct database fetch
   useEffect(() => {
     const handleProfileUpdate = (e) => {
       const updated = e?.detail;
