@@ -7,7 +7,7 @@ import { isCapacitorNativeApp, isInstalledApp } from "../../utils/capacitor";
 import { useToast } from "../../components/notifications/Toast";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
 import { authStore, normalizeRole, setSessionStorageItem, removeSessionStorageItem } from "../../store/authStore";
-import { STORAGE_KEYS, TABLES, ROLE_LABELS } from "../../utils/constants";
+import { STORAGE_KEYS, TABLES } from "../../utils/constants";
 import { now, uuid } from "../../utils/helpers";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
 import { validateComEmail, isValidComEmail, EMAIL_COM_ERROR } from "../../utils/emailValidation";

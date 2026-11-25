@@ -1,13 +1,13 @@
-import { useState, useEffect, useMemo, useRef, Fragment } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Button, Modal, ConfirmDialog, AlertDialog, EmptyState, Badge, TagBadge } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, AlertDialog, EmptyState, Badge } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../hooks/useAuth";
 import { TABLES, OPERATOR_TEAMS } from "../../utils/constants";
 import { staffService } from "../../services/staffService";
-import { formatDate, formatFullDate, formatTime, formatPhDateTime, formatPhDate, initials, today, isWaitingForSlaughter, isStepDone, getStepTimestamp, getStepUser, formatSex, formatLivestockAge } from "../../utils/helpers";
+import { formatDate, formatTime, formatPhDateTime, formatPhDate, initials, today, isWaitingForSlaughter, isStepDone, getStepTimestamp, getStepUser, formatSex, formatLivestockAge } from "../../utils/helpers";
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
 import { getCurrentActor } from "../../utils/processHistory";
 

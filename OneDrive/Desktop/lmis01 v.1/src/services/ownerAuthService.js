@@ -1,7 +1,7 @@
 import { supabase } from "./supabaseClient.js";
 import { notifyDbChange } from "./realtimeSync.js";
-import { TABLES, STORAGE_KEYS } from "../utils/constants.js";
-import { now, today, uuid } from "../utils/helpers.js";
+import { TABLES } from "../utils/constants.js";
+import { now, today } from "../utils/helpers.js";
 import { logActivity, notifyOwner, notifyRole, activityService } from "./activityService.js";
 import { validatePassword } from "../utils/passwordValidation.js";
 import { validatePhilippineMobileNumber } from "../utils/phoneValidation.js";

@@ -4,7 +4,7 @@ import { Icon } from "../../components/icons";
 import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../services/supabaseClient";
 import { TABLES } from "../../utils/constants";
-import { formatDate, formatPhDateTime, formatSex, getManilaTodayDateString, isTodayInManila } from "../../utils/formatters";
+import { formatPhDateTime, formatSex, getManilaTodayDateString, isTodayInManila } from "../../utils/formatters";
 import { getOwnerCondemnationDetails } from "../../utils/condemnationHelpers";
 import { subscribeOwnerLiveRefresh, buildOwnerScope } from "../../utils/ownerLiveRefresh";
 import { OwnerCondemnationModal } from "../../components/owner/OwnerCondemnationModal";

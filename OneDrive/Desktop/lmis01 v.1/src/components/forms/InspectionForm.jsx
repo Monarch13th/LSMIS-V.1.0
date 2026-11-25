@@ -1,9 +1,8 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from "react";
-import { Select, Textarea } from "../ui/Input";
 import { Button } from "../ui/Button";
 import { Icon } from "../icons";
 import { useToast } from "../notifications/Toast";
-import { Modal, ConfirmDialog } from "../ui/Modal";
+import { ConfirmDialog } from "../ui/Modal";
 import { getCurrentActor } from "../../utils/processHistory";
 import { formatSex } from "../../utils/formatters";
 import { scrollToFirstError } from "../../utils/formValidation";

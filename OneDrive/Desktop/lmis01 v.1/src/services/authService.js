@@ -1,6 +1,5 @@
 import { supabase } from "./supabaseClient";
 import { STORAGE_KEYS, TABLES } from "../utils/constants";
-import { uuid, now } from "../utils/helpers";
 import { logActivity, removeActiveSession } from "./activityService";
 import { authSecurityService } from "./authSecurityService";
 

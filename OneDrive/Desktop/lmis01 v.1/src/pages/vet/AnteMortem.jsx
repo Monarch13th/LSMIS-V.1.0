@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Button, Modal, ConfirmDialog, AlertDialog, PageHeader, StatCard, EmptyState, Badge, Pagination } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, AlertDialog, EmptyState, Badge } from "../../components/ui";
 import { TagBadge } from "../../components/ui/TagBadge";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
@@ -9,11 +9,10 @@ import { TABLES } from "../../utils/constants";
 import { vetService } from "../../services/vetService";
 import { InspectionForm } from "../../components/forms/InspectionForm";
 import { formatDate, formatPhDateTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
-import { CondemnedMeatRecords, EvidenceUpload } from "./VetExtra";
-import { getCondemnationStage, matchesStage, isAnteCondemnedStatus } from "./condemnationStage";
+import { EvidenceUpload } from "./VetExtra";
+import { matchesStage, isAnteCondemnedStatus } from "./condemnationStage";
 import { useCondemnationEvidenceIndex } from "./condemnationEvidenceIndex";
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
-import { getRemainingAnteMortemForOwner, getAllRemainingAnteMortem } from "../../services/modalLifecycleService";
 
 export const AnteMortem = ({ initialTab = "awaiting" }) => {
   const { data: data = [], loading: loadingAnte, refresh: refreshData } = useSupabase(TABLES.ANTE_MORTEM);

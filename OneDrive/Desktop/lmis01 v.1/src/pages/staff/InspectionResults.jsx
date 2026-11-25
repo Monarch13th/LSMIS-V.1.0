@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Button, Badge, Modal, EmptyState, TagBadge, Pagination } from "../../components/ui";
+import { Button, Modal, EmptyState, TagBadge, Pagination } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
-import { formatPhDateTime, formatDate, formatSex } from "../../utils/formatters";
+import { formatPhDateTime, formatSex } from "../../utils/formatters";
 import { initials, today } from "../../utils/helpers";
 import {
   isAnteCondemnedDecision,

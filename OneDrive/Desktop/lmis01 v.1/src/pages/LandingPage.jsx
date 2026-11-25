@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Icon } from "../components/icons";
 import { useAuth } from "../hooks/useAuth";
 import { ownerAuthService } from "../services/ownerAuthService";
-import { isCapacitorNativeApp, isInstalledApp } from "../utils/capacitor";
+import { isInstalledApp } from "../utils/capacitor";
 import logoImg from "../assets/logo.png";
 
 const heroInspectorImg = "/hero-inspector.jpg";

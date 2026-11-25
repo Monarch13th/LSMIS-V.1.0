@@ -1,4 +1,3 @@
-import { TABLES } from "./constants.js";
 
 export const DEFAULT_OWNER_PROFILE = null;
 export const DEFAULT_PENDING_OWNER_PROFILE = null;

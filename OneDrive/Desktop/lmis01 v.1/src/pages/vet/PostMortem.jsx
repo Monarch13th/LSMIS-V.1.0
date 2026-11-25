@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, Fragment } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Button, Modal, ConfirmDialog, AlertDialog, PageHeader, StatCard, EmptyState, Badge, Pagination } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, AlertDialog, EmptyState, Badge } from "../../components/ui";
 import { TagBadge } from "../../components/ui/TagBadge";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
@@ -9,11 +9,10 @@ import { TABLES } from "../../utils/constants";
 import { vetService } from "../../services/vetService";
 import { InspectionForm } from "../../components/forms/InspectionForm";
 import { formatDate, formatPhDateTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
-import { CondemnedMeatRecords, EvidenceUpload } from "./VetExtra";
+import { EvidenceUpload } from "./VetExtra";
 import { matchesStage, getPostOutcome, isPostWholeDecision, isPostPartialInspection } from "./condemnationStage";
 import { useCondemnationEvidenceIndex } from "./condemnationEvidenceIndex";
 import { ProcessHistoryTimeline } from "../../components/common/ProcessHistoryTimeline";
-import { getRemainingPostMortemForOwner, getAllRemainingPostMortem } from "../../services/modalLifecycleService";
 import nagaCitySealImg from "../../assets/naga_city_seal.png";
 import bagongPilipinasImg from "../../assets/bagong_pilipinas.png";
 

@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
-import { Card, StatCard, Button, Input, Select, Modal, ConfirmDialog, PageHeader, EmptyState, Pagination } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, EmptyState } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
-import { TABLES, ROLE_LABELS } from "../../utils/constants";
+import { TABLES } from "../../utils/constants";
 import { adminService } from "../../services/adminService";
 import { supabase } from "../../services/supabaseClient";
 import { initials } from "../../utils/helpers";

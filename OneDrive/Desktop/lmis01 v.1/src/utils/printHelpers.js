@@ -1,4 +1,4 @@
-import { formatDate, formatCurrency, formatPhTime } from "./formatters";
+import { formatDate, formatPhTime } from "./formatters";
 import { normalizeAnimalType } from "../services/feeService";
 import nagaCitySealImg from "../assets/naga_city_seal.png";
 import bagongPilipinasImg from "../assets/bagong_pilipinas.png";

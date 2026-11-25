@@ -1,4 +1,3 @@
-import React from "react";
 import { RoleReportsModule } from "../../components/reports/RoleReportsModule";
 
 export const InspectionHistory = ({

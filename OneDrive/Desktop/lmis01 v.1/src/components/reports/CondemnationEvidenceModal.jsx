@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Icon } from "../icons";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";

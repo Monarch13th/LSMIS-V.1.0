@@ -1,6 +1,5 @@
-import React from "react";
 import { formatPhDateTime, initials, formatSex } from "../../utils/helpers";
-import { parseHistory, formatAttribution, getAttributionName } from "../../utils/processHistory";
+import { parseHistory, getAttributionName } from "../../utils/processHistory";
 import { Badge } from "../ui/Badge";
 import { Icon } from "../icons";
 

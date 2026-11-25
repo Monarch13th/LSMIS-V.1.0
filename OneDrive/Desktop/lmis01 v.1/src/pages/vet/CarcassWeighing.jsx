@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useRef, Fragment } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Card, Button, Modal, ConfirmDialog, AlertDialog, PageHeader, StatCard, EmptyState, Badge, Pagination } from "../../components/ui";
+import { Button, Modal, ConfirmDialog, AlertDialog, EmptyState, Badge } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";

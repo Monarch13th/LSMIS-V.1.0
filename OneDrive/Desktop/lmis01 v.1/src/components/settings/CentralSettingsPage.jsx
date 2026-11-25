@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, Button, AlertDialog, ConfirmDialog, Modal } from "../ui";
+import { Card, Button, AlertDialog, ConfirmDialog } from "../ui";
 import { Icon } from "../icons";
 import { useAuth } from "../../hooks/useAuth";
 import { useToast } from "../notifications/Toast";

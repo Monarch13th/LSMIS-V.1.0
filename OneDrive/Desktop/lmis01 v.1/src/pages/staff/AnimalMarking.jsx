@@ -1,12 +1,12 @@
-import { useState, useEffect, useMemo, useCallback, Fragment } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Button, Badge, Modal, PageHeader, EmptyState, TagBadge, ConfirmDialog, Pagination, AlertDialog } from "../../components/ui";
+import { Button, Badge, Modal, EmptyState, TagBadge, ConfirmDialog, AlertDialog } from "../../components/ui";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
 import { TABLES } from "../../utils/constants";
 import { staffService } from "../../services/staffService";
-import { formatDate, formatPhDateTime, formatTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
+import { formatDate, formatPhDateTime, initials, today, formatSex, formatLivestockAge } from "../../utils/helpers";
 import { SearchableAgeInput, validateAgeInput, extractAgeComponents } from "../../components/common/SearchableAgeInput";
 
 const MARK_TYPES = [

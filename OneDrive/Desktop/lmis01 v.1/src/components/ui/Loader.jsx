@@ -1,4 +1,3 @@
-import { Icon } from "../icons";
 import logoImg from "../../assets/logo.png";
 
 export const Loader = () => <div className="loader" />;

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "../../components/icons";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,7 +9,7 @@ import { uploadAvatarFile } from "../../services/avatarService";
 import { authStore } from "../../store/authStore";
 import { ownerAuthService } from "../../services/ownerAuthService";
 import { isInstalledApp } from "../../utils/capacitor";
-import { AlertDialog, ConfirmDialog, Modal } from "../../components/ui";
+import { AlertDialog, ConfirmDialog } from "../../components/ui";
 import {
   validatePhilippineMobileNumber,
   sanitizePhilippineMobileInput,

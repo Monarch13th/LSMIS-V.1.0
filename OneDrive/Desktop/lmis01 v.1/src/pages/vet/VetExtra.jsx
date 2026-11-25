@@ -1,30 +1,19 @@
 import { ModulePage } from "../../components/ModulePage";
 import { RoleReportsModule } from "../../components/reports/RoleReportsModule";
-import { Card, PageHeader, Button, Input, Select, Textarea, Modal, ConfirmDialog, AlertDialog, Badge, StatCard, EmptyState, Pagination } from "../../components/ui";
+import { Card, PageHeader, Button, Input, Select, Textarea, Modal, ConfirmDialog, AlertDialog, StatCard, EmptyState } from "../../components/ui";
 import { TagBadge } from "../../components/ui/TagBadge";
 import { Icon } from "../../components/icons";
 import { useToast } from "../../components/notifications/Toast";
 import { useSupabase } from "../../hooks/useSupabase";
 import { useAuth } from "../../hooks/useAuth";
 import { TABLES } from "../../utils/constants";
-import { formatDate, formatPhDateTime, formatCertDateTime, formatSex, formatLivestockAge } from "../../utils/formatters";
+import { formatDate, formatPhDateTime, formatSex, formatLivestockAge } from "../../utils/formatters";
 import { today, initials } from "../../utils/helpers";
 import { scrollToFirstError } from "../../utils/formValidation";
-import { useState, useRef, useEffect, useMemo, useCallback, Fragment } from "react";
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { vetService } from "../../services/vetService";
 import { InspectionForm, CONDEMNED_PARTS_LIST, CONDEMNED_REASONS_LIST, CARCASS_AREAS, SPECIFIC_PARTS_BY_AREA } from "../../components/forms/InspectionForm";
-import {
-  getCondemnationStage,
-  matchesStage,
-  isAnteCondemnedStatus,
-  isPostCondemnedStatus,
-  isPostWholeDecision,
-  isPostPartialInspection,
-  isAnteCondemnedDecision,
-  getPostOutcome,
-  evidenceMatchesStage,
-  cleanTag as tagKey,
-} from "./condemnationStage";
+import { getCondemnationStage, matchesStage, isAnteCondemnedStatus, isPostWholeDecision, isPostPartialInspection, isAnteCondemnedDecision, getPostOutcome, evidenceMatchesStage, cleanTag as tagKey } from "./condemnationStage";
 import {
   useCondemnationEvidenceIndex,
   getEvidenceScope as getEvidenceScopeFor,

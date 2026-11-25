@@ -1,10 +1,6 @@
 import { supabase } from "./supabaseClient";
 import { TABLES } from "../utils/constants";
-import {
-  num, toDate, pickDate, recency, isSameMonth, isPaidPayment, sumPaid, countDecisions,
-  deltaText, calculateInspectionCategoryCounts,
-  PAYMENT_DATE_FIELDS, LIVESTOCK_DATE_FIELDS, INSPECTION_DATE_FIELDS,
-} from "../utils/dashboardMetrics";
+import { toDate, pickDate, recency, isSameMonth, LIVESTOCK_DATE_FIELDS } from "../utils/dashboardMetrics";
 
 let _cachedMetrics = null;
 let _cachedTime = 0;
