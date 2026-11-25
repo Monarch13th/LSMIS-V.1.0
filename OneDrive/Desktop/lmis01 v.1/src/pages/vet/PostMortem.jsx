@@ -2275,20 +2275,6 @@ export const PostMortem = ({ initialTab = "awaiting" }) => {
                           <div className="table-action-group">
                             <button
                               type="button"
-                              className="action-btn action-btn-outline"
-                              onClick={() => {
-                                const ownerKey = selectedOwnerView?.key || null;
-                                setSelectedOwnerKey(null);
-                                setReturnToOwnerKey(ownerKey);
-                                setViewingAwaitingItem(item);
-                              }}
-                              title={`View details for ${item.tag_number}`}
-                            >
-                              <Icon.Eye size={13} />
-                              <span>View</span>
-                            </button>
-                            <button
-                              type="button"
                               className="action-btn action-btn-purple"
                               onClick={() => {
                                 setSelectedOwnerKey(null);
