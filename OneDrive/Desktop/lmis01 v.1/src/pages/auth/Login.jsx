@@ -6,7 +6,7 @@ import { Icon } from "../../components/icons";
 import { isCapacitorNativeApp, isInstalledApp } from "../../utils/capacitor";
 import { useToast } from "../../components/notifications/Toast";
 import { PasswordRequirements } from "../../components/ui/PasswordRequirements";
-import { authStore, normalizeRole, setSessionStorageItem, removeSessionStorageItem } from "../../store/authStore";
+import { authStore, normalizeRole, setSessionStorageItem, removeSessionStorageItem, setEmailSignInInProgress } from "../../store/authStore";
 import { STORAGE_KEYS, TABLES } from "../../utils/constants";
 import { now, uuid } from "../../utils/helpers";
 import { validatePassword, getPasswordValidationError } from "../../utils/passwordValidation";
@@ -145,7 +145,7 @@ export const Login = ({ embedded = false, initialView }) => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const { session: currentSession, role: currentRole, loading: authLoading } = useAuth();
+  const { session: currentSession, role: currentRole, loading: authLoading, isInitialized: authInitialized } = useAuth();
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -201,15 +201,16 @@ export const Login = ({ embedded = false, initialView }) => {
       return;
     }
 
-    if (!embedded && !authLoading && currentSession && currentRole) {
+    const targetRole = normalizeRole(currentRole);
+    if (!embedded && authInitialized && !authLoading && currentSession && targetRole) {
       const prevPath = location.state?.from?.pathname;
-      if (prevPath && prevPath.startsWith(`/${currentRole}`)) {
+      if (prevPath && prevPath.startsWith(`/${targetRole}`)) {
         navigate(prevPath, { replace: true });
       } else {
-        navigate(`/${currentRole}`, { replace: true });
+        navigate(`/${targetRole}`, { replace: true });
       }
     }
-  }, [embedded, authLoading, currentSession, currentRole, navigate, location.state, loading, googleLoginLoading, pending2FA]);
+  }, [embedded, authInitialized, authLoading, currentSession, currentRole, navigate, location.state, loading, googleLoginLoading, pending2FA]);
 
   const emailRef = useRef(null);
   const fpEmailRef = useRef(null);
@@ -613,7 +614,7 @@ export const Login = ({ embedded = false, initialView }) => {
         }
 
         setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
-        authStore.set({ session, loading: false, isInitialized: true });
+        authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
         setGoogleLoginLoading(false);
 
         try {
@@ -1162,8 +1163,9 @@ export const Login = ({ embedded = false, initialView }) => {
     setError("");
     setConcurrentNoticeOpen(false);
     sessionStorage.removeItem("lsmis_concurrent_logout_notice");
-    if (typeof window !== "undefined" && window.history && window.history.replaceState) {
-      window.history.replaceState({}, document.title, window.location.pathname);
+    sessionStorage.removeItem("lsmis_termination_notice");
+    if (typeof window !== "undefined" && window.location.search && window.history && window.history.replaceState) {
+      window.history.replaceState(window.history.state || {}, document.title, window.location.pathname);
     }
 
     const triggerShake = () => {
@@ -1266,7 +1268,8 @@ export const Login = ({ embedded = false, initialView }) => {
       }
 
       removeSessionStorageItem(STORAGE_KEYS.SESSION);
-      authStore.set({ session: null, mfaRequired: false });
+      authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: false });
+      setEmailSignInInProgress(true);
 
       let authData = null;
       let authError = null;
@@ -1571,7 +1574,7 @@ export const Login = ({ embedded = false, initialView }) => {
       }
 
       setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
-      authStore.set({ session });
+      authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
 
       try {
         supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
@@ -1602,6 +1605,7 @@ export const Login = ({ embedded = false, initialView }) => {
       setError(err.message || "An unexpected error occurred while logging in. Please try again.");
       triggerShake();
     } finally {
+      setEmailSignInInProgress(false);
       signInInFlightRef.current = false;
     }
   };

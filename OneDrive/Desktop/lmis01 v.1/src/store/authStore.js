@@ -351,6 +351,11 @@ async function resolveUserSession(supabaseUser, existingCached = null) {
 }
 
 let isAuthInitialized = false;
+let emailSignInInProgress = false;
+
+export const setEmailSignInInProgress = (inProgress) => {
+  emailSignInInProgress = Boolean(inProgress);
+};
 
 export const initializeAuth = async () => {
   if (isAuthInitialized || typeof window === "undefined") return;
@@ -435,7 +440,11 @@ export const initializeAuth = async () => {
         try {
           removeSessionStorageItem(STORAGE_KEYS.SESSION);
         } catch (_) { }
-        authStore.set({ session: null, loading: false, isInitialized: true });
+        authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: false });
+        return;
+      }
+
+      if (emailSignInInProgress) {
         return;
       }
 
@@ -516,6 +525,7 @@ export const useAuthStore = (selector) => {
       const next = selector ? selector(authStore.get()) : authStore.get();
       setSlice((prev) => (prev !== next ? next : prev));
     };
+    update();
     return authStore.subscribe(update);
   }, []);
 

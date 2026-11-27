@@ -231,6 +231,9 @@ const Shell = () => {
 
   useEffect(() => {
     repairCorruptedMockData();
+  }, []);
+
+  useEffect(() => {
     try {
       const pathname = window.location.pathname || "/";
       const search = window.location.search || "";

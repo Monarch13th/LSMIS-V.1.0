@@ -1,3 +1,4 @@
+import { useCallback } from "react";
 import { authStore, useAuthStore } from "../store/authStore";
 import { authService } from "../services/authService";
 
@@ -7,16 +8,16 @@ export const useAuth = () => {
   const isInitialized = useAuthStore((s) => s?.isInitialized);
   const mfaRequired = useAuthStore((s) => Boolean(s?.mfaRequired));
 
-  const signIn = async (role, username, password) => {
+  const signIn = useCallback(async (role, username, password) => {
     const { data, error } = await authService.signIn(role, username, password);
     if (data) authStore.set({ session: data, loading: false, isInitialized: true, mfaRequired: false });
     return { data, error };
-  };
+  }, []);
 
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     await authService.signOut();
     authStore.set({ session: null, loading: false, isInitialized: true, mfaRequired: false });
-  };
+  }, []);
 
   return {
     session,

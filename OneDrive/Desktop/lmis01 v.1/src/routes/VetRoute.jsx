@@ -48,7 +48,7 @@ export const VetRoute = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [loading, session?.email, signOut]);
+  }, [loading, isInitialized, session?.email, signOut]);
 
   if (mfaRequired) return <Navigate to="/login?mfa=required" replace />;
   if (isTerminated || sessionStorage.getItem("lsmis_termination_notice")) {
