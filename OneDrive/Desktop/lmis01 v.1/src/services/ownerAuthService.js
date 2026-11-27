@@ -58,12 +58,12 @@ export const ownerAuthService = {
         resolvedBase = "https://lsmis.vercel.app";
       }
     } else if (import.meta.env?.PROD) {
-      if (envProdUrl && !isLocalhostUrl(envProdUrl)) {
-        resolvedBase = envProdUrl;
-      } else if (browserOrigin && !isLocalhostUrl(browserOrigin)) {
+      if (browserOrigin && !isLocalhostUrl(browserOrigin)) {
         resolvedBase = browserOrigin;
+      } else if (envProdUrl && !isLocalhostUrl(envProdUrl)) {
+        resolvedBase = envProdUrl;
       } else {
-        resolvedBase = envProdUrl || browserOrigin;
+        resolvedBase = browserOrigin || envProdUrl;
       }
     } else {
       if (browserOrigin && !isBrowserOnLocalhost) {

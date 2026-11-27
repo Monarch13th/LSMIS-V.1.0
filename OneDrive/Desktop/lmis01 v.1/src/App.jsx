@@ -202,8 +202,6 @@ const LandingGate = () => {
     return () => clearTimeout(t);
   }, [loading, isInitialized]);
 
-  if (!isInstalledApp()) return <LandingPage />;
-
   if (hasActiveOAuthCallback()) {
     const search = window.location.search || "";
     const hash = window.location.hash || initialOAuthCallback?.hash || "";
@@ -214,6 +212,8 @@ const LandingGate = () => {
         : "?oauth_intent=login";
     return <Navigate to={`/login${nextSearch}${hash}`} replace />;
   }
+
+  if (!isInstalledApp()) return <LandingPage />;
 
   if ((loading || !isInitialized) && !gateTimeout) {
     return null;

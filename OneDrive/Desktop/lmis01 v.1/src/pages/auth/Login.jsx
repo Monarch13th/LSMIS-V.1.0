@@ -77,8 +77,15 @@ export const Login = ({ embedded = false, initialView }) => {
   useEffect(() => {
     if (isInstalled) {
       try {
-        if (window.location.pathname === "/login") {
-          window.history.replaceState(null, "", "/login");
+        const hasOAuth =
+          Boolean(initialOAuthCallback?.hasOAuthTokens) ||
+          (window.location.search || "").includes("code=") ||
+          (window.location.search || "").includes("oauth_intent=") ||
+          (window.location.search || "").includes("error=") ||
+          (window.location.hash || "").includes("access_token=") ||
+          (window.location.hash || "").includes("error=");
+        if (window.location.pathname === "/login" && !hasOAuth) {
+          window.history.replaceState(window.history.state || null, "", "/login");
         }
       } catch (_) { }
     }
@@ -87,6 +94,7 @@ export const Login = ({ embedded = false, initialView }) => {
   const [isShaking, setIsShaking] = useState(false);
 
   const [googleLoginLoading, setGoogleLoginLoading] = useState(false);
+  const [googleAuthStage, setGoogleAuthStage] = useState(null);
   const oauthHandledRef = useRef(false);
   const signInInFlightRef = useRef(false);
   const inFlightOAuthRef = useRef(false);
@@ -372,7 +380,7 @@ export const Login = ({ embedded = false, initialView }) => {
     if (typeof window === "undefined") return;
 
     const checkOAuthReturnWithoutTokens = async () => {
-      if (oauthHandledRef.current) return;
+      if (oauthHandledRef.current || googleAuthStage === "verifying" || googleAuthStage === "redirecting") return;
       const inFlightTs = sessionStorage.getItem("lsmis_google_oauth_in_flight");
       if (!inFlightTs) return;
 
@@ -383,6 +391,7 @@ export const Login = ({ embedded = false, initialView }) => {
         Boolean(initialOAuthCallback?.hasOAuthTokens) ||
         Boolean(hashParams.get("access_token")) ||
         Boolean(searchParams.get("code")) ||
+        Boolean(searchParams.get("oauth_intent")) ||
         Boolean(searchParams.get("error")) ||
         Boolean(hashParams.get("error"));
 
@@ -403,6 +412,7 @@ export const Login = ({ embedded = false, initialView }) => {
       }
       popupRef.current = null;
       setGoogleLoginLoading(false);
+      setGoogleAuthStage(null);
     };
 
     const handlePageShow = () => {
@@ -458,6 +468,7 @@ export const Login = ({ embedded = false, initialView }) => {
       }
 
       setGoogleLoginLoading(false);
+      setGoogleAuthStage(null);
 
       if (isCancellation) {
         return;
@@ -483,6 +494,7 @@ export const Login = ({ embedded = false, initialView }) => {
 
     setView("signin");
     setGoogleLoginLoading(true);
+    setGoogleAuthStage("verifying");
     setError("");
 
     let isCancelled = false;
@@ -492,9 +504,7 @@ export const Login = ({ embedded = false, initialView }) => {
       if (!sbSession?.user) return;
       oauthHandledRef.current = true;
       inFlightOAuthRef.current = false;
-      if (initialOAuthCallback) {
-        initialOAuthCallback.hasOAuthTokens = false;
-      }
+      setGoogleAuthStage("verifying");
 
       if (popupPollTimerRef.current) {
         clearInterval(popupPollTimerRef.current);
@@ -502,17 +512,12 @@ export const Login = ({ embedded = false, initialView }) => {
       }
       popupRef.current = null;
 
-      ownerAuthService.cleanGoogleOAuthState();
-      if (window.history && window.history.replaceState) {
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-
       try {
         const result = await ownerAuthService.verifyAndConnectGoogleLogin(sbSession.user);
         if (isCancelled) return;
 
         const cleanEmail = result.googleData.email;
-        const role = result.role;
+        const role = normalizeRole(result.role);
         const name = result.name;
         const username = result.username;
         const ownerId = result.ownerId;
@@ -615,7 +620,14 @@ export const Login = ({ embedded = false, initialView }) => {
 
         setSessionStorageItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
         authStore.set({ session, loading: false, isInitialized: true, mfaRequired: false });
-        setGoogleLoginLoading(false);
+
+        if (initialOAuthCallback) {
+          initialOAuthCallback.hasOAuthTokens = false;
+        }
+        ownerAuthService.cleanGoogleOAuthState();
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(window.history.state || {}, document.title, window.location.pathname);
+        }
 
         try {
           supabase.from(TABLES.USERS).update({ last_login: now() }).ilike("email", cleanEmail).then();
@@ -631,17 +643,28 @@ export const Login = ({ embedded = false, initialView }) => {
           }).then();
         } catch (_) { }
 
+        setGoogleAuthStage("redirecting");
         showToast(`Welcome back, ${name}!`, "success");
         const prevPath = location.state?.from?.pathname;
-        if (prevPath && prevPath.startsWith(`/${role}`)) {
-          navigate(prevPath, { replace: true });
-        } else {
-          navigate(`/${role}`, { replace: true });
-        }
+        const dest = (prevPath && prevPath.startsWith(`/${role}`)) ? prevPath : `/${role}`;
+        setTimeout(() => {
+          if (isCancelled) return;
+          setGoogleLoginLoading(false);
+          setGoogleAuthStage(null);
+          navigate(dest, { replace: true });
+        }, 280);
       } catch (err) {
         if (isCancelled) return;
         setGoogleLoginLoading(false);
+        setGoogleAuthStage(null);
         inFlightOAuthRef.current = false;
+        if (initialOAuthCallback) {
+          initialOAuthCallback.hasOAuthTokens = false;
+        }
+        ownerAuthService.cleanGoogleOAuthState();
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(window.history.state || {}, document.title, window.location.pathname);
+        }
         try { await supabase.auth.signOut({ scope: "local" }); } catch (_) { }
 
         try {
@@ -691,20 +714,28 @@ export const Login = ({ embedded = false, initialView }) => {
     let authSub = null;
     let cancelFallbackTimer = null;
     (async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        if (data?.session?.user) {
-          await finalizeGoogleOAuth(data.session);
-          return;
-        }
-      } catch (_) { }
-
       const { data: subData } = supabase.auth.onAuthStateChange(async (event, sbSession) => {
         if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && sbSession?.user) {
           await finalizeGoogleOAuth(sbSession);
         }
       });
       authSub = subData?.subscription;
+
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (data?.session?.user) {
+          await finalizeGoogleOAuth(data.session);
+          return;
+        }
+        const pkceCode = searchParams.get("code");
+        if (pkceCode && !oauthHandledRef.current) {
+          const { data: exchData } = await supabase.auth.exchangeCodeForSession(pkceCode);
+          if (exchData?.session?.user) {
+            await finalizeGoogleOAuth(exchData.session);
+            return;
+          }
+        }
+      } catch (_) { }
 
       cancelFallbackTimer = setTimeout(async () => {
         if (isCancelled || oauthHandledRef.current) return;
@@ -716,11 +747,16 @@ export const Login = ({ embedded = false, initialView }) => {
           }
         } catch (_) { }
         if (!oauthHandledRef.current) {
+          if (initialOAuthCallback) {
+            initialOAuthCallback.hasOAuthTokens = false;
+          }
           ownerAuthService.cleanGoogleOAuthState();
           inFlightOAuthRef.current = false;
           setGoogleLoginLoading(false);
+          setGoogleAuthStage(null);
+          setError("Google authentication timed out or could not be completed. Please try again.");
         }
-      }, 4000);
+      }, 10000);
     })();
 
     return () => {
@@ -881,6 +917,7 @@ export const Login = ({ embedded = false, initialView }) => {
     setError("");
     setConcurrentNoticeOpen(false);
     setGoogleLoginLoading(true);
+    setGoogleAuthStage("connecting");
     inFlightOAuthRef.current = true;
     oauthHandledRef.current = false;
 
@@ -903,6 +940,7 @@ export const Login = ({ embedded = false, initialView }) => {
       inFlightOAuthRef.current = false;
       ownerAuthService.cleanGoogleOAuthState();
       setGoogleLoginLoading(false);
+      setGoogleAuthStage(null);
 
       const isNetworkError =
         !navigator.onLine ||
@@ -3590,6 +3628,62 @@ export const Login = ({ embedded = false, initialView }) => {
                 </div>
               </div>
             </Modal>
+
+            {googleLoginLoading && googleAuthStage && (
+              <div
+                className="google-auth-overlay"
+                role="dialog"
+                aria-modal="true"
+                aria-live="polite"
+                aria-label="Google Authentication Status"
+              >
+                <div className="google-auth-card">
+                  <div className="google-auth-logos">
+                    <div className="google-auth-logo-badge">
+                      <img src={logoImg} alt="LSMIS Logo" />
+                    </div>
+                    <div className="google-auth-connector" aria-hidden="true">
+                      <span className="google-auth-dot" />
+                      <span className="google-auth-dot" />
+                      <span className="google-auth-dot" />
+                    </div>
+                    <div className="google-auth-logo-badge">
+                      <GoogleLogo size={28} />
+                    </div>
+                  </div>
+                  <div className="google-auth-spinner-wrap" aria-hidden="true">
+                    <div className="google-auth-spinner-ring" />
+                  </div>
+                  <h3 className="google-auth-stage-title">
+                    {googleAuthStage === "connecting"
+                      ? "Connecting to Google..."
+                      : googleAuthStage === "verifying"
+                        ? "Verifying your account..."
+                        : "Preparing your dashboard..."}
+                  </h3>
+                  <p className="google-auth-stage-sub">
+                    {googleAuthStage === "connecting"
+                      ? "Redirecting securely to Google sign-in."
+                      : googleAuthStage === "verifying"
+                        ? "Checking your LSMIS account status and role."
+                        : "Loading your workspace. Please wait."}
+                  </p>
+                  <div className="google-auth-progress-track">
+                    <div
+                      className="google-auth-progress-bar"
+                      style={{
+                        width:
+                          googleAuthStage === "connecting"
+                            ? "35%"
+                            : googleAuthStage === "verifying"
+                              ? "72%"
+                              : "96%",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
           </div>
         </div>
