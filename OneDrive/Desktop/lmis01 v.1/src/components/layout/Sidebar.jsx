@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { Icon } from "../icons";
+import { ConfirmDialog } from "../ui";
 import { useAuth } from "../../hooks/useAuth";
 import { useRole } from "../../hooks/useRole";
 import { ROLE_LABELS } from "../../utils/constants";
@@ -117,6 +118,31 @@ const NavGroup = ({ group, onClose }) => {
 export const Sidebar = ({ items, open, onClose }) => {
   const { signOut, session } = useAuth();
   const { role } = useRole();
+  const navigate = useNavigate();
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleOpenLogoutConfirm = () => {
+    if (logoutConfirmOpen || loggingOut) return;
+    setLogoutConfirmOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    if (loggingOut) return;
+    setLogoutConfirmOpen(false);
+  };
+
+  const handleConfirmLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await signOut();
+    } finally {
+      setLogoutConfirmOpen(false);
+      setLoggingOut(false);
+      navigate("/login", { replace: true });
+    }
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -171,12 +197,24 @@ export const Sidebar = ({ items, open, onClose }) => {
           })}
         </nav>
         <div className="app-sidebar-foot" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <button className="nav-foot-btn" onClick={signOut}>
+          <button type="button" className="nav-foot-btn" onClick={handleOpenLogoutConfirm}>
             <Icon.LogOut />
             <span>Logout</span>
           </button>
         </div>
       </aside>
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onCancel={handleCancelLogout}
+        onConfirm={handleConfirmLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        cancelText="Cancel"
+        confirmText="Yes, Logout"
+        confirmVariant="danger"
+        loading={loggingOut}
+        size="sm"
+      />
     </>
   );
 };

@@ -442,12 +442,36 @@ export const OwnerProfile = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+
   const handleLogout = async () => {
     try {
       await signOut();
       navigate("/?login=true", { replace: true });
     } catch (err) {
       console.warn("Logout error:", err);
+    }
+  };
+
+  const handleOpenLogoutConfirm = () => {
+    if (logoutConfirmOpen || loggingOut) return;
+    setLogoutConfirmOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    if (loggingOut) return;
+    setLogoutConfirmOpen(false);
+  };
+
+  const handleConfirmLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await handleLogout();
+    } finally {
+      setLogoutConfirmOpen(false);
+      setLoggingOut(false);
     }
   };
 
@@ -816,13 +840,26 @@ export const OwnerProfile = () => {
 
       <button
         type="button"
-        onClick={handleLogout}
+        onClick={handleOpenLogoutConfirm}
         className="owner-profile-logout-btn"
         title="Sign out of the Livestock Owner Portal"
       >
         <Icon.LogOut size={16} />
         <span>Sign Out of Portal</span>
       </button>
+
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onCancel={handleCancelLogout}
+        onConfirm={handleConfirmLogout}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        cancelText="Cancel"
+        confirmText="Yes, Logout"
+        confirmVariant="danger"
+        loading={loggingOut}
+        size="sm"
+      />
 
       <ConfirmDialog
         open={Boolean(confirmAction)}

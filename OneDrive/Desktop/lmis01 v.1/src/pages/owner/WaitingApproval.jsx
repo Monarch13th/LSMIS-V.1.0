@@ -5,7 +5,7 @@ import { TABLES, STORAGE_KEYS } from "../../utils/constants";
 import { formatPhDateTime, formatDate } from "../../utils/formatters";
 import { initials } from "../../utils/helpers";
 import { Icon } from "../../components/icons";
-import { Button } from "../../components/ui";
+import { Button, ConfirmDialog } from "../../components/ui";
 import { useToast } from "../../components/notifications/Toast";
 import { authStore } from "../../store/authStore";
 import { adminService } from "../../services/adminService";
@@ -174,7 +174,20 @@ export const WaitingApproval = () => {
     };
   }, [ownerInfo?.email, ownerInfo?.id, showToast]);
 
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
+
+  const handleOpenLogoutConfirm = () => {
+    if (logoutConfirmOpen || signingOut) return;
+    setLogoutConfirmOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    if (signingOut) return;
+    setLogoutConfirmOpen(false);
+  };
+
   const handleSignOut = async () => {
+    if (signingOut) return;
     setSigningOut(true);
     try {
       try {
@@ -187,6 +200,7 @@ export const WaitingApproval = () => {
       sessionStorage.removeItem("lsmis_google_reg_draft");
       authStore.set({ session: null, loading: false });
     } finally {
+      setLogoutConfirmOpen(false);
       setSigningOut(false);
       navigate("/login", { replace: true });
     }
@@ -569,7 +583,7 @@ export const WaitingApproval = () => {
               variant="outline"
               size="lg"
               block
-              onClick={handleSignOut}
+              onClick={handleOpenLogoutConfirm}
               disabled={signingOut}
             >
               <Icon.LogOut size={15} />
@@ -578,6 +592,18 @@ export const WaitingApproval = () => {
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={logoutConfirmOpen}
+        onCancel={handleCancelLogout}
+        onConfirm={handleSignOut}
+        title="Confirm Logout"
+        message="Are you sure you want to log out?"
+        cancelText="Cancel"
+        confirmText="Yes, Logout"
+        confirmVariant="danger"
+        loading={signingOut}
+        size="sm"
+      />
     </div>
   );
 };
